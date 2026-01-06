@@ -1,0 +1,43 @@
+
+export const ROUTES = {
+    HOME: '/',
+    LOGIN: '/login',
+    REGISTER: '/register',
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
+    VERIFY_EMAIL_OTP: '/verify-email',
+    VERIFY_2FA: '/verify-2fa',
+    VERIFY_SMS: '/verify-sms',
+    SETUP_2FA: '/settings/security/2fa',
+    DASHBOARD: '/',
+    ANNOUNCEMENTS: '/announcements',
+    EVENTS: '/events',
+    TASKS: '/tasks',
+    PROFILE: '/profile',
+    COMMUNITY: '/community',
+    ROOMS: '/rooms',
+    MESSAGES: '/messages',
+    RESOURCES: '/resources',
+    INSTITUTIONS: '/institutions',
+    ORGANIZATIONS: '/organizations',
+    PAYMENTS: '/payments',
+    PAYMENT_METHODS: '/payments/methods',
+    SPECIALIZATIONS: '/specializations',
+    SETTINGS: '/settings',
+
+    // OAuth Callbacks
+    GOOGLE_CALLBACK: '/auth/callback',
+    APPLE_CALLBACK: '/auth/apple/callback',
+    FACEBOOK_CALLBACK: '/auth/facebook/callback',
+    X_CALLBACK: '/auth/x/callback',
+    GITHUB_CALLBACK: '/auth/github/callback',
+    MICROSOFT_CALLBACK: '/auth/microsoft/callback',
+
+    // New Features
+    ACTIVITY: '/activity',
+    DEVICES: '/devices',
+    PERMISSIONS: '/permissions',
+    SHOP: '/shop',
+    PRODUCT_DETAILS: '/shop/:id',
+    PIGGY_BANKS: '/piggy-banks',
+}

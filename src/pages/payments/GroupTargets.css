@@ -1,0 +1,256 @@
+.group-targets {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.targets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.targets-header h1 {
+    font-size: 2rem;
+    color: #1a1a1a;
+}
+
+.btn-create {
+    padding: 0.75rem 1.5rem;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-create:hover {
+    background: #45a049;
+}
+
+.create-target-form {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-target-form h2 {
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.create-target-form select,
+.create-target-form input,
+.create-target-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.create-target-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: #1976D2;
+}
+
+.targets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.target-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.target-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.target-card.achieved {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.achieved-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.target-header {
+    margin-bottom: 1rem;
+}
+
+.target-header h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.group-name {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.target-card.achieved .group-name {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.target-description {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.target-card.achieved .target-description {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.target-date {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.target-card.achieved .target-date {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-section {
+    margin-bottom: 1.5rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.current-amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.target-card.achieved .current-amount {
+    color: white;
+}
+
+.target-amount {
+    font-size: 1.25rem;
+    color: #666;
+}
+
+.target-card.achieved .target-amount {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.target-card.achieved .progress-bar {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    transition: width 0.3s ease;
+    border-radius: 6px;
+}
+
+.target-card.achieved .progress-fill {
+    background: white;
+}
+
+.progress-percentage {
+    text-align: center;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+.target-card.achieved .progress-percentage {
+    color: white;
+}
+
+.btn-contribute {
+    width: 100%;
+    padding: 0.75rem;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-contribute:hover {
+    background: #1976D2;
+}
+
+.no-targets {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.125rem;
+    color: #666;
+}
+
+.loading {
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.25rem;
+    color: #666;
+}
