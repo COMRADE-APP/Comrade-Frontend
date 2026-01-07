@@ -39,5 +39,16 @@ export const ROUTES = {
     PERMISSIONS: '/permissions',
     SHOP: '/shop',
     PRODUCT_DETAILS: '/shop/:id',
-    PIGGY_BANKS: '/piggy-banks',
+
+    // New Portal Features
+    CREATE_INSTITUTION: '/institutions/portal/create',
+    VERIFY_INSTITUTION: '/institutions/portal/:id/verify',
+    CREATE_ORGANIZATION: '/organizations/portal/create',
+    VERIFY_ORGANIZATION: '/organizations/portal/:id/verify',
+    SETUP_TOTP: '/settings/security/totp',
+    PAYMENT_CHECKOUT: '/payments/checkout',
+    CONVERT_SERVICE: '/announcements/convert',
+    ADMIN_REVIEW_INSTITUTIONS: '/admin/review/institutions',
+    ADMIN_REVIEW_ORGANIZATIONS: '/admin/review/organizations',
+    PORTAL_EXAMPLE: '/portal/example',
 }

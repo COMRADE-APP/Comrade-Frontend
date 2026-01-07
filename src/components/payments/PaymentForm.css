@@ -1,0 +1,146 @@
+.payment-form {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.payment-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.payment-form-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.payment-amount {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.payment-amount .currency {
+    display: block;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment-amount .amount {
+    display: block;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.payment-description {
+    text-align: center;
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.payment-method-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.payment-method-selector label {
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.payment-method-selector label:hover {
+    border-color: #4a90e2;
+}
+
+.payment-method-selector label.active {
+    border-color: #4a90e2;
+    background: #f0f7ff;
+}
+
+.payment-method-selector input[type="radio"] {
+    display: none;
+}
+
+.card-element-container {
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    background: white;
+}
+
+.mpesa-input {
+    margin-bottom: 1.5rem;
+}
+
+.mpesa-input .form-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.mpesa-input .help-text {
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.btn-pay {
+    width: 100%;
+    padding: 1rem;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-pay:hover:not(:disabled) {
+    background: #357abd;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+
+.btn-pay:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.payment-secure {
+    text-align: center;
+    color: #999;
+    font-size: 0.85rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #fcc;
+}

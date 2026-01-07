@@ -54,6 +54,27 @@ const announcementService = {
         const response = await api.get('/api/announcements/subscriptions/');
         return response.data;
     },
+
+    // Grant permission to user for announcement
+    grantPermission: async (announcementId, userId, role) => {
+        const response = await api.post(`/api/announcements/${announcementId}/grant_permission/`, {
+            user_id: userId,
+            role: role, // 'admin', 'moderator', 'creator'
+        });
+        return response.data;
+    },
+
+    // Get conversion history
+    getConversionHistory: async () => {
+        const response = await api.get('/api/announcements/convert/history/');
+        return response.data;
+    },
+
+    // Get pending offline notifications
+    getPendingNotifications: async () => {
+        const response = await api.get('/api/announcements/notifications/pending/');
+        return response.data;
+    },
 };
 
 export default announcementService;

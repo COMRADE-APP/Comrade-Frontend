@@ -1,0 +1,100 @@
+.quick-action-menu {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+}
+
+.fab-button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-size: 2rem;
+    font-weight: 300;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fab-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.fab-button.open {
+    transform: rotate(45deg);
+}
+
+.action-items {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background: white;
+    border: none;
+    border-radius: 28px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    min-width: 200px;
+}
+
+.action-item:hover {
+    background: #f8f9fa;
+    transform: translateX(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-icon {
+    font-size: 1.5rem;
+}
+
+.action-label {
+    font-weight: 500;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .quick-action-menu {
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .action-item {
+        min-width: 160px;
+        padding: 0.75rem 1rem;
+    }
+
+    .action-label {
+        font-size: 0.875rem;
+    }
+}

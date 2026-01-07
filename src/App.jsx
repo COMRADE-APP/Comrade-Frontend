@@ -55,6 +55,13 @@ import InstitutionVerification from './pages/institutions/InstitutionVerificatio
 import TransactionHistory from './pages/TransactionHistory';
 import CreateAnnouncement from './pages/CreateAnnouncement';
 
+// New Portal Components
+import EntityCreationPortal from './components/entities/EntityCreationPortal';
+import VerificationDashboard from './components/entities/VerificationDashboard';
+import TOTPSetupComponent from './components/auth/TOTPSetup';
+import PaymentForm from './components/payments/PaymentForm';
+import ServiceConverter from './components/announcements/ServiceConverter';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -342,6 +349,105 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreateAnnouncement />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/announcements/convert"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ServiceConverter
+                                onSuccess={() => window.location.href = '/announcements'}
+                                onCancel={() => window.location.href = '/announcements'}
+                            />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Enhanced Portal Routes */}
+            <Route
+                path="/institutions/portal/create"
+                element={
+                    <ProtectedRoute>
+                        <EntityCreationPortal
+                            entityType="institution"
+                            onSuccess={(entity) => window.location.href = `/institutions/portal/${entity.id}/verify`}
+                            onCancel={() => window.location.href = '/dashboard'}
+                        />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/institutions/portal/:id/verify"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <VerificationDashboard
+                                entityId={window.location.pathname.split('/')[3]}
+                                entityType="institution"
+                            />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/organizations/portal/create"
+                element={
+                    <ProtectedRoute>
+                        <EntityCreationPortal
+                            entityType="organization"
+                            onSuccess={(entity) => window.location.href = `/organizations/portal/${entity.id}/verify`}
+                            onCancel={() => window.location.href = '/dashboard'}
+                        />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/organizations/portal/:id/verify"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <VerificationDashboard
+                                entityId={window.location.pathname.split('/')[3]}
+                                entityType="organization"
+                            />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Payment Processing Route */}
+            <Route
+                path="/payments/checkout"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentForm
+                                amount={100}
+                                currency="USD"
+                                description="Payment"
+                                onSuccess={() => window.location.href = '/payments'}
+                                onCancel={() => window.location.href = '/payments'}
+                            />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Security Settings - TOTP */}
+            <Route
+                path="/settings/security/totp"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TOTPSetupComponent
+                                onComplete={() => window.location.href = '/settings'}
+                                onCancel={() => window.location.href = '/settings'}
+                            />
                         </MainLayout>
                     </ProtectedRoute>
                 }
