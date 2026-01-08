@@ -24,33 +24,23 @@ const OAuthCallback = ({ provider }) => {
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens
+                // Store tokens in the format expected by auth context
+                const userData = {
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                    user_id: userId,
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
                 localStorage.setItem('access_token', accessToken);
                 localStorage.setItem('refresh_token', refreshToken);
 
-                // Fetch user data
-                try {
-                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/user/`, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUser(userData);
-                        // Navigate to dashboard after successful login
-                        navigate(ROUTES.DASHBOARD, { replace: true });
-                    } else {
-                        throw new Error('Failed to fetch user data');
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    setError('Failed to complete authentication');
-                    setTimeout(() => navigate(ROUTES.LOGIN, { state: { error: 'Failed to complete authentication' } }), 2000);
+                // Update auth context if setUser is available
+                if (setUser) {
+                    setUser(userData);
                 }
+
+                // Navigate to dashboard
+                navigate(ROUTES.DASHBOARD, { replace: true });
             } else {
                 navigate(ROUTES.LOGIN);
             }

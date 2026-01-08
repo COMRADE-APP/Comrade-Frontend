@@ -13,6 +13,7 @@ const Register = () => {
         firstName: '',
         lastName: '',
         email: '',
+        phoneNumber: '',
         password: '',
         confirmPassword: '',
         userType: 'student',
@@ -46,10 +47,16 @@ const Register = () => {
             newErrors.email = 'Please enter a valid email';
         }
 
+        if (!validateRequired(formData.phoneNumber)) {
+            newErrors.phoneNumber = 'Phone number is required';
+        } else if (formData.phoneNumber.length < 10) {
+            newErrors.phoneNumber = 'Phone number must be at least 10 digits';
+        }
+
         if (!validateRequired(formData.password)) {
             newErrors.password = 'Password is required';
         } else if (!validatePassword(formData.password)) {
-            newErrors.password = 'Password must be at least 8 characters';
+            newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, number and special character';
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -72,10 +79,12 @@ const Register = () => {
                 first_name: formData.firstName,
                 last_name: formData.lastName,
                 email: formData.email,
+                phone_number: formData.phoneNumber,
                 password: formData.password,
+                confirm_password: formData.confirmPassword,
                 user_type: formData.userType,
             });
-            navigate(ROUTES.LOGIN);
+            navigate(ROUTES.LOGIN, { state: { message: 'Registration successful! Check your email to verify your account.' } });
         } catch (error) {
             setGeneralError(getErrorMessage(error));
         } finally {
@@ -130,6 +139,17 @@ const Register = () => {
                         onChange={handleChange}
                         placeholder="john.doe@example.com"
                         error={errors.email}
+                        required
+                    />
+
+                    <Input
+                        label="Phone Number"
+                        type="tel"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        placeholder="+254700000000"
+                        error={errors.phoneNumber}
                         required
                     />
 

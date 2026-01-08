@@ -25,7 +25,8 @@ export const ROUTES = {
     SPECIALIZATIONS: '/specializations',
     SETTINGS: '/settings',
 
-    // OAuth Callbacks
+    // OAuth Callbacks - Unified callback for all providers
+    AUTH_CALLBACK: '/auth/callback',
     GOOGLE_CALLBACK: '/auth/callback',
     APPLE_CALLBACK: '/auth/apple/callback',
     FACEBOOK_CALLBACK: '/auth/facebook/callback',

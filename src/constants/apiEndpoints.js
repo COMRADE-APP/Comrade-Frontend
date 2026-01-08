@@ -116,6 +116,39 @@ export const API_ENDPOINTS = {
     // Subscriptions
     User_SUBSCRIPTIONS: `${API_BASE_URL}/api/payments/subscriptions/`,
     SUBSCRIPTION_DETAIL: (id) => `${API_BASE_URL}/api/payments/subscriptions/${id}/`,
+
+    // Social Auth - Login Initiation
+    GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
+    FACEBOOK_LOGIN: `${API_BASE_URL}/accounts/facebook/login/`,
+    GITHUB_LOGIN: `${API_BASE_URL}/accounts/github/login/`,
+    APPLE_LOGIN: `${API_BASE_URL}/accounts/apple/login/`,
+    TWITTER_LOGIN: `${API_BASE_URL}/accounts/twitter_oauth2/login/`,
+    LINKEDIN_LOGIN: `${API_BASE_URL}/accounts/linkedin_oauth2/login/`,
+    MICROSOFT_LOGIN: `${API_BASE_URL}/accounts/microsoft/login/`,
+
+    // Social Auth - Callbacks (JWT conversion)
+    GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
+    FACEBOOK_CALLBACK: `${API_BASE_URL}/auth/facebook/callback/`,
+    GITHUB_CALLBACK: `${API_BASE_URL}/auth/github/callback/`,
+    APPLE_CALLBACK: `${API_BASE_URL}/auth/apple/callback/`,
+    TWITTER_CALLBACK: `${API_BASE_URL}/auth/twitter/callback/`,
+    LINKEDIN_CALLBACK: `${API_BASE_URL}/auth/linkedin/callback/`,
+    MICROSOFT_CALLBACK: `${API_BASE_URL}/auth/microsoft/callback/`,
+
+    // Profile & Security
+    CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password/`,
+    UPDATE_PROFILE: `${API_BASE_URL}/auth/update-profile/`,
+    DEVICES: `${API_BASE_URL}/auth/devices/`,
+    REVOKE_DEVICE: (id) => `${API_BASE_URL}/auth/devices/${id}/revoke/`,
+    ACTIVITY_LOG: `${API_BASE_URL}/auth/activity/`,
+
+    // TOTP 2FA (Authenticator App)
+    TOTP_SETUP: `${API_BASE_URL}/auth/totp/setup/`,
+    TOTP_VERIFY_SETUP: `${API_BASE_URL}/auth/totp/verify-setup/`,
+    TOTP_VERIFY_LOGIN: `${API_BASE_URL}/auth/totp/verify-login/`,
+    TOTP_DISABLE: `${API_BASE_URL}/auth/totp/disable/`,
+    TOTP_BACKUP_CODES: `${API_BASE_URL}/auth/totp/backup-codes/`,
 }
 
 export default API_ENDPOINTS;
+
