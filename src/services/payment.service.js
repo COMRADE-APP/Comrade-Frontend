@@ -1,152 +1,180 @@
 import api from './api';
-import API_ENDPOINTS from '../constants/apiEndpoints';
 
 const paymentService = {
-    // Payment Profile Management
-    getPaymentProfile: async () => {
-        const response = await api.get('/api/payment/profile/my_profile/');
-        return response.data;
+    // Payment Profile
+    getMyProfile: async () => {
+        return api.get('/payments/profiles/my_profile/');
     },
 
     getBalance: async () => {
-        const response = await api.get('/api/payment/profile/balance/');
-        return response.data;
+        return api.get('/payments/profiles/balance/');
     },
 
-    // Payment Methods
-    getPaymentMethods: async () => {
-        const response = await api.get('/api/payment/methods/');
-        return response.data;
+    // Tier Management
+    getTierPricing: async () => {
+        return api.get('/payments/tiers/pricing/');
     },
 
-    addPaymentMethod: async (paymentMethodData) => {
-        const response = await api.post('/api/payment/methods/add/', paymentMethodData);
-        return response.data;
+    upgradeTier: async (tier, paymentMethod) => {
+        return api.post('/payments/tiers/upgrade/', { tier, payment_method: paymentMethod });
     },
 
-    deletePaymentMethod: async (methodId) => {
-        const response = await api.delete(`/api/payment/methods/${methodId}/`);
-        return response.data;
-    },
-
-    setDefaultPaymentMethod: async (methodId) => {
-        const response = await api.post(`/api/payment/methods/${methodId}/set_default/`);
-        return response.data;
-    },
-
-    // Payment Processing
-    createPaymentIntent: async (amount, currency = 'usd', metadata = {}) => {
-        const response = await api.post('/api/payment/stripe/create_intent/', {
-            amount,
-            currency,
-            metadata
-        });
-        return response.data;
-    },
-
-    processPayment: async (paymentData) => {
-        const response = await api.post('/api/payment/process/', paymentData);
-        return response.data;
+    getCurrentTier: async () => {
+        const response = await api.get('/payments/profiles/my_profile/');
+        return response.data?.tier || 'free';
     },
 
     // Transactions
-    getTransactions: async () => {
-        const response = await api.get('/api/payment/transactions/history/');
-        return response.data;
+    getTransactions: async (params) => {
+        return api.get('/payments/transactions/', { params });
     },
 
-    getTransactionStatus: async (transactionId) => {
-        const response = await api.get(`/api/payment/transactions/${transactionId}/status/`);
-        return response.data;
+    createTransaction: async (data) => {
+        return api.post('/payments/transactions/create_transaction/', data);
     },
 
-    // Refunds
-    requestRefund: async (transactionId, amount = null, reason = '') => {
-        const response = await api.post('/api/payment/refund/', {
-            transaction_id: transactionId,
-            amount,
-            reason
-        });
-        return response.data;
-    },
-
-    // PayPal
-    createPayPalPayment: async (amount, description) => {
-        const response = await api.post('/api/payment/paypal/create/', {
-            amount,
-            description
-        });
-        return response.data;
-    },
-
-    // M-Pesa
-    initiateMpesaPayment: async (phoneNumber, amount) => {
-        const response = await api.post('/api/payment/mpesa/stk_push/', {
-            phone_number: phoneNumber,
-            amount
-        });
-        return response.data;
-    },
-
-    queryMpesaStatus: async (checkoutRequestId) => {
-        const response = await api.get(`/api/payment/mpesa/status/${checkoutRequestId}/`);
-        return response.data;
+    getTransactionHistory: async () => {
+        return api.get('/payments/transactions/history/');
     },
 
     // Payment Groups
-    getPaymentGroups: async () => {
-        const response = await api.get('/api/payment/groups/my_groups/');
-        return response.data;
+    getMyGroups: async () => {
+        return api.get('/payments/groups/my_groups/');
     },
 
-    createPaymentGroup: async (groupData) => {
-        const response = await api.post('/api/payment/groups/', groupData);
-        return response.data;
+    createGroup: async (data) => {
+        return api.post('/payments/groups/', data);
     },
 
-    joinPaymentGroup: async (groupId) => {
-        const response = await api.post(`/api/payment/groups/${groupId}/join/`);
-        return response.data;
+    getGroup: async (id) => {
+        return api.get(`/payments/groups/${id}/`);
     },
 
-    contributeToGroup: async (groupId, amount, notes = '') => {
-        const response = await api.post(`/api/payment/groups/${groupId}/contribute/`, {
-            amount,
-            notes
-        });
-        return response.data;
+    joinGroup: async (id) => {
+        return api.post(`/payments/groups/${id}/join/`);
     },
 
-    getGroupMembers: async (groupId) => {
-        const response = await api.get(`/api/payment/groups/${groupId}/members/`);
-        return response.data;
+    contributeToGroup: async (id, amount, notes = '') => {
+        return api.post(`/payments/groups/${id}/contribute/`, { amount, notes });
     },
 
-    getGroupContributions: async (groupId) => {
-        const response = await api.get(`/api/payment/groups/${groupId}/contributions_list/`);
-        return response.data;
+    inviteToGroup: async (id, email) => {
+        return api.post(`/payments/groups/${id}/invite/`, { email });
     },
 
-    inviteToGroup: async (groupId, email) => {
-        const response = await api.post(`/api/payment/groups/${groupId}/invite/`, { email });
-        return response.data;
+    getGroupMembers: async (id) => {
+        return api.get(`/payments/groups/${id}/members/`);
     },
 
-    // Piggy Banks / Group Targets
-    getGroupTargets: async () => {
-        const response = await api.get(API_ENDPOINTS.GROUP_TARGETS);
-        return response.data;
+    getGroupContributions: async (id) => {
+        return api.get(`/payments/groups/${id}/contributions_list/`);
     },
 
-    createTarget: async (targetData) => {
-        const response = await api.post(API_ENDPOINTS.GROUP_TARGETS, targetData);
-        return response.data;
+    // Products (Shop)
+    getProducts: async (params) => {
+        return api.get('/payments/products/', { params });
     },
 
-    contributeTarget: async (targetId, amount) => {
-        const response = await api.post(API_ENDPOINTS.CONTRIBUTE_TARGET(targetId), { amount });
-        return response.data;
+    getProduct: async (id) => {
+        return api.get(`/payments/products/${id}/`);
     },
+
+    getRecommendations: async () => {
+        return api.get('/payments/products/recommendations/');
+    },
+
+    // User Subscriptions
+    getMySubscriptions: async () => {
+        return api.get('/payments/subscriptions/');
+    },
+
+    getSubscription: async (id) => {
+        return api.get(`/payments/subscriptions/${id}/`);
+    },
+
+    // Piggy Bank (Group Targets)
+    getTargets: async () => {
+        return api.get('/payments/targets/');
+    },
+
+    getTarget: async (id) => {
+        return api.get(`/payments/targets/${id}/`);
+    },
+
+    createTarget: async (data) => {
+        return api.post('/payments/targets/', data);
+    },
+
+    contributeToTarget: async (id, amount) => {
+        return api.post(`/payments/targets/${id}/contribute/`, { amount });
+    },
+};
+
+// Tier Limits Configuration (matching backend)
+export const TIER_LIMITS = {
+    free: {
+        maxGroupMembers: 3,
+        maxGroups: 3,
+        monthlyPurchases: 6,
+        offlineNotifications: 5,
+        features: [
+            'Up to 3 members per group',
+            '6 purchases per month',
+            '5 offline notification subscriptions',
+            'Basic support'
+        ]
+    },
+    standard: {
+        maxGroupMembers: 7,
+        maxGroups: 5,
+        monthlyPurchases: 25,
+        offlineNotifications: 25,
+        price: 9.99,
+        priceAnnual: 99.99,
+        features: [
+            'Up to 7 members per group',
+            '25 purchases per month',
+            '25 offline notification subscriptions',
+            'Priority support',
+            'Group purchases up to 25 people'
+        ]
+    },
+    premium: {
+        maxGroupMembers: 12,
+        maxGroups: 15,
+        monthlyPurchases: 45,
+        offlineNotifications: 100,
+        price: 19.99,
+        priceAnnual: 199.99,
+        features: [
+            'Up to 12 members per group',
+            '45 purchases per month',
+            '100 offline notification subscriptions',
+            'Premium support',
+            'Advanced analytics'
+        ]
+    },
+    gold: {
+        maxGroupMembers: Infinity,
+        maxGroups: Infinity,
+        monthlyPurchases: Infinity,
+        offlineNotifications: Infinity,
+        price: 49.99,
+        priceAnnual: 499.99,
+        features: [
+            'Unlimited group members',
+            'Unlimited purchases',
+            'Unlimited offline notifications',
+            'Dedicated support',
+            'Custom features',
+            'API access'
+        ]
+    }
+};
+
+export const getTierLimit = (tier, limitType) => {
+    const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
+    return limits[limitType];
 };
 
 export default paymentService;

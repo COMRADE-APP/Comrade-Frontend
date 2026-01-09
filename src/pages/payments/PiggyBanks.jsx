@@ -29,8 +29,8 @@ const PiggyBanks = () => {
 
     const loadTargets = async () => {
         try {
-            const data = await paymentService.getGroupTargets();
-            setTargets(data);
+            const response = await paymentService.getTargets();
+            setTargets(response.data || []);
         } catch (error) {
             console.error('Error loading targets:', error);
         } finally {
@@ -55,7 +55,7 @@ const PiggyBanks = () => {
         e.preventDefault();
         if (!showContributeModal) return;
         try {
-            await paymentService.contributeTarget(showContributeModal.id, contributionAmount);
+            await paymentService.contributeToTarget(showContributeModal.id, contributionAmount);
             setShowContributeModal(null);
             setContributionAmount('');
             loadTargets();

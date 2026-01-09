@@ -75,7 +75,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            await register({
+            const response = await register({
                 first_name: formData.firstName,
                 last_name: formData.lastName,
                 email: formData.email,
@@ -84,7 +84,14 @@ const Register = () => {
                 confirm_password: formData.confirmPassword,
                 user_type: formData.userType,
             });
-            navigate(ROUTES.LOGIN, { state: { message: 'Registration successful! Check your email to verify your account.' } });
+
+            // Navigate to OTP verification page
+            navigate(ROUTES.VERIFY_REGISTRATION, {
+                state: {
+                    email: formData.email,
+                    message: response.message
+                }
+            });
         } catch (error) {
             setGeneralError(getErrorMessage(error));
         } finally {

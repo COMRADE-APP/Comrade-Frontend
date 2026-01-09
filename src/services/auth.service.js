@@ -48,13 +48,18 @@ const authService = {
         return response.data;
     },
 
-    resendOTP: async (email, otp_method = 'email') => {
-        const response = await api.post(API_ENDPOINTS.RESEND_OTP, { email, otp_method });
+    resendOTP: async (email, otp_method = 'email', action_type = 'login') => {
+        const response = await api.post(API_ENDPOINTS.RESEND_OTP, { email, otp_method, action_type });
         return response.data;
     },
 
     register: async (userData) => {
         const response = await api.post(API_ENDPOINTS.REGISTER, userData);
+        return response.data;
+    },
+
+    verifyRegistrationOTP: async (email, otp) => {
+        const response = await api.post(API_ENDPOINTS.REGISTER_VERIFY, { email, otp });
         return response.data;
     },
 

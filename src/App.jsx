@@ -13,6 +13,10 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import GoogleCallback from './pages/auth/GoogleCallback';
 import { AppleCallback, FacebookCallback, XCallback, GitHubCallback, MicrosoftCallback } from './pages/auth/OAuthCallback';
 import VerifyEmail from './pages/auth/VerifyEmail';
+import VerifyRegistration from './pages/auth/VerifyRegistration';
+import RegistrationSuccess from './pages/auth/RegistrationSuccess';
+import LoginSuccess from './pages/auth/LoginSuccess';
+import ProfileSetup from './pages/auth/ProfileSetup';
 import ResetPassword from './pages/auth/ResetPassword';
 import Setup2FA from './pages/auth/Setup2FA';
 import Verify2FA from './pages/auth/Verify2FA';
@@ -47,6 +51,7 @@ import PiggyBanks from './pages/payments/PiggyBanks';
 // Payment System Components
 import ProductCatalog from './pages/products/ProductCatalog';
 import SubscriptionPlans from './pages/subscription/SubscriptionPlans';
+import TierPlans from './pages/subscription/TierPlans';
 import GroupTargets from './pages/payments/GroupTargets';
 
 // New Integrated Pages
@@ -86,6 +91,10 @@ function App() {
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
             <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
             <Route path={ROUTES.VERIFY_EMAIL_OTP} element={<VerifyEmail />} />
+            <Route path={ROUTES.VERIFY_REGISTRATION} element={<VerifyRegistration />} />
+            <Route path={ROUTES.REGISTRATION_SUCCESS} element={<RegistrationSuccess />} />
+            <Route path={ROUTES.LOGIN_SUCCESS} element={<LoginSuccess />} />
+            <Route path={ROUTES.PROFILE_SETUP} element={<ProfileSetup />} />
             <Route path={ROUTES.VERIFY_2FA} element={<Verify2FA />} />
             <Route path={ROUTES.VERIFY_SMS} element={<VerifySMS />} />
             <Route path={ROUTES.SETUP_2FA} element={<Setup2FA />} />
@@ -301,6 +310,26 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path={ROUTES.TIER_PLANS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TierPlans />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.PIGGY_BANKS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PiggyBanks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
 
             {/* TOTP Setup Route */}
             <Route
@@ -453,7 +482,7 @@ function App() {
                 }
             />
 
-            {/* Redirect root to dashboard */}
+            {/* Redirect root to dashboard (ROUTES.DASHBOARD = '/dashboard') */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
         </Routes>
     );
