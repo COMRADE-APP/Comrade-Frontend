@@ -1,69 +1,89 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
+import API_ENDPOINTS from '../../constants/apiEndpoints';
 
 const GoogleCallback = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setUser } = useAuth();
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const handleCallback = async () => {
+            // Check for URL params (from our custom callback)
             const accessToken = searchParams.get('access_token');
             const refreshToken = searchParams.get('refresh_token');
-            const userId = searchParams.get('user_id');
-            const error = searchParams.get('error');
+            const errorParam = searchParams.get('error');
 
-            if (error) {
-                console.error('Google OAuth error:', error);
+            if (errorParam) {
+                console.error('Google OAuth error:', errorParam);
                 navigate(ROUTES.LOGIN, { state: { error: 'Google authentication failed' } });
                 return;
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens
-                localStorage.setItem('access_token', accessToken);
-                localStorage.setItem('refresh_token', refreshToken);
+                // Store tokens in the format AuthContext expects
+                const user = {
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                };
+                localStorage.setItem('user', JSON.stringify(user));
 
-                // Fetch user data
-                try {
-                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/user/`, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUser(userData);
-                        // Navigate to dashboard after successful login
-                        navigate(ROUTES.DASHBOARD, { replace: true });
-                    } else {
-                        throw new Error('Failed to fetch user data');
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    navigate(ROUTES.LOGIN, { state: { error: 'Failed to complete authentication' } });
-                }
-            } else {
-                navigate(ROUTES.LOGIN);
+                // Redirect to dashboard
+                window.location.href = ROUTES.DASHBOARD;
+                return;
             }
+
+            // If no tokens in URL, try to get JWT from our callback endpoint
+            // This handles the case where allauth redirects to frontend and we need to exchange session for JWT
+            try {
+                const response = await fetch(API_ENDPOINTS.GOOGLE_CALLBACK, {
+                    method: 'GET',
+                    credentials: 'include', // Include session cookies
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.access_token) {
+                        const user = {
+                            access_token: data.access_token,
+                            refresh_token: data.refresh_token,
+                            user_id: data.user_id,
+                            email: data.email,
+                            first_name: data.first_name,
+                            user_type: data.user_type,
+                        };
+                        localStorage.setItem('user', JSON.stringify(user));
+                        window.location.href = ROUTES.DASHBOARD;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error exchanging session for JWT:', err);
+            }
+
+            // Fallback: redirect to login
+            navigate(ROUTES.LOGIN, { state: { error: 'Please try logging in again' } });
         };
 
         handleCallback();
-    }, [searchParams, navigate, setUser]);
+    }, [searchParams, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Signing you in with Google...</p>
+                {error ? (
+                    <div className="text-red-600 mb-4">{error}</div>
+                ) : (
+                    <>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Signing you in with Google...</p>
+                    </>
+                )}
             </div>
         </div>
     );
 };
 
 export default GoogleCallback;
+
