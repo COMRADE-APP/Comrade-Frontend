@@ -55,6 +55,12 @@ import SubscriptionPlans from './pages/subscription/SubscriptionPlans';
 import TierPlans from './pages/subscription/TierPlans';
 import GroupTargets from './pages/payments/GroupTargets';
 
+// Opinions & Social
+import Opinions from './pages/Opinions';
+import Following from './pages/Following';
+import Research from './pages/Research';
+import Articles from './pages/Articles';
+
 // New Integrated Pages
 import CreateInstitution from './pages/institutions/CreateInstitution';
 import InstitutionVerification from './pages/institutions/InstitutionVerification';
@@ -200,11 +206,51 @@ function App() {
                 }
             />
             <Route
+                path={ROUTES.OPINIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Opinions />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.FOLLOWING}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Following />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.RESOURCES}
                 element={
                     <ProtectedRoute>
                         <MainLayout>
                             <Resources />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.RESEARCH}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Research />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ARTICLES}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Articles />
                         </MainLayout>
                     </ProtectedRoute>
                 }

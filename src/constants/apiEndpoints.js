@@ -171,6 +171,23 @@ export const API_ENDPOINTS = {
     TOTP_VERIFY_LOGIN: `${API_BASE_URL}/auth/totp/verify-login/`,
     TOTP_DISABLE: `${API_BASE_URL}/auth/totp/disable/`,
     TOTP_BACKUP_CODES: `${API_BASE_URL}/auth/totp/backup-codes/`,
+
+    // Opinions & Social
+    OPINIONS: `${API_BASE_URL}/api/opinions/opinions/`,
+    OPINIONS_FEED: `${API_BASE_URL}/api/opinions/opinions/feed/`,
+    OPINIONS_TRENDING: `${API_BASE_URL}/api/opinions/opinions/trending/`,
+    OPINION_DETAIL: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/`,
+    OPINION_LIKE: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/like/`,
+    OPINION_REPOST: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/repost/`,
+    OPINION_BOOKMARK: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/bookmark/`,
+    OPINION_COMMENTS: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/comments/`,
+
+    // Following
+    FOLLOW_TOGGLE: `${API_BASE_URL}/api/opinions/follow/toggle/`,
+    FOLLOWERS: `${API_BASE_URL}/api/opinions/follow/followers/`,
+    FOLLOWING: `${API_BASE_URL}/api/opinions/follow/following/`,
+    FOLLOW_SUGGESTIONS: `${API_BASE_URL}/api/opinions/follow/suggestions/`,
+    BOOKMARKS: `${API_BASE_URL}/api/opinions/bookmarks/`,
 }
 
 export default API_ENDPOINTS;

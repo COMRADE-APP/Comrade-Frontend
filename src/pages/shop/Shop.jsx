@@ -19,9 +19,12 @@ const Shop = () => {
     const loadProducts = async () => {
         try {
             const data = await shopService.getProducts();
-            setProducts(data);
+            // Handle both array and paginated responses
+            const productsList = Array.isArray(data) ? data : (data?.results || []);
+            setProducts(productsList);
         } catch (error) {
             console.error('Error loading products:', error);
+            setProducts([]); // Set empty array on error
         } finally {
             setLoading(false);
         }
@@ -74,8 +77,8 @@ const Shop = () => {
                             key={cat.id}
                             onClick={() => setFilter(cat.id)}
                             className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${filter === cat.id
-                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
+                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                 }`}
                         >
                             {cat.label}

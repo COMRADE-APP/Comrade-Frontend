@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList, Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon } from 'lucide-react';
+import {
+    Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
+    Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
+    MessageCircle, ShoppingBag, Search, BookOpen, UserPlus
+} from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -10,13 +14,18 @@ const Sidebar = () => {
 
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
+        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
         { path: ROUTES.ROOMS, label: 'Rooms', icon: Users },
         { path: ROUTES.ANNOUNCEMENTS, label: 'Announcements', icon: Bell },
         { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
         { path: ROUTES.TASKS, label: 'Tasks', icon: ClipboardList },
         { path: ROUTES.RESOURCES, label: 'Resources', icon: FileText },
+        { path: ROUTES.RESEARCH, label: 'Research', icon: Search },
+        { path: ROUTES.ARTICLES, label: 'Articles', icon: BookOpen },
+        { path: ROUTES.SHOP, label: 'Shop', icon: ShoppingBag },
         { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: GraduationCap },
+        { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
         { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
         { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
@@ -36,7 +45,7 @@ const Sidebar = () => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     return (

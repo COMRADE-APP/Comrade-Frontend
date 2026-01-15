@@ -47,6 +47,15 @@ export const ROUTES = {
     TIER_PLANS: '/tier-plans',
     PIGGY_BANKS: '/piggy-banks',
 
+    // Opinions & Social
+    OPINIONS: '/opinions',
+    OPINION_DETAIL: '/opinions/:id',
+    FOLLOWING: '/following',
+
+    // Content
+    RESEARCH: '/research',
+    ARTICLES: '/articles',
+
     // New Portal Features
     CREATE_INSTITUTION: '/institutions/portal/create',
     VERIFY_INSTITUTION: '/institutions/portal/:id/verify',
