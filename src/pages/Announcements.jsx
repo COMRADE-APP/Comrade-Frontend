@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import Card, { CardBody, CardFooter } from '../components/common/Card';
+import { useAuth } from '../contexts/AuthContext';
+import Card, { CardBody, CardFooter, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { Megaphone, ThumbsUp, MessageSquare, Share2 } from 'lucide-react';
+import Input from '../components/common/Input';
+import { Megaphone, ThumbsUp, MessageSquare, Share2, Plus, X } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
 
 const Announcements = () => {
+    const { user } = useAuth();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newAnnouncement, setNewAnnouncement] = useState({
+        heading: '',
+        content: '',
+        visibility: 'public',
+    });
+
+    // Check if user can create announcements
+    const canCreate = user?.is_admin || user?.is_staff || user?.is_lecturer ||
+        user?.is_moderator || user?.is_student_admin ||
+        user?.is_inst_admin || user?.is_org_admin ||
+        user?.user_type === 'lecturer' || user?.user_type === 'staff' ||
+        user?.user_type === 'admin' || user?.user_type === 'moderator';
 
     useEffect(() => {
         loadAnnouncements();
@@ -26,6 +42,19 @@ const Announcements = () => {
         }
     };
 
+    const handleCreateAnnouncement = async (e) => {
+        e.preventDefault();
+        try {
+            await announcementsService.create(newAnnouncement);
+            setShowCreateModal(false);
+            setNewAnnouncement({ heading: '', content: '', visibility: 'public' });
+            loadAnnouncements();
+        } catch (error) {
+            console.error('Failed to create announcement:', error);
+            alert('Failed to create announcement');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -33,7 +62,12 @@ const Announcements = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Announcements</h1>
                     <p className="text-gray-600 mt-1">Stay updated with important announcements</p>
                 </div>
-                <Button variant="primary">Create Announcement</Button>
+                {canCreate && (
+                    <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Announcement
+                    </Button>
+                )}
             </div>
 
             {loading ? (
@@ -52,6 +86,62 @@ const Announcements = () => {
                     {announcements.map((announcement) => (
                         <AnnouncementCard key={announcement.id} announcement={announcement} />
                     ))}
+                </div>
+            )}
+
+            {/* Create Announcement Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-lg">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-gray-900">Create Announcement</h2>
+                                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+                                <Input
+                                    label="Title"
+                                    value={newAnnouncement.heading}
+                                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, heading: e.target.value })}
+                                    required
+                                    placeholder="Enter announcement title"
+                                />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                    <textarea
+                                        value={newAnnouncement.content}
+                                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                                        rows="4"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        placeholder="Write your announcement..."
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Visibility</label>
+                                    <select
+                                        value={newAnnouncement.visibility}
+                                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, visibility: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    >
+                                        <option value="public">Public</option>
+                                        <option value="institution">Institution Only</option>
+                                        <option value="private">Private</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-2 justify-end pt-4">
+                                    <Button variant="outline" type="button" onClick={() => setShowCreateModal(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button variant="primary" type="submit">
+                                        Post Announcement
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardBody>
+                    </Card>
                 </div>
             )}
         </div>

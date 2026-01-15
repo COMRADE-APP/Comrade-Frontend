@@ -119,6 +119,36 @@ const authService = {
     confirm2FASetup: async (otp) => {
         const response = await api.post(API_ENDPOINTS.CONFIRM_2FA_SETUP, { otp });
         return response.data;
+    },
+
+    // Change Password
+    changePassword: async (currentPassword, newPassword) => {
+        const response = await api.post(API_ENDPOINTS.CHANGE_PASSWORD, {
+            current_password: currentPassword,
+            new_password: newPassword
+        });
+        return response.data;
+    },
+
+    // Role Change Request
+    requestRoleChange: async (requestData) => {
+        const response = await api.post(API_ENDPOINTS.ROLE_CHANGE_REQUEST, requestData);
+        return response.data;
+    },
+
+    // Get Role Change Requests (for admins)
+    getRoleChangeRequests: async () => {
+        const response = await api.get(API_ENDPOINTS.ROLE_CHANGE_REQUESTS);
+        return response.data;
+    },
+
+    // Approve/Reject Role Change Request (for admins)
+    updateRoleChangeRequest: async (requestId, status, adminNotes = '') => {
+        const response = await api.patch(`${API_ENDPOINTS.ROLE_CHANGE_REQUESTS}${requestId}/`, {
+            status,
+            admin_notes: adminNotes
+        });
+        return response.data;
     }
 };
 

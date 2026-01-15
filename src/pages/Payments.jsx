@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { CreditCard, DollarSign, TrendingUp, Download, Filter, X } from 'lucide-react';
+import { CreditCard, DollarSign, TrendingUp, Download, Filter, X, AlertCircle, Wallet } from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import { formatDate } from '../utils/dateFormatter';
+import { ROUTES } from '../constants/routes';
 
 const Payments = () => {
-    const { user } = useAuth();
+    const { user, isAuthenticated, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const [paymentProfile, setPaymentProfile] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showSendModal, setShowSendModal] = useState(false);
     const [filter, setFilter] = useState('all');
     const [sendData, setSendData] = useState({
@@ -21,8 +25,32 @@ const Payments = () => {
     });
 
     useEffect(() => {
-        loadData();
-    }, []);
+        // Don't do anything while auth is loading
+        if (authLoading) {
+            return;
+        }
+
+        // Only load data if authenticated
+        if (isAuthenticated) {
+            loadData();
+        } else {
+            // Just set loading to false, let ProtectedRoute handle redirect
+            setLoading(false);
+        }
+    }, [isAuthenticated, authLoading]);
+
+    // Show loading spinner while auth is initializing
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
 
     const loadData = async () => {
         setLoading(true);
@@ -147,8 +175,8 @@ const Payments = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -248,12 +276,12 @@ const TransactionRow = ({ transaction }) => (
     <div className="p-4 flex items-center justify-between hover:bg-gray-50">
         <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.transaction_type === 'deposit' ? 'bg-green-100' :
-                    transaction.transaction_type === 'withdrawal' ? 'bg-red-100' :
-                        'bg-blue-100'
+                transaction.transaction_type === 'withdrawal' ? 'bg-red-100' :
+                    'bg-blue-100'
                 }`}>
                 <DollarSign className={`w-5 h-5 ${transaction.transaction_type === 'deposit' ? 'text-green-600' :
-                        transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
-                            'text-blue-600'
+                    transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
+                        'text-blue-600'
                     }`} />
             </div>
             <div>
@@ -263,8 +291,8 @@ const TransactionRow = ({ transaction }) => (
         </div>
         <div className="text-right">
             <p className={`font-semibold ${transaction.transaction_type === 'deposit' ? 'text-green-600' :
-                    transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
-                        'text-gray-900'
+                transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
+                    'text-gray-900'
                 }`}>
                 {transaction.transaction_type === 'withdrawal' ? '-' : '+'}${transaction.amount || '0.00'}
             </p>

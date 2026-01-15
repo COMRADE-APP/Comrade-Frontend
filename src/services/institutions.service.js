@@ -1,8 +1,14 @@
 import api from './api';
 
-const institutionService = {
+const institutionsService = {
     // Get all institutions (user is member of)
     getInstitutions: async () => {
+        const response = await api.get('/api/institutions/');
+        return response.data;
+    },
+
+    // Alias for getInstitutions
+    getAll: async () => {
         const response = await api.get('/api/institutions/');
         return response.data;
     },
@@ -13,8 +19,18 @@ const institutionService = {
         return response.data;
     },
 
+    getById: async (id) => {
+        const response = await api.get(`/api/institutions/${id}/`);
+        return response.data;
+    },
+
     // Create institution
     createInstitution: async (data) => {
+        const response = await api.post('/api/institutions/', data);
+        return response.data;
+    },
+
+    create: async (data) => {
         const response = await api.post('/api/institutions/', data);
         return response.data;
     },
@@ -22,6 +38,17 @@ const institutionService = {
     // Update institution
     updateInstitution: async (id, data) => {
         const response = await api.put(`/api/institutions/${id}/`, data);
+        return response.data;
+    },
+
+    update: async (id, data) => {
+        const response = await api.put(`/api/institutions/${id}/`, data);
+        return response.data;
+    },
+
+    // Delete institution
+    delete: async (id) => {
+        const response = await api.delete(`/api/institutions/${id}/`);
         return response.data;
     },
 
@@ -72,4 +99,4 @@ const institutionService = {
     },
 };
 
-export default institutionService;
+export default institutionsService;

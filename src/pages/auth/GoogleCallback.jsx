@@ -22,14 +22,18 @@ const GoogleCallback = () => {
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens in the format AuthContext expects
+                // Store tokens separately for API interceptor
+                localStorage.setItem('access_token', accessToken);
+                localStorage.setItem('refresh_token', refreshToken);
+
+                // Also store user object for AuthContext
                 const user = {
                     access_token: accessToken,
                     refresh_token: refreshToken,
                 };
                 localStorage.setItem('user', JSON.stringify(user));
 
-                // Redirect to dashboard
+                // Redirect to dashboard - AuthContext will fetch full user data
                 window.location.href = ROUTES.DASHBOARD;
                 return;
             }
@@ -45,16 +49,28 @@ const GoogleCallback = () => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.access_token) {
+                        // Store tokens separately for API interceptor
+                        localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('refresh_token', data.refresh_token);
+
+                        // Store full user object for AuthContext
                         const user = {
                             access_token: data.access_token,
                             refresh_token: data.refresh_token,
-                            user_id: data.user_id,
+                            id: data.user_id,
                             email: data.email,
                             first_name: data.first_name,
                             user_type: data.user_type,
+                            profile_completed: data.profile_completed,
                         };
                         localStorage.setItem('user', JSON.stringify(user));
-                        window.location.href = ROUTES.DASHBOARD;
+
+                        // Check if profile needs to be completed
+                        if (data.profile_completed === false) {
+                            window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup';
+                        } else {
+                            window.location.href = ROUTES.DASHBOARD;
+                        }
                         return;
                     }
                 }
@@ -86,4 +102,3 @@ const GoogleCallback = () => {
 };
 
 export default GoogleCallback;
-

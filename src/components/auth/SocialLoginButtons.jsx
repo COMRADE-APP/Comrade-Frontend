@@ -71,34 +71,10 @@ const SocialLoginButtons = () => {
             provider: 'apple'
         },
         {
-            name: 'Facebook',
-            Icon: FacebookIcon,
-            color: 'bg-blue-600 hover:bg-blue-700 text-white',
-            provider: 'facebook'
-        },
-        {
             name: 'X',
             Icon: XIcon,
             color: 'bg-black hover:bg-gray-900 text-white',
             provider: 'twitter_oauth2'
-        },
-        {
-            name: 'GitHub',
-            Icon: GitHubIcon,
-            color: 'bg-gray-800 hover:bg-gray-900 text-white',
-            provider: 'github'
-        },
-        {
-            name: 'LinkedIn',
-            Icon: LinkedInIcon,
-            color: 'bg-blue-700 hover:bg-blue-800 text-white',
-            provider: 'linkedin_oauth2'
-        },
-        {
-            name: 'Microsoft',
-            Icon: MicrosoftIcon,
-            color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
-            provider: 'microsoft'
         },
     ];
 

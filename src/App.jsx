@@ -31,6 +31,7 @@ import Tasks from './pages/Tasks';
 import Profile from './pages/Profile';
 import Community from './pages/Community';
 import Rooms from './pages/Rooms';
+import RoomDetail from './pages/RoomDetail';
 import Messages from './pages/Messages';
 import Resources from './pages/Resources';
 import Institutions from './pages/Institutions';
@@ -164,6 +165,66 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Community />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ROOMS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Rooms />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/rooms/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RoomDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.MESSAGES}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Messages />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.RESOURCES}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Resources />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.INSTITUTIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Institutions />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ORGANIZATIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Organizations />
                         </MainLayout>
                     </ProtectedRoute>
                 }

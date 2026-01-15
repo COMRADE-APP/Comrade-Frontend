@@ -1,20 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle } from 'lucide-react';
+import authService from '../services/auth.service';
+import {
+    Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
+    UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock
+} from 'lucide-react';
+
+const USER_TYPE_OPTIONS = [
+    { value: 'student', label: 'Student' },
+    { value: 'normal_user', label: 'Normal User' },
+    { value: 'lecturer', label: 'Lecturer' },
+    { value: 'staff', label: 'Staff' },
+    { value: 'moderator', label: 'Moderator' },
+    { value: 'author', label: 'Author' },
+    { value: 'editor', label: 'Editor' },
+];
 
 const Settings = () => {
     const { user, logout } = useAuth();
-    const [activeTab, setActiveTab] = useState('security');
+    const { theme, setTheme: changeTheme, isDark } = useTheme();
+    const [activeTab, setActiveTab] = useState('account');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
     });
+
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
     const [notificationSettings, setNotificationSettings] = useState({
         emailNotifications: true,
         pushNotifications: true,
@@ -22,18 +43,36 @@ const Settings = () => {
         eventUpdates: true,
     });
 
+    const [roleChangeRequest, setRoleChangeRequest] = useState({
+        requestedRole: '',
+        reason: '',
+    });
+
+    const [appearance, setAppearance] = useState({
+        theme: 'light',
+        fontSize: 'medium',
+    });
+
+    const showMessage = (type, text) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+    };
+
     const handleChangePassword = async (e) => {
         e.preventDefault();
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            alert('Passwords do not match');
+            showMessage('error', 'Passwords do not match');
             return;
         }
+        setLoading(true);
         try {
-            // TODO: Implement password change API call
-            alert('Password changed successfully');
+            await authService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+            showMessage('success', 'Password changed successfully');
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (error) {
-            alert('Failed to change password');
+            showMessage('error', error.response?.data?.detail || 'Failed to change password');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -41,9 +80,31 @@ const Settings = () => {
         try {
             // TODO: Implement 2FA toggle API call
             setTwoFactorEnabled(!twoFactorEnabled);
-            alert(twoFactorEnabled ? '2FA disabled' : '2FA enabled');
+            showMessage('success', twoFactorEnabled ? '2FA disabled' : '2FA enabled');
         } catch (error) {
-            alert('Failed to toggle 2FA');
+            showMessage('error', 'Failed to toggle 2FA');
+        }
+    };
+
+    const handleRoleChangeRequest = async (e) => {
+        e.preventDefault();
+        if (!roleChangeRequest.requestedRole || !roleChangeRequest.reason) {
+            showMessage('error', 'Please fill in all fields');
+            return;
+        }
+        setLoading(true);
+        try {
+            await authService.requestRoleChange({
+                current_role: user?.user_type || 'student',
+                requested_role: roleChangeRequest.requestedRole,
+                reason: roleChangeRequest.reason,
+            });
+            showMessage('success', 'Role change request submitted successfully. We will review and notify you.');
+            setRoleChangeRequest({ requestedRole: '', reason: '' });
+        } catch (error) {
+            showMessage('error', error.response?.data?.detail || 'Failed to submit request');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -55,12 +116,20 @@ const Settings = () => {
 
         try {
             // TODO: Implement account deletion API call
-            alert('Account deleted');
+            showMessage('success', 'Account deletion requested');
             logout();
         } catch (error) {
-            alert('Failed to delete account');
+            showMessage('error', 'Failed to delete account');
         }
     };
+
+    const tabs = [
+        { id: 'account', label: 'Account', icon: UserCog },
+        { id: 'security', label: 'Security', icon: Shield },
+        { id: 'notifications', label: 'Notifications', icon: Bell },
+        { id: 'appearance', label: 'Appearance', icon: Palette },
+        { id: 'privacy', label: 'Privacy', icon: Lock },
+    ];
 
     return (
         <div className="space-y-6">
@@ -69,22 +138,29 @@ const Settings = () => {
                 <p className="text-gray-600 mt-1">Manage your account and preferences</p>
             </div>
 
+            {/* Message Alert */}
+            {message.text && (
+                <div className={`p-4 rounded-lg flex items-center gap-2 ${message.type === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-700'
+                    : 'bg-red-50 border border-red-200 text-red-700'
+                    }`}>
+                    {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                    {message.text}
+                </div>
+            )}
+
             {/* Tabs */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-gray-200 overflow-x-auto">
                 <nav className="-mb-px flex space-x-8">
-                    {[
-                        { id: 'security', label: 'Security', icon: Shield },
-                        { id: 'notifications', label: 'Notifications', icon: Bell },
-                        { id: 'privacy', label: 'Privacy', icon: Lock },
-                    ].map((tab) => {
+                    {tabs.map((tab) => {
                         const Icon = tab.icon;
                         return (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
-                                        ? 'border-primary-500 text-primary-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ? 'border-primary-500 text-primary-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -94,6 +170,126 @@ const Settings = () => {
                     })}
                 </nav>
             </div>
+
+            {/* Account Tab */}
+            {activeTab === 'account' && (
+                <div className="space-y-6">
+                    {/* User Info Card */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-gray-200">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <User className="w-5 h-5" />
+                                Account Information
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                        <p className="text-gray-900">{user?.first_name} {user?.last_name}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                        <p className="text-gray-900">{user?.email}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 capitalize">
+                                            {user?.user_type?.replace('_', ' ') || 'Student'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                        <p className="text-gray-900">{user?.phone_number || 'Not set'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Role Change Request */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-gray-200">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <UserCog className="w-5 h-5" />
+                                Request Role Change
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Need a different role? Submit a request and our team will review it.
+                            </p>
+                            <form onSubmit={handleRoleChangeRequest} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Requested Role
+                                    </label>
+                                    <select
+                                        value={roleChangeRequest.requestedRole}
+                                        onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, requestedRole: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    >
+                                        <option value="">Select a role...</option>
+                                        {USER_TYPE_OPTIONS.filter(opt => opt.value !== user?.user_type).map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Reason for Request
+                                    </label>
+                                    <textarea
+                                        value={roleChangeRequest.reason}
+                                        onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, reason: e.target.value })}
+                                        rows="3"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        placeholder="Please explain why you need this role change..."
+                                    />
+                                </div>
+                                <Button variant="primary" type="submit" disabled={loading}>
+                                    <Send className="w-4 h-4 mr-2" />
+                                    {loading ? 'Submitting...' : 'Submit Request'}
+                                </Button>
+                            </form>
+                        </CardBody>
+                    </Card>
+
+                    {/* Linked Accounts */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-gray-200">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <Globe className="w-5 h-5" />
+                                Linked Accounts
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-3">
+                                {[
+                                    { name: 'Google', connected: true, icon: '🔗' },
+                                    { name: 'Apple', connected: false, icon: '🍎' },
+                                    { name: 'X (Twitter)', connected: false, icon: '𝕏' },
+                                ].map((account) => (
+                                    <div key={account.name} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xl">{account.icon}</span>
+                                            <span className="font-medium text-gray-900">{account.name}</span>
+                                        </div>
+                                        {account.connected ? (
+                                            <span className="text-sm text-green-600 flex items-center gap-1">
+                                                <CheckCircle className="w-4 h-4" /> Connected
+                                            </span>
+                                        ) : (
+                                            <Button variant="outline" size="sm">Connect</Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
 
             {/* Security Tab */}
             {activeTab === 'security' && (
@@ -141,8 +337,8 @@ const Settings = () => {
                                         Show passwords
                                     </label>
                                 </div>
-                                <Button variant="primary" type="submit">
-                                    Update Password
+                                <Button variant="primary" type="submit" disabled={loading}>
+                                    {loading ? 'Updating...' : 'Update Password'}
                                 </Button>
                             </form>
                         </CardBody>
@@ -243,6 +439,62 @@ const Settings = () => {
                                         </button>
                                     </div>
                                 ))}
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
+            {/* Appearance Tab */}
+            {activeTab === 'appearance' && (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader className="p-4 border-b border-gray-200">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <Palette className="w-5 h-5" />
+                                Theme
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="grid grid-cols-3 gap-4">
+                                {[
+                                    { value: 'light', label: 'Light', icon: '☀️' },
+                                    { value: 'dark', label: 'Dark', icon: '🌙' },
+                                    { value: 'system', label: 'System', icon: '💻' },
+                                ].map((themeOption) => (
+                                    <button
+                                        key={themeOption.value}
+                                        onClick={() => changeTheme(themeOption.value)}
+                                        className={`p-4 rounded-lg border-2 transition-all ${theme === themeOption.value
+                                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <span className="text-2xl mb-2 block">{themeOption.icon}</span>
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">{themeOption.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="p-4 border-b border-gray-200">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <Languages className="w-5 h-5" />
+                                Language & Region
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
+                                        <option value="en">English</option>
+                                        <option value="sw">Kiswahili</option>
+                                        <option value="fr">Français</option>
+                                    </select>
+                                </div>
                             </div>
                         </CardBody>
                     </Card>

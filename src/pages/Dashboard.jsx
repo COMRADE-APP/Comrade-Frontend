@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardHeader, CardBody, CardFooter } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare, Share2 } from 'lucide-react';
+import { ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare, Share2, Users, ArrowRight } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import eventsService from '../services/events.service';
 import tasksService from '../services/tasks.service';
+import roomsService from '../services/rooms.service';
 import { formatTimeAgo, formatDate } from '../utils/dateFormatter';
 
 const Dashboard = () => {
@@ -17,6 +19,7 @@ const Dashboard = () => {
         newMessages: 0,
     });
     const [feedItems, setFeedItems] = useState([]);
+    const [recommendedRooms, setRecommendedRooms] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -26,10 +29,11 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
         setLoading(true);
         try {
-            const [tasks, events, announcements] = await Promise.all([
+            const [tasks, events, announcements, rooms] = await Promise.all([
                 tasksService.getAll().catch(() => []),
                 eventsService.getAll().catch(() => []),
                 announcementsService.getAll().catch(() => []),
+                roomsService.getAll().catch(() => []),
             ]);
 
             setStats({
@@ -37,6 +41,10 @@ const Dashboard = () => {
                 upcomingEvents: Array.isArray(events) ? events.length : 0,
                 newMessages: 5,
             });
+
+            // Set recommended rooms (limit to 3)
+            const roomsList = Array.isArray(rooms) ? rooms : rooms?.results || [];
+            setRecommendedRooms(roomsList.slice(0, 3));
 
             // Combine and sort feed items
             const combined = [
@@ -106,8 +114,8 @@ const Dashboard = () => {
                             key={tab}
                             onClick={() => setActiveTab(tab.toLowerCase())}
                             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.toLowerCase()
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'border-primary-500 text-primary-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
                             {tab}
@@ -169,6 +177,23 @@ const Dashboard = () => {
                                 location="Virtual"
                                 variant="secondary"
                             />
+                        </CardBody>
+                    </Card>
+
+                    {/* Recommended Rooms */}
+                    <Card>
+                        <CardHeader className="p-4 flex items-center justify-between">
+                            <h3 className="font-semibold text-gray-900">Recommended Rooms</h3>
+                            <Link to="/rooms" className="text-sm text-primary-600 font-medium">View all</Link>
+                        </CardHeader>
+                        <CardBody className="p-4 space-y-3">
+                            {recommendedRooms.length > 0 ? (
+                                recommendedRooms.map((room) => (
+                                    <RoomWidget key={room.id} room={room} />
+                                ))
+                            ) : (
+                                <p className="text-sm text-gray-500 text-center py-2">No rooms available</p>
+                            )}
                         </CardBody>
                     </Card>
 
@@ -293,6 +318,21 @@ const SuggestedPerson = ({ name, role }) => (
             <span className="text-sm">+</span>
         </button>
     </div>
+);
+
+const RoomWidget = ({ room }) => (
+    <Link to={`/rooms/${room.id}`} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-100 to-purple-100 flex items-center justify-center">
+            <Users className="w-5 h-5 text-primary-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{room.name}</p>
+            <p className="text-xs text-gray-500">
+                {room.members?.length || 0} members
+            </p>
+        </div>
+        <ArrowRight className="w-4 h-4 text-gray-400" />
+    </Link>
 );
 
 export default Dashboard;

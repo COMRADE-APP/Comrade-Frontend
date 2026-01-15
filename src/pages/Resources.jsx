@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon, Search } from 'lucide-react';
 import resourcesService from '../services/resources.service';
 import { formatDate } from '../utils/dateFormatter';
 
 const Resources = () => {
+    const { user } = useAuth();
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadData, setUploadData] = useState({
         title: '',
@@ -17,6 +20,13 @@ const Resources = () => {
         file_type: 'doc',
         res_file: null,
     });
+
+    // Check if user has CRUD capabilities (staff/admin)
+    const canManageResources = user?.is_admin || user?.is_staff ||
+        user?.is_inst_admin || user?.is_inst_staff ||
+        user?.is_org_admin || user?.is_org_staff ||
+        user?.user_type === 'admin' || user?.user_type === 'staff' ||
+        user?.user_type === 'lecturer';
 
     useEffect(() => {
         loadResources();
@@ -57,21 +67,39 @@ const Resources = () => {
         }
     };
 
-    const filteredResources = filter === 'all'
-        ? resources
-        : resources.filter(r => r.file_type === filter);
+    const filteredResources = resources.filter(r => {
+        const matchesFilter = filter === 'all' || r.file_type === filter;
+        const matchesSearch = !searchTerm ||
+            r.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.desc?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Resources</h1>
                     <p className="text-gray-600 mt-1">Browse and manage shared resources</p>
                 </div>
-                <Button variant="primary" onClick={() => setShowUploadModal(true)}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Resource
-                </Button>
+                {canManageResources && (
+                    <Button variant="primary" onClick={() => setShowUploadModal(true)}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Resource
+                    </Button>
+                )}
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                    type="text"
+                    placeholder="Search resources..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                />
             </div>
 
             {/* Filters */}
@@ -81,8 +109,8 @@ const Resources = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1).replace('_', ' ')}

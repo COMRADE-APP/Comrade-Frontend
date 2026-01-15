@@ -3,6 +3,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
@@ -11,18 +12,26 @@ import EventTicketing from '../components/events/EventTicketing';
 import EventReminders from '../components/events/EventReminders';
 import {
     Calendar, MapPin, Users, Clock, Ticket, Bell, MessageSquare,
-    X, ChevronRight
+    X, ChevronRight, Plus
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import { formatDate, formatTime } from '../utils/dateFormatter';
 
 const Events = () => {
+    const { user } = useAuth();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [showModal, setShowModal] = useState(null); // 'details', 'tickets', 'reminders'
     const navigate = useNavigate();
+
+    // Check if user can create events
+    const canCreateEvents = user?.is_admin || user?.is_staff || user?.is_lecturer ||
+        user?.is_moderator || user?.is_student_admin ||
+        user?.is_inst_admin || user?.is_org_admin ||
+        user?.user_type === 'lecturer' || user?.user_type === 'staff' ||
+        user?.user_type === 'admin' || user?.user_type === 'moderator';
 
     useEffect(() => {
         loadEvents();
@@ -67,9 +76,12 @@ const Events = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Events</h1>
                     <p className="text-gray-600 mt-1">Discover and join upcoming events</p>
                 </div>
-                <Button variant="primary" onClick={() => navigate('/events/create')}>
-                    Create Event
-                </Button>
+                {canCreateEvents && (
+                    <Button variant="primary" onClick={() => navigate('/events/create')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Event
+                    </Button>
+                )}
             </div>
 
             {/* Filters */}
@@ -79,8 +91,8 @@ const Events = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}

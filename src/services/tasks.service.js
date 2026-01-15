@@ -7,6 +7,11 @@ export const tasksService = {
         return response.data;
     },
 
+    async getMyTasks() {
+        const response = await api.get(API_ENDPOINTS.TASKS_MY);
+        return response.data;
+    },
+
     async getById(id) {
         const response = await api.get(API_ENDPOINTS.TASK_DETAIL(id));
         return response.data;
@@ -34,6 +39,11 @@ export const tasksService = {
 
     async getSubmission(id) {
         const response = await api.get(`${API_ENDPOINTS.TASK_DETAIL(id)}submission/`);
+        return response.data;
+    },
+
+    async getQuestions(taskId) {
+        const response = await api.get(API_ENDPOINTS.TASK_QUESTIONS(taskId));
         return response.data;
     },
 };

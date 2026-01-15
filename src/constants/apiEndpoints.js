@@ -20,6 +20,11 @@ export const API_ENDPOINTS = {
     VERIFY_2FA: `${API_BASE_URL}/auth/verify-2fa/`,
     VERIFY_SMS_OTP: `${API_BASE_URL}/auth/verify-sms-otp/`,
 
+    // Account Settings
+    CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password/`,
+    ROLE_CHANGE_REQUEST: `${API_BASE_URL}/auth/role-change-request/`,
+    ROLE_CHANGE_REQUESTS: `${API_BASE_URL}/auth/role-change-requests/`,
+
     GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
     GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
     FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
@@ -35,24 +40,41 @@ export const API_ENDPOINTS = {
     EVENT_REGISTER: (id) => `${API_BASE_URL}/api/events/${id}/register/`,
 
     // Tasks
-    TASKS: `${API_BASE_URL}/api/tasks/`,
-    TASK_DETAIL: (id) => `${API_BASE_URL}/api/tasks/${id}/`,
-    TASK_SUBMIT: (id) => `${API_BASE_URL}/api/tasks/${id}/submit/`,
+    TASKS: `${API_BASE_URL}/api/tasks/tasks/`,
+    TASKS_MY: `${API_BASE_URL}/api/tasks/my_tasks/`,
+    TASK_DETAIL: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/`,
+    TASK_SUBMIT: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/submit/`,
+    TASK_QUESTIONS: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/questions/`,
 
     // User
     USER_PROFILE: `${API_BASE_URL}/api/users/profile/`,
     USER_UPDATE: `${API_BASE_URL}/api/users/update/`,
+    USER_SEARCH: `${API_BASE_URL}/users/search/`,
 
     // Rooms
-    ROOMS: `${API_BASE_URL}/api/rooms/`,
-    ROOM_DETAIL: (id) => `${API_BASE_URL}/api/rooms/${id}/`,
-    ROOM_MESSAGES: (id) => `${API_BASE_URL}/api/rooms/${id}/messages/`,
-    ROOM_JOIN: (id) => `${API_BASE_URL}/api/rooms/${id}/join/`,
-    ROOM_LEAVE: (id) => `${API_BASE_URL}/api/rooms/${id}/leave/`,
+    ROOMS: `${API_BASE_URL}/api/rooms/rooms/`,
+    ROOMS_MY: `${API_BASE_URL}/api/rooms/rooms/my_rooms/`,
+    ROOMS_RECOMMENDATIONS: `${API_BASE_URL}/api/rooms/rooms/recommendations/`,
+    ROOM_DETAIL: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/`,
+    ROOM_MESSAGES: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/messages/`,
+    ROOM_JOIN: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/join/`,
+    ROOM_LEAVE: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/leave/`,
+    ROOM_MEMBERS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/members/`,
+    ROOM_MAKE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/make_moderator/`,
+    ROOM_REMOVE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/remove_moderator/`,
 
-    // Messages
-    MESSAGES: `${API_BASE_URL}/api/messages/`,
-    MESSAGE_SEND: `${API_BASE_URL}/api/messages/send/`,
+    // Direct Messages
+    DM_ROOMS: `${API_BASE_URL}/api/rooms/dm_rooms/`,
+    DM_ROOM_DETAIL: (id) => `${API_BASE_URL}/api/rooms/dm_rooms/${id}/`,
+    DM_ROOM_GET_OR_CREATE: `${API_BASE_URL}/api/rooms/dm_rooms/get_or_create/`,
+    DM_ROOM_MESSAGES: (id) => `${API_BASE_URL}/api/rooms/dm_rooms/${id}/messages/`,
+    DM_ROOM_MARK_READ: (id) => `${API_BASE_URL}/api/rooms/dm_rooms/${id}/mark_all_read/`,
+    DM_MESSAGE_SEND: `${API_BASE_URL}/api/rooms/direct_messages/send/`,
+    DM_MESSAGE_MARK_READ: (id) => `${API_BASE_URL}/api/rooms/direct_messages/${id}/mark_read/`,
+
+    // Messages (legacy - kept for compatibility)
+    MESSAGES: `${API_BASE_URL}/api/rooms/dm_rooms/`,
+    MESSAGE_SEND: `${API_BASE_URL}/api/rooms/direct_messages/send/`,
     CONVERSATION: (userId) => `${API_BASE_URL}/api/messages/conversation/${userId}/`,
 
     // Resources

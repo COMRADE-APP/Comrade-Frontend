@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
 
 const OAuthCallback = ({ provider }) => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { setUser } = useAuth();
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -14,6 +12,10 @@ const OAuthCallback = ({ provider }) => {
             const accessToken = searchParams.get('access_token');
             const refreshToken = searchParams.get('refresh_token');
             const userId = searchParams.get('user_id');
+            const email = searchParams.get('email');
+            const firstName = searchParams.get('first_name');
+            const userType = searchParams.get('user_type');
+            const profileCompleted = searchParams.get('profile_completed');
             const errorParam = searchParams.get('error');
 
             if (errorParam) {
@@ -24,30 +26,38 @@ const OAuthCallback = ({ provider }) => {
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens in the format expected by auth context
-                const userData = {
-                    access_token: accessToken,
-                    refresh_token: refreshToken,
-                    user_id: userId,
-                };
-                localStorage.setItem('user', JSON.stringify(userData));
+                // Store tokens separately for API interceptor
                 localStorage.setItem('access_token', accessToken);
                 localStorage.setItem('refresh_token', refreshToken);
 
-                // Update auth context if setUser is available
-                if (setUser) {
-                    setUser(userData);
-                }
+                // Store user data for AuthContext
+                const isProfileComplete = profileCompleted === 'true';
+                const userData = {
+                    id: userId,
+                    email: email || '',
+                    first_name: firstName || '',
+                    user_type: userType || '',
+                    profile_completed: isProfileComplete,
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
 
-                // Navigate to dashboard
-                navigate(ROUTES.DASHBOARD, { replace: true });
+                // Redirect based on profile completion
+                if (!isProfileComplete) {
+                    // Redirect to profile setup
+                    window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup';
+                } else {
+                    // Navigate to dashboard
+                    window.location.href = ROUTES.DASHBOARD || '/dashboard';
+                }
             } else {
                 navigate(ROUTES.LOGIN);
             }
         };
 
         handleCallback();
-    }, [searchParams, navigate, setUser, provider]);
+    }, [searchParams, navigate, provider]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
