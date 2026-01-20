@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { ROUTES } from '../../constants/routes';
 import OTPInput from '../../components/auth/OTPInput';
 import Button from '../../components/common/Button';
-import authService from '../../services/auth.service';
 
 const VerifyEmail = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { verifyOTP, resendOTP } = useAuth();
+    const { showToast } = useToast();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Get email from router state or params
     const email = location.state?.email || new URLSearchParams(location.search).get('email');
@@ -24,11 +25,11 @@ const VerifyEmail = () => {
 
     const handleVerify = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         try {
-            const response = await authService.verifyLoginOTP(email, otp);
+            const response = await verifyOTP(email, otp);
+            showToast('Verification successful!', 'success');
 
             // Login complete - navigate to success page
             navigate(ROUTES.LOGIN_SUCCESS, {
@@ -39,7 +40,8 @@ const VerifyEmail = () => {
                 replace: true
             });
         } catch (err) {
-            setError(err.response?.data?.detail || 'Verification failed. Please try again.');
+            const message = err.response?.data?.detail || err.response?.data?.message || 'Verification failed. Please try again.';
+            showToast(message, 'error');
         } finally {
             setLoading(false);
         }
@@ -47,12 +49,11 @@ const VerifyEmail = () => {
 
     const handleResend = async () => {
         try {
-            await authService.resendOTP(email);
-            setError('');
-            // Using a custom toast/notification would be better, but keeping it simple for now
-            alert('Verification code resent successfully.');
+            await resendOTP(email);
+            showToast('Verification code resent successfully.', 'success');
         } catch (err) {
-            setError(err.response?.data?.detail || "Failed to resend code.");
+            const message = err.response?.data?.detail || err.response?.data?.message || "Failed to resend code.";
+            showToast(message, 'error');
         }
     };
 
@@ -71,12 +72,6 @@ const VerifyEmail = () => {
                         <span className="text-gray-900 font-semibold">{email}</span>
                     </p>
                 </div>
-
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleVerify} className="space-y-8">
                     <div className="flex justify-center">

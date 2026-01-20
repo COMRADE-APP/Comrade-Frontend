@@ -67,6 +67,9 @@ import TOTPSetupComponent from "./components/auth/TOTPSetup";
 import PaymentForm from "./components/payments/PaymentForm";
 import ServiceConverter from "./components/announcements/ServiceConverter";
 
+import { ToastProvider } from "./contexts/ToastContext";
+import "./styles/animations.css";
+
 // Helper component to handle params for VerificationDashboard
 const VerificationDashboardWrapper = ({ entityType }) => {
   const { id } = useParams();
@@ -96,362 +99,364 @@ function App() {
   const navigate = useNavigate();
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path={ROUTES.LOGIN} element={<Login />} />
-      <Route path={ROUTES.REGISTER} element={<Register />} />
-      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
-      <Route path={ROUTES.VERIFY_EMAIL_OTP} element={<VerifyEmail />} />
-      <Route
-        path={ROUTES.REGISTRATION_SUCCESS}
-        element={<RegistrationSuccess />}
-      />
-      <Route path={ROUTES.LOGIN_SUCCESS} element={<LoginSuccess />} />
-      <Route path={ROUTES.PROFILE_SETUP} element={<ProfileSetup />} />
+    <ToastProvider>
+      <Routes>
+        {/* Public Routes */}
+        <Route path={ROUTES.LOGIN} element={<Login />} />
+        <Route path={ROUTES.REGISTER} element={<Register />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+        <Route path={ROUTES.VERIFY_EMAIL_OTP} element={<VerifyEmail />} />
+        <Route
+          path={ROUTES.REGISTRATION_SUCCESS}
+          element={<RegistrationSuccess />}
+        />
+        <Route path={ROUTES.LOGIN_SUCCESS} element={<LoginSuccess />} />
+        <Route path={ROUTES.PROFILE_SETUP} element={<ProfileSetup />} />
 
-      {/* OAuth Callbacks */}
-      <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleCallback />} />
+        {/* OAuth Callbacks */}
+        <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleCallback />} />
 
-      {/* Protected Routes */}
-      <Route
-        path={ROUTES.DASHBOARD}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.ANNOUNCEMENTS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Announcements />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.EVENTS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Events />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.TASKS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Tasks />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PROFILE}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Profile />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.COMMUNITY}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Community />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PAYMENTS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Payments />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PAYMENT_METHODS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PaymentMethods />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.SPECIALIZATIONS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Specializations />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.SETTINGS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Settings />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.ACTIVITY}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ActivityLog />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.DEVICES}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Devices />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PERMISSIONS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PermissionsSettings />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.SHOP}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Shop />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PRODUCT_DETAILS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ProductDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/shop/:id"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ProductDetails />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+        {/* Protected Routes */}
+        <Route
+          path={ROUTES.DASHBOARD}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ANNOUNCEMENTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Announcements />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.EVENTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Events />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TASKS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Tasks />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PROFILE}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Profile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.COMMUNITY}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Community />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PAYMENTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Payments />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PAYMENT_METHODS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PaymentMethods />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SPECIALIZATIONS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Specializations />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SETTINGS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Settings />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ACTIVITY}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ActivityLog />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.DEVICES}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Devices />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PERMISSIONS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PermissionsSettings />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SHOP}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Shop />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PRODUCT_DETAILS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProductDetails />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProductDetails />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Payment System Routes */}
-      <Route
-        path="/products"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ProductCatalog />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/subscriptions"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <SubscriptionPlans />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/savings-goals"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <GroupTargets />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.TIER_PLANS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <TierPlans />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.PIGGY_BANKS}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PiggyBanks />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+        {/* Payment System Routes */}
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProductCatalog />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscriptions"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SubscriptionPlans />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/savings-goals"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <GroupTargets />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.TIER_PLANS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TierPlans />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PIGGY_BANKS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PiggyBanks />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
 
 
-      {/* Institution Routes */}
-      <Route
-        path="/institutions/create"
-        element={
-          <ProtectedRoute>
-            <CreateInstitution />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/institutions/:institutionId/verification"
-        element={
-          <ProtectedRoute>
-            <InstitutionVerification />
-          </ProtectedRoute>
-        }
-      />
+        {/* Institution Routes */}
+        <Route
+          path="/institutions/create"
+          element={
+            <ProtectedRoute>
+              <CreateInstitution />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/institutions/:institutionId/verification"
+          element={
+            <ProtectedRoute>
+              <InstitutionVerification />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Transaction History */}
-      <Route
-        path="/transactions"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <TransactionHistory />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+        {/* Transaction History */}
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TransactionHistory />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Announcements */}
-      <Route
-        path="/announcements/create"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CreateAnnouncement />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements/convert"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ServiceConverter
-                onSuccess={() => navigate("/announcements")}
-                onCancel={() => navigate("/announcements")}
+        {/* Announcements */}
+        <Route
+          path="/announcements/create"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CreateAnnouncement />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements/convert"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ServiceConverter
+                  onSuccess={() => navigate("/announcements")}
+                  onCancel={() => navigate("/announcements")}
+                />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Enhanced Portal Routes */}
+        <Route
+          path="/institutions/portal/create"
+          element={
+            <ProtectedRoute>
+              <EntityCreationPortal
+                entityType="institution"
+                onSuccess={(entity) =>
+                  navigate(`/institutions/portal/${entity.id}/verify`)
+                }
+                onCancel={() => navigate("/dashboard")}
               />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/institutions/portal/:id/verify"
+          element={
+            <ProtectedRoute>
+              <VerificationDashboardWrapper entityType="institution" />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Enhanced Portal Routes */}
-      <Route
-        path="/institutions/portal/create"
-        element={
-          <ProtectedRoute>
-            <EntityCreationPortal
-              entityType="institution"
-              onSuccess={(entity) =>
-                navigate(`/institutions/portal/${entity.id}/verify`)
-              }
-              onCancel={() => navigate("/dashboard")}
-            />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/institutions/portal/:id/verify"
-        element={
-          <ProtectedRoute>
-            <VerificationDashboardWrapper entityType="institution" />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/organizations/portal/create"
-        element={
-          <ProtectedRoute>
-            <EntityCreationPortal
-              entityType="organization"
-              onSuccess={(entity) =>
-                navigate(`/organizations/portal/${entity.id}/verify`)
-              }
-              onCancel={() => navigate("/dashboard")}
-            />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/organizations/portal/:id/verify"
-        element={
-          <ProtectedRoute>
-            <VerificationDashboardWrapper entityType="organization" />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Payment Processing Route */}
-      <Route
-        path="/payments/checkout"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PaymentForm
-                amount={100}
-                currency="USD"
-                description="Payment"
-                onSuccess={() => navigate("/payments")}
-                onCancel={() => navigate("/payments")}
+        <Route
+          path="/organizations/portal/create"
+          element={
+            <ProtectedRoute>
+              <EntityCreationPortal
+                entityType="organization"
+                onSuccess={(entity) =>
+                  navigate(`/organizations/portal/${entity.id}/verify`)
+                }
+                onCancel={() => navigate("/dashboard")}
               />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organizations/portal/:id/verify"
+          element={
+            <ProtectedRoute>
+              <VerificationDashboardWrapper entityType="organization" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Payment Processing Route */}
+        <Route
+          path="/payments/checkout"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PaymentForm
+                  amount={100}
+                  currency="USD"
+                  description="Payment"
+                  onSuccess={() => navigate("/payments")}
+                  onCancel={() => navigate("/payments")}
+                />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
 
 
-      {/* Redirect root to dashboard (ROUTES.DASHBOARD = '/dashboard') */}
-      <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-    </Routes>
+        {/* Redirect root to dashboard (ROUTES.DASHBOARD = '/dashboard') */}
+        <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      </Routes>
+    </ToastProvider>
   );
 }
 

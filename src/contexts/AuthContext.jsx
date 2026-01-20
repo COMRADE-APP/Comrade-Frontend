@@ -79,10 +79,30 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const verifyOTP = async (email, otp) => {
+        try {
+            const data = await authService.verifyLoginOTP(email, otp);
+            setUser(data);
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const resendOTP = async (email) => {
+        try {
+            await authService.resendOTP(email);
+        } catch (error) {
+            throw error;
+        }
+    };
+
     const value = {
         user,
         login,
         register,
+        verifyOTP,
+        resendOTP,
         logout,
         loading,
         isAuthenticated: !!user,
