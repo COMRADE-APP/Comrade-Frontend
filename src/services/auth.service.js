@@ -19,8 +19,8 @@ api.interceptors.request.use((config) => {
 });
 
 const authService = {
-    login: async (email, password, otp_method = 'email') => {
-        const response = await api.post(API_ENDPOINTS.LOGIN, { email, password, otp_method });
+    login: async (email, password) => {
+        const response = await api.post(API_ENDPOINTS.LOGIN, { email, password });
         return response.data;
     },
 
@@ -32,34 +32,13 @@ const authService = {
         return response.data;
     },
 
-    verify2FA: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.VERIFY_2FA, { email, otp });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
-        return response.data;
-    },
-
-    verifySMSOTP: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.VERIFY_SMS_OTP, { email, otp });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
-        return response.data;
-    },
-
-    resendOTP: async (email, otp_method = 'email', action_type = 'login') => {
-        const response = await api.post(API_ENDPOINTS.RESEND_OTP, { email, otp_method, action_type });
+    resendOTP: async (email) => {
+        const response = await api.post(API_ENDPOINTS.RESEND_OTP, { email });
         return response.data;
     },
 
     register: async (userData) => {
         const response = await api.post(API_ENDPOINTS.REGISTER, userData);
-        return response.data;
-    },
-
-    verifyRegistrationOTP: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.REGISTER_VERIFY, { email, otp });
         return response.data;
     },
 
@@ -77,7 +56,6 @@ const authService = {
 
     getCurrentUser: async () => {
         try {
-            // Check if token exists
             const user = JSON.parse(localStorage.getItem('user'));
             if (!user) return null;
             return user;
@@ -109,17 +87,6 @@ const authService = {
         const response = await api.post(API_ENDPOINTS.PASSWORD_RESET_CONFIRM, { email, otp, password });
         return response.data;
     },
-
-    // 2FA Setup
-    setup2FA: async () => {
-        const response = await api.post(API_ENDPOINTS.SETUP_2FA);
-        return response.data;
-    },
-
-    confirm2FASetup: async (otp) => {
-        const response = await api.post(API_ENDPOINTS.CONFIRM_2FA_SETUP, { otp });
-        return response.data;
-    }
 };
 
 export default authService;

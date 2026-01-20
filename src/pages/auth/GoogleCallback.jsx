@@ -12,7 +12,6 @@ const GoogleCallback = () => {
         const handleCallback = async () => {
             const accessToken = searchParams.get('access_token');
             const refreshToken = searchParams.get('refresh_token');
-            const userId = searchParams.get('user_id');
             const error = searchParams.get('error');
 
             if (error) {
@@ -22,13 +21,9 @@ const GoogleCallback = () => {
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens
-                localStorage.setItem('access_token', accessToken);
-                localStorage.setItem('refresh_token', refreshToken);
-
-                // Fetch user data
                 try {
-                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/user/`, {
+                    // Fetch user data
+                    const response = await fetch('http://localhost:8000/api/auth/user/', {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`
                         }
@@ -36,16 +31,23 @@ const GoogleCallback = () => {
 
                     if (response.ok) {
                         const userData = await response.json();
-                        setUser(userData);
-                        // Navigate to dashboard after successful login
-                        navigate(ROUTES.DASHBOARD, { replace: true });
+                        
+                        // Store in format expected by authService
+                        const authData = {
+                            access_token: accessToken,
+                            refresh_token: refreshToken,
+                            user: userData
+                        };
+                        localStorage.setItem('user', JSON.stringify(authData));
+                        
+                        // We can't call setUser directly, so we reload or navigate
+                        // The AuthProvider will pick up the user from localStorage on mount
+                        window.location.href = ROUTES.DASHBOARD;
                     } else {
                         throw new Error('Failed to fetch user data');
                     }
                 } catch (error) {
                     console.error('Error fetching user data:', error);
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
                     navigate(ROUTES.LOGIN, { state: { error: 'Failed to complete authentication' } });
                 }
             } else {
@@ -54,7 +56,7 @@ const GoogleCallback = () => {
         };
 
         handleCallback();
-    }, [searchParams, navigate, setUser]);
+    }, [searchParams, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

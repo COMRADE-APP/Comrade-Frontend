@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }) => {
     const register = async (userData) => {
         try {
             const data = await authService.register(userData);
+            navigate(ROUTES.LOGIN, { state: { message: 'Registration successful! Please log in.' } });
             return data;
         } catch (error) {
             throw error;

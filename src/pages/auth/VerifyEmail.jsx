@@ -9,7 +9,6 @@ import authService from '../../services/auth.service';
 const VerifyEmail = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -31,23 +30,14 @@ const VerifyEmail = () => {
         try {
             const response = await authService.verifyLoginOTP(email, otp);
 
-            if (response.verification_required) {
-                // Next step required (e.g., 2FA)
-                if (response.next_step === 'verify_2fa_totp') {
-                    navigate(ROUTES.VERIFY_2FA, { state: { email } });
-                } else if (response.next_step === 'verify_sms_otp') {
-                    navigate(ROUTES.VERIFY_SMS, { state: { email, phone_last_4: response.phone_last_4 } });
-                }
-            } else {
-                // Login complete - navigate to success page
-                navigate(ROUTES.LOGIN_SUCCESS, {
-                    state: {
-                        firstName: response.first_name,
-                        userType: response.user_type
-                    },
-                    replace: true
-                });
-            }
+            // Login complete - navigate to success page
+            navigate(ROUTES.LOGIN_SUCCESS, {
+                state: {
+                    firstName: response.first_name,
+                    userType: response.user_type
+                },
+                replace: true
+            });
         } catch (err) {
             setError(err.response?.data?.detail || 'Verification failed. Please try again.');
         } finally {
@@ -57,8 +47,9 @@ const VerifyEmail = () => {
 
     const handleResend = async () => {
         try {
-            await authService.resendOTP(email, 'email');
+            await authService.resendOTP(email);
             setError('');
+            // Using a custom toast/notification would be better, but keeping it simple for now
             alert('Verification code resent successfully.');
         } catch (err) {
             setError(err.response?.data?.detail || "Failed to resend code.");
@@ -66,50 +57,58 @@ const VerifyEmail = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-            <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-                <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify your Email</h2>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 lg:p-12 border border-gray-200">
+                <div className="text-center mb-10">
+                    <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Verify your Email</h2>
                     <p className="text-gray-600">
-                        We sent a verification code to <span className="font-semibold">{email}</span>
+                        We've sent a 6-digit verification code to <br />
+                        <span className="text-gray-900 font-semibold">{email}</span>
                     </p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleVerify} className="space-y-6">
-                    <OTPInput length={6} value={otp} onChange={setOtp} />
+                <form onSubmit={handleVerify} className="space-y-8">
+                    <div className="flex justify-center">
+                        <OTPInput length={6} value={otp} onChange={setOtp} />
+                    </div>
 
                     <Button
                         type="submit"
                         variant="primary"
-                        className="w-full"
+                        className="w-full py-3"
                         disabled={loading || otp.length !== 6}
                     >
-                        {loading ? 'Verifying...' : 'Verify Email'}
+                        {loading ? 'Verifying...' : 'Verify & Continue'}
                     </Button>
                 </form>
 
-                <div className="mt-6 text-center space-y-2">
+                <div className="mt-10 text-center space-y-4">
                     <p className="text-sm text-gray-600">
                         Didn't receive the code?{' '}
                         <button
                             type="button"
                             onClick={handleResend}
-                            className="text-primary-600 hover:text-primary-700 font-medium"
+                            className="text-primary-600 font-bold hover:text-primary-700"
                         >
                             Resend Code
                         </button>
                     </p>
                     <button
                         onClick={() => navigate(ROUTES.LOGIN)}
-                        className="text-sm text-gray-400 hover:text-gray-600"
+                        className="text-sm font-medium text-gray-500 hover:text-gray-700"
                     >
-                        Back to Login
+                        ← Back to Login
                     </button>
                 </div>
             </div>

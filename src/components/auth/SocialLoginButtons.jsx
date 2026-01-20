@@ -64,42 +64,6 @@ const SocialLoginButtons = () => {
             color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
             provider: 'google'
         },
-        {
-            name: 'Apple',
-            Icon: AppleIcon,
-            color: 'bg-black hover:bg-gray-900 text-white',
-            provider: 'apple'
-        },
-        {
-            name: 'Facebook',
-            Icon: FacebookIcon,
-            color: 'bg-blue-600 hover:bg-blue-700 text-white',
-            provider: 'facebook'
-        },
-        {
-            name: 'X',
-            Icon: XIcon,
-            color: 'bg-black hover:bg-gray-900 text-white',
-            provider: 'twitter_oauth2'
-        },
-        {
-            name: 'GitHub',
-            Icon: GitHubIcon,
-            color: 'bg-gray-800 hover:bg-gray-900 text-white',
-            provider: 'github'
-        },
-        {
-            name: 'LinkedIn',
-            Icon: LinkedInIcon,
-            color: 'bg-blue-700 hover:bg-blue-800 text-white',
-            provider: 'linkedin_oauth2'
-        },
-        {
-            name: 'Microsoft',
-            Icon: MicrosoftIcon,
-            color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
-            provider: 'microsoft'
-        },
     ];
 
     return (
@@ -113,19 +77,19 @@ const SocialLoginButtons = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex justify-center">
                 {providers.map((provider) => {
                     const IconComponent = provider.Icon;
                     return (
                         <button
                             key={provider.provider}
                             onClick={() => handleSocialLogin(provider.provider)}
-                            className={`w-full inline-flex justify-center items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${provider.color}`}
+                            className={`w-full max-w-xs inline-flex justify-center items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${provider.color}`}
                         >
                             <span className="mr-2">
                                 <IconComponent />
                             </span>
-                            {provider.name}
+                            Sign in with {provider.name}
                         </button>
                     );
                 })}
