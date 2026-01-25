@@ -69,8 +69,20 @@ const opinionsService = {
         return response.data;
     },
 
-    // Add comment to opinion
-    addComment: async (id, content, parentCommentId = null) => {
+    // Add comment to opinion (supports text, image, video, file)
+    addComment: async (id, content, media = null, parentCommentId = null) => {
+        if (media) {
+            const formData = new FormData();
+            formData.append('content', content);
+            formData.append('file', media);
+            if (parentCommentId) {
+                formData.append('parent_comment', parentCommentId);
+            }
+            const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        }
         const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, {
             content,
             parent_comment: parentCommentId
@@ -112,6 +124,12 @@ const opinionsService = {
 
     // Get suggestions
     getSuggestions: async () => {
+        const response = await api.get(`${BASE_URL}/follow/suggestions/`);
+        return response.data;
+    },
+
+    // Alias for Profile page
+    getFollowSuggestions: async () => {
         const response = await api.get(`${BASE_URL}/follow/suggestions/`);
         return response.data;
     },

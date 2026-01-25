@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
-import { Briefcase, MapPin, Users, Search } from 'lucide-react';
+import Button from '../components/common/Button';
+import Input from '../components/common/Input';
+import { Briefcase, MapPin, Users, Search, Plus, X } from 'lucide-react';
 import organizationsService from '../services/organizations.service';
 
 const Organizations = () => {
+    const navigate = useNavigate();
     const [organizations, setOrganizations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('all');
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        abbreviation: '',
+        org_type: 'business',
+        industry: '',
+        city: '',
+        origin: 'Kenya',
+    });
 
     useEffect(() => {
         loadOrganizations();
@@ -26,6 +39,19 @@ const Organizations = () => {
         }
     };
 
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        try {
+            await organizationsService.create(formData);
+            setShowCreateModal(false);
+            setFormData({ name: '', abbreviation: '', org_type: 'business', industry: '', city: '', origin: 'Kenya' });
+            loadOrganizations();
+        } catch (error) {
+            console.error('Failed to create organization:', error);
+            alert('Failed to create organization');
+        }
+    };
+
     const filteredOrganizations = organizations.filter(org => {
         const matchesSearch = org.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             org.abbreviation?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -35,9 +61,15 @@ const Organizations = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Organizations</h1>
-                <p className="text-gray-600 mt-1">Browse companies and organizations</p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Organizations</h1>
+                    <p className="text-gray-600 mt-1">Browse companies and organizations</p>
+                </div>
+                <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Organization
+                </Button>
             </div>
 
             {/* Search */}
@@ -59,8 +91,8 @@ const Organizations = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -85,6 +117,79 @@ const Organizations = () => {
                     {filteredOrganizations.map((org) => (
                         <OrganizationCard key={org.id} organization={org} />
                     ))}
+                </div>
+            )}
+
+            {/* Create Organization Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-lg">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-gray-900">Create Organization</h2>
+                                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCreate} className="space-y-4">
+                                <Input
+                                    label="Organization Name *"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                    placeholder="Enter organization name"
+                                />
+                                <Input
+                                    label="Abbreviation"
+                                    value={formData.abbreviation}
+                                    onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
+                                    placeholder="e.g., ACME"
+                                />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Organization Type</label>
+                                    <select
+                                        value={formData.org_type}
+                                        onChange={(e) => setFormData({ ...formData, org_type: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    >
+                                        <option value="business">Business</option>
+                                        <option value="ngo">NGO</option>
+                                        <option value="go">Government Organization</option>
+                                        <option value="ministry">Ministry</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <Input
+                                    label="Industry"
+                                    value={formData.industry}
+                                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                                    placeholder="e.g., Technology, Healthcare"
+                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input
+                                        label="City"
+                                        value={formData.city}
+                                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                        placeholder="City"
+                                    />
+                                    <Input
+                                        label="Country"
+                                        value={formData.origin}
+                                        onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                                        placeholder="Country"
+                                    />
+                                </div>
+                                <div className="flex gap-2 justify-end pt-4">
+                                    <Button variant="outline" type="button" onClick={() => setShowCreateModal(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button variant="primary" type="submit">
+                                        Create Organization
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardBody>
+                    </Card>
                 </div>
             )}
         </div>

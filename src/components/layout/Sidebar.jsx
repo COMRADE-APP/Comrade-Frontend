@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
-    MessageCircle, ShoppingBag, Search, BookOpen, UserPlus
+    MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,9 +15,10 @@ const Sidebar = () => {
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
         { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
+        { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
         { path: ROUTES.ROOMS, label: 'Rooms', icon: Users },
-        { path: ROUTES.ANNOUNCEMENTS, label: 'Announcements', icon: Bell },
+        { path: ROUTES.ANNOUNCEMENTS, label: 'Announcements', icon: Megaphone },
         { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
         { path: ROUTES.TASKS, label: 'Tasks', icon: ClipboardList },
         { path: ROUTES.RESOURCES, label: 'Resources', icon: FileText },

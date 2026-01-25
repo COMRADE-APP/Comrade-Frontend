@@ -3,16 +3,26 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardHeader, CardBody, CardFooter } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare, Share2, Users, ArrowRight } from 'lucide-react';
+import FeedItem from '../components/feed/FeedItem';
+import OpinionComposer from '../components/feed/OpinionComposer';
+import {
+    ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare,
+    Share2, Users, ArrowRight, RefreshCw, Filter, ShoppingBag, FileText,
+    TrendingUp, Bell
+} from 'lucide-react';
+import api from '../services/api';
 import announcementsService from '../services/announcements.service';
 import eventsService from '../services/events.service';
 import tasksService from '../services/tasks.service';
 import roomsService from '../services/rooms.service';
+import opinionsService from '../services/opinions.service';
 import { formatTimeAgo, formatDate } from '../utils/dateFormatter';
+import PaymentGroupsFeed from '../components/payments/PaymentGroupsFeed';
+import PiggyBankFeed from '../components/payments/PiggyBankFeed';
 
 const Dashboard = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('feed');
+    const [activeTab, setActiveTab] = useState('all');
     const [stats, setStats] = useState({
         pendingTasks: 0,
         upcomingEvents: 0,
@@ -21,19 +31,27 @@ const Dashboard = () => {
     const [feedItems, setFeedItems] = useState([]);
     const [recommendedRooms, setRecommendedRooms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [newContentAvailable, setNewContentAvailable] = useState(false);
+    const [lastFetchTime, setLastFetchTime] = useState(null);
 
     useEffect(() => {
         loadDashboardData();
-    }, []);
+    }, [activeTab]);
+
+    // Poll for new content every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(checkForNewContent, 30000);
+        return () => clearInterval(interval);
+    }, [lastFetchTime]);
 
     const loadDashboardData = async () => {
         setLoading(true);
         try {
-            const [tasks, events, announcements, rooms] = await Promise.all([
+            const [tasks, events, rooms, feedData] = await Promise.all([
                 tasksService.getAll().catch(() => []),
                 eventsService.getAll().catch(() => []),
-                announcementsService.getAll().catch(() => []),
                 roomsService.getAll().catch(() => []),
+                fetchUnifiedFeed(),
             ]);
 
             setStats({
@@ -42,23 +60,143 @@ const Dashboard = () => {
                 newMessages: 5,
             });
 
-            // Set recommended rooms (limit to 3)
             const roomsList = Array.isArray(rooms) ? rooms : rooms?.results || [];
             setRecommendedRooms(roomsList.slice(0, 3));
-
-            // Combine and sort feed items
-            const combined = [
-                ...(Array.isArray(tasks) ? tasks.map(t => ({ ...t, type: 'task' })) : []),
-                ...(Array.isArray(events) ? events.map(e => ({ ...e, type: 'event' })) : []),
-                ...(Array.isArray(announcements) ? announcements.map(a => ({ ...a, type: 'announcement' })) : []),
-            ];
-            setFeedItems(combined);
+            setFeedItems(feedData);
+            setLastFetchTime(new Date().toISOString());
+            setNewContentAvailable(false);
         } catch (error) {
             console.error('Error loading dashboard:', error);
         } finally {
             setLoading(false);
         }
     };
+
+    const fetchUnifiedFeed = async () => {
+        try {
+            const response = await api.get('/api/opinions/feed/', {
+                params: { type: activeTab, limit: 30 }
+            });
+            return response.data.results || response.data || [];
+        } catch (error) {
+            console.error('Failed to fetch feed:', error);
+            return [];
+        }
+    };
+
+    const checkForNewContent = async () => {
+        if (!lastFetchTime) return;
+        try {
+            const response = await api.get('/api/opinions/feed/check-new/', {
+                params: { since: lastFetchTime }
+            });
+            if (response.data.has_new) {
+                setNewContentAvailable(true);
+            }
+        } catch (error) {
+            console.error('Failed to check for new content:', error);
+        }
+    };
+
+    const handleRefresh = () => {
+        loadDashboardData();
+    };
+
+    const handlePostOpinion = async (formData) => {
+        try {
+            await api.post('/api/opinions/opinions/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            loadDashboardData();
+        } catch (error) {
+            console.error('Failed to post:', error);
+            throw error;
+        }
+    };
+
+    const handleLike = async (id) => {
+        try {
+            const response = await api.post(`/api/opinions/opinions/${id}/like/`);
+            return response.data;
+        } catch (error) {
+            console.error('Failed to like:', error);
+        }
+    };
+
+    const handleRepost = async (id) => {
+        try {
+            const response = await api.post(`/api/opinions/opinions/${id}/repost/`);
+            return response.data;
+        } catch (error) {
+            console.error('Failed to repost:', error);
+        }
+    };
+
+    const handleShare = async (id) => {
+        try {
+            await api.post(`/api/opinions/opinions/${id}/share/`);
+        } catch (error) {
+            console.error('Failed to track share:', error);
+        }
+    };
+
+    const handleBookmark = async (id) => {
+        try {
+            const response = await api.post(`/api/opinions/opinions/${id}/bookmark/`);
+            return response.data;
+        } catch (error) {
+            console.error('Failed to bookmark:', error);
+        }
+    };
+
+    const handleFollow = async (userId) => {
+        try {
+            await api.post('/api/opinions/follow/toggle/', { user_id: userId });
+            loadDashboardData();
+        } catch (error) {
+            console.error('Failed to follow:', error);
+        }
+    };
+
+    const handleHide = async (id) => {
+        try {
+            await api.post(`/api/opinions/opinions/${id}/hide/`);
+            setFeedItems(prev => prev.filter(item => item.id !== id));
+        } catch (error) {
+            console.error('Failed to hide:', error);
+        }
+    };
+
+    const handleReport = async (id) => {
+        const reason = prompt('Why are you reporting this content?');
+        if (reason) {
+            try {
+                await api.post(`/api/opinions/opinions/${id}/report/`, { reason: 'other', description: reason });
+                alert('Thank you for your report. We will review it.');
+            } catch (error) {
+                console.error('Failed to report:', error);
+            }
+        }
+    };
+
+    const handleBlock = async (userId) => {
+        if (confirm('Are you sure you want to block this user?')) {
+            try {
+                await api.post('/api/opinions/block/toggle/', { user_id: userId });
+                loadDashboardData();
+            } catch (error) {
+                console.error('Failed to block:', error);
+            }
+        }
+    };
+
+    const feedTabs = [
+        { id: 'all', label: 'For You', icon: TrendingUp },
+        { id: 'opinions', label: 'Opinions', icon: MessageSquare },
+        { id: 'research', label: 'Research', icon: FileText },
+        { id: 'announcements', label: 'Announcements', icon: Megaphone },
+        { id: 'products', label: 'Products', icon: ShoppingBag },
+    ];
 
     const StatCard = ({ label, value, sublabel, color = 'gray' }) => (
         <Card>
@@ -73,7 +211,7 @@ const Dashboard = () => {
     );
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Welcome Section */}
             <div className="space-y-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -99,240 +237,190 @@ const Dashboard = () => {
                 <StatCard
                     label="New Messages"
                     value={stats.newMessages}
+                    sublabel="3 Unread"
+                    color="blue"
                 />
                 <StatCard
-                    label="Polls Active"
-                    value="1"
+                    label="Following"
+                    value={user?.following_count || 0}
+                    sublabel="Active creators"
+                    color="purple"
                 />
             </div>
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200">
-                <nav className="-mb-px flex space-x-8">
-                    {['Feed', 'Events', 'Tasks'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab.toLowerCase())}
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.toLowerCase()
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                        >
-                            {tab}
-                            {tab === 'Events' && (
-                                <span className="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                    {stats.upcomingEvents}
-                                </span>
-                            )}
-                            {tab === 'Tasks' && (
-                                <span className="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
-                                    {stats.pendingTasks}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </nav>
-            </div>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Feed Column */}
+                <div className="lg:col-span-2 space-y-4">
+                    {/* Opinion Composer */}
+                    <OpinionComposer
+                        onSubmit={handlePostOpinion}
+                        isPremium={user?.tier === 'premium' || user?.tier === 'gold'}
+                    />
 
-            {/* Main Feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Feed */}
-                <div className="lg:col-span-2 space-y-6">
+                    {/* New Content Banner */}
+                    {newContentAvailable && (
+                        <button
+                            onClick={handleRefresh}
+                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                        >
+                            <RefreshCw size={18} />
+                            New posts available - tap to refresh
+                        </button>
+                    )}
+
+                    {/* Feed Tabs */}
+                    <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-gray-200">
+                        {feedTabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                <tab.icon size={16} />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Feed Items */}
                     {loading ? (
-                        <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                        <div className="space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+                                    <div className="flex gap-3">
+                                        <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 bg-gray-200 rounded w-1/4" />
+                                            <div className="h-3 bg-gray-200 rounded w-3/4" />
+                                            <div className="h-3 bg-gray-200 rounded w-1/2" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : feedItems.length === 0 ? (
-                        <Card>
-                            <CardBody className="text-center py-12">
-                                <p className="text-gray-500">No items to display yet. Check back later!</p>
-                            </CardBody>
-                        </Card>
+                        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                            <MessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
+                            <h3 className="font-semibold text-gray-700 mb-2">No posts yet</h3>
+                            <p className="text-gray-500 text-sm">Be the first to share something!</p>
+                        </div>
                     ) : (
-                        feedItems.slice(0, 5).map((item, idx) => (
-                            <FeedItemCard key={idx} item={item} />
-                        ))
+                        <div className="space-y-4">
+                            {feedItems.map(item => (
+                                <FeedItem
+                                    key={`${item.content_type || 'opinion'}-${item.id}`}
+                                    item={item}
+                                    onLike={handleLike}
+                                    onComment={(item) => console.log('Comment on:', item)}
+                                    onRepost={handleRepost}
+                                    onShare={handleShare}
+                                    onBookmark={handleBookmark}
+                                    onFollow={handleFollow}
+                                    onHide={handleHide}
+                                    onReport={handleReport}
+                                    onBlock={handleBlock}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
 
-                {/* Right Column: Sidebar */}
+                {/* Sidebar */}
                 <div className="space-y-6">
-                    {/* Upcoming Events Widget */}
+                    {/* Upcoming Events */}
                     <Card>
-                        <CardHeader className="p-4 flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Upcoming Events</h3>
-                            <a href="/events" className="text-sm text-primary-600 font-medium">View all</a>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Calendar size={18} className="text-purple-600" />
+                                <h3 className="font-semibold text-gray-900">Upcoming Events</h3>
+                            </div>
                         </CardHeader>
-                        <CardBody className="p-4 space-y-4">
-                            <EventWidget
-                                month="Oct"
-                                day="24"
-                                title="Annual Tech Meetup 2024"
-                                location="Main Auditorium"
-                            />
-                            <EventWidget
-                                month="Nov"
-                                day="02"
-                                title="Career Fair: Engineering"
-                                location="Virtual"
-                                variant="secondary"
-                            />
+                        <CardBody className="p-4">
+                            {stats.upcomingEvents === 0 ? (
+                                <p className="text-gray-500 text-sm">No upcoming events</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    <p className="text-sm text-gray-600">{stats.upcomingEvents} events coming up</p>
+                                </div>
+                            )}
                         </CardBody>
+                        <CardFooter className="border-t border-gray-100 p-3">
+                            <Link to="/events" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                                View all events <ArrowRight size={14} />
+                            </Link>
+                        </CardFooter>
+                    </Card>
+
+                    {/* Tasks */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <ClipboardList size={18} className="text-purple-600" />
+                                <h3 className="font-semibold text-gray-900">Your Tasks</h3>
+                            </div>
+                        </CardHeader>
+                        <CardBody className="p-4">
+                            {stats.pendingTasks === 0 ? (
+                                <p className="text-gray-500 text-sm">No pending tasks</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    <p className="text-sm text-gray-600">{stats.pendingTasks} tasks pending</p>
+                                </div>
+                            )}
+                        </CardBody>
+                        <CardFooter className="border-t border-gray-100 p-3">
+                            <Link to="/tasks" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                                View all tasks <ArrowRight size={14} />
+                            </Link>
+                        </CardFooter>
                     </Card>
 
                     {/* Recommended Rooms */}
                     <Card>
-                        <CardHeader className="p-4 flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Recommended Rooms</h3>
-                            <Link to="/rooms" className="text-sm text-primary-600 font-medium">View all</Link>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Users size={18} className="text-purple-600" />
+                                <h3 className="font-semibold text-gray-900">Suggested Communities</h3>
+                            </div>
                         </CardHeader>
-                        <CardBody className="p-4 space-y-3">
-                            {recommendedRooms.length > 0 ? (
-                                recommendedRooms.map((room) => (
-                                    <RoomWidget key={room.id} room={room} />
-                                ))
+                        <CardBody className="p-4">
+                            {recommendedRooms.length === 0 ? (
+                                <p className="text-gray-500 text-sm">No communities to show</p>
                             ) : (
-                                <p className="text-sm text-gray-500 text-center py-2">No rooms available</p>
+                                <div className="space-y-3">
+                                    {recommendedRooms.map(room => (
+                                        <Link
+                                            key={room.id}
+                                            to={`/rooms/${room.id}`}
+                                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium">
+                                                {room.name?.[0]?.toUpperCase() || 'R'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-gray-900 truncate">{room.name}</p>
+                                                <p className="text-xs text-gray-500">{room.members_count || 0} members</p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
                             )}
                         </CardBody>
                     </Card>
 
-                    {/* Suggested People */}
-                    <Card>
-                        <CardHeader className="p-4">
-                            <h3 className="font-semibold text-gray-900">Suggested People</h3>
-                        </CardHeader>
-                        <CardBody className="p-4 space-y-3">
-                            <SuggestedPerson name="Sarah Connor" role="Student Rep" />
-                            <SuggestedPerson name="Dr. Smith" role="Lecturer" />
-                        </CardBody>
-                    </Card>
+                    {/* My Payment Groups */}
+                    <PaymentGroupsFeed limit={3} />
+
+                    {/* Savings Goals / Piggy Banks */}
+                    <PiggyBankFeed limit={3} />
                 </div>
             </div>
         </div>
     );
 };
-
-const FeedItemCard = ({ item }) => {
-    if (item.type === 'task') {
-        return (
-            <Card>
-                <CardBody>
-                    <div className="flex items-start justify-between">
-                        <div className="flex gap-4">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                <ClipboardList className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{item.heading || item.name}</h3>
-                                <p className="text-sm text-gray-500">Assignment • Due {formatDate(item.due_date)}</p>
-                            </div>
-                        </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                            Pending
-                        </span>
-                    </div>
-                    <div className="mt-4 bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-                        {item.description}
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Status: <span className="font-medium text-orange-600">Pending</span></span>
-                        <Button variant="primary">Submit Work</Button>
-                    </div>
-                </CardBody>
-            </Card>
-        );
-    }
-
-    if (item.type === 'announcement') {
-        return (
-            <Card>
-                <CardBody>
-                    <div className="flex items-start justify-between">
-                        <div className="flex gap-4">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                <Megaphone className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{item.heading}</h3>
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <span>Admin</span>
-                                    <span>•</span>
-                                    <span>{formatTimeAgo(item.time_stamp)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <p className="mt-4 text-gray-600">{item.content}</p>
-                </CardBody>
-                <CardFooter className="flex items-center justify-between">
-                    <div className="flex -space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-300 border-2 border-white"></div>
-                        <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white"></div>
-                        <div className="h-8 w-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium">
-                            +5
-                        </div>
-                    </div>
-                    <div className="flex gap-3">
-                        <button className="text-gray-500 hover:text-primary-600"><ThumbsUp className="w-5 h-5" /></button>
-                        <button className="text-gray-500 hover:text-primary-600"><MessageSquare className="w-5 h-5" /></button>
-                        <button className="text-gray-500 hover:text-primary-600"><Share2 className="w-5 h-5" /></button>
-                    </div>
-                </CardFooter>
-            </Card>
-        );
-    }
-
-    return null;
-};
-
-const EventWidget = ({ month, day, title, location, variant = 'primary' }) => (
-    <div className="flex gap-3 items-start">
-        <div className={`w-12 h-14 rounded-lg flex flex-col items-center justify-center shrink-0 ${variant === 'primary' ? 'bg-primary-50 text-primary-700' : 'bg-gray-50 text-gray-700'
-            }`}>
-            <span className="text-xs font-medium uppercase">{month}</span>
-            <span className="text-lg font-bold">{day}</span>
-        </div>
-        <div className="flex-1">
-            <h4 className="font-medium text-gray-900 line-clamp-1">{title}</h4>
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> {location}
-            </p>
-            <Button variant={variant === 'primary' ? 'primary' : 'outline'} className="mt-2 text-xs w-full py-1.5">
-                {variant === 'primary' ? 'Get Ticket' : 'Details'}
-            </Button>
-        </div>
-    </div>
-);
-
-const SuggestedPerson = ({ name, role }) => (
-    <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200"></div>
-            <div>
-                <p className="text-sm font-medium">{name}</p>
-                <p className="text-xs text-gray-500">{role}</p>
-            </div>
-        </div>
-        <button className="text-primary-600 hover:bg-primary-50 p-1 rounded">
-            <span className="text-sm">+</span>
-        </button>
-    </div>
-);
-
-const RoomWidget = ({ room }) => (
-    <Link to={`/rooms/${room.id}`} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-100 to-purple-100 flex items-center justify-center">
-            <Users className="w-5 h-5 text-primary-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{room.name}</p>
-            <p className="text-xs text-gray-500">
-                {room.members?.length || 0} members
-            </p>
-        </div>
-        <ArrowRight className="w-4 h-4 text-gray-400" />
-    </Link>
-);
 
 export default Dashboard;

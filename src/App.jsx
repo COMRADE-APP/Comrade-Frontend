@@ -54,18 +54,30 @@ import ProductCatalog from './pages/products/ProductCatalog';
 import SubscriptionPlans from './pages/subscription/SubscriptionPlans';
 import TierPlans from './pages/subscription/TierPlans';
 import GroupTargets from './pages/payments/GroupTargets';
+import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
 
 // Opinions & Social
 import Opinions from './pages/Opinions';
+import OpinionDetail from './pages/OpinionDetail';
 import Following from './pages/Following';
 import Research from './pages/Research';
 import Articles from './pages/Articles';
+import Notifications from './pages/Notifications';
 
 // New Integrated Pages
 import CreateInstitution from './pages/institutions/CreateInstitution';
 import InstitutionVerification from './pages/institutions/InstitutionVerification';
 import TransactionHistory from './pages/TransactionHistory';
 import CreateAnnouncement from './pages/CreateAnnouncement';
+import CreateEvent from './pages/CreateEvent';
+import CreateTask from './pages/CreateTask';
+import CreateRoom from './pages/CreateRoom';
+import CreateResource from './pages/CreateResource';
+import CreateResearch from './pages/CreateResearch';
+import CreateArticle from './pages/CreateArticle';
+import AdminDeletionReview from './pages/admin/AdminDeletionReview';
+import BecomePartner from './pages/partners/BecomePartner';
+import CreateProduct from './pages/products/CreateProduct';
 
 // New Portal Components
 import EntityCreationPortal from './components/entities/EntityCreationPortal';
@@ -166,6 +178,16 @@ function App() {
                 }
             />
             <Route
+                path={ROUTES.PROFILE_DETAIL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Profile />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.COMMUNITY}
                 element={
                     <ProtectedRoute>
@@ -181,6 +203,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Rooms />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.NOTIFICATIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Notifications />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -205,12 +237,23 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
             <Route
                 path={ROUTES.OPINIONS}
                 element={
                     <ProtectedRoute>
                         <MainLayout>
                             <Opinions />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/opinions/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <OpinionDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -251,6 +294,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Articles />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_DELETION_REVIEW}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminDeletionReview />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -490,6 +543,66 @@ function App() {
                 }
             />
             <Route
+                path="/events/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateEvent />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateTask />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/rooms/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateRoom />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/resources/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateResource />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/research/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateResearch />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/articles/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateArticle />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/announcements/convert"
                 element={
                     <ProtectedRoute>
@@ -498,6 +611,26 @@ function App() {
                                 onSuccess={() => window.location.href = '/announcements'}
                                 onCancel={() => window.location.href = '/announcements'}
                             />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/partners/apply"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BecomePartner />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/products/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateProduct />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -569,6 +702,18 @@ function App() {
                                 onSuccess={() => window.location.href = '/payments'}
                                 onCancel={() => window.location.href = '/payments'}
                             />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Create Payment Group */}
+            <Route
+                path="/payments/create-group"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreatePaymentGroup />
                         </MainLayout>
                     </ProtectedRoute>
                 }

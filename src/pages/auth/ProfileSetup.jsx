@@ -80,23 +80,32 @@ const ProfileSetup = () => {
     const handleComplete = async () => {
         setLoading(true);
         try {
-            // Update profile with collected data
+            // Prepare profile data
             const profileData = {
                 bio: formData.bio,
                 location: formData.location,
                 occupation: formData.occupation,
-                interests: formData.interests.join(', '),
-                profile_completed: true,
+                interests: formData.interests,
+                avatar: formData.profilePicture, // The actual file
             };
 
-            // TODO: Call API to update profile
-            // await authService.updateProfile(profileData);
+            // Call API to save profile
+            const response = await authService.setupProfile(profileData);
 
+            // Update stored user data with profile_completed flag
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            storedUser.profile_completed = true;
+            storedUser.avatar_url = response.profile?.avatar_url;
+            localStorage.setItem('user', JSON.stringify(storedUser));
+
+            // Redirect to dashboard
             navigate(ROUTES.DASHBOARD, {
-                state: { message: 'Profile setup complete! Welcome to Comrade.' }
+                state: { message: 'Profile setup complete! Welcome to Comrade.' },
+                replace: true
             });
         } catch (error) {
             console.error('Profile setup error:', error);
+            alert(error.response?.data?.detail || 'Failed to save profile. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -131,10 +140,10 @@ const ProfileSetup = () => {
                                 <div className="flex flex-col items-center">
                                     <div
                                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${step > s.id
-                                                ? 'bg-green-400'
-                                                : step === s.id
-                                                    ? 'bg-white text-primary-600'
-                                                    : 'bg-white/30'
+                                            ? 'bg-green-400'
+                                            : step === s.id
+                                                ? 'bg-white text-primary-600'
+                                                : 'bg-white/30'
                                             }`}
                                     >
                                         {step > s.id ? (
@@ -231,8 +240,8 @@ const ProfileSetup = () => {
                                         type="button"
                                         onClick={() => handleInterestToggle(interest)}
                                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${formData.interests.includes(interest)
-                                                ? 'bg-primary-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-primary-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {interest}

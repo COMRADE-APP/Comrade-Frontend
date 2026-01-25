@@ -18,6 +18,8 @@ export const ROUTES = {
     EVENTS: '/events',
     TASKS: '/tasks',
     PROFILE: '/profile',
+    PROFILE_DETAIL: '/profile/:id',
+    ADMIN_DELETION_REVIEW: '/admin/deletion-review',
     COMMUNITY: '/community',
     ROOMS: '/rooms',
     MESSAGES: '/messages',
@@ -50,11 +52,20 @@ export const ROUTES = {
     // Opinions & Social
     OPINIONS: '/opinions',
     OPINION_DETAIL: '/opinions/:id',
+    NOTIFICATIONS: '/notifications',
     FOLLOWING: '/following',
 
     // Content
     RESEARCH: '/research',
     ARTICLES: '/articles',
+
+    // Create Content
+    CREATE_EVENT: '/events/create',
+    CREATE_TASK: '/tasks/create',
+    CREATE_ROOM: '/rooms/create',
+    CREATE_RESOURCE: '/resources/create',
+    CREATE_RESEARCH: '/research/create',
+    CREATE_ANNOUNCEMENT: '/announcements/create',
 
     // New Portal Features
     CREATE_INSTITUTION: '/institutions/portal/create',

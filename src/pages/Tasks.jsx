@@ -26,12 +26,8 @@ const Tasks = () => {
         visibility: 'private',
     });
 
-    // Check if user can create tasks (staff, admin, lecturer, etc.)
-    const canCreateTasks = user?.is_admin || user?.is_staff || user?.is_lecturer ||
-        user?.is_moderator || user?.is_student_admin ||
-        user?.is_inst_admin || user?.is_org_admin ||
-        user?.user_type === 'lecturer' || user?.user_type === 'staff' ||
-        user?.user_type === 'admin';
+    // All authenticated users can create tasks
+    const canCreateTasks = true;
 
     useEffect(() => {
         loadTasks();
@@ -140,15 +136,15 @@ const Tasks = () => {
                     <button
                         onClick={() => setActiveTab('assigned')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'assigned'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <ClipboardList className="w-4 h-4" />
                         My Tasks
                         <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'assigned'
-                                ? 'bg-primary-100 text-primary-600'
-                                : 'bg-gray-100 text-gray-600'
+                            ? 'bg-primary-100 text-primary-600'
+                            : 'bg-gray-100 text-gray-600'
                             }`}>
                             {myTasks.length}
                         </span>
@@ -156,15 +152,15 @@ const Tasks = () => {
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'all'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <FileText className="w-4 h-4" />
                         All Tasks
                         <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'all'
-                                ? 'bg-primary-100 text-primary-600'
-                                : 'bg-gray-100 text-gray-600'
+                            ? 'bg-primary-100 text-primary-600'
+                            : 'bg-gray-100 text-gray-600'
                             }`}>
                             {tasks.length}
                         </span>

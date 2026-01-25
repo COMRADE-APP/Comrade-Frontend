@@ -26,12 +26,8 @@ const Events = () => {
     const [showModal, setShowModal] = useState(null); // 'details', 'tickets', 'reminders'
     const navigate = useNavigate();
 
-    // Check if user can create events
-    const canCreateEvents = user?.is_admin || user?.is_staff || user?.is_lecturer ||
-        user?.is_moderator || user?.is_student_admin ||
-        user?.is_inst_admin || user?.is_org_admin ||
-        user?.user_type === 'lecturer' || user?.user_type === 'staff' ||
-        user?.user_type === 'admin' || user?.user_type === 'moderator';
+    // All authenticated users can create events
+    const canCreateEvents = true;
 
     useEffect(() => {
         loadEvents();
@@ -76,12 +72,10 @@ const Events = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Events</h1>
                     <p className="text-gray-600 mt-1">Discover and join upcoming events</p>
                 </div>
-                {canCreateEvents && (
-                    <Button variant="primary" onClick={() => navigate('/events/create')}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Event
-                    </Button>
-                )}
+                <Button variant="primary" onClick={() => navigate('/events/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Event
+                </Button>
             </div>
 
             {/* Filters */}

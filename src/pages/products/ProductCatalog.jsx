@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './ProductCatalog.css';
 
 const API_BASE_URL = 'http://localhost:8000/api/payments';
 
 const ProductCatalog = () => {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -67,16 +69,25 @@ const ProductCatalog = () => {
         <div className="product-catalog">
             <div className="catalog-header">
                 <h1>Product Catalog</h1>
-                <div className="category-filter">
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
+                <div className="catalog-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <div className="category-filter">
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                        >
+                            <option value="">All Categories</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <button
+                        className="btn-purchase"
+                        onClick={() => navigate('/products/create')}
+                        style={{ marginLeft: 'auto' }}
                     >
-                        <option value="">All Categories</option>
-                        {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
+                        + Create Product
+                    </button>
                 </div>
             </div>
 

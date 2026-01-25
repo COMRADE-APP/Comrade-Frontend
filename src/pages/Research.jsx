@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { Search, BookOpen, Filter, Download, ExternalLink, Calendar, User, Tag } from 'lucide-react';
+import { Search, BookOpen, Filter, Download, ExternalLink, Calendar, User, Tag, Plus } from 'lucide-react';
 
 const Research = () => {
+    const navigate = useNavigate();
     const [research, setResearch] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -60,11 +62,15 @@ const Research = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Research</h1>
                     <p className="text-gray-600 mt-1">Explore academic research and publications</p>
                 </div>
+                <Button variant="primary" onClick={() => navigate('/research/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Submit Research
+                </Button>
             </div>
 
             {/* Search and Filters */}
@@ -85,8 +91,8 @@ const Research = () => {
                             key={cat}
                             onClick={() => setFilter(cat)}
                             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${filter === cat
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {cat === 'all' ? 'All Categories' : cat}

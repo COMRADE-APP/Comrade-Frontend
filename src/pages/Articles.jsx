@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { BookOpen, Clock, User, Heart, MessageCircle, Bookmark, Share, Search } from 'lucide-react';
+import { BookOpen, Clock, User, Heart, MessageCircle, Bookmark, Share, Search, Plus } from 'lucide-react';
 
 const Articles = () => {
+    const navigate = useNavigate();
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -72,8 +73,8 @@ const Articles = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Articles</h1>
                     <p className="text-gray-600 mt-1">Discover insights and stories from our community</p>
                 </div>
-                <Button variant="primary">
-                    <BookOpen className="w-4 h-4 mr-2" />
+                <Button variant="primary" onClick={() => navigate('/articles/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
                     Write Article
                 </Button>
             </div>
@@ -96,8 +97,8 @@ const Articles = () => {
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {cat === 'all' ? 'All' : cat}

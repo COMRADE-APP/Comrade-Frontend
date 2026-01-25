@@ -31,9 +31,8 @@ const Rooms = () => {
         description: '',
     });
 
-    // Check if user can create/edit rooms
-    const canManageRooms = user?.is_admin || user?.is_staff || user?.is_moderator ||
-        user?.is_student_admin || user?.is_inst_admin || user?.is_org_admin;
+    // All authenticated users can create rooms
+    const canManageRooms = true; // Anyone can create rooms
 
     useEffect(() => {
         loadData();
@@ -209,12 +208,10 @@ const Rooms = () => {
                             <span className="ml-2 w-2 h-2 bg-red-500 rounded-full"></span>
                         )}
                     </Button>
-                    {canManageRooms && (
-                        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Room
-                        </Button>
-                    )}
+                    <Button variant="primary" onClick={() => navigate('/rooms/create')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Room
+                    </Button>
                 </div>
             </div>
 
@@ -352,6 +349,7 @@ const Rooms = () => {
                             room={room}
                             onJoin={handleJoinRoom}
                             onLeave={handleLeaveRoom}
+                            onOpen={(roomId) => navigate(`/rooms/${roomId}`)}
                             onEdit={(r) => {
                                 setEditingRoom(r);
                                 setShowEditModal(true);
@@ -446,7 +444,7 @@ const Rooms = () => {
     );
 };
 
-const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecommended }) => (
+const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecommended, onOpen }) => (
     <Card className="hover:shadow-md transition-shadow">
         <CardBody>
             <div className="space-y-3">
@@ -507,7 +505,7 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
                         <Button
                             variant="primary"
                             className="flex-1"
-                            onClick={() => {/* Navigate to room detail */ }}
+                            onClick={() => onOpen(room.id)}
                         >
                             Open Room
                         </Button>

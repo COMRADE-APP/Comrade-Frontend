@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import {
-    Heart, MessageCircle, Repeat, Share, MoreHorizontal, Image as ImageIcon,
-    Smile, MapPin, Globe, Lock, Users, Send, Bookmark, Sparkles, TrendingUp
+    Heart, MessageCircle, Repeat2, Share2, MoreHorizontal, Image as ImageIcon,
+    Smile, MapPin, Globe, Lock, Users, Send, Bookmark, Sparkles, TrendingUp,
+    X, Video, FileText, ExternalLink, UserPlus, Ban, Flag, EyeOff, HelpCircle,
+    RefreshCw
 } from 'lucide-react';
 import opinionsService from '../services/opinions.service';
+import api from '../services/api';
 import { formatTimeAgo } from '../utils/dateFormatter';
+
+// Simple emoji picker data
+const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀'];
 
 const VISIBILITY_OPTIONS = [
     { value: 'public', label: 'Everyone', icon: Globe },
@@ -25,13 +31,26 @@ const Opinions = () => {
     const [newOpinion, setNewOpinion] = useState('');
     const [visibility, setVisibility] = useState('public');
     const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [mediaFiles, setMediaFiles] = useState([]);
+    const [newContentAvailable, setNewContentAvailable] = useState(false);
+    const [lastFetchTime, setLastFetchTime] = useState(null);
     const textareaRef = useRef(null);
+    const fileInputRef = useRef(null);
 
-    const MAX_CHARS = 500;
+    // Character limits based on user tier
+    const isPremium = user?.tier === 'premium' || user?.tier === 'gold';
+    const MAX_CHARS = isPremium ? 5000 : 500;
 
     useEffect(() => {
         loadOpinions();
     }, [activeTab]);
+
+    // Poll for new content
+    useEffect(() => {
+        const interval = setInterval(checkNewContent, 30000);
+        return () => clearInterval(interval);
+    }, [lastFetchTime]);
 
     const loadOpinions = async () => {
         setLoading(true);
@@ -46,6 +65,8 @@ const Opinions = () => {
             }
             const opinionsList = Array.isArray(data) ? data : (data?.results || []);
             setOpinions(opinionsList);
+            setLastFetchTime(new Date().toISOString());
+            setNewContentAvailable(false);
         } catch (error) {
             console.error('Error loading opinions:', error);
             setOpinions([]);
@@ -54,29 +75,107 @@ const Opinions = () => {
         }
     };
 
+    const checkNewContent = async () => {
+        if (!lastFetchTime) return;
+        try {
+            const response = await api.get('/api/opinions/feed/check-new/', {
+                params: { since: lastFetchTime }
+            });
+            if (response.data.has_new) {
+                setNewContentAvailable(true);
+            }
+        } catch (error) {
+            console.error('Failed to check for new content:', error);
+        }
+    };
+
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        const newFiles = files.slice(0, 4 - mediaFiles.length);
+
+        newFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setMediaFiles(prev => [...prev, {
+                    file,
+                    preview: event.target.result,
+                    type: file.type.startsWith('video') ? 'video' :
+                        file.type.includes('gif') ? 'gif' :
+                            file.type.startsWith('image') ? 'image' : 'file',
+                    name: file.name
+                }]);
+            };
+            if (file.type.startsWith('image') || file.type.startsWith('video')) {
+                reader.readAsDataURL(file);
+            } else {
+                setMediaFiles(prev => [...prev, {
+                    file,
+                    preview: null,
+                    type: 'file',
+                    name: file.name
+                }]);
+            }
+        });
+        e.target.value = '';
+    };
+
+    const removeFile = (index) => {
+        setMediaFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleEmojiSelect = (emoji) => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = newOpinion;
+        const before = text.substring(0, start);
+        const after = text.substring(end);
+        setNewOpinion(before + emoji + after);
+        setShowEmojiPicker(false);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        }, 0);
+    };
+
     const handlePost = async () => {
         if (!newOpinion.trim() || posting) return;
 
         setPosting(true);
         try {
-            const response = await opinionsService.create({
-                content: newOpinion.trim(),
-                visibility,
+            const formData = new FormData();
+            formData.append('content', newOpinion.trim());
+            formData.append('visibility', visibility);
+            mediaFiles.forEach((media) => {
+                formData.append('media', media.file);
             });
-            setOpinions([response, ...opinions]);
+
+            const response = await api.post('/api/opinions/opinions/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setOpinions([response.data, ...opinions]);
             setNewOpinion('');
             setVisibility('public');
+            setMediaFiles([]);
         } catch (error) {
             console.error('Error posting opinion:', error);
-            alert('Failed to post opinion');
+            alert(error.response?.data?.content?.[0] || 'Failed to post opinion');
         } finally {
             setPosting(false);
         }
     };
 
     const handleLike = async (opinionId) => {
+        // Optimistic update for faster response
+        setOpinions(opinions.map(op =>
+            op.id === opinionId
+                ? { ...op, is_liked: !op.is_liked, likes_count: op.is_liked ? (op.likes_count || 1) - 1 : (op.likes_count || 0) + 1 }
+                : op
+        ));
+
         try {
             const response = await opinionsService.toggleLike(opinionId);
+            // Sync with server response
             setOpinions(opinions.map(op =>
                 op.id === opinionId
                     ? { ...op, is_liked: response.liked, likes_count: response.likes_count }
@@ -84,10 +183,22 @@ const Opinions = () => {
             ));
         } catch (error) {
             console.error('Error liking:', error);
+            // Revert on error
+            setOpinions(opinions.map(op =>
+                op.id === opinionId
+                    ? { ...op, is_liked: !op.is_liked, likes_count: op.is_liked ? (op.likes_count || 0) + 1 : (op.likes_count || 1) - 1 }
+                    : op
+            ));
         }
     };
 
-    const handleRepost = async (opinionId) => {
+    const handleRepost = async (opinionId, isCurrentlyReposted) => {
+        // If already reposted, ask for confirmation to unrepost
+        if (isCurrentlyReposted) {
+            const confirmed = window.confirm('Undo repost? This post will be removed from your profile.');
+            if (!confirmed) return;
+        }
+
         try {
             const response = await opinionsService.toggleRepost(opinionId);
             setOpinions(opinions.map(op =>
@@ -97,6 +208,42 @@ const Opinions = () => {
             ));
         } catch (error) {
             console.error('Error reposting:', error);
+        }
+    };
+
+    const [showComments, setShowComments] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [loadingComments, setLoadingComments] = useState(false);
+    const [postingComment, setPostingComment] = useState(false);
+
+    const navigate = useNavigate();
+
+    const handleOpenComments = (opinionId) => {
+        // Navigate to opinion detail with focus on comment input
+        navigate(`/opinions/${opinionId}?focus=comment`);
+    };
+
+    const handlePostComment = async () => {
+        if (!newComment.trim() || !showComments || postingComment) return;
+        setPostingComment(true);
+        try {
+            await opinionsService.addComment(showComments, newComment.trim());
+            // Reload comments
+            const response = await opinionsService.getComments(showComments);
+            setComments(Array.isArray(response) ? response : response?.results || []);
+            setNewComment('');
+            // Update comment count
+            setOpinions(opinions.map(op =>
+                op.id === showComments
+                    ? { ...op, comments_count: (op.comments_count || 0) + 1 }
+                    : op
+            ));
+        } catch (error) {
+            console.error('Error posting comment:', error);
+            alert(error.response?.data?.detail || 'Failed to post comment');
+        } finally {
+            setPostingComment(false);
         }
     };
 
@@ -113,6 +260,76 @@ const Opinions = () => {
         }
     };
 
+    const handleFollow = async (userId) => {
+        try {
+            await api.post('/api/opinions/follow/toggle/', { user_id: userId });
+            setOpinions(opinions.map(op =>
+                op.user?.id === userId
+                    ? { ...op, user: { ...op.user, is_following: !op.user.is_following } }
+                    : op
+            ));
+        } catch (error) {
+            console.error('Error following:', error);
+        }
+    };
+
+    const handleShare = async (opinion) => {
+        const url = `${window.location.origin}/opinions/${opinion.id}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Check this out',
+                    text: opinion.content?.substring(0, 100),
+                    url
+                });
+            } catch (err) {
+                console.log('Share cancelled');
+            }
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('Link copied to clipboard!');
+        }
+        // Track share
+        try {
+            await api.post(`/api/opinions/opinions/${opinion.id}/share/`);
+        } catch (err) { }
+    };
+
+    const handleHide = async (opinionId) => {
+        try {
+            await api.post(`/api/opinions/opinions/${opinionId}/hide/`);
+            setOpinions(opinions.filter(op => op.id !== opinionId));
+        } catch (error) {
+            console.error('Error hiding:', error);
+        }
+    };
+
+    const handleReport = async (opinionId) => {
+        const reason = prompt('Why are you reporting this content?');
+        if (reason) {
+            try {
+                await api.post(`/api/opinions/opinions/${opinionId}/report/`, {
+                    reason: 'other',
+                    description: reason
+                });
+                alert('Thank you for your report. We will review it.');
+            } catch (error) {
+                console.error('Error reporting:', error);
+            }
+        }
+    };
+
+    const handleBlock = async (userId) => {
+        if (!confirm('Are you sure you want to block this user?')) return;
+        try {
+            await api.post('/api/opinions/block/toggle/', { user_id: userId });
+            setOpinions(opinions.filter(op => op.user?.id !== userId));
+            alert('User blocked successfully');
+        } catch (error) {
+            console.error('Error blocking:', error);
+        }
+    };
+
     const autoResize = () => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
@@ -124,262 +341,577 @@ const Opinions = () => {
     const isOverLimit = charactersLeft < 0;
 
     return (
-        <div className="max-w-2xl mx-auto space-y-0">
-            {/* Header */}
-            <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-100">
-                <div className="flex">
-                    {[
-                        { id: 'for_you', label: 'For You', icon: Sparkles },
-                        { id: 'following', label: 'Following', icon: Users },
-                        { id: 'trending', label: 'Trending', icon: TrendingUp },
-                    ].map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 py-4 text-sm font-medium relative transition-colors flex items-center justify-center gap-2 ${activeTab === tab.id
+        <>
+            <div className="max-w-2xl mx-auto space-y-0">
+                {/* Header */}
+                <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-100">
+                    <div className="flex">
+                        {[
+                            { id: 'for_you', label: 'For You', icon: Sparkles },
+                            { id: 'following', label: 'Following', icon: Users },
+                            { id: 'trending', label: 'Trending', icon: TrendingUp },
+                        ].map((tab) => {
+                            const Icon = tab.icon;
+                            return (
+
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 py-4 text-sm font-medium relative transition-colors flex items-center justify-center gap-2 ${activeTab === tab.id
                                         ? 'text-gray-900'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <Icon className="w-4 h-4" />
-                                {tab.label}
-                                {activeTab === tab.id && (
-                                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary-500 rounded-full" />
-                                )}
-                            </button>
-                        );
-                    })}
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    {tab.label}
+                                    {activeTab === tab.id && (
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary-500 rounded-full" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
 
-            {/* Composer */}
-            {isAuthenticated && (
-                <div className="bg-white border-b border-gray-100 p-4">
-                    <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
-                            {user?.first_name?.[0] || 'U'}
-                        </div>
-                        <div className="flex-1">
-                            <textarea
-                                ref={textareaRef}
-                                value={newOpinion}
-                                onChange={(e) => {
-                                    setNewOpinion(e.target.value);
-                                    autoResize();
-                                }}
-                                placeholder="What's on your mind?"
-                                className="w-full resize-none border-0 focus:ring-0 text-xl placeholder-gray-400 outline-none min-h-[80px]"
-                                rows={1}
-                            />
 
-                            {/* Visibility selector */}
-                            <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
-                                <div className="flex items-center gap-1">
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
-                                            className="flex items-center gap-1 text-primary-500 text-sm font-medium hover:bg-primary-50 px-2 py-1 rounded-full"
-                                        >
-                                            {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.icon && (
-                                                React.createElement(VISIBILITY_OPTIONS.find(v => v.value === visibility).icon, { className: 'w-4 h-4' })
-                                            )}
-                                            {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.label}
-                                        </button>
-                                        {showVisibilityMenu && (
-                                            <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 w-48">
-                                                {VISIBILITY_OPTIONS.map((option) => {
-                                                    const Icon = option.icon;
-                                                    return (
-                                                        <button
-                                                            key={option.value}
-                                                            onClick={() => {
-                                                                setVisibility(option.value);
-                                                                setShowVisibilityMenu(false);
-                                                            }}
-                                                            className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 ${visibility === option.value ? 'text-primary-600 bg-primary-50' : 'text-gray-700'
-                                                                }`}
-                                                        >
-                                                            <Icon className="w-4 h-4" />
-                                                            {option.label}
-                                                        </button>
-                                                    );
-                                                })}
+                {/* New Content Banner */}
+                {newContentAvailable && (
+                    <button
+                        onClick={loadOpinions}
+                        className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                    >
+                        <RefreshCw size={18} />
+                        New posts available - tap to refresh
+                    </button>
+                )}
+
+                {/* Composer */}
+                {isAuthenticated && (
+                    <div className="bg-white border-b border-gray-100 p-4">
+                        <div className="flex gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shrink-0 overflow-hidden">
+                                {user?.avatar_url ? (
+                                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    user?.first_name?.[0] || 'U'
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <textarea
+                                    ref={textareaRef}
+                                    value={newOpinion}
+                                    onChange={(e) => {
+                                        setNewOpinion(e.target.value);
+                                        autoResize();
+                                    }}
+                                    placeholder="What's on your mind?"
+                                    className="w-full resize-none border-0 focus:ring-0 text-xl placeholder-gray-400 outline-none min-h-[80px]"
+                                    rows={1}
+                                />
+
+                                {/* Media Previews */}
+                                {mediaFiles.length > 0 && (
+                                    <div className={`grid gap-2 mt-3 ${mediaFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                        {mediaFiles.map((media, index) => (
+                                            <div key={index} className="relative rounded-xl overflow-hidden bg-gray-100">
+                                                {media.type === 'video' ? (
+                                                    <video src={media.preview} className="w-full h-32 object-cover" />
+                                                ) : media.type === 'file' ? (
+                                                    <div className="flex items-center gap-2 p-3 bg-gray-50">
+                                                        <FileText size={20} className="text-gray-500" />
+                                                        <span className="text-sm text-gray-700 truncate">{media.name}</span>
+                                                    </div>
+                                                ) : (
+                                                    <img src={media.preview} alt="" className="w-full h-32 object-cover" />
+                                                )}
+                                                <button
+                                                    onClick={() => removeFile(index)}
+                                                    className="absolute top-2 right-2 p-1 bg-black/60 rounded-full text-white hover:bg-black/80"
+                                                >
+                                                    <X size={14} />
+                                                </button>
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
-                                    <button className="p-2 text-primary-500 hover:bg-primary-50 rounded-full">
-                                        <ImageIcon className="w-5 h-5" />
-                                    </button>
-                                    <button className="p-2 text-primary-500 hover:bg-primary-50 rounded-full">
-                                        <Smile className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                )}
 
-                                <div className="flex items-center gap-3">
-                                    <span className={`text-sm ${isOverLimit ? 'text-red-500' : charactersLeft < 50 ? 'text-yellow-500' : 'text-gray-400'}`}>
-                                        {charactersLeft}
-                                    </span>
-                                    <Button
-                                        variant="primary"
-                                        onClick={handlePost}
-                                        disabled={!newOpinion.trim() || isOverLimit || posting}
-                                        className="rounded-full px-5"
-                                    >
-                                        {posting ? 'Posting...' : 'Post'}
-                                    </Button>
+                                {/* Actions row */}
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
+                                    <div className="flex items-center gap-1">
+                                        {/* Visibility selector */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
+                                                className="flex items-center gap-1 text-primary-500 text-sm font-medium hover:bg-primary-50 px-2 py-1 rounded-full"
+                                            >
+                                                {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.icon &&
+                                                    React.createElement(VISIBILITY_OPTIONS.find(v => v.value === visibility).icon, { className: 'w-4 h-4' })
+                                                }
+                                                {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.label}
+                                            </button>
+                                            {showVisibilityMenu && (
+                                                <>
+                                                    <div className="fixed inset-0 z-10" onClick={() => setShowVisibilityMenu(false)} />
+                                                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 w-48">
+                                                        {VISIBILITY_OPTIONS.map((option) => {
+                                                            const Icon = option.icon;
+                                                            return (
+                                                                <button
+                                                                    key={option.value}
+                                                                    onClick={() => {
+                                                                        setVisibility(option.value);
+                                                                        setShowVisibilityMenu(false);
+                                                                    }}
+                                                                    className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 ${visibility === option.value ? 'text-primary-600 bg-primary-50' : 'text-gray-700'}`}
+                                                                >
+                                                                    <Icon className="w-4 h-4" />
+                                                                    {option.label}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div >
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Media upload */}
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileSelect}
+                                            accept="image/*,video/*,.pdf,.doc,.docx"
+                                            multiple
+                                            className="hidden"
+                                        />
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={mediaFiles.length >= 4}
+                                            className="p-2 text-primary-500 hover:bg-primary-50 rounded-full disabled:opacity-50"
+                                            title="Add media"
+                                        >
+                                            <ImageIcon className="w-5 h-5" />
+                                        </button>
+
+                                        {/* Emoji picker */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className="p-2 text-primary-500 hover:bg-primary-50 rounded-full"
+                                            >
+                                                <Smile className="w-5 h-5" />
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <>
+                                                    <div className="fixed inset-0 z-10" onClick={() => setShowEmojiPicker(false)} />
+                                                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-20 w-56">
+                                                        <div className="grid grid-cols-8 gap-1">
+                                                            {COMMON_EMOJIS.map(emoji => (
+                                                                <button
+                                                                    key={emoji}
+                                                                    onClick={() => handleEmojiSelect(emoji)}
+                                                                    className="p-1 hover:bg-gray-100 rounded text-xl"
+                                                                >
+                                                                    {emoji}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-sm ${isOverLimit ? 'text-red-500' : charactersLeft < 50 ? 'text-yellow-500' : 'text-gray-400'}`}>
+                                            {charactersLeft}
+                                        </span>
+                                        <Button
+                                            variant="primary"
+                                            onClick={handlePost}
+                                            disabled={!newOpinion.trim() || isOverLimit || posting}
+                                            className="rounded-full px-5"
+                                        >
+                                            {posting ? 'Posting...' : 'Post'}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Opinions Feed */}
-            <div className="divide-y divide-gray-100">
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                    </div>
-                ) : opinions.length === 0 ? (
-                    <div className="text-center py-16 px-4">
-                        <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">No opinions yet</h3>
-                        <p className="text-gray-500">
-                            {activeTab === 'following'
-                                ? "Follow people to see their opinions here"
-                                : "Be the first to share your thoughts!"
-                            }
-                        </p>
-                    </div>
-                ) : (
-                    opinions.map((opinion) => (
-                        <OpinionCard
-                            key={opinion.id}
-                            opinion={opinion}
-                            onLike={handleLike}
-                            onRepost={handleRepost}
-                            onBookmark={handleBookmark}
-                        />
-                    ))
                 )}
+
+                {/* Opinions Feed */}
+                <div className="divide-y divide-gray-100">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                        </div>
+                    ) : opinions.length === 0 ? (
+                        <div className="text-center py-16 px-4">
+                            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">No opinions yet</h3>
+                            <p className="text-gray-500">
+                                {activeTab === 'following'
+                                    ? "Follow people to see their opinions here"
+                                    : "Be the first to share your thoughts!"
+                                }
+                            </p>
+                        </div>
+                    ) : (
+                        opinions.map((opinion) => (
+                            <OpinionCard
+                                key={opinion.id}
+                                opinion={opinion}
+                                currentUser={user}
+                                onLike={handleLike}
+                                onRepost={handleRepost}
+                                onBookmark={handleBookmark}
+                                onFollow={handleFollow}
+                                onShare={handleShare}
+                                onHide={handleHide}
+                                onReport={handleReport}
+                                onBlock={handleBlock}
+                                onOpenComments={handleOpenComments}
+                            />
+                        ))
+                    )}
+                </div>
             </div>
-        </div>
+
+            {/* Comments Modal */}
+            {
+                showComments && (
+
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+                            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-gray-900">Comments</h3>
+                                <button
+                                    onClick={() => { setShowComments(null); setComments([]); setNewComment(''); }}
+                                    className="p-2 hover:bg-gray-100 rounded-full"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {loadingComments ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                    </div>
+                                ) : comments.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                                        <p>No comments yet. Be the first!</p>
+                                    </div>
+                                ) : (
+                                    comments.map((comment) => (
+                                        <div key={comment.id} className="flex gap-3">
+                                            <Link to={`/profile/${comment.user?.id}`} className="shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                                                    {comment.user?.avatar_url ? (
+                                                        <img src={comment.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        comment.user?.first_name?.[0] || 'U'
+                                                    )}
+                                                </div>
+                                            </Link>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Link to={`/profile/${comment.user?.id}`} className="font-bold text-gray-900 hover:underline">
+                                                        {comment.user?.first_name} {comment.user?.last_name}
+                                                    </Link>
+                                                    <span className="text-sm text-gray-500">{formatTimeAgo(comment.created_at)}</span>
+                                                </div>
+                                                <p className="text-gray-800 mt-0.5">{comment.content}</p>
+                                                <div className="flex items-center gap-4 mt-2">
+                                                    <button className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1">
+                                                        <Heart size={14} />
+                                                        {comment.likes_count || ''}
+                                                    </button>
+                                                    <button className="text-sm text-gray-500 hover:text-primary-500">Reply</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {isAuthenticated && (
+                                <div className="p-4 border-t border-gray-100">
+                                    <div className="flex gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                                            {user?.avatar_url ? (
+                                                <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                user?.first_name?.[0] || 'U'
+                                            )}
+                                        </div>
+                                        <div className="flex-1 flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value)}
+                                                placeholder="Write a comment..."
+                                                className="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                                onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
+                                            />
+                                            <button
+                                                onClick={handlePostComment}
+                                                disabled={!newComment.trim() || postingComment}
+                                                className="px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                                            >
+                                                {postingComment ? '...' : <Send size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+        </>
     );
 };
 
-const OpinionCard = ({ opinion, onLike, onRepost, onBookmark }) => {
+const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFollow, onShare, onHide, onReport, onBlock, onOpenComments }) => {
     const [showMenu, setShowMenu] = useState(false);
 
-    return (
-        <article className="bg-white hover:bg-gray-50/50 transition-colors px-4 py-4">
-            <div className="flex gap-3">
-                {/* Avatar */}
-                <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                        {opinion.user?.first_name?.[0] || 'U'}
-                    </div>
-                </Link>
+    const canFollow = opinion.user?.id !== currentUser?.id && opinion.user?.is_following === false;
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-gray-900 hover:underline">
-                                {opinion.user?.full_name || opinion.user?.first_name || 'User'}
+    return (
+        <>
+            <article className="bg-white hover:bg-gray-50/50 transition-colors px-4 py-4">
+                {/* Enhanced Repost indicator with avatar */}
+                {opinion.is_repost && opinion.reposted_by_user && (
+                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-3 ml-1">
+                        <Repeat2 size={14} className="text-green-500" />
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center overflow-hidden">
+                                {opinion.reposted_by_user.avatar_url ? (
+                                    <img src={opinion.reposted_by_user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white text-[8px] font-bold">
+                                        {opinion.reposted_by_user.name?.[0] || 'U'}
+                                    </span>
+                                )}
+                            </div>
+                            <Link to={`/profile/${opinion.reposted_by_user.id}`} className="font-medium hover:underline">
+                                {opinion.reposted_by_user.name}
                             </Link>
-                            <span className="text-gray-500">·</span>
-                            <span className="text-gray-500 text-sm">
-                                {opinion.time_ago || formatTimeAgo(opinion.created_at)}
-                            </span>
-                            {opinion.visibility !== 'public' && (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1">
-                                    {opinion.visibility === 'followers' ? <Users className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                                    {opinion.visibility}
-                                </span>
+                            <span>reposted</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex gap-3">
+                    {/* Avatar */}
+                    <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                            {opinion.user?.avatar_url ? (
+                                <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                opinion.user?.first_name?.[0] || 'U'
                             )}
                         </div>
-                        <button
-                            onClick={() => setShowMenu(!showMenu)}
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
-                        >
-                            <MoreHorizontal className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    {/* Opinion Content */}
-                    <Link to={`/opinions/${opinion.id}`}>
-                        <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed">
-                            {opinion.content}
-                        </p>
                     </Link>
 
-                    {/* Media */}
-                    {opinion.media_url && (
-                        <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200">
-                            <img
-                                src={opinion.media_url}
-                                alt=""
-                                className="w-full max-h-96 object-cover"
-                            />
-                        </div>
-                    )}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-gray-900 hover:underline">
+                                    {opinion.user?.full_name || opinion.user?.first_name || 'User'}
+                                </Link>
 
-                    {/* Quoted Opinion */}
-                    {opinion.quoted_opinion && (
-                        <div className="mt-3 p-3 border border-gray-200 rounded-xl">
-                            <p className="text-sm text-gray-600">
-                                <span className="font-medium">{opinion.quoted_opinion.user?.first_name}</span>
-                                {' · '}
-                                {opinion.quoted_opinion.content}
+                                {/* Follow button */}
+                                {canFollow && (
+                                    <button
+                                        onClick={() => onFollow(opinion.user.id)}
+                                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 px-2 py-0.5 rounded-full hover:bg-primary-50"
+                                    >
+                                        <UserPlus size={12} />
+                                        Follow
+                                    </button>
+                                )}
+
+                                <span className="text-gray-500">·</span>
+                                <span className="text-gray-500 text-sm">
+                                    {opinion.time_ago || formatTimeAgo(opinion.created_at)}
+                                </span>
+                                {opinion.visibility !== 'public' && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1">
+                                        {opinion.visibility === 'followers' ? <Users className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                                        {opinion.visibility}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Options menu */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMenu(!showMenu)}
+                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                                >
+                                    <MoreHorizontal className="w-5 h-5" />
+                                </button>
+                                {showMenu && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                                        <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-gray-200 py-1 w-52">
+                                            <button
+                                                onClick={() => { onHide(opinion.id); setShowMenu(false); }}
+                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                            >
+                                                <EyeOff size={16} />
+                                                I don't like this
+                                            </button>
+                                            {opinion.user?.id !== currentUser?.id && (
+                                                <button
+                                                    onClick={() => { onBlock(opinion.user?.id); setShowMenu(false); }}
+                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                                >
+                                                    <Ban size={16} />
+                                                    Block {opinion.user?.first_name}
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => { onReport(opinion.id); setShowMenu(false); }}
+                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-3"
+                                            >
+                                                <Flag size={16} />
+                                                Report
+                                            </button>
+                                            <hr className="my-1" />
+                                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                                                <HelpCircle size={16} />
+                                                Help
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Opinion Content */}
+                        <Link to={`/opinions/${opinion.id}`}>
+                            <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+                                {opinion.content}
                             </p>
-                        </div>
-                    )}
+                        </Link>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-between mt-3 -ml-2 max-w-md">
-                        <button className="flex items-center gap-1.5 text-gray-500 hover:text-primary-500 group p-2 rounded-full hover:bg-primary-50 transition-colors">
-                            <MessageCircle className="w-5 h-5" />
-                            <span className="text-sm">{opinion.comments_count || ''}</span>
-                        </button>
-                        <button
-                            onClick={() => onRepost(opinion.id)}
-                            className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted
+                        {/* Media files (new multi-media support) */}
+                        {opinion.media_files?.length > 0 && (
+                            <div className={`mt-3 grid gap-2 ${opinion.media_files.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                {opinion.media_files.map((media, idx) => (
+                                    <div key={idx} className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 relative">
+                                        {media.media_type === 'video' ? (
+                                            <video
+                                                src={media.url}
+                                                className="w-full max-h-80 object-cover"
+                                                controls
+                                            />
+                                        ) : media.media_type === 'file' ? (
+                                            <a
+                                                href={media.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100"
+                                            >
+                                                <FileText size={24} className="text-gray-500" />
+                                                <span className="text-sm text-gray-700 truncate">{media.file_name}</span>
+                                                <ExternalLink size={14} className="text-gray-400 ml-auto" />
+                                            </a>
+                                        ) : (
+                                            <img
+                                                src={media.url}
+                                                alt={media.caption || ''}
+                                                className="w-full max-h-80 object-cover"
+                                            />
+                                        )}
+                                        {media.caption && (
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
+                                                {media.caption}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Legacy single media field */}
+                        {!opinion.media_files?.length && opinion.media_url && (
+                            <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200">
+                                {opinion.media_type === 'video' ? (
+                                    <video src={opinion.media_url} className="w-full max-h-80 object-cover" controls />
+                                ) : (
+                                    <img src={opinion.media_url} alt="" className="w-full max-h-80 object-cover" />
+                                )}
+                            </div>
+                        )}
+
+                        {/* Quoted Opinion */}
+                        {opinion.quoted_opinion && (
+                            <div className="mt-3 p-3 border border-gray-200 rounded-xl">
+                                <p className="text-sm text-gray-600">
+                                    <span className="font-medium">{opinion.quoted_opinion.user?.first_name}</span>
+                                    {' · '}
+                                    {opinion.quoted_opinion.content}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-between mt-3 -ml-2 max-w-md">
+                            <button
+                                onClick={() => onOpenComments(opinion.id)}
+                                className="flex items-center gap-1.5 text-gray-500 hover:text-primary-500 group p-2 rounded-full hover:bg-primary-50 transition-colors"
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                                <span className="text-sm">{opinion.comments_count || ''}</span>
+                            </button>
+                            <button
+                                onClick={() => onRepost(opinion.id, opinion.is_reposted)}
+                                className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted
                                     ? 'text-green-500 hover:bg-green-50'
                                     : 'text-gray-500 hover:text-green-500 hover:bg-green-50'
-                                }`}
-                        >
-                            <Repeat className="w-5 h-5" />
-                            <span className="text-sm">{opinion.reposts_count || ''}</span>
-                        </button>
-                        <button
-                            onClick={() => onLike(opinion.id)}
-                            className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_liked
+                                    }`}
+                            >
+                                <Repeat2 className="w-5 h-5" />
+                                <span className="text-sm">{opinion.reposts_count || ''}</span>
+                            </button>
+                            <button
+                                onClick={() => onLike(opinion.id)}
+                                className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_liked
                                     ? 'text-red-500 hover:bg-red-50'
                                     : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-                                }`}
-                        >
-                            <Heart className={`w-5 h-5 ${opinion.is_liked ? 'fill-current' : ''}`} />
-                            <span className="text-sm">{opinion.likes_count || ''}</span>
-                        </button>
-                        <button
-                            onClick={() => onBookmark(opinion.id)}
-                            className={`p-2 rounded-full transition-colors ${opinion.is_bookmarked
+                                    }`}
+                            >
+                                <Heart className={`w-5 h-5 ${opinion.is_liked ? 'fill-current' : ''}`} />
+                                <span className="text-sm">{opinion.likes_count || ''}</span>
+                            </button>
+                            <button
+                                onClick={() => onBookmark(opinion.id)}
+                                className={`p-2 rounded-full transition-colors ${opinion.is_bookmarked
                                     ? 'text-primary-500 hover:bg-primary-50'
                                     : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
-                                }`}
-                        >
-                            <Bookmark className={`w-5 h-5 ${opinion.is_bookmarked ? 'fill-current' : ''}`} />
-                        </button>
-                        <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors">
-                            <Share className="w-5 h-5" />
-                        </button>
+                                    }`}
+                            >
+                                <Bookmark className={`w-5 h-5 ${opinion.is_bookmarked ? 'fill-current' : ''}`} />
+                            </button>
+                            <button
+                                onClick={() => onShare(opinion)}
+                                className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors"
+                            >
+                                <Share2 className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </article>
+            </article>
+        </>
     );
 };
 

@@ -25,6 +25,12 @@ export const API_ENDPOINTS = {
     ROLE_CHANGE_REQUEST: `${API_BASE_URL}/auth/role-change-request/`,
     ROLE_CHANGE_REQUESTS: `${API_BASE_URL}/auth/role-change-requests/`,
 
+    // Profile Management
+    PROFILE: `${API_BASE_URL}/auth/profile/`,
+    PROFILE_SETUP: `${API_BASE_URL}/auth/profile-setup/`,
+    PROFILE_AVATAR: `${API_BASE_URL}/auth/profile/avatar/`,
+    PROFILE_COVER: `${API_BASE_URL}/auth/profile/cover/`,
+
     GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
     GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
     FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
@@ -62,6 +68,19 @@ export const API_ENDPOINTS = {
     ROOM_MEMBERS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/members/`,
     ROOM_MAKE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/make_moderator/`,
     ROOM_REMOVE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/remove_moderator/`,
+
+    // Room Chat
+    ROOM_CHATS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/chats/`,
+    ROOM_CHAT_FORWARD: (roomId, chatId) => `${API_BASE_URL}/api/rooms/rooms/${roomId}/chats/${chatId}/forward/`,
+    ROOM_CHAT_READ: (roomId, chatId) => `${API_BASE_URL}/api/rooms/rooms/${roomId}/chats/${chatId}/read/`,
+    ROOM_CHAT_DELETE: (roomId, chatId) => `${API_BASE_URL}/api/rooms/rooms/${roomId}/chats/${chatId}/`,
+
+    // Room Settings
+    ROOM_SETTINGS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/room_settings/`,
+
+    // Room Members Detail
+    ROOM_MEMBERS_DETAIL: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/members_detail/`,
+    ROOM_MEMBER_FOLLOW: (roomId, userId) => `${API_BASE_URL}/api/rooms/rooms/${roomId}/members/${userId}/follow/`,
 
     // Direct Messages
     DM_ROOMS: `${API_BASE_URL}/api/rooms/dm_rooms/`,
@@ -188,6 +207,17 @@ export const API_ENDPOINTS = {
     FOLLOWING: `${API_BASE_URL}/api/opinions/follow/following/`,
     FOLLOW_SUGGESTIONS: `${API_BASE_URL}/api/opinions/follow/suggestions/`,
     BOOKMARKS: `${API_BASE_URL}/api/opinions/bookmarks/`,
+
+    // Articles
+    ARTICLES: {
+        LIST: `${API_BASE_URL}/api/articles/`,
+        DETAIL: (id) => `${API_BASE_URL}/api/articles/${id}/`,
+        MY_DRAFTS: `${API_BASE_URL}/api/articles/my-drafts/`,
+        MY_ARTICLES: `${API_BASE_URL}/api/articles/my-articles/`,
+        LIKE: (id) => `${API_BASE_URL}/api/articles/${id}/like/`,
+        BOOKMARK: (id) => `${API_BASE_URL}/api/articles/${id}/bookmark/`,
+        COMMENTS: (id) => `${API_BASE_URL}/api/articles/${id}/comments/`,
+    },
 }
 
 export default API_ENDPOINTS;

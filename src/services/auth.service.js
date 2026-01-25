@@ -60,6 +60,10 @@ const authService = {
 
     verifyRegistrationOTP: async (email, otp) => {
         const response = await api.post(API_ENDPOINTS.REGISTER_VERIFY, { email, otp });
+        // Store tokens so user is logged in after verification
+        if (response.data.access_token) {
+            localStorage.setItem('user', JSON.stringify(response.data));
+        }
         return response.data;
     },
 
@@ -147,6 +151,58 @@ const authService = {
         const response = await api.patch(`${API_ENDPOINTS.ROLE_CHANGE_REQUESTS}${requestId}/`, {
             status,
             admin_notes: adminNotes
+        });
+        return response.data;
+    },
+
+    // Profile Setup - called after registration
+    setupProfile: async (profileData) => {
+        const formData = new FormData();
+
+        // Add text fields
+        if (profileData.bio) formData.append('bio', profileData.bio);
+        if (profileData.location) formData.append('location', profileData.location);
+        if (profileData.occupation) formData.append('occupation', profileData.occupation);
+        if (profileData.company) formData.append('company', profileData.company);
+        if (profileData.website) formData.append('website', profileData.website);
+
+        // Add interests as comma-separated string
+        if (profileData.interests && profileData.interests.length > 0) {
+            formData.append('interests', profileData.interests.join(','));
+        }
+
+        // Add avatar file
+        if (profileData.avatar) {
+            formData.append('avatar', profileData.avatar);
+        }
+
+        const response = await api.post(API_ENDPOINTS.PROFILE_SETUP, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    // Get profile
+    getProfile: async () => {
+        const response = await api.get(API_ENDPOINTS.PROFILE);
+        return response.data;
+    },
+
+    // Update profile
+    updateProfile: async (profileData) => {
+        const formData = new FormData();
+        Object.entries(profileData).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                if (key === 'interests' && Array.isArray(value)) {
+                    formData.append(key, value.join(','));
+                } else {
+                    formData.append(key, value);
+                }
+            }
+        });
+
+        const response = await api.patch(API_ENDPOINTS.PROFILE, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
     }
