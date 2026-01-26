@@ -49,7 +49,8 @@ const CreateEvent = () => {
             // Set status based on action
             submitData.append('status', confirmAction === 'draft' ? 'draft' : 'published');
 
-            const response = await api.post('/api/events/', submitData, {
+            console.log(submitData);
+            const response = await api.post('/api/events/events/', submitData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 

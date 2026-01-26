@@ -27,7 +27,7 @@ const eventsService = {
      * Create new event
      */
     createEvent: (eventData) => {
-        return api.post(`${BASE_URL}/events/`, eventData);
+        return api.post(`${BASE_URL}/event/`, eventData);
     },
 
     /**

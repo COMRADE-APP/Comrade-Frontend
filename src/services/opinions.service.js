@@ -54,6 +54,7 @@ const opinionsService = {
     // Repost opinion
     toggleRepost: async (id, comment = '') => {
         const response = await api.post(`${BASE_URL}/opinions/${id}/repost/`, { comment });
+        console.log("repost--------------------------->", response.data);
         return response.data;
     },
 
@@ -71,9 +72,9 @@ const opinionsService = {
 
     // Add comment to opinion (supports text, image, video, file)
     addComment: async (id, content, media = null, parentCommentId = null) => {
+        const formData = new FormData();
+        formData.append('content', content);
         if (media) {
-            const formData = new FormData();
-            formData.append('content', content);
             formData.append('file', media);
             if (parentCommentId) {
                 formData.append('parent_comment', parentCommentId);
@@ -83,8 +84,8 @@ const opinionsService = {
             });
             return response.data;
         }
-        const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, {
-            content,
+        const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
             parent_comment: parentCommentId
         });
         return response.data;
