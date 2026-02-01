@@ -57,6 +57,9 @@ const Tasks = () => {
             await tasksService.create(newTask);
             setShowCreateModal(false);
             setNewTask({ heading: '', description: '', due_date: '', visibility: 'private' });
+            // Show success message and switch to All Tasks tab
+            alert('✓ Task created successfully!');
+            setActiveTab('all');
             loadTasks();
         } catch (error) {
             console.error('Failed to create task:', error);
@@ -123,7 +126,7 @@ const Tasks = () => {
                     <p className="text-gray-600 mt-1">Manage your assignments and submissions</p>
                 </div>
                 {canCreateTasks && (
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                    <Button variant="primary" onClick={() => navigate('/tasks/create')}>
                         <Plus className="w-4 h-4 mr-2" />
                         Create Task
                     </Button>
@@ -201,7 +204,7 @@ const Tasks = () => {
                                     : "No tasks available."}
                         </p>
                         {canCreateTasks && (
-                            <Button variant="outline" onClick={() => setShowCreateModal(true)}>
+                            <Button variant="outline" onClick={() => navigate('/tasks/create')}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 Create a Task
                             </Button>

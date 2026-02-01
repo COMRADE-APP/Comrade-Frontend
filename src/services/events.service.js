@@ -4,7 +4,7 @@
  */
 import api from './api';
 
-const BASE_URL = '/events';
+const BASE_URL = '/api/events';
 
 const eventsService = {
     // ===== CORE EVENT OPERATIONS =====
@@ -13,14 +13,15 @@ const eventsService = {
      * Get all events (with optional filters)
      */
     getAllEvents: (params = {}) => {
-        return api.get(`${BASE_URL}/events/`, { params });
+        // const response = api.get(`${BASE_URL}/`, { params })
+        return api.get(`${BASE_URL}/`, { params });
     },
 
     /**
      * Get event by ID
      */
     getEvent: (id) => {
-        return api.get(`${BASE_URL}/events/${id}/`);
+        return api.get(`${BASE_URL}/${id}/`);
     },
 
     /**
@@ -34,14 +35,14 @@ const eventsService = {
      * Update event
      */
     updateEvent: (id, eventData) => {
-        return api.patch(`${BASE_URL}/events/${id}/`, eventData);
+        return api.patch(`${BASE_URL}/${id}/`, eventData);
     },
 
     /**
      * Delete event
      */
     deleteEvent: (id) => {
-        return api.delete(`${BASE_URL}/events/${id}/`);
+        return api.delete(`${BASE_URL}/${id}/`);
     },
 
     // ===== TICKETING =====
@@ -50,7 +51,7 @@ const eventsService = {
      * Purchase event ticket
      */
     purchaseTicket: (eventId, ticketData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/purchase_ticket/`, ticketData);
+        return api.post(`${BASE_URL}/${eventId}/purchase_ticket/`, ticketData);
     },
 
     /**
@@ -66,21 +67,21 @@ const eventsService = {
      * Mark event as interested
      */
     markInterested: (eventId, interestedData = { interested: true, notify_updates: true }) => {
-        return api.post(`${BASE_URL}/events/${eventId}/mark_interested/`, interestedData);
+        return api.post(`${BASE_URL}/${eventId}/mark_interested/`, interestedData);
     },
 
     /**
      * Add reaction to event
      */
     addReaction: (eventId, reactionType) => {
-        return api.post(`${BASE_URL}/events/${eventId}/add_reaction/`, { reaction_type: reactionType });
+        return api.post(`${BASE_URL}/${eventId}/add_reaction/`, { reaction_type: reactionType });
     },
 
     /**
      * Remove reaction from event
      */
     removeReaction: (eventId) => {
-        return api.delete(`${BASE_URL}/events/${eventId}/remove_reaction/`);
+        return api.delete(`${BASE_URL}/${eventId}/remove_reaction/`);
     },
 
     // ===== COMMENTS =====
@@ -89,14 +90,14 @@ const eventsService = {
      * Add comment to event
      */
     addComment: (eventId, commentData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/add_comment/`, commentData);
+        return api.post(`${BASE_URL}/${eventId}/add_comment/`, commentData);
     },
 
     /**
      * Get all comments for event
      */
     getComments: (eventId) => {
-        return api.get(`${BASE_URL}/events/${eventId}/comments/`);
+        return api.get(`${BASE_URL}/${eventId}/comments/`);
     },
 
     /**
@@ -119,14 +120,14 @@ const eventsService = {
      * Share event
      */
     shareEvent: (eventId, shareData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/share/`, shareData);
+        return api.post(`${BASE_URL}/${eventId}/share/`, shareData);
     },
 
     /**
      * Generate shareable link
      */
     generateShareLink: (eventId, platform = '', expiresHours = null) => {
-        return api.post(`${BASE_URL}/events/${eventId}/generate_share_link/`, {
+        return api.post(`${BASE_URL}/${eventId}/generate_share_link/`, {
             platform,
             expires_hours: expiresHours
         });
@@ -138,21 +139,21 @@ const eventsService = {
      * Pin event to dashboard
      */
     pinEvent: (eventId) => {
-        return api.post(`${BASE_URL}/events/${eventId}/pin/`);
+        return api.post(`${BASE_URL}/${eventId}/pin/`);
     },
 
     /**
      * Unpin event from dashboard
      */
     unpinEvent: (eventId) => {
-        return api.delete(`${BASE_URL}/events/${eventId}/unpin/`);
+        return api.delete(`${BASE_URL}/${eventId}/unpin/`);
     },
 
     /**
      * Repost event to rooms
      */
     repostEvent: (eventId, repostData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/repost/`, repostData);
+        return api.post(`${BASE_URL}/${eventId}/repost/`, repostData);
     },
 
     // ===== REPORTING & BLOCKING =====
@@ -161,21 +162,21 @@ const eventsService = {
      * Report event
      */
     reportEvent: (eventId, reportData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/report/`, reportData);
+        return api.post(`${BASE_URL}/${eventId}/report/`, reportData);
     },
 
     /**
      * Block event from feed
      */
     blockEvent: (eventId, reason = '') => {
-        return api.post(`${BASE_URL}/events/${eventId}/block/`, { reason });
+        return api.post(`${BASE_URL}/${eventId}/block/`, { reason });
     },
 
     /**
      * Unblock event
      */
     unblockEvent: (eventId) => {
-        return api.delete(`${BASE_URL}/events/${eventId}/unblock/`);
+        return api.delete(`${BASE_URL}/${eventId}/unblock/`);
     },
 
     // ===== REMINDERS =====
@@ -184,7 +185,7 @@ const eventsService = {
      * Set event reminder
      */
     setReminder: (eventId, reminderData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/set_reminder/`, reminderData);
+        return api.post(`${BASE_URL}/${eventId}/set_reminder/`, reminderData);
     },
 
     /**
@@ -200,7 +201,7 @@ const eventsService = {
      * Toggle event room (activate/deactivate)
      */
     toggleEventRoom: (eventId) => {
-        return api.post(`${BASE_URL}/events/${eventId}/toggle_room/`);
+        return api.post(`${BASE_URL}/${eventId}/toggle_room/`);
     },
 
     /**
@@ -216,7 +217,7 @@ const eventsService = {
      * Convert event to announcement
      */
     convertToAnnouncement: (eventId, retainEvent = true) => {
-        return api.post(`${BASE_URL}/events/${eventId}/convert_to_announcement/`, {
+        return api.post(`${BASE_URL}/${eventId}/convert_to_announcement/`, {
             retain_event: retainEvent
         });
     },
@@ -227,14 +228,14 @@ const eventsService = {
      * Request help from event organizers
      */
     requestHelp: (eventId, helpData) => {
-        return api.post(`${BASE_URL}/events/${eventId}/request_help/`, helpData);
+        return api.post(`${BASE_URL}/${eventId}/request_help/`, helpData);
     },
 
     /**
      * Get help requests for event (organizers only)
      */
     getHelpRequests: (eventId) => {
-        return api.get(`${BASE_URL}/events/${eventId}/help_requests/`);
+        return api.get(`${BASE_URL}/${eventId}/help_requests/`);
     },
 
     /**
@@ -288,7 +289,7 @@ const eventsService = {
      * Get interested events
      */
     getInterestedEvents: () => {
-        return api.get(`${BASE_URL}/events/?interested=true`);
+        return api.get(`${BASE_URL}/?interested=true`);
     },
 
     /**
@@ -304,7 +305,7 @@ const eventsService = {
      * Get event statistics
      */
     getEventStats: (eventId) => {
-        return api.get(`${BASE_URL}/events/${eventId}/stats/`);
+        return api.get(`${BASE_URL}/${eventId}/stats/`);
     },
 
     // ===== SOCIAL FEATURES =====
@@ -336,7 +337,173 @@ const eventsService = {
      * Get feed events (respecting visibility & blocks)
      */
     getFeedEvents: (params = {}) => {
-        return api.get(`${BASE_URL}/events/`, { params });
+        return api.get(`${BASE_URL}/`, { params });
+    },
+
+    // ===== LOGISTICS: DOCUMENTS =====
+
+    /**
+     * Get documents for an event
+     */
+    getEventDocuments: (eventId) => {
+        return api.get(`${BASE_URL}/event_documents/?event=${eventId}`);
+    },
+
+    /**
+     * Upload document to event
+     */
+    uploadDocument: (eventId, documentData) => {
+        const formData = new FormData();
+        formData.append('event', eventId);
+        Object.keys(documentData).forEach(key => {
+            formData.append(key, documentData[key]);
+        });
+        return api.post(`${BASE_URL}/event_documents/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
+    /**
+     * Download document (tracks download count)
+     */
+    downloadDocument: (documentId) => {
+        return api.post(`${BASE_URL}/event_documents/${documentId}/download/`);
+    },
+
+    /**
+     * Archive document
+     */
+    archiveDocument: (documentId) => {
+        return api.post(`${BASE_URL}/event_documents/${documentId}/archive/`);
+    },
+
+    // ===== LOGISTICS: ARTICLES =====
+
+    /**
+     * Get articles linked to event
+     */
+    getEventArticles: (eventId, linkType = null) => {
+        const params = { event: eventId };
+        if (linkType) params.link_type = linkType;
+        return api.get(`${BASE_URL}/event_article_links/`, { params });
+    },
+
+    /**
+     * Link article to event
+     */
+    linkArticleToEvent: (eventId, articleId, linkType = 'related') => {
+        return api.post(`${BASE_URL}/event_article_links/`, {
+            event: eventId,
+            article: articleId,
+            link_type: linkType
+        });
+    },
+
+    /**
+     * Unlink article from event
+     */
+    unlinkArticleFromEvent: (linkId) => {
+        return api.delete(`${BASE_URL}/event_article_links/${linkId}/`);
+    },
+
+    // ===== LOGISTICS: RESEARCH =====
+
+    /**
+     * Get research projects linked to event
+     */
+    getEventResearch: (eventId) => {
+        return api.get(`${BASE_URL}/event_research_links/?event=${eventId}`);
+    },
+
+    /**
+     * Link research to event
+     */
+    linkResearchToEvent: (eventId, researchId, presentationOrder = 0, isKeynote = false) => {
+        return api.post(`${BASE_URL}/event_research_links/`, {
+            event: eventId,
+            research: researchId,
+            presentation_order: presentationOrder,
+            is_keynote: isKeynote
+        });
+    },
+
+    // ===== LOGISTICS: ANNOUNCEMENTS =====
+
+    /**
+     * Get announcements linked to event
+     */
+    getEventAnnouncements: (eventId) => {
+        return api.get(`${BASE_URL}/event_announcement_links/?event=${eventId}`);
+    },
+
+    /**
+     * Link announcement to event
+     */
+    linkAnnouncementToEvent: (eventId, announcementId, linkType = 'promotion') => {
+        return api.post(`${BASE_URL}/event_announcement_links/`, {
+            event: eventId,
+            announcement: announcementId,
+            link_type: linkType
+        });
+    },
+
+    // ===== LOGISTICS: PRODUCTS =====
+
+    /**
+     * Get products linked to event
+     */
+    getEventProducts: (eventId, availableOnly = false) => {
+        const params = { event: eventId };
+        if (availableOnly) params.available = 'true';
+        return api.get(`${BASE_URL}/event_product_links/`, { params });
+    },
+
+    /**
+     * Get exclusive event products
+     */
+    getExclusiveProducts: (eventId = null) => {
+        const params = eventId ? { event: eventId } : {};
+        return api.get(`${BASE_URL}/event_product_links/exclusive/`, { params });
+    },
+
+    /**
+     * Link product to event
+     */
+    linkProductToEvent: (eventId, productData) => {
+        return api.post(`${BASE_URL}/event_product_links/`, {
+            event: eventId,
+            ...productData
+        });
+    },
+
+    // ===== LOGISTICS: PAYMENT GROUPS (PIGGY BANKS) =====
+
+    /**
+     * Get payment groups linked to event
+     */
+    getEventPaymentGroups: (eventId, purpose = null) => {
+        const params = { event: eventId };
+        if (purpose) params.purpose = purpose;
+        return api.get(`${BASE_URL}/event_payment_group_links/`, { params });
+    },
+
+    /**
+     * Get funding progress for event
+     */
+    getEventFundingProgress: (eventId) => {
+        return api.get(`${BASE_URL}/event_payment_group_links/progress/?event=${eventId}`);
+    },
+
+    /**
+     * Link payment group to event
+     */
+    linkPaymentGroupToEvent: (eventId, paymentGroupId, purpose = 'general', targetAmount = 0) => {
+        return api.post(`${BASE_URL}/event_payment_group_links/`, {
+            event: eventId,
+            payment_group: paymentGroupId,
+            purpose,
+            target_amount: targetAmount
+        });
     },
 };
 

@@ -103,12 +103,12 @@ export const API_ENDPOINTS = {
     RESOURCE_UPLOAD: `${API_BASE_URL}/api/resources/upload/`,
 
     // Institutions
-    INSTITUTIONS: `${API_BASE_URL}/api/institutions/`,
-    INSTITUTION_DETAIL: (id) => `${API_BASE_URL}/api/institutions/${id}/`,
+    INSTITUTIONS: `${API_BASE_URL}/api/institutions/institutions/`,
+    INSTITUTION_DETAIL: (id) => `${API_BASE_URL}/api/institutions/institutions/${id}/`,
 
     // Organizations
-    ORGANIZATIONS: `${API_BASE_URL}/api/organizations/`,
-    ORGANIZATION_DETAIL: (id) => `${API_BASE_URL}/api/organizations/${id}/`,
+    ORGANIZATIONS: `${API_BASE_URL}/api/organizations/organisation/`,
+    ORGANIZATION_DETAIL: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/`,
 
     // Payment
     PAYMENT_PROFILE: `${API_BASE_URL}/api/payments/profile/`,

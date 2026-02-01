@@ -66,7 +66,7 @@ const Organizations = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Organizations</h1>
                     <p className="text-gray-600 mt-1">Browse companies and organizations</p>
                 </div>
-                <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                <Button variant="primary" onClick={() => navigate('/organizations/create')}>
                     <Plus className="w-4 h-4 mr-2" />
                     Create Organization
                 </Button>
@@ -122,8 +122,16 @@ const Organizations = () => {
 
             {/* Create Organization Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <Card className="w-full max-w-lg">
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={(e) => {
+                        // Close modal when clicking on backdrop
+                        if (e.target === e.currentTarget) {
+                            setShowCreateModal(false);
+                        }
+                    }}
+                >
+                    <Card className="w-full max-w-lg relative z-[51]" onClick={(e) => e.stopPropagation()}>
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-bold text-gray-900">Create Organization</h2>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 
 const CreateAnnouncement = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const roomId = searchParams.get('room');
     const [formData, setFormData] = useState({
         heading: '',
         content: '',
@@ -18,9 +20,14 @@ const CreateAnnouncement = () => {
         e.preventDefault();
 
         try {
-            await api.post('/api/announcements/', formData);
+            const submitData = { ...formData };
+            // Add room ID if creating from within a room
+            if (roomId) {
+                submitData.room = roomId;
+            }
+            await api.post('/api/announcements/', submitData);
             alert('Announcement created successfully!');
-            navigate('/announcements');
+            navigate(roomId ? `/rooms/${roomId}` : '/announcements');
         } catch (error) {
             alert('Failed to create announcement');
         }

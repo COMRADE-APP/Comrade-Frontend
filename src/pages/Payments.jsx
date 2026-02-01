@@ -163,6 +163,14 @@ const Payments = () => {
                         <Users className="w-4 h-4 mr-2" />
                         Create Group
                     </Button>
+                    <Button variant="outline" onClick={() => navigate('/payments/groups')}>
+                        <Users className="w-4 h-4 mr-2" />
+                        View Groups
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/piggy-banks')}>
+                        <PiggyBank className="w-4 h-4 mr-2" />
+                        Piggy Banks
+                    </Button>
                     <Button variant="primary" onClick={() => setShowSendModal(true)}>
                         <DollarSign className="w-4 h-4 mr-2" />
                         Send Money

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import { BookOpen, Clock, User, Heart, MessageCircle, Bookmark, Share, Search, Plus } from 'lucide-react';
+import articlesService from '../services/articles.service';
+import toast from 'react-hot-toast';
 
 const Articles = () => {
     const navigate = useNavigate();
@@ -12,58 +14,60 @@ const Articles = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
 
     useEffect(() => {
-        // Simulated data - replace with actual API call
-        setTimeout(() => {
-            setArticles([
-                {
-                    id: 1,
-                    title: 'Getting Started with React Hooks: A Comprehensive Guide',
-                    excerpt: 'Learn how to use React Hooks effectively in your projects. This guide covers useState, useEffect, useContext, and custom hooks.',
-                    author: { name: 'Jane Smith', avatar: null },
-                    category: 'Technology',
-                    readTime: 8,
-                    publishDate: '2024-01-10',
-                    likes: 234,
-                    comments: 45,
-                    coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-                },
-                {
-                    id: 2,
-                    title: 'The Future of Remote Work: Trends and Predictions',
-                    excerpt: 'Explore how remote work is evolving and what it means for businesses and employees in the coming years.',
-                    author: { name: 'John Doe', avatar: null },
-                    category: 'Business',
-                    readTime: 6,
-                    publishDate: '2024-01-15',
-                    likes: 189,
-                    comments: 32,
-                    coverImage: 'https://images.unsplash.com/photo-1521898284481-a5ec348cb555?w=800',
-                },
-                {
-                    id: 3,
-                    title: 'Mindfulness in the Digital Age',
-                    excerpt: 'Discover practical strategies for maintaining mental wellness in an increasingly connected world.',
-                    author: { name: 'Sarah Wilson', avatar: null },
-                    category: 'Wellness',
-                    readTime: 5,
-                    publishDate: '2024-01-20',
-                    likes: 312,
-                    comments: 67,
-                    coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800',
-                },
-            ]);
+        fetchArticles();
+    }, [searchQuery, selectedCategory]);
+
+    const fetchArticles = async () => {
+        try {
+            setLoading(true);
+            const params = {};
+            if (searchQuery) params.search = searchQuery;
+            if (selectedCategory !== 'all') params.category = selectedCategory;
+
+            const response = await articlesService.getAll(params);
+            // Handle both pagination results (response.results) or direct array
+            setArticles(response.results || response || []);
+        } catch (error) {
+            console.error('Error fetching articles:', error);
+            toast.error('Failed to load articles');
+        } finally {
             setLoading(false);
-        }, 500);
-    }, []);
+        }
+    };
+
+    const handleLike = async (e, id) => {
+        e.preventDefault(); // Prevent navigation if clicking card
+        e.stopPropagation();
+        try {
+            await articlesService.toggleLike(id);
+            // Optimistic update or refetch
+            setArticles(prev => prev.map(art =>
+                art.id === id
+                    ? { ...art, is_liked: !art.is_liked, likes_count: art.is_liked ? art.likes_count - 1 : art.likes_count + 1 }
+                    : art
+            ));
+        } catch (error) {
+            toast.error('Failed to like article');
+        }
+    };
+
+    const handleBookmark = async (e, id) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            await articlesService.toggleBookmark(id);
+            setArticles(prev => prev.map(art =>
+                art.id === id
+                    ? { ...art, is_bookmarked: !art.is_bookmarked }
+                    : art
+            ));
+            toast.success('Bookmark updated');
+        } catch (error) {
+            toast.error('Failed to bookmark article');
+        }
+    };
 
     const categories = ['all', 'Technology', 'Business', 'Wellness', 'Education', 'Science'];
-
-    const filteredArticles = articles.filter(article => {
-        const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            article.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
 
     return (
         <div className="space-y-6">
@@ -114,7 +118,7 @@ const Articles = () => {
                         <div key={i} className="h-96 bg-gray-100 rounded-xl animate-pulse" />
                     ))}
                 </div>
-            ) : filteredArticles.length === 0 ? (
+            ) : articles.length === 0 ? (
                 <div className="text-center py-16">
                     <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No articles found</h3>
@@ -122,69 +126,92 @@ const Articles = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredArticles.map((article) => (
-                        <Card key={article.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                            {/* Cover Image */}
-                            <div className="relative h-48 overflow-hidden">
-                                <img
-                                    src={article.coverImage}
-                                    alt={article.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                                <div className="absolute top-3 left-3">
-                                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-gray-900">
-                                        {article.category}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <CardBody className="p-5">
-                                <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
-                                    {article.title}
-                                </h3>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                    {article.excerpt}
-                                </p>
-
-                                {/* Author and Meta */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                                            {article.author.name[0]}
+                    {articles.map((article) => (
+                        <Link to={`/articles/${article.id}`} key={article.id}>
+                            <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group h-full">
+                                {/* Cover Image */}
+                                <div className="relative h-48 overflow-hidden bg-gray-200">
+                                    {article.cover_image ? (
+                                        <img
+                                            src={article.cover_image}
+                                            alt={article.title}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            <BookOpen className="w-12 h-12" />
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{article.author.name}</p>
-                                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {article.readTime} min read
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                    <div className="flex items-center gap-4 text-gray-500 text-sm">
-                                        <span className="flex items-center gap-1">
-                                            <Heart className="w-4 h-4" />
-                                            {article.likes}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <MessageCircle className="w-4 h-4" />
-                                            {article.comments}
+                                    )}
+                                    <div className="absolute top-3 left-3">
+                                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-gray-900">
+                                            {article.category}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <button className="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors">
-                                            <Bookmark className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors">
-                                            <Share className="w-4 h-4" />
-                                        </button>
-                                    </div>
                                 </div>
-                            </CardBody>
-                        </Card>
+
+                                <CardBody className="p-5 flex flex-col h-full">
+                                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                                        {article.title}
+                                    </h3>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                        {article.excerpt || article.content.substring(0, 100) + '...'}
+                                    </p>
+
+                                    {/* Author and Meta */}
+                                    <div className="mt-auto">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                                                    {article.author_details?.avatar ? (
+                                                        <img src={article.author_details.avatar} alt={article.author_name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        article.author_name?.[0] || 'U'
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">{article.author_name}</p>
+                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {new Date(article.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                            <div className="flex items-center gap-4 text-gray-500 text-sm">
+                                                <span className="flex items-center gap-1">
+                                                    <Heart className={`w-4 h-4 ${article.is_liked ? 'fill-red-500 text-red-500' : ''}`} />
+                                                    {article.likes_count || 0}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <MessageCircle className="w-4 h-4" />
+                                                    {article.comments_count || 0}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => handleBookmark(e, article.id)}
+                                                    className={`p-2 rounded-full transition-colors ${article.is_bookmarked ? 'text-primary-600 bg-primary-50' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50'}`}
+                                                >
+                                                    <Bookmark className={`w-4 h-4 ${article.is_bookmarked ? 'fill-current' : ''}`} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        navigator.share?.({ title: article.title, url: window.location.href + '/' + article.id });
+                                                    }}
+                                                    className="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors"
+                                                >
+                                                    <Share className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </Link>
                     ))}
                 </div>
             )}

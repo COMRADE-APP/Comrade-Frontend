@@ -74,19 +74,14 @@ const opinionsService = {
     addComment: async (id, content, media = null, parentCommentId = null) => {
         const formData = new FormData();
         formData.append('content', content);
+        if (parentCommentId) {
+            formData.append('parent_comment', parentCommentId);
+        }
         if (media) {
             formData.append('file', media);
-            if (parentCommentId) {
-                formData.append('parent_comment', parentCommentId);
-            }
-            const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            return response.data;
         }
         const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            parent_comment: parentCommentId
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
     },

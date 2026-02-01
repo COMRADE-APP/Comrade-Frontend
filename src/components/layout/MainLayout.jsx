@@ -3,9 +3,12 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileNav from './MobileNav';
 
+import { Toaster } from 'react-hot-toast';
+
 const MainLayout = ({ children }) => {
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
+            <Toaster position="top-right" />
             {/* Desktop Sidebar */}
             <Sidebar />
 

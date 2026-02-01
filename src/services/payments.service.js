@@ -124,14 +124,48 @@ export const paymentsService = {
         return response.data;
     },
 
+    async withdrawFromPiggyBank(piggyId, amount) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(piggyId)}withdraw/`, { amount });
+        return response.data;
+    },
+
+    async lockPiggyBank(piggyId, lockType = 'locked', maturityDate = null) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(piggyId)}lock/`, {
+            lock_type: lockType,
+            maturity_date: maturityDate
+        });
+        return response.data;
+    },
+
+    async unlockPiggyBank(piggyId) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(piggyId)}unlock/`);
+        return response.data;
+    },
+
     // ========== Group Invitations ==========
     async getInvitations() {
-        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}invitations/`);
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS.replace('/groups/', '/invitations/')}pending/`);
         return response.data;
     },
 
     async respondToInvitation(invitationId, accept) {
-        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}invitations/${invitationId}/respond/`, { accept });
+        const endpoint = API_ENDPOINTS.PAYMENT_GROUPS.replace('/groups/', '/invitations/');
+        const response = await api.post(`${endpoint}respond/`, {
+            invitation_id: invitationId,
+            accept
+        });
+        return response.data;
+    },
+
+    async acceptInvitation(invitationId) {
+        const endpoint = API_ENDPOINTS.PAYMENT_GROUPS.replace('/groups/', '/invitations/');
+        const response = await api.post(`${endpoint}${invitationId}/accept/`);
+        return response.data;
+    },
+
+    async rejectInvitation(invitationId) {
+        const endpoint = API_ENDPOINTS.PAYMENT_GROUPS.replace('/groups/', '/invitations/');
+        const response = await api.post(`${endpoint}${invitationId}/reject/`);
         return response.data;
     },
 

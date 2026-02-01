@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send, Megaphone, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send, Megaphone, X, Ticket, Globe, Building } from 'lucide-react';
 import api from '../services/api';
+import eventsService from '../services/events.service';
 
 const CreateEvent = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const roomId = searchParams.get('room');
     const [loading, setLoading] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [confirmAction, setConfirmAction] = useState(''); // 'publish', 'draft', 'announcement'
@@ -12,20 +15,65 @@ const CreateEvent = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        event_type: 'physical',
+        event_location: 'physical', // physical, virtual, hybrid
+        event_type: 'public', // public, private, invite_only, etc.
         location: '',
-        virtual_link: '',
-        start_date: '',
-        start_time: '',
-        end_date: '',
-        end_time: '',
-        visibility: 'public',
-        max_attendees: '',
-        is_ticketed: false,
-        ticket_price: '',
+        latitude: '',
+        longitude: '',
+        event_url: '', // for virtual events
+        event_date: '',
+        start_time: '09:00',
+        end_time: '17:00',
+        booking_deadline: '',
+        capacity: 100,
+        duration: '08:00:00', // 8 hours default
+        complexity_level: 'small', // small, midlevel, sophisticated
+        booking_status: 'open',
+        status: 'active',
     });
+    const [errors, setErrors] = useState({});
+
+    // Format duration from hours to Django DurationField format
+    const formatDuration = (hours) => {
+        const h = Math.floor(hours);
+        const m = (hours - h) * 60;
+        return `${String(h).padStart(2, '0')}:${String(Math.floor(m)).padStart(2, '0')}:00`;
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.name.trim()) newErrors.name = 'Event name is required';
+        if (!formData.description.trim()) newErrors.description = 'Description is required';
+        if (!formData.event_date) newErrors.event_date = 'Event date is required';
+        if (!formData.start_time) newErrors.start_time = 'Start time is required';
+        if (!formData.end_time) newErrors.end_time = 'End time is required';
+        if (formData.event_location !== 'virtual' && !formData.location.trim()) {
+            newErrors.location = 'Location is required for physical/hybrid events';
+        }
+        if (formData.event_location !== 'physical' && !formData.event_url.trim()) {
+            newErrors.event_url = 'Virtual link is required for virtual/hybrid events';
+        }
+        if (!formData.capacity || formData.capacity < 1) {
+            newErrors.capacity = 'Capacity must be at least 1';
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (action) => {
+        if (!validateForm()) return;
         setConfirmAction(action);
         setShowConfirmation(true);
     };
@@ -35,34 +83,49 @@ const CreateEvent = () => {
         setShowConfirmation(false);
 
         try {
-            const submitData = new FormData();
-            Object.keys(formData).forEach(key => {
-                if (formData[key] !== '') {
-                    submitData.append(key, formData[key]);
-                }
-            });
+            // Prepare event date/time in ISO format
+            const eventDateTime = new Date(`${formData.event_date}T${formData.start_time}`);
+            const bookingDeadline = formData.booking_deadline
+                ? new Date(`${formData.booking_deadline}T23:59:59`)
+                : eventDateTime;
 
-            if (coverImage) {
-                submitData.append('cover_image', coverImage);
+            const submitData = {
+                name: formData.name,
+                description: formData.description,
+                event_location: formData.event_location,
+                event_type: formData.event_type,
+                location: formData.location || 'Virtual',
+                latitude: formData.latitude || null,
+                longitude: formData.longitude || null,
+                event_url: formData.event_url || null,
+                event_date: eventDateTime.toISOString(),
+                start_time: formData.start_time,
+                end_time: formData.end_time,
+                booking_deadline: bookingDeadline.toISOString(),
+                scheduled_time: eventDateTime.toISOString(),
+                capacity: parseInt(formData.capacity),
+                duration: formData.duration,
+                complexity_level: formData.complexity_level,
+                booking_status: formData.booking_status,
+                status: confirmAction === 'draft' ? 'draft' : 'active',
+            };
+
+            // Add room ID if creating from within a room
+            if (roomId) {
+                submitData.room = roomId;
             }
 
-            // Set status based on action
-            submitData.append('status', confirmAction === 'draft' ? 'draft' : 'published');
-
-            console.log(submitData);
-            const response = await api.post('/api/events/events/', submitData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await eventsService.createEvent(submitData);
 
             // If requesting announcement, create an announcement request
             if (confirmAction === 'announcement') {
-                await api.post('/api/announcements/requests/', {
-                    content_type: 'event',
-                    content_id: response.data.id,
-                    heading: `📅 Event: ${formData.name}`,
-                    content: formData.description?.substring(0, 500),
-                    request_type: 'event_promotion'
-                });
+                try {
+                    await api.post('/api/announcements/announcements/', {
+                        text: `📅 Event: ${formData.name}\n\n${formData.description?.substring(0, 500)}`,
+                    });
+                } catch (annError) {
+                    console.warn('Announcement request failed:', annError);
+                }
                 alert('Event created and announcement requested!');
             } else if (confirmAction === 'draft') {
                 alert('Event saved as draft!');
@@ -70,10 +133,15 @@ const CreateEvent = () => {
                 alert('Event published successfully!');
             }
 
-            navigate('/events');
+            navigate(roomId ? `/rooms/${roomId}` : '/events');
         } catch (error) {
             console.error('Failed to create event:', error);
-            alert(error.response?.data?.detail || 'Failed to create event');
+            const errorMessage = error.response?.data
+                ? (typeof error.response.data === 'object'
+                    ? JSON.stringify(error.response.data)
+                    : error.response.data)
+                : 'Failed to create event. Please try again.';
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -119,41 +187,49 @@ const CreateEvent = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
                         <input
                             type="text"
+                            name="name"
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                            onChange={handleChange}
+                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
                             placeholder="Enter event name"
-                            required
                         />
+                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                     </div>
 
                     {/* Description */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                         <textarea
+                            name="description"
                             value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={handleChange}
                             rows={4}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
                             placeholder="Describe your event..."
-                            required
                         />
+                        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                     </div>
 
-                    {/* Event Type */}
+                    {/* Event Location Type */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Format</label>
                         <div className="flex gap-4">
-                            {['physical', 'virtual', 'hybrid'].map(type => (
-                                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                            {[
+                                { value: 'physical', label: 'Physical', icon: Building },
+                                { value: 'online', label: 'Virtual', icon: Globe },
+                                { value: 'hybrid', label: 'Hybrid', icon: Users }
+                            ].map(({ value, label, icon: Icon }) => (
+                                <label key={value} className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-all ${formData.event_location === value ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:bg-gray-50'}`}>
                                     <input
                                         type="radio"
-                                        name="event_type"
-                                        value={type}
-                                        checked={formData.event_type === type}
-                                        onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
+                                        name="event_location"
+                                        value={value}
+                                        checked={formData.event_location === value}
+                                        onChange={handleChange}
+                                        className="sr-only"
                                     />
-                                    <span className="capitalize">{type}</span>
+                                    <Icon size={18} />
+                                    <span>{label}</span>
                                 </label>
                             ))}
                         </div>
@@ -161,30 +237,36 @@ const CreateEvent = () => {
 
                     {/* Location / Virtual Link */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        {formData.event_type !== 'virtual' && (
+                        {formData.event_location !== 'online' && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    <MapPin size={16} className="inline mr-1" /> Location
+                                    <MapPin size={16} className="inline mr-1" /> Physical Location *
                                 </label>
                                 <input
                                     type="text"
+                                    name="location"
                                     value={formData.location}
-                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    placeholder="Event venue"
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-lg ${errors.location ? 'border-red-500' : 'border-gray-300'}`}
+                                    placeholder="Event venue address"
                                 />
+                                {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
                             </div>
                         )}
-                        {formData.event_type !== 'physical' && (
+                        {formData.event_location !== 'physical' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Virtual Link</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <Globe size={16} className="inline mr-1" /> Virtual Link *
+                                </label>
                                 <input
                                     type="url"
-                                    value={formData.virtual_link}
-                                    onChange={(e) => setFormData({ ...formData, virtual_link: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                    placeholder="https://..."
+                                    name="event_url"
+                                    value={formData.event_url}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-lg ${errors.event_url ? 'border-red-500' : 'border-gray-300'}`}
+                                    placeholder="https://zoom.us/j/..."
                                 />
+                                {errors.event_url && <p className="text-red-500 text-sm mt-1">{errors.event_url}</p>}
                             </div>
                         )}
                     </div>
@@ -192,38 +274,106 @@ const CreateEvent = () => {
                     {/* Date/Time */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
-                            <input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Date *</label>
+                            <input
+                                type="date"
+                                name="event_date"
+                                value={formData.event_date}
+                                onChange={handleChange}
+                                min={new Date().toISOString().split('T')[0]}
+                                className={`w-full px-4 py-2 border rounded-lg ${errors.event_date ? 'border-red-500' : 'border-gray-300'}`}
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-                            <input type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                            <input
+                                type="time"
+                                name="start_time"
+                                value={formData.start_time}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                            <input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                            <input
+                                type="time"
+                                name="end_time"
+                                value={formData.end_time}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
-                            <input type="time" value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Booking Deadline</label>
+                            <input
+                                type="date"
+                                name="booking_deadline"
+                                value={formData.booking_deadline}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            />
                         </div>
                     </div>
 
-                    {/* Visibility & Attendees */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {/* Capacity & Complexity */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
-                            <select value={formData.visibility} onChange={(e) => setFormData({ ...formData, visibility: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Users size={16} className="inline mr-1" /> Capacity *
+                            </label>
+                            <input
+                                type="number"
+                                name="capacity"
+                                value={formData.capacity}
+                                onChange={handleChange}
+                                min="1"
+                                className={`w-full px-4 py-2 border rounded-lg ${errors.capacity ? 'border-red-500' : 'border-gray-300'}`}
+                                placeholder="Max attendees"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
+                            <select
+                                name="event_type"
+                                value={formData.event_type}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
                                 <option value="public">Public</option>
-                                <option value="institution">Institution Only</option>
-                                <option value="organization">Organization Only</option>
-                                <option value="private">Private (Invite Only)</option>
+                                <option value="private">Private</option>
+                                <option value="invite_only">Invite Only</option>
+                                <option value="members_only">Members Only</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees</label>
-                            <input type="number" value={formData.max_attendees} onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Unlimited if empty" />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Scale</label>
+                            <select
+                                name="complexity_level"
+                                value={formData.complexity_level}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            >
+                                <option value="small">Small (Simple gathering)</option>
+                                <option value="midlevel">Mid-Level (Conference)</option>
+                                <option value="sophisticated">Sophisticated (Major event)</option>
+                            </select>
                         </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Duration (hours)</label>
+                        <input
+                            type="number"
+                            name="duration"
+                            value={parseInt(formData.duration.split(':')[0])}
+                            onChange={(e) => setFormData(prev => ({ ...prev, duration: formatDuration(parseInt(e.target.value) || 1) }))}
+                            min="1"
+                            max="72"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            placeholder="Event duration in hours"
+                        />
                     </div>
 
                     {/* Action Buttons */}
@@ -235,7 +385,7 @@ const CreateEvent = () => {
                         <button onClick={() => handleSubmit('announcement')} disabled={loading} className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2">
                             <Megaphone size={18} /> Request Announcement
                         </button>
-                        <button onClick={() => handleSubmit('publish')} disabled={loading || !formData.name || !formData.start_date} className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
+                        <button onClick={() => handleSubmit('publish')} disabled={loading || !formData.name || !formData.event_date} className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 disabled:opacity-50">
                             <Send size={18} /> Publish
                         </button>
                     </div>
@@ -253,7 +403,7 @@ const CreateEvent = () => {
                         </h3>
                         <p className="text-gray-600 mb-6">
                             {confirmAction === 'draft' && 'Your event will be saved as a draft. You can edit and publish it later.'}
-                            {confirmAction === 'publish' && 'Your event will be visible to your audience based on visibility settings.'}
+                            {confirmAction === 'publish' && 'Your event will be visible to your audience based on event type settings. A discussion room will be created automatically.'}
                             {confirmAction === 'announcement' && 'Your event will be published and an announcement request will be sent for admin approval.'}
                         </p>
                         <div className="flex gap-3 justify-end">

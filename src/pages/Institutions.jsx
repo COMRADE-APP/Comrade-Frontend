@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -7,6 +8,7 @@ import { Building2, Search, Plus, Users, MapPin, Globe, Edit, Trash2, X, Eye } f
 import institutionsService from '../services/institutions.service';
 
 const Institutions = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [institutions, setInstitutions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,10 +23,8 @@ const Institutions = () => {
         website: '',
     });
 
-    // Check if user can create/edit institutions (admin/staff only)
-    const canManageInstitutions = user?.is_admin || user?.is_staff ||
-        user?.is_inst_admin ||
-        user?.user_type === 'admin' || user?.user_type === 'staff';
+    // All authenticated users can create institutions
+    const canManageInstitutions = true;
 
     useEffect(() => {
         loadInstitutions();
@@ -85,7 +85,7 @@ const Institutions = () => {
                     <p className="text-gray-600 mt-1">Browse and manage educational institutions</p>
                 </div>
                 {canManageInstitutions && (
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                    <Button variant="primary" onClick={() => navigate('/institutions/create')}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Institution
                     </Button>

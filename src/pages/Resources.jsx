@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon, Search } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon, Search, Plus } from 'lucide-react';
 import resourcesService from '../services/resources.service';
 import { formatDate } from '../utils/dateFormatter';
 
 const Resources = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,12 +23,8 @@ const Resources = () => {
         res_file: null,
     });
 
-    // Check if user has CRUD capabilities (staff/admin)
-    const canManageResources = user?.is_admin || user?.is_staff ||
-        user?.is_inst_admin || user?.is_inst_staff ||
-        user?.is_org_admin || user?.is_org_staff ||
-        user?.user_type === 'admin' || user?.user_type === 'staff' ||
-        user?.user_type === 'lecturer';
+    // All authenticated users can create resources
+    const canManageResources = true;
 
     useEffect(() => {
         loadResources();
@@ -83,9 +81,9 @@ const Resources = () => {
                     <p className="text-gray-600 mt-1">Browse and manage shared resources</p>
                 </div>
                 {canManageResources && (
-                    <Button variant="primary" onClick={() => setShowUploadModal(true)}>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Resource
+                    <Button variant="primary" onClick={() => navigate('/resources/create')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Resource
                     </Button>
                 )}
             </div>

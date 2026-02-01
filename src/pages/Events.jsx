@@ -34,8 +34,8 @@ const Events = () => {
     }, [filter]);
 
     const loadEvents = async () => {
-        setLoading(true);
         try {
+            setLoading(true);
             const params = {};
             if (filter === 'interested') {
                 params.interested = 'true';
@@ -44,7 +44,18 @@ const Events = () => {
             }
 
             const response = await eventsService.getAllEvents(params);
-            setEvents(response.data || []);
+            // Handle various response formats more explicitly
+            let data = [];
+            if (response?.data?.results) {
+                data = response.data.results;
+            } else if (Array.isArray(response?.data)) {
+                data = response.data;
+            } else if (response?.results) {
+                data = response.results;
+            } else if (Array.isArray(response)) {
+                data = response;
+            }
+            setEvents(data);
         } catch (error) {
             console.error('Error loading events:', error);
             setEvents([]);
@@ -112,7 +123,7 @@ const Events = () => {
                         <EnhancedEventCard
                             key={event.id}
                             event={event}
-                            onOpenDetails={() => openModal(event, 'details')}
+                            onOpenDetails={() => navigate(`/events/${event.id}`)}
                             onOpenTickets={() => openModal(event, 'tickets')}
                             onOpenReminders={() => openModal(event, 'reminders')}
                             onUpdate={loadEvents}

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, FileText, Upload, Link as LinkIcon, Save, Send, Megaphone, X } from 'lucide-react';
 import api from '../services/api';
 
 const CreateResource = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const roomId = searchParams.get('room');
     const [loading, setLoading] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [confirmAction, setConfirmAction] = useState('');
@@ -37,6 +39,11 @@ const CreateResource = () => {
 
             if (resourceFile) {
                 submitData.append('file', resourceFile);
+            }
+
+            // Add room ID if creating from within a room
+            if (roomId) {
+                submitData.append('room', roomId);
             }
 
             submitData.append('status', confirmAction === 'draft' ? 'draft' : 'published');

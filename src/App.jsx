@@ -34,8 +34,10 @@ import Rooms from './pages/Rooms';
 import RoomDetail from './pages/RoomDetail';
 import Messages from './pages/Messages';
 import Resources from './pages/Resources';
-import Institutions from './pages/Institutions';
 import Organizations from './pages/Organizations';
+import CreateOrganization from './pages/organizations/CreateOrganization';
+import OrganizationDetail from './pages/organizations/OrganizationDetail';
+import OrganizationVerification from './pages/organizations/OrganizationVerification';
 import Payments from './pages/Payments';
 import PaymentMethods from './pages/PaymentMethods';
 import Specializations from './pages/Specializations';
@@ -55,6 +57,8 @@ import SubscriptionPlans from './pages/subscription/SubscriptionPlans';
 import TierPlans from './pages/subscription/TierPlans';
 import GroupTargets from './pages/payments/GroupTargets';
 import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
+import PaymentGroups from './pages/payments/PaymentGroups';
+import PaymentGroupDetail from './pages/payments/PaymentGroupDetail';
 
 // Opinions & Social
 import Opinions from './pages/Opinions';
@@ -62,14 +66,18 @@ import OpinionDetail from './pages/OpinionDetail';
 import Following from './pages/Following';
 import Research from './pages/Research';
 import Articles from './pages/Articles';
+import ArticleDetail from './pages/ArticleDetail';
 import Notifications from './pages/Notifications';
 
 // New Integrated Pages
+import Institutions from './pages/Institutions';
 import CreateInstitution from './pages/institutions/CreateInstitution';
 import InstitutionVerification from './pages/institutions/InstitutionVerification';
+import InstitutionDetail from './pages/institutions/InstitutionDetail';
 import TransactionHistory from './pages/TransactionHistory';
 import CreateAnnouncement from './pages/CreateAnnouncement';
 import CreateEvent from './pages/CreateEvent';
+import EventDetail from './pages/EventDetail';
 import CreateTask from './pages/CreateTask';
 import CreateRoom from './pages/CreateRoom';
 import CreateResource from './pages/CreateResource';
@@ -78,6 +86,7 @@ import CreateArticle from './pages/CreateArticle';
 import AdminDeletionReview from './pages/admin/AdminDeletionReview';
 import BecomePartner from './pages/partners/BecomePartner';
 import CreateProduct from './pages/products/CreateProduct';
+import QomAI from './pages/QomAI';
 
 // New Portal Components
 import EntityCreationPortal from './components/entities/EntityCreationPortal';
@@ -138,6 +147,16 @@ function App() {
                 }
             />
             <Route
+                path={ROUTES.QOMAI}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <QomAI />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.ANNOUNCEMENTS}
                 element={
                     <ProtectedRoute>
@@ -153,6 +172,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Events />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/events/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <EventDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -299,6 +328,16 @@ function App() {
                 }
             />
             <Route
+                path="/articles/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ArticleDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.ADMIN_DELETION_REVIEW}
                 element={
                     <ProtectedRoute>
@@ -319,11 +358,67 @@ function App() {
                 }
             />
             <Route
+                path="/institutions/create"
+                element={
+                    <ProtectedRoute>
+                        <CreateInstitution />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/institutions/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InstitutionDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/institutions/:id/verification"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InstitutionVerification />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.ORGANIZATIONS}
                 element={
                     <ProtectedRoute>
                         <MainLayout>
                             <Organizations />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/organizations/create"
+                element={
+                    <ProtectedRoute>
+                        <CreateOrganization />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/organizations/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <OrganizationDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/organizations/:id/verification"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <OrganizationVerification />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -491,6 +586,38 @@ function App() {
                 }
             />
 
+            {/* Payment Groups Routes */}
+            <Route
+                path="/payments/groups"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentGroups />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/groups/:groupId"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentGroupDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/create-group"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreatePaymentGroup />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
             {/* TOTP Setup Route */}
             <Route
                 path="/setup-totp"
@@ -515,6 +642,16 @@ function App() {
                 element={
                     <ProtectedRoute>
                         <InstitutionVerification />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/institutions/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InstitutionDetail />
+                        </MainLayout>
                     </ProtectedRoute>
                 }
             />
@@ -702,6 +839,30 @@ function App() {
                                 onSuccess={() => window.location.href = '/payments'}
                                 onCancel={() => window.location.href = '/payments'}
                             />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Payment Groups */}
+            <Route
+                path="/payments/groups"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentGroups />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Payment Group Detail */}
+            <Route
+                path="/payments/groups/:groupId"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentGroupDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }

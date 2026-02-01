@@ -28,6 +28,9 @@ export const ROUTES = {
     ORGANIZATIONS: '/organizations',
     PAYMENTS: '/payments',
     PAYMENT_METHODS: '/payments/methods',
+    PAYMENT_GROUPS: '/payments/groups',
+    PAYMENT_GROUP_DETAIL: '/payments/groups/:groupId',
+    CREATE_PAYMENT_GROUP: '/payments/create-group',
     SPECIALIZATIONS: '/specializations',
     SETTINGS: '/settings',
 
@@ -58,6 +61,9 @@ export const ROUTES = {
     // Content
     RESEARCH: '/research',
     ARTICLES: '/articles',
+
+    // AI Assistant
+    QOMAI: '/qomai',
 
     // Create Content
     CREATE_EVENT: '/events/create',

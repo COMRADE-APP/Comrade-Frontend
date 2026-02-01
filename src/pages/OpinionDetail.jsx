@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, MessageCircle, Send, Heart, Repeat2, Bookmark, Share2, Image as ImageIcon, Paperclip, Smile } from 'lucide-react';
 import opinionsService from '../services/opinions.service';
 import FeedItem from '../components/feed/FeedItem';
+import OpinionComment from '../components/feed/OpinionComment';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTimeAgo } from '../utils/dateFormatter';
 
@@ -57,12 +58,12 @@ const OpinionDetail = () => {
         }
     };
 
-    const handlePostComment = async () => {
+    const handlePostComment = async (parentCommentId = null) => {
         if (!newComment.trim() || postingComment) return;
 
         setPostingComment(true);
         try {
-            await opinionsService.addComment(id, newComment.trim(), commentMedia);
+            await opinionsService.addComment(id, newComment.trim(), commentMedia, parentCommentId);
             setNewComment('');
             setCommentMedia(null);
             // Refresh comments
@@ -79,6 +80,34 @@ const OpinionDetail = () => {
             alert(err.response?.data?.detail || 'Failed to post comment');
         } finally {
             setPostingComment(false);
+        }
+    };
+
+    // Handle nested reply
+    const handleReply = async (parentCommentId, content) => {
+        try {
+            await opinionsService.addComment(id, content, null, parentCommentId);
+            // Refresh comments
+            const commentsData = await opinionsService.getComments(id);
+            setComments(Array.isArray(commentsData) ? commentsData : commentsData.results || []);
+            // Update local opinion comment count
+            setOpinion(prev => ({
+                ...prev,
+                comments_count: (prev.comments_count || 0) + 1
+            }));
+        } catch (err) {
+            console.error('Error posting reply:', err);
+            throw err;
+        }
+    };
+
+    // Handle comment like
+    const handleCommentLike = async (commentId) => {
+        try {
+            // TODO: Implement comment like when backend supports it
+            return { liked: true, likes_count: 1 };
+        } catch (error) {
+            console.error('Error liking comment:', error);
         }
     };
 
@@ -192,7 +221,7 @@ const OpinionDetail = () => {
                         <h3 className="font-bold text-gray-900">Comments ({comments.length})</h3>
                     </div>
 
-                    <div className="divide-y divide-gray-100">
+                    <div className="p-4 space-y-4">
                         {comments.length === 0 ? (
                             <div className="p-8 text-center text-gray-500">
                                 <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -200,34 +229,15 @@ const OpinionDetail = () => {
                             </div>
                         ) : (
                             comments.map(comment => (
-                                <div key={comment.id} className="p-4 flex gap-3">
-                                    <Link to={`/profile/${comment.user?.id}`} className="shrink-0">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
-                                            {comment.user?.avatar_url ? (
-                                                <img src={comment.user.avatar_url} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                comment.user?.first_name?.[0] || 'U'
-                                            )}
-                                        </div>
-                                    </Link>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <Link to={`/profile/${comment.user?.id}`} className="font-bold text-gray-900 hover:underline">
-                                                {comment.user?.first_name} {comment.user?.last_name}
-                                            </Link>
-                                            <span className="text-sm text-gray-500">{formatTimeAgo(comment.created_at)}</span>
-                                        </div>
-                                        <p className="text-gray-800 mt-1">{comment.content}</p>
-
-                                        <div className="flex items-center gap-4 mt-2">
-                                            <button className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1">
-                                                <Heart size={14} />
-                                                {comment.likes_count || ''}
-                                            </button>
-                                            <button className="text-sm text-gray-500 hover:text-primary-500">Reply</button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <OpinionComment
+                                    key={comment.id}
+                                    comment={comment}
+                                    onLike={handleCommentLike}
+                                    onReply={handleReply}
+                                    currentUser={user}
+                                    depth={0}
+                                    maxDepth={3}
+                                />
                             ))
                         )}
                     </div>

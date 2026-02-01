@@ -7,10 +7,10 @@ import {
     MessageSquare, Users, Settings, ArrowLeft, Send, Paperclip, Image, File, Mic,
     UserPlus, UserMinus, Shield, Crown, MoreVertical, X, Bell, BellOff, Check, CheckCheck,
     Forward, Reply, Trash2, Calendar, ClipboardList, BookOpen, Megaphone, ChevronDown,
-    Eye, UserCheck, AlertCircle, Download
+    Eye, UserCheck, AlertCircle, Download, Plus
 } from 'lucide-react';
 import roomsService from '../services/rooms.service';
-import { formatTimeAgo } from '../utils/dateFormatter';
+import { formatTimeAgo, formatLocalTime } from '../utils/dateFormatter';
 import { ROUTES } from '../constants/routes';
 
 // Message status tick component
@@ -44,7 +44,7 @@ const ForwardedIndicator = ({ message }) => {
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-1 italic">
             <Forward className="w-3 h-3" />
             {message.forwarded_from_room_name ? (
-                <span>Forwarded from <Link to={`/rooms/${message.forwarded_from_room}`} className="text-primary-600 hover:underline">{message.forwarded_from_room_name}</Link></span>
+                <span>Forwarded from <Link to={`/ rooms / ${message.forwarded_from_room} `} className="text-primary-600 hover:underline">{message.forwarded_from_room_name}</Link></span>
             ) : (
                 <span>Forwarded</span>
             )}
@@ -195,9 +195,16 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                         </div>
                     )}
 
-                    {/* Time and status */}
-                    <div className={`flex items-center justify-end gap-1 mt-1 text-xs ${timeClass}`}>
-                        <span>{formatTimeAgo(message.created_at)}</span>
+                    {/* Time, view count, and status */}
+                    <div className={`flex items-center justify-end gap-1.5 mt-1 text-xs ${timeClass}`}>
+                        {/* View count for own messages */}
+                        {isOwn && message.view_count > 0 && (
+                            <span className="flex items-center gap-0.5 opacity-80">
+                                <Eye className="w-3 h-3" />
+                                {message.view_count}
+                            </span>
+                        )}
+                        <span>{formatLocalTime(message.created_at)}</span>
                         <MessageTicks status={message.status} isOwn={isOwn} />
                     </div>
                 </div>
@@ -601,7 +608,7 @@ const RoomDetail = () => {
         setReplyTo({
             id: message.id,
             content: message.content,
-            sender_name: `${message.sender_info?.first_name} ${message.sender_info?.last_name}`
+            sender_name: `${message.sender_info?.first_name} ${message.sender_info?.last_name} `
         });
     };
 
@@ -823,12 +830,127 @@ const RoomDetail = () => {
                             </form>
                         </>
                     ) : (
-                        /* Other content tabs placeholder */
-                        <div className="flex-1 flex items-center justify-center bg-gray-50">
-                            <div className="text-center">
-                                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-500">Content for "{activeTab}" coming soon</p>
-                            </div>
+                        /* Entity content tabs */
+                        <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            {activeTab === 'resources' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900">Room Resources</h3>
+                                        <Button variant="primary" size="sm" onClick={() => navigate('/resources/create?room=' + id)}>
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Add Resource
+                                        </Button>
+                                    </div>
+                                    {room?.resources?.length > 0 ? (
+                                        <div className="grid gap-3">
+                                            {room.resources.map((resource, idx) => (
+                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                    <BookOpen className="w-5 h-5 text-blue-500" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{resource.title || 'Untitled'}</p>
+                                                        <p className="text-sm text-gray-500">{resource.file_type || 'Document'}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No resources in this room yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'events' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900">Room Events</h3>
+                                        <Button variant="primary" size="sm" onClick={() => navigate('/events/create?room=' + id)}>
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Create Event
+                                        </Button>
+                                    </div>
+                                    {room?.events?.length > 0 ? (
+                                        <div className="grid gap-3">
+                                            {room.events.map((event, idx) => (
+                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => navigate(`/ events / ${event.id} `)}>
+                                                    <Calendar className="w-5 h-5 text-orange-500" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{event.title || 'Untitled Event'}</p>
+                                                        <p className="text-sm text-gray-500">{event.status || 'Active'}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No events in this room yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'tasks' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900">Room Tasks</h3>
+                                        <Button variant="primary" size="sm" onClick={() => navigate('/tasks?create=true&room=' + id)}>
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Create Task
+                                        </Button>
+                                    </div>
+                                    {room?.tasks?.length > 0 ? (
+                                        <div className="grid gap-3">
+                                            {room.tasks.map((task, idx) => (
+                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                    <ClipboardList className="w-5 h-5 text-green-500" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{task.heading || 'Untitled Task'}</p>
+                                                        <p className="text-sm text-gray-500">{task.status || task.state || 'Pending'}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <ClipboardList className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No tasks in this room yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'announcements' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900">Room Announcements</h3>
+                                        <Button variant="primary" size="sm" onClick={() => navigate('/announcements/create?room=' + id)}>
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Create Announcement
+                                        </Button>
+                                    </div>
+                                    {room?.announcements?.length > 0 ? (
+                                        <div className="grid gap-3">
+                                            {room.announcements.map((announcement, idx) => (
+                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                    <Megaphone className="w-5 h-5 text-purple-500" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900 line-clamp-1">{announcement.message || 'Announcement'}</p>
+                                                        <p className="text-sm text-gray-500">{announcement.created_on ? formatTimeAgo(announcement.created_on) : 'Recent'}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <Megaphone className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No announcements in this room yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
