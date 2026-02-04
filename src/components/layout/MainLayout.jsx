@@ -7,7 +7,7 @@ import { Toaster } from 'react-hot-toast';
 
 const MainLayout = ({ children }) => {
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50">
+        <div className="flex h-screen overflow-hidden bg-secondary">
             <Toaster position="top-right" />
             {/* Desktop Sidebar */}
             <Sidebar />

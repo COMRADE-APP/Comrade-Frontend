@@ -122,8 +122,8 @@ const Tasks = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Tasks</h1>
-                    <p className="text-gray-600 mt-1">Manage your assignments and submissions</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Tasks</h1>
+                    <p className="text-secondary mt-1">Manage your assignments and submissions</p>
                 </div>
                 {canCreateTasks && (
                     <Button variant="primary" onClick={() => navigate('/tasks/create')}>
@@ -134,20 +134,20 @@ const Tasks = () => {
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-theme">
                 <nav className="-mb-px flex space-x-8">
                     <button
                         onClick={() => setActiveTab('assigned')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'assigned'
-                            ? 'border-primary-500 text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                             }`}
                     >
                         <ClipboardList className="w-4 h-4" />
                         My Tasks
                         <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'assigned'
-                            ? 'bg-primary-100 text-primary-600'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-secondary text-secondary'
                             }`}>
                             {myTasks.length}
                         </span>
@@ -155,15 +155,15 @@ const Tasks = () => {
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'all'
-                            ? 'border-primary-500 text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                             }`}
                     >
                         <FileText className="w-4 h-4" />
                         All Tasks
                         <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'all'
-                            ? 'bg-primary-100 text-primary-600'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-secondary text-secondary'
                             }`}>
                             {tasks.length}
                         </span>
@@ -178,8 +178,8 @@ const Tasks = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary text-white'
+                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -195,8 +195,8 @@ const Tasks = () => {
             ) : filteredTasks.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <ClipboardList className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-4">
+                        <ClipboardList className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary mb-4">
                             {filter !== 'all'
                                 ? `No ${filter} tasks found.`
                                 : activeTab === 'assigned'
@@ -232,8 +232,8 @@ const Tasks = () => {
                     <Card className="w-full max-w-lg">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
-                                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Create New Task</h2>
+                                <button onClick={() => setShowCreateModal(false)} className="text-secondary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -301,35 +301,35 @@ const Tasks = () => {
                         <CardBody>
                             <div className="flex items-start justify-between mb-4">
                                 <div>
-                                    <h2 className="text-xl font-bold text-gray-900">{selectedTask.heading}</h2>
-                                    <p className="text-sm text-gray-500 mt-1">Due: {formatDate(selectedTask.due_date)}</p>
+                                    <h2 className="text-xl font-bold text-primary">{selectedTask.heading}</h2>
+                                    <p className="text-sm text-secondary mt-1">Due: {formatDate(selectedTask.due_date)}</p>
                                 </div>
-                                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <button onClick={() => setShowDetailModal(false)} className="text-secondary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
-                                    <div className="bg-gray-50 rounded-lg p-4 text-gray-600">
+                                    <h3 className="text-sm font-medium text-secondary mb-2">Description</h3>
+                                    <div className="bg-secondary rounded-lg p-4 text-secondary">
                                         {selectedTask.description || 'No description provided.'}
                                     </div>
                                 </div>
 
                                 {selectedTask.questions && selectedTask.questions.length > 0 && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                                        <h3 className="text-sm font-medium text-secondary mb-2">
                                             Questions ({selectedTask.question_count || selectedTask.questions.length})
                                         </h3>
                                         <div className="space-y-3">
                                             {selectedTask.questions.map((question, index) => (
-                                                <div key={question.id} className="bg-gray-50 rounded-lg p-4">
-                                                    <p className="font-medium text-gray-900">
+                                                <div key={question.id} className="bg-secondary rounded-lg p-4">
+                                                    <p className="font-medium text-primary">
                                                         {index + 1}. {question.heading}
                                                     </p>
                                                     {question.description && (
-                                                        <p className="text-sm text-gray-600 mt-1">{question.description}</p>
+                                                        <p className="text-sm text-secondary mt-1">{question.description}</p>
                                                     )}
                                                 </div>
                                             ))}
@@ -362,9 +362,9 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
     const isOverdue = dueDate < new Date() && status !== 'completed';
 
     const getStatusStyle = () => {
-        if (status === 'completed') return 'bg-green-50 text-green-700';
-        if (isOverdue) return 'bg-red-50 text-red-700';
-        return 'bg-orange-50 text-orange-700';
+        if (status === 'completed') return 'bg-green-500/10 text-green-600';
+        if (isOverdue) return 'bg-red-500/10 text-red-600';
+        return 'bg-orange-500/10 text-orange-600';
     };
 
     const getStatusText = () => {
@@ -378,20 +378,20 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
             <CardBody>
                 <div className="flex items-start justify-between">
                     <div className="flex gap-4 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
                             {statusIcon}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 truncate">{task.heading}</h3>
-                            <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-primary truncate">{task.heading}</h3>
+                            <p className="text-sm text-secondary mt-1 flex items-center gap-2">
                                 <Calendar className="w-4 h-4" />
                                 Due: {formatDate(task.due_date)}
                             </p>
                             {task.description && (
-                                <p className="mt-2 text-sm text-gray-600 line-clamp-2">{task.description}</p>
+                                <p className="mt-2 text-sm text-secondary line-clamp-2">{task.description}</p>
                             )}
                             {task.question_count > 0 && (
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-sm text-tertiary mt-2">
                                     {task.question_count} question{task.question_count > 1 ? 's' : ''}
                                 </p>
                             )}
@@ -404,7 +404,7 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
                         {canDelete && (
                             <button
                                 onClick={onDelete}
-                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                className="p-1 text-tertiary hover:text-red-600 transition-colors"
                                 title="Delete task"
                             >
                                 <Trash2 className="w-4 h-4" />

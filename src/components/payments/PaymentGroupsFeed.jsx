@@ -61,8 +61,8 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
         <Card>
             <CardHeader className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary-600" />
-                    <h3 className="font-semibold text-gray-900">My Groups</h3>
+                    <Users className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold text-primary">My Groups</h3>
                 </div>
                 <button
                     onClick={() => navigate('/payments/create-group')}
@@ -74,16 +74,16 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
             <CardBody className="p-0">
                 {/* Pending Invitations */}
                 {invitations.length > 0 && (
-                    <div className="p-4 bg-amber-50 border-b border-amber-100">
-                        <p className="text-sm font-medium text-amber-800 mb-2">
+                    <div className="p-4 bg-amber-500/10 border-b border-theme">
+                        <p className="text-sm font-medium text-amber-600 mb-2">
                             <UserPlus className="w-4 h-4 inline mr-1" />
                             {invitations.length} Pending Invitation{invitations.length > 1 ? 's' : ''}
                         </p>
                         {invitations.map((invite) => (
-                            <div key={invite.id} className="flex items-center justify-between bg-white p-3 rounded-lg mt-2">
+                            <div key={invite.id} className="flex items-center justify-between bg-elevated p-3 rounded-lg mt-2 border border-theme">
                                 <div>
-                                    <p className="font-medium text-gray-900">{invite.payment_group?.name || 'Group Invitation'}</p>
-                                    <p className="text-xs text-gray-500">From {invite.invited_by?.user?.email || 'unknown'}</p>
+                                    <p className="font-medium text-primary">{invite.payment_group?.name || 'Group Invitation'}</p>
+                                    <p className="text-xs text-secondary">From {invite.invited_by?.user?.email || 'unknown'}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -107,8 +107,8 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
                 {/* Group List */}
                 {groups.length === 0 ? (
                     <div className="p-8 text-center">
-                        <Users className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm">No payment groups yet</p>
+                        <Users className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                        <p className="text-secondary text-sm">No payment groups yet</p>
                         <Button
                             variant="outline"
                             className="mt-3"
@@ -118,32 +118,32 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
                         </Button>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-theme">
                         {groups.map((group) => (
                             <div
                                 key={group.id}
-                                className="p-4 hover:bg-gray-50 cursor-pointer flex items-center justify-between"
+                                className="p-4 hover:bg-secondary/5 cursor-pointer flex items-center justify-between transition-colors"
                                 onClick={() => navigate(`/payments/groups/${group.id}`)}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                        <Users className="w-5 h-5 text-primary-600" />
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <Users className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">{group.name}</p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="font-medium text-primary">{group.name}</p>
+                                        <p className="text-xs text-secondary">
                                             {group.members?.length || 0} members • ${group.current_amount || 0} / ${group.target_amount || 'No target'}
                                         </p>
                                     </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-gray-400" />
+                                <ChevronRight className="w-5 h-5 text-tertiary" />
                             </div>
                         ))}
                     </div>
                 )}
 
                 {groups.length > 0 && (
-                    <div className="p-3 border-t border-gray-100">
+                    <div className="p-3 border-t border-theme">
                         <button
                             onClick={() => navigate('/savings-goals')}
                             className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"

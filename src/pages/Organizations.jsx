@@ -63,8 +63,8 @@ const Organizations = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Organizations</h1>
-                    <p className="text-gray-600 mt-1">Browse companies and organizations</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Organizations</h1>
+                    <p className="text-secondary mt-1">Browse companies and organizations</p>
                 </div>
                 <Button variant="primary" onClick={() => navigate('/organizations/create')}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -74,13 +74,13 @@ const Organizations = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
                 <input
                     type="text"
                     placeholder="Search organizations..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary"
                 />
             </div>
 
@@ -92,7 +92,7 @@ const Organizations = () => {
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
                             ? 'bg-primary-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            : 'bg-primary text-secondary border border-theme hover:bg-secondary'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -209,22 +209,22 @@ const OrganizationCard = ({ organization }) => (
         <CardBody>
             <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                        <Briefcase className="w-6 h-6 text-green-600" />
+                    <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary">
                         {organization.org_type?.replace('_', ' ') || 'Other'}
                     </span>
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-lg text-gray-900">{organization.name}</h3>
+                    <h3 className="font-semibold text-lg text-primary">{organization.name}</h3>
                     {organization.abbreviation && (
-                        <p className="text-sm text-gray-500">({organization.abbreviation})</p>
+                        <p className="text-sm text-secondary">({organization.abbreviation})</p>
                     )}
                 </div>
 
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-secondary">
                     {organization.city && (
                         <div className="flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
@@ -232,7 +232,7 @@ const OrganizationCard = ({ organization }) => (
                         </div>
                     )}
                     {organization.industry && (
-                        <p className="text-xs text-gray-500 line-clamp-2">Industry: {organization.industry}</p>
+                        <p className="text-xs text-secondary line-clamp-2">Industry: {organization.industry}</p>
                     )}
                     {organization.members?.length > 0 && (
                         <div className="flex items-center gap-2">

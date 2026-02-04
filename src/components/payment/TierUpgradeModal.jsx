@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Check, Zap, Crown, Star, Sparkles } from 'lucide-react';
-import paymentService, { TIER_LIMITS } from '../../services/payment.service';
+import paymentsService, { TIER_LIMITS } from '../../services/payments.service';
 import Button from '../common/Button';
 
 const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSuccess }) => {
@@ -94,8 +94,8 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                             <button
                                 onClick={() => setBillingCycle('monthly')}
                                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly'
-                                        ? 'bg-white text-purple-600 shadow-lg'
-                                        : 'text-white hover:bg-white/10'
+                                    ? 'bg-white text-purple-600 shadow-lg'
+                                    : 'text-white hover:bg-white/10'
                                     }`}
                             >
                                 Monthly
@@ -103,8 +103,8 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                             <button
                                 onClick={() => setBillingCycle('annual')}
                                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${billingCycle === 'annual'
-                                        ? 'bg-white text-purple-600 shadow-lg'
-                                        : 'text-white hover:bg-white/10'
+                                    ? 'bg-white text-purple-600 shadow-lg'
+                                    : 'text-white hover:bg-white/10'
                                     }`}
                             >
                                 Annual
@@ -135,12 +135,12 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                                     key={tier.id}
                                     onClick={() => !isCurrentTier && !isDowngrade && setSelectedTier(tier.id)}
                                     className={`relative rounded-2xl border-2 p-6 transition-all cursor-pointer ${isSelected
-                                            ? 'border-purple-500 bg-purple-50 shadow-lg scale-105'
-                                            : isCurrentTier
-                                                ? 'border-green-500 bg-green-50'
-                                                : isDowngrade
-                                                    ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                                                    : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
+                                        ? 'border-purple-500 bg-purple-50 shadow-lg scale-105'
+                                        : isCurrentTier
+                                            ? 'border-green-500 bg-green-50'
+                                            : isDowngrade
+                                                ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                                                : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
                                         }`}
                                 >
                                     {tier.popular && (

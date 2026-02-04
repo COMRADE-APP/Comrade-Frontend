@@ -22,6 +22,24 @@ export default {
                     800: '#5b21b6',
                     900: '#4c1d95',
                 },
+                // Semantic Theme Colors
+                bg: {
+                    primary: 'var(--bg-primary)',
+                    secondary: 'var(--bg-secondary)',
+                    tertiary: 'var(--bg-tertiary)',
+                    elevated: 'var(--bg-elevated)',
+                },
+                text: {
+                    primary: 'var(--text-primary)',
+                    secondary: 'var(--text-secondary)',
+                    tertiary: 'var(--text-tertiary)',
+                    inverse: 'var(--text-inverse)',
+                },
+                border: {
+                    DEFAULT: 'var(--border-color)',
+                    light: 'var(--border-light)',
+                },
+                theme: 'var(--border-color)',
             },
         },
     },

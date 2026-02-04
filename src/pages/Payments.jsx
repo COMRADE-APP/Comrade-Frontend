@@ -72,12 +72,13 @@ const Payments = () => {
     const handleSendMoney = async (e) => {
         e.preventDefault();
         try {
-            await paymentsService.createTransaction(sendData);
+            await paymentsService.transfer(sendData);
             setShowSendModal(false);
             setSendData({ amount: '', recipient: '', payment_option: 'comrade_balance' });
             loadData();
+            alert('Payment sent successfully');
         } catch (error) {
-            alert('Failed to send payment');
+            alert(error.response?.data?.error || 'Failed to send payment');
         }
     };
 
@@ -147,8 +148,8 @@ const Payments = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payments</h1>
-                    <p className="text-gray-600 mt-1">Manage your transactions and wallet</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Payments</h1>
+                    <p className="text-secondary mt-1">Manage your transactions and wallet</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                     <Button variant="outline" onClick={() => setShowDepositModal(true)}>
@@ -158,6 +159,15 @@ const Payments = () => {
                     <Button variant="outline" onClick={() => setShowWithdrawModal(true)}>
                         <ArrowUpCircle className="w-4 h-4 mr-2" />
                         Withdraw
+                    </Button>
+                    {/* Verify Account Button could go here, but omitted for brevity if not explicitly requested in UI spec, 
+                        though I will add it if requested. For now, sticking to required features. 
+                        Actually, 'Integrate the account verification flow' is a requirement. 
+                        I'll add a Verify Account button.
+                    */}
+                    <Button variant="outline" onClick={() => navigate('/payments/verify-account')}>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Verify Account
                     </Button>
                     <Button variant="outline" onClick={() => navigate('/payments/create-group')}>
                         <Users className="w-4 h-4 mr-2" />
@@ -212,12 +222,12 @@ const Payments = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
                                 <TrendingUp className="w-5 h-5 text-green-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Total Received</p>
-                                <p className="text-xl font-bold text-gray-900">$0.00</p>
+                                <p className="text-xs text-secondary">Total Received</p>
+                                <p className="text-xl font-bold text-primary">$0.00</p>
                             </div>
                         </div>
                     </CardBody>
@@ -225,12 +235,12 @@ const Payments = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                                 <DollarSign className="w-5 h-5 text-red-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Total Sent</p>
-                                <p className="text-xl font-bold text-gray-900">$0.00</p>
+                                <p className="text-xs text-secondary">Total Sent</p>
+                                <p className="text-xl font-bold text-primary">$0.00</p>
                             </div>
                         </div>
                     </CardBody>
@@ -238,12 +248,12 @@ const Payments = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                                 <Filter className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Transactions</p>
-                                <p className="text-xl font-bold text-gray-900">{transactions.length}</p>
+                                <p className="text-xs text-secondary">Transactions</p>
+                                <p className="text-xl font-bold text-primary">{transactions.length}</p>
                             </div>
                         </div>
                     </CardBody>
@@ -257,8 +267,8 @@ const Payments = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary text-white'
+                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -268,8 +278,8 @@ const Payments = () => {
 
             {/* Transactions */}
             <Card>
-                <CardHeader className="p-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">Recent Transactions</h3>
+                <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                    <h3 className="font-semibold text-primary">Recent Transactions</h3>
                     <Button variant="outline">
                         <Download className="w-4 h-4 mr-2" />
                         Export
@@ -282,11 +292,11 @@ const Payments = () => {
                         </div>
                     ) : filteredTransactions.length === 0 ? (
                         <div className="text-center py-12">
-                            <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-500">No transactions yet</p>
+                            <DollarSign className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                            <p className="text-secondary">No transactions yet</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-200">
+                        <div className="divide-y divide-theme">
                             {filteredTransactions.map((txn, idx) => (
                                 <TransactionRow key={idx} transaction={txn} />
                             ))}
@@ -301,8 +311,8 @@ const Payments = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Send Money</h2>
-                                <button onClick={() => setShowSendModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Send Money</h2>
+                                <button onClick={() => setShowSendModal(false)} className="text-tertiary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -325,11 +335,11 @@ const Payments = () => {
                                     placeholder="recipient@example.com"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Payment Method</label>
                                     <select
                                         value={sendData.payment_option}
                                         onChange={(e) => setSendData({ ...sendData, payment_option: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                     >
                                         <option value="comrade_balance">Comrade Balance</option>
                                         <option value="mpesa">M-Pesa</option>
@@ -357,8 +367,8 @@ const Payments = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Deposit Funds</h2>
-                                <button onClick={resetDepositModal} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Deposit Funds</h2>
+                                <button onClick={resetDepositModal} className="text-tertiary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -376,11 +386,11 @@ const Payments = () => {
                                         placeholder="Enter amount to deposit"
                                     />
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Payment Method</label>
                                         <select
                                             value={depositData.payment_method}
                                             onChange={(e) => setDepositData({ ...depositData, payment_method: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         >
                                             <option value="bank_transfer">Bank Transfer</option>
                                             <option value="mpesa">M-Pesa</option>
@@ -399,12 +409,12 @@ const Payments = () => {
 
                             {confirmationStep === 'confirm' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                                         <ArrowDownCircle className="w-8 h-8 text-primary-600" />
                                     </div>
-                                    <h3 className="text-lg font-semibold">Confirm Deposit</h3>
-                                    <p className="text-gray-600">
-                                        You are about to deposit <span className="font-bold text-gray-900">${depositData.amount}</span> to your Comrade Balance.
+                                    <h3 className="text-lg font-semibold text-primary">Confirm Deposit</h3>
+                                    <p className="text-secondary">
+                                        You are about to deposit <span className="font-bold text-primary">${depositData.amount}</span> to your Comrade Balance.
                                     </p>
                                     <div className="flex gap-2 justify-center pt-4">
                                         <Button variant="outline" onClick={() => setConfirmationStep('form')}>Back</Button>
@@ -417,7 +427,7 @@ const Payments = () => {
 
                             {confirmationStep === 'success' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
                                         <CheckCircle className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-green-600">Deposit Successful!</h3>
@@ -428,7 +438,7 @@ const Payments = () => {
 
                             {confirmationStep === 'error' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
                                         <XCircle className="w-8 h-8 text-red-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-red-600">Deposit Failed</h3>
@@ -447,15 +457,15 @@ const Payments = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Withdraw Funds</h2>
-                                <button onClick={resetWithdrawModal} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Withdraw Funds</h2>
+                                <button onClick={resetWithdrawModal} className="text-tertiary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <div className="bg-gray-100 rounded-lg p-3 mb-4">
-                                <p className="text-sm text-gray-600">Available Balance</p>
-                                <p className="text-xl font-bold text-gray-900">${paymentProfile?.comrade_balance || '0.00'}</p>
+                            <div className="bg-secondary/5 rounded-lg p-3 mb-4">
+                                <p className="text-sm text-secondary">Available Balance</p>
+                                <p className="text-xl font-bold text-primary">${paymentProfile?.comrade_balance || '0.00'}</p>
                             </div>
 
                             {confirmationStep === 'form' && (
@@ -479,11 +489,11 @@ const Payments = () => {
                                         placeholder="Enter destination account"
                                     />
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Withdrawal Method</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Withdrawal Method</label>
                                         <select
                                             value={withdrawData.payment_method}
                                             onChange={(e) => setWithdrawData({ ...withdrawData, payment_method: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         >
                                             <option value="bank_transfer">Bank Transfer</option>
                                             <option value="mpesa">M-Pesa</option>
@@ -501,12 +511,12 @@ const Payments = () => {
 
                             {confirmationStep === 'confirm' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto">
                                         <ArrowUpCircle className="w-8 h-8 text-orange-600" />
                                     </div>
-                                    <h3 className="text-lg font-semibold">Confirm Withdrawal</h3>
-                                    <p className="text-gray-600">
-                                        You are about to withdraw <span className="font-bold text-gray-900">${withdrawData.amount}</span> to {withdrawData.account_number || 'your primary account'}.
+                                    <h3 className="text-lg font-semibold text-primary">Confirm Withdrawal</h3>
+                                    <p className="text-secondary">
+                                        You are about to withdraw <span className="font-bold text-primary">${withdrawData.amount}</span> to {withdrawData.account_number || 'your primary account'}.
                                     </p>
                                     <div className="flex gap-2 justify-center pt-4">
                                         <Button variant="outline" onClick={() => setConfirmationStep('form')}>Back</Button>
@@ -519,7 +529,7 @@ const Payments = () => {
 
                             {confirmationStep === 'success' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
                                         <CheckCircle className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-green-600">Withdrawal Successful!</h3>
@@ -530,7 +540,7 @@ const Payments = () => {
 
                             {confirmationStep === 'error' && (
                                 <div className="space-y-4 text-center">
-                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
                                         <XCircle className="w-8 h-8 text-red-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-red-600">Withdrawal Failed</h3>
@@ -547,11 +557,11 @@ const Payments = () => {
 };
 
 const TransactionRow = ({ transaction }) => (
-    <div className="p-4 flex items-center justify-between hover:bg-gray-50">
+    <div className="p-4 flex items-center justify-between hover:bg-secondary/5 border-b border-theme last:border-0 transition-colors">
         <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.transaction_type === 'deposit' ? 'bg-green-100' :
-                transaction.transaction_type === 'withdrawal' ? 'bg-red-100' :
-                    'bg-blue-100'
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.transaction_type === 'deposit' ? 'bg-green-500/10' :
+                transaction.transaction_type === 'withdrawal' ? 'bg-red-500/10' :
+                    'bg-blue-500/10'
                 }`}>
                 <DollarSign className={`w-5 h-5 ${transaction.transaction_type === 'deposit' ? 'text-green-600' :
                     transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
@@ -559,18 +569,18 @@ const TransactionRow = ({ transaction }) => (
                     }`} />
             </div>
             <div>
-                <h4 className="font-medium text-gray-900 capitalize">{transaction.transaction_type || 'Transaction'}</h4>
-                <p className="text-sm text-gray-500">{formatDate(transaction.created_at)}</p>
+                <h4 className="font-medium text-primary capitalize">{transaction.transaction_type || 'Transaction'}</h4>
+                <p className="text-sm text-secondary">{formatDate(transaction.created_at)}</p>
             </div>
         </div>
         <div className="text-right">
             <p className={`font-semibold ${transaction.transaction_type === 'deposit' ? 'text-green-600' :
                 transaction.transaction_type === 'withdrawal' ? 'text-red-600' :
-                    'text-gray-900'
+                    'text-primary'
                 }`}>
                 {transaction.transaction_type === 'withdrawal' ? '-' : '+'}${transaction.amount || '0.00'}
             </p>
-            <p className="text-xs text-gray-500 capitalize">{transaction.status || 'pending'}</p>
+            <p className="text-xs text-secondary capitalize">{transaction.status || 'pending'}</p>
         </div>
     </div>
 );

@@ -180,14 +180,14 @@ const OpinionDetail = () => {
             <div className="max-w-2xl mx-auto p-4">
                 <button
                     onClick={() => navigate('/opinions')}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+                    className="flex items-center gap-2 text-secondary hover:text-primary mb-4 transition-colors"
                 >
                     <ArrowLeft size={20} />
                     Back to Opinions
                 </button>
-                <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Opinion not found</h3>
-                    <p className="text-gray-500">{error || "The opinion you're looking for doesn't exist or has been removed."}</p>
+                <div className="text-center py-12 bg-elevated rounded-xl border border-theme">
+                    <h3 className="text-xl font-bold text-primary mb-2">Opinion not found</h3>
+                    <p className="text-secondary">{error || "The opinion you're looking for doesn't exist or has been removed."}</p>
                 </div>
             </div>
         );
@@ -196,14 +196,14 @@ const OpinionDetail = () => {
     return (
         <div className="max-w-2xl mx-auto pb-20">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+            <div className="sticky top-0 z-10 bg-primary/80 backdrop-blur-md border-b border-theme px-4 py-3 flex items-center gap-3">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 hover:bg-gray-100 rounded-full text-gray-600"
+                    className="p-2 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h1 className="text-lg font-bold text-gray-900">Opinion</h1>
+                <h1 className="text-lg font-bold text-primary">Opinion</h1>
             </div>
 
             <div className="p-4 space-y-4">
@@ -216,15 +216,15 @@ const OpinionDetail = () => {
                 />
 
                 {/* Comments Section */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="p-4 border-b border-gray-100">
-                        <h3 className="font-bold text-gray-900">Comments ({comments.length})</h3>
+                <div className="bg-elevated rounded-xl border border-theme overflow-hidden">
+                    <div className="p-4 border-b border-theme">
+                        <h3 className="font-bold text-primary">Comments ({comments.length})</h3>
                     </div>
 
                     <div className="p-4 space-y-4">
                         {comments.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">
-                                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                            <div className="p-8 text-center text-secondary">
+                                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-tertiary" />
                                 <p>No comments yet. Be the first to share your thoughts!</p>
                             </div>
                         ) : (
@@ -246,7 +246,7 @@ const OpinionDetail = () => {
 
             {/* Comment Input */}
             {isAuthenticated && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-20">
+                <div className="fixed bottom-0 left-0 right-0 bg-primary border-t border-theme p-4 z-20">
                     <div className="max-w-2xl mx-auto">
                         {/* Media preview */}
                         {commentMedia && (
@@ -254,13 +254,13 @@ const OpinionDetail = () => {
                                 {commentMedia.type?.startsWith('image/') ? (
                                     <img src={URL.createObjectURL(commentMedia)} alt="" className="h-16 rounded-lg" />
                                 ) : (
-                                    <div className="px-3 py-1.5 bg-gray-100 rounded-lg text-sm text-gray-700">
+                                    <div className="px-3 py-1.5 bg-secondary rounded-lg text-sm text-primary">
                                         📎 {commentMedia.name}
                                     </div>
                                 )}
                                 <button
                                     onClick={() => setCommentMedia(null)}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full text-xs"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-black/60 text-white rounded-full text-xs hover:bg-black/80"
                                 >
                                     ×
                                 </button>
@@ -285,19 +285,19 @@ const OpinionDetail = () => {
                                 />
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                                    className="p-2 text-secondary hover:text-primary hover:bg-secondary rounded-full transition-colors"
                                 >
                                     <Paperclip size={18} />
                                 </button>
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                                        className="p-2 text-secondary hover:text-primary hover:bg-secondary rounded-full transition-colors"
                                     >
                                         <Smile size={18} />
                                     </button>
                                     {showEmojiPicker && (
-                                        <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-8 gap-1 z-30">
+                                        <div className="absolute bottom-full mb-2 left-0 bg-elevated border border-theme rounded-lg shadow-lg p-2 grid grid-cols-8 gap-1 z-30">
                                             {COMMON_EMOJIS.map(emoji => (
                                                 <button
                                                     key={emoji}
@@ -305,7 +305,7 @@ const OpinionDetail = () => {
                                                         setNewComment(prev => prev + emoji);
                                                         setShowEmojiPicker(false);
                                                     }}
-                                                    className="p-1 hover:bg-gray-100 rounded text-lg"
+                                                    className="p-1 hover:bg-secondary rounded text-lg"
                                                 >
                                                     {emoji}
                                                 </button>
@@ -319,7 +319,7 @@ const OpinionDetail = () => {
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                     placeholder="Write a comment..."
-                                    className="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    className="flex-1 px-4 py-2 bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary"
                                     onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
                                 />
                                 <button

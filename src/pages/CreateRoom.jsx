@@ -95,22 +95,22 @@ const CreateRoom = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="min-h-screen bg-background py-8 px-4">
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center gap-4 mb-6">
-                    <button onClick={() => navigate('/rooms')} className="p-2 hover:bg-gray-200 rounded-full">
+                    <button onClick={() => navigate('/rooms')} className="p-2 hover:bg-secondary/10 rounded-full text-primary">
                         <ArrowLeft size={24} />
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Create Room</h1>
+                    <h1 className="text-2xl font-bold text-primary">Create Room</h1>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-elevated rounded-xl shadow-sm p-6 border border-theme">
                     {/* Avatar and Cover Image */}
                     <div className="mb-6 flex gap-6">
                         {/* Room Avatar */}
                         <div className="flex-shrink-0">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Room Avatar</label>
-                            <div className="relative w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-500 transition-colors overflow-hidden">
+                            <label className="block text-sm font-medium text-secondary mb-2">Room Avatar</label>
+                            <div className="relative w-24 h-24 rounded-lg border-2 border-dashed border-theme hover:border-primary transition-colors overflow-hidden">
                                 {avatar ? (
                                     <>
                                         <img src={URL.createObjectURL(avatar)} alt="" className="w-full h-full object-cover" />
@@ -133,8 +133,8 @@ const CreateRoom = () => {
 
                         {/* Cover Image */}
                         <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-primary-500 transition-colors h-24 flex items-center justify-center">
+                            <label className="block text-sm font-medium text-secondary mb-2">Cover Image</label>
+                            <div className="border-2 border-dashed border-theme rounded-xl p-4 text-center hover:border-primary transition-colors h-24 flex items-center justify-center">
                                 {coverImage ? (
                                     <div className="relative w-full h-full">
                                         <img src={URL.createObjectURL(coverImage)} alt="" className="h-full mx-auto rounded-lg object-cover" />
@@ -143,7 +143,7 @@ const CreateRoom = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <label className="cursor-pointer text-gray-400 hover:text-primary-500 flex items-center gap-2">
+                                    <label className="cursor-pointer text-tertiary hover:text-primary flex items-center gap-2">
                                         <ImageIcon className="w-6 h-6" />
                                         <span>Upload cover image</span>
                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => setCoverImage(e.target.files?.[0])} />
@@ -154,58 +154,58 @@ const CreateRoom = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Room Name *</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Room Name *</label>
                         <input
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
                             placeholder="Enter room name"
                             required
                         />
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Description</label>
                         <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
                             placeholder="Describe the room..."
                         />
                     </div>
 
                     {/* Room Type */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Room Type</label>
                         <div className="flex gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 flex-1">
+                            <label className="flex items-center gap-2 cursor-pointer p-3 border border-theme rounded-lg hover:bg-secondary/5 flex-1 transition-colors">
                                 <input type="radio" name="room_type" value="public" checked={formData.room_type === 'public'} onChange={(e) => setFormData({ ...formData, room_type: e.target.value })} />
                                 <Globe size={20} className="text-green-500" />
                                 <div>
-                                    <p className="font-medium">Public</p>
-                                    <p className="text-xs text-gray-500">Anyone can join</p>
+                                    <p className="font-medium text-primary">Public</p>
+                                    <p className="text-xs text-secondary">Anyone can join</p>
                                 </div>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 flex-1">
+                            <label className="flex items-center gap-2 cursor-pointer p-3 border border-theme rounded-lg hover:bg-secondary/5 flex-1 transition-colors">
                                 <input type="radio" name="room_type" value="private" checked={formData.room_type === 'private'} onChange={(e) => setFormData({ ...formData, room_type: e.target.value })} />
                                 <Lock size={20} className="text-orange-500" />
                                 <div>
-                                    <p className="font-medium">Private</p>
-                                    <p className="text-xs text-gray-500">Invite only</p>
+                                    <p className="font-medium text-primary">Private</p>
+                                    <p className="text-xs text-secondary">Invite only</p>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Tags (comma separated)</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Tags (comma separated)</label>
                         <input
                             type="text"
                             value={formData.tags}
                             onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             placeholder="e.g., tech, study, networking"
                         />
                     </div>
@@ -214,7 +214,7 @@ const CreateRoom = () => {
                     <div className="mb-4">
                         <button
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+                            className="flex items-center gap-2 text-primary hover:text-primary-light font-medium"
                         >
                             <Shield size={18} />
                             Advanced Settings
@@ -224,27 +224,27 @@ const CreateRoom = () => {
 
                     {/* Advanced Settings Panel */}
                     {showAdvanced && (
-                        <div className="mb-6 p-4 bg-gray-50 rounded-xl space-y-4">
-                            <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                        <div className="mb-6 p-4 bg-secondary/5 rounded-xl space-y-4 border border-theme">
+                            <h3 className="font-medium text-primary flex items-center gap-2">
                                 <MessageSquare size={18} /> Chat Settings
                             </h3>
 
                             <label className="flex items-center justify-between py-2">
-                                <span className="text-sm text-gray-700">Enable Chat</span>
+                                <span className="text-sm text-secondary">Enable Chat</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.chat_enabled}
                                     onChange={(e) => setSettings({ ...settings, chat_enabled: e.target.checked })}
-                                    className="w-4 h-4 text-primary-600 rounded"
+                                    className="w-4 h-4 text-primary rounded"
                                 />
                             </label>
 
                             <div className="py-2">
-                                <label className="block text-sm text-gray-700 mb-1">Who can send messages</label>
+                                <label className="block text-sm text-secondary mb-1">Who can send messages</label>
                                 <select
                                     value={settings.chat_permission}
                                     onChange={(e) => setSettings({ ...settings, chat_permission: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm"
                                 >
                                     {permissionOptions.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -253,11 +253,11 @@ const CreateRoom = () => {
                             </div>
 
                             <div className="py-2">
-                                <label className="block text-sm text-gray-700 mb-1">Who can send media</label>
+                                <label className="block text-sm text-secondary mb-1">Who can send media</label>
                                 <select
                                     value={settings.who_can_send_media}
                                     onChange={(e) => setSettings({ ...settings, who_can_send_media: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm"
                                 >
                                     {permissionOptions.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -265,18 +265,18 @@ const CreateRoom = () => {
                                 </select>
                             </div>
 
-                            <hr className="border-gray-200" />
+                            <hr className="border-theme" />
 
-                            <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                            <h3 className="font-medium text-primary flex items-center gap-2">
                                 <UserPlus size={18} /> Member Permissions
                             </h3>
 
                             <div className="py-2">
-                                <label className="block text-sm text-gray-700 mb-1">Who can add members</label>
+                                <label className="block text-sm text-secondary mb-1">Who can add members</label>
                                 <select
                                     value={settings.who_can_add_members}
                                     onChange={(e) => setSettings({ ...settings, who_can_add_members: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm"
                                 >
                                     {permissionOptions.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -285,11 +285,11 @@ const CreateRoom = () => {
                             </div>
 
                             <div className="py-2">
-                                <label className="block text-sm text-gray-700 mb-1">Who can edit room info</label>
+                                <label className="block text-sm text-secondary mb-1">Who can edit room info</label>
                                 <select
                                     value={settings.who_can_edit_info}
                                     onChange={(e) => setSettings({ ...settings, who_can_edit_info: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm"
                                 >
                                     {permissionOptions.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -298,12 +298,12 @@ const CreateRoom = () => {
                             </div>
 
                             <label className="flex items-center justify-between py-2">
-                                <span className="text-sm text-gray-700">Require approval to join</span>
+                                <span className="text-sm text-secondary">Require approval to join</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.require_approval_to_join}
                                     onChange={(e) => setSettings({ ...settings, require_approval_to_join: e.target.checked })}
-                                    className="w-4 h-4 text-primary-600 rounded"
+                                    className="w-4 h-4 text-primary rounded"
                                 />
                             </label>
 
@@ -364,12 +364,12 @@ const CreateRoom = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-3 justify-end border-t pt-6">
-                        <button onClick={() => navigate('/rooms')} className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <div className="flex flex-wrap gap-3 justify-end border-t border-theme pt-6">
+                        <button onClick={() => navigate('/rooms')} className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-secondary/5">Cancel</button>
                         <button onClick={() => handleSubmit('draft')} disabled={loading} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2">
                             <Save size={18} /> Save Draft
                         </button>
-                        <button onClick={() => handleSubmit('publish')} disabled={loading || !formData.name} className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
+                        <button onClick={() => handleSubmit('publish')} disabled={loading || !formData.name} className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center gap-2">
                             <Send size={18} /> Create Room
                         </button>
                     </div>
@@ -378,19 +378,19 @@ const CreateRoom = () => {
 
             {/* Confirmation Modal */}
             {showConfirmation && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-lg font-bold mb-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-elevated rounded-xl p-6 max-w-md w-full border border-theme">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                             {confirmAction === 'draft' ? '💾 Save as Draft?' : '🏠 Create Room?'}
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-secondary mb-6">
                             {confirmAction === 'draft'
                                 ? 'Your room will be saved as dormant. You can activate it later.'
                                 : 'Your room will be created and you will become the admin. Members can join based on your settings.'}
                         </p>
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setShowConfirmation(false)} className="px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
-                            <button onClick={confirmSubmit} disabled={loading} className="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                            <button onClick={() => setShowConfirmation(false)} className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-secondary/5">Cancel</button>
+                            <button onClick={confirmSubmit} disabled={loading} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
                                 {loading ? 'Processing...' : 'Confirm'}
                             </button>
                         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Zap, Sparkles, Star, ArrowRight, Check } from 'lucide-react';
-import paymentService, { TIER_LIMITS } from '../../services/payment.service';
+import paymentsService, { TIER_LIMITS } from "../../services/payments.service";
 import TierUpgradeModal from '../../components/payment/TierUpgradeModal';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -17,7 +17,7 @@ const TierPlans = () => {
 
     const loadProfile = async () => {
         try {
-            const response = await paymentService.getMyProfile();
+            const response = await paymentsService.getMyProfile();
             setProfile(response.data);
             setCurrentTier(response.data?.tier || 'free');
         } catch (error) {

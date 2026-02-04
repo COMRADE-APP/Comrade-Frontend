@@ -84,11 +84,11 @@ const EventDetail = () => {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/events')}
-                    className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                    className="p-2 hover:bg-secondary rounded-full transition-colors"
                 >
-                    <ArrowLeft size={24} />
+                    <ArrowLeft size={24} className="text-secondary" />
                 </button>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex-1">{event.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary flex-1">{event.name}</h1>
                 <div className="flex gap-2">
                     <Button variant="ghost" size="sm">
                         <Share2 size={18} />
@@ -101,17 +101,17 @@ const EventDetail = () => {
 
             {/* Event Hero */}
             <Card className="overflow-hidden">
-                <div className="aspect-video md:aspect-[3/1] bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center relative">
-                    <Calendar className="w-20 h-20 text-white/50" />
+                <div className="aspect-video md:aspect-[3/1] bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center relative">
+                    <Calendar className="w-20 h-20 text-primary" />
                     <div className="absolute top-4 right-4 flex gap-2">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${event.status === 'active' ? 'bg-green-100 text-green-800' :
-                            event.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                                event.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                    'bg-blue-100 text-blue-800'
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${event.status === 'active' ? 'bg-green-500/10 text-green-600' :
+                            event.status === 'draft' ? 'bg-secondary text-secondary' :
+                                event.status === 'cancelled' ? 'bg-red-500/10 text-red-600' :
+                                    'bg-blue-500/10 text-blue-600'
                             }`}>
                             {event.status}
                         </span>
-                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-700">
+                        <span className="px-3 py-1 bg-elevated/90 backdrop-blur-sm rounded-full text-sm font-medium text-secondary">
                             {event.complexity_level || 'small'}
                         </span>
                     </div>
@@ -121,43 +121,43 @@ const EventDetail = () => {
                     {/* Quick Info */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary-100 rounded-lg">
-                                <Calendar className="w-5 h-5 text-primary-600" />
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Calendar className="w-5 h-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Date</p>
-                                <p className="font-semibold">{formatDate(event.event_date)}</p>
+                                <p className="text-sm text-secondary">Date</p>
+                                <p className="font-semibold text-primary">{formatDate(event.event_date)}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary-100 rounded-lg">
-                                <Clock className="w-5 h-5 text-primary-600" />
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Clock className="w-5 h-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Time</p>
-                                <p className="font-semibold">{formatTime(event.start_time)} - {formatTime(event.end_time)}</p>
+                                <p className="text-sm text-secondary">Time</p>
+                                <p className="font-semibold text-primary">{formatTime(event.start_time)} - {formatTime(event.end_time)}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary-100 rounded-lg">
+                            <div className="p-2 bg-primary/10 rounded-lg">
                                 {event.event_location === 'online' ? (
-                                    <Globe className="w-5 h-5 text-primary-600" />
+                                    <Globe className="w-5 h-5 text-primary" />
                                 ) : (
-                                    <MapPin className="w-5 h-5 text-primary-600" />
+                                    <MapPin className="w-5 h-5 text-primary" />
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Location</p>
-                                <p className="font-semibold truncate max-w-[150px]">{event.location || 'Virtual'}</p>
+                                <p className="text-sm text-secondary">Location</p>
+                                <p className="font-semibold text-primary truncate max-w-[150px]">{event.location || 'Virtual'}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary-100 rounded-lg">
-                                <Users className="w-5 h-5 text-primary-600" />
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Users className="w-5 h-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Capacity</p>
-                                <p className="font-semibold">{event.attendees?.length || 0} / {event.capacity}</p>
+                                <p className="text-sm text-secondary">Capacity</p>
+                                <p className="font-semibold text-primary">{event.attendees?.length || 0} / {event.capacity}</p>
                             </div>
                         </div>
                     </div>
@@ -168,15 +168,15 @@ const EventDetail = () => {
             </Card>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 overflow-x-auto">
+            <div className="border-b border-theme overflow-x-auto">
                 <nav className="flex gap-1">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
-                                ? 'border-primary-600 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -194,8 +194,8 @@ const EventDetail = () => {
                             {/* Description */}
                             <Card>
                                 <CardBody>
-                                    <h3 className="font-semibold text-lg mb-3">About this Event</h3>
-                                    <p className="text-gray-700 whitespace-pre-wrap">{event.description}</p>
+                                    <h3 className="font-semibold text-lg mb-3 text-primary">About this Event</h3>
+                                    <p className="text-secondary whitespace-pre-wrap">{event.description}</p>
                                 </CardBody>
                             </Card>
 
@@ -203,14 +203,14 @@ const EventDetail = () => {
                             {event.event_location !== 'online' && event.latitude && event.longitude && (
                                 <Card>
                                     <CardBody>
-                                        <h3 className="font-semibold text-lg mb-3">Location</h3>
-                                        <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                                            <p className="text-gray-500">Map integration coming soon</p>
-                                            <p className="text-sm text-gray-400">
+                                        <h3 className="font-semibold text-lg mb-3 text-primary">Location</h3>
+                                        <div className="bg-secondary rounded-lg h-64 flex items-center justify-center">
+                                            <p className="text-secondary">Map integration coming soon</p>
+                                            <p className="text-sm text-tertiary">
                                                 Coordinates: {event.latitude}, {event.longitude}
                                             </p>
                                         </div>
-                                        <p className="mt-2 text-gray-700">
+                                        <p className="mt-2 text-secondary">
                                             <MapPin size={16} className="inline mr-1" />
                                             {event.location}
                                         </p>
@@ -221,7 +221,7 @@ const EventDetail = () => {
                             {/* Comments */}
                             <Card>
                                 <CardBody>
-                                    <h3 className="font-semibold text-lg mb-4">Discussion</h3>
+                                    <h3 className="font-semibold text-lg mb-4 text-primary">Discussion</h3>
                                     <EventComments eventId={event.id} />
                                 </CardBody>
                             </Card>
@@ -232,14 +232,14 @@ const EventDetail = () => {
                             {/* Organizer */}
                             <Card>
                                 <CardBody>
-                                    <h3 className="font-semibold mb-3">Organized by</h3>
+                                    <h3 className="font-semibold mb-3 text-primary">Organized by</h3>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                                            <Users className="w-6 h-6 text-primary-600" />
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <Users className="w-6 h-6 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">{event.created_by_name || 'Event Organizer'}</p>
-                                            <p className="text-sm text-gray-500">Organizer</p>
+                                            <p className="font-medium text-primary">{event.created_by_name || 'Event Organizer'}</p>
+                                            <p className="text-sm text-secondary">Organizer</p>
                                         </div>
                                     </div>
                                 </CardBody>
@@ -248,19 +248,19 @@ const EventDetail = () => {
                             {/* Stats */}
                             <Card>
                                 <CardBody>
-                                    <h3 className="font-semibold mb-3">Event Stats</h3>
+                                    <h3 className="font-semibold mb-3 text-primary">Event Stats</h3>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Interested</span>
-                                            <span className="font-medium">{event.interested_count || 0}</span>
+                                            <span className="text-secondary">Interested</span>
+                                            <span className="font-medium text-primary">{event.interested_count || 0}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Reactions</span>
-                                            <span className="font-medium">{event.reactions_count || 0}</span>
+                                            <span className="text-secondary">Reactions</span>
+                                            <span className="font-medium text-primary">{event.reactions_count || 0}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Comments</span>
-                                            <span className="font-medium">{event.comments_count || 0}</span>
+                                            <span className="text-secondary">Comments</span>
+                                            <span className="font-medium text-primary">{event.comments_count || 0}</span>
                                         </div>
                                     </div>
                                 </CardBody>
@@ -269,7 +269,7 @@ const EventDetail = () => {
                             {/* Reminders */}
                             <Card>
                                 <CardBody>
-                                    <h3 className="font-semibold mb-3">Set Reminder</h3>
+                                    <h3 className="font-semibold mb-3 text-primary">Set Reminder</h3>
                                     <EventReminders event={event} compact />
                                 </CardBody>
                             </Card>
@@ -288,24 +288,24 @@ const EventDetail = () => {
                 {activeTab === 'attendees' && (
                     <Card>
                         <CardBody>
-                            <h3 className="font-semibold text-lg mb-4">Attendees ({event.attendees?.length || 0})</h3>
+                            <h3 className="font-semibold text-lg mb-4 text-primary">Attendees ({event.attendees?.length || 0})</h3>
                             {event.attendees_viewable ? (
                                 event.attendees?.length > 0 ? (
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {event.attendees.map((attendee, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                                    <Users className="w-5 h-5 text-primary-600" />
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <Users className="w-5 h-5 text-primary" />
                                                 </div>
-                                                <span className="text-sm font-medium">Attendee {idx + 1}</span>
+                                                <span className="text-sm font-medium text-primary">Attendee {idx + 1}</span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-gray-500 text-center py-8">No attendees yet. Be the first to RSVP!</p>
+                                    <p className="text-secondary text-center py-8">No attendees yet. Be the first to RSVP!</p>
                                 )
                             ) : (
-                                <p className="text-gray-500 text-center py-8">Attendee list is private</p>
+                                <p className="text-secondary text-center py-8">Attendee list is private</p>
                             )}
                         </CardBody>
                     </Card>
@@ -314,7 +314,7 @@ const EventDetail = () => {
                 {activeTab === 'room' && (
                     <Card>
                         <CardBody>
-                            <h3 className="font-semibold text-lg mb-4">Event Discussion Room</h3>
+                            <h3 className="font-semibold text-lg mb-4 text-primary">Event Discussion Room</h3>
                             {event.room ? (
                                 <div className="text-center py-8">
                                     <Button onClick={() => navigate(`/rooms/${event.room.room}`)}>
@@ -323,7 +323,7 @@ const EventDetail = () => {
                                     </Button>
                                 </div>
                             ) : (
-                                <p className="text-gray-500 text-center py-8">
+                                <p className="text-secondary text-center py-8">
                                     Discussion room will be available when the event starts.
                                 </p>
                             )}

@@ -130,7 +130,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
     const VisibilityIcon = visibilityOptions.find(v => v.value === visibility)?.icon || Globe;
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-elevated rounded-xl border border-theme p-4">
             {/* User avatar and input */}
             <div className="flex gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
@@ -146,7 +146,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="What's on your mind?"
-                        className="w-full resize-none border-0 focus:ring-0 text-gray-800 placeholder-gray-400 text-lg min-h-[80px]"
+                        className="w-full resize-none border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent"
                         rows={3}
                     />
 
@@ -156,7 +156,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                             {taggedRooms.map(room => (
                                 <span
                                     key={room.id}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-sm"
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full text-sm"
                                 >
                                     <MessageSquare size={14} />
                                     {room.name}
@@ -175,13 +175,13 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     {mediaFiles.length > 0 && (
                         <div className={`grid gap-2 mt-2 ${mediaFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                             {mediaFiles.map((media, index) => (
-                                <div key={index} className="relative rounded-lg overflow-hidden bg-gray-100">
+                                <div key={index} className="relative rounded-lg overflow-hidden bg-secondary">
                                     {media.type === 'video' ? (
                                         <video src={media.preview} className="w-full h-32 object-cover" />
                                     ) : media.type === 'file' ? (
-                                        <div className="flex items-center gap-2 p-3 bg-gray-50">
-                                            <FileText size={20} className="text-gray-500" />
-                                            <span className="text-sm text-gray-700 truncate">{media.name}</span>
+                                        <div className="flex items-center gap-2 p-3 bg-secondary">
+                                            <FileText size={20} className="text-secondary" />
+                                            <span className="text-sm text-primary truncate">{media.name}</span>
                                         </div>
                                     ) : (
                                         <img src={media.preview} alt="" className="w-full h-32 object-cover" />
@@ -200,7 +200,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
             </div>
 
             {/* Actions row */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-theme">
                 <div className="flex items-center gap-2">
                     {/* Media buttons */}
                     <input
@@ -214,7 +214,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={mediaFiles.length >= 4}
-                        className="p-2 rounded-full hover:bg-purple-50 text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 rounded-full hover:bg-secondary text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Add media"
                     >
                         <Image size={20} />
@@ -224,7 +224,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     <div className="relative">
                         <button
                             onClick={() => setShowRoomPicker(!showRoomPicker)}
-                            className={`p-2 rounded-full hover:bg-primary-50 ${taggedRooms.length > 0 ? 'text-primary-600' : 'text-gray-500'}`}
+                            className={`p-2 rounded-full hover:bg-secondary ${taggedRooms.length > 0 ? 'text-primary-600' : 'text-secondary'}`}
                             title="Tag room"
                         >
                             <Hash size={20} />
@@ -238,24 +238,24 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                         {showRoomPicker && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowRoomPicker(false)} />
-                                <div className="absolute left-0 bottom-10 z-20 bg-white rounded-lg shadow-lg border border-gray-200 w-64 max-h-80 overflow-hidden">
-                                    <div className="p-2 border-b border-gray-100">
+                                <div className="absolute left-0 bottom-10 z-20 bg-elevated rounded-lg shadow-lg border border-theme w-64 max-h-80 overflow-hidden">
+                                    <div className="p-2 border-b border-theme">
                                         <div className="relative">
-                                            <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <Search size={16} className="absolute left-2 top-1/2 -translate-y-1/2 text-tertiary" />
                                             <input
                                                 type="text"
                                                 value={roomSearchQuery}
                                                 onChange={(e) => setRoomSearchQuery(e.target.value)}
                                                 placeholder="Search rooms..."
-                                                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                                className="w-full pl-8 pr-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-primary text-primary"
                                             />
                                         </div>
                                     </div>
                                     <div className="overflow-y-auto max-h-60">
                                         {loadingRooms ? (
-                                            <div className="p-4 text-center text-gray-500 text-sm">Loading rooms...</div>
+                                            <div className="p-4 text-center text-secondary text-sm">Loading rooms...</div>
                                         ) : filteredRooms.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500 text-sm">
+                                            <div className="p-4 text-center text-secondary text-sm">
                                                 {roomSearchQuery ? 'No matching rooms' : 'No rooms available'}
                                             </div>
                                         ) : (
@@ -263,15 +263,15 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                                                 <button
                                                     key={room.id}
                                                     onClick={() => toggleRoomTag(room)}
-                                                    className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2 ${taggedRooms.find(r => r.id === room.id) ? 'bg-primary-50' : ''
+                                                    className={`w-full px-3 py-2 text-left hover:bg-secondary flex items-center gap-2 ${taggedRooms.find(r => r.id === room.id) ? 'bg-primary-50 dark:bg-primary-900/10' : ''
                                                         }`}
                                                 >
-                                                    <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                                                        <MessageSquare size={16} className="text-primary-600" />
+                                                    <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                                                        <MessageSquare size={16} className="text-primary-600 dark:text-primary-400" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-gray-900 truncate">{room.name}</p>
-                                                        <p className="text-xs text-gray-500">{room.member_count || 0} members</p>
+                                                        <p className="text-sm font-medium text-primary truncate">{room.name}</p>
+                                                        <p className="text-xs text-secondary">{room.member_count || 0} members</p>
                                                     </div>
                                                     {taggedRooms.find(r => r.id === room.id) && (
                                                         <span className="text-primary-600">✓</span>
@@ -289,7 +289,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     <div className="relative">
                         <button
                             onClick={() => setShowVisibility(!showVisibility)}
-                            className="flex items-center gap-1 px-2 py-1 rounded-full text-sm text-gray-600 hover:bg-gray-100"
+                            className="flex items-center gap-1 px-2 py-1 rounded-full text-sm text-secondary hover:bg-secondary"
                         >
                             <VisibilityIcon size={16} />
                             <span className="hidden sm:inline">{visibilityOptions.find(v => v.value === visibility)?.label}</span>
@@ -298,12 +298,12 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                         {showVisibility && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowVisibility(false)} />
-                                <div className="absolute left-0 bottom-10 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-48">
+                                <div className="absolute left-0 bottom-10 z-20 bg-elevated rounded-lg shadow-lg border border-theme py-1 w-48">
                                     {visibilityOptions.map(opt => (
                                         <button
                                             key={opt.value}
                                             onClick={() => { setVisibility(opt.value); setShowVisibility(false); }}
-                                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 ${visibility === opt.value ? 'text-purple-600' : 'text-gray-700'}`}
+                                            className={`w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-3 ${visibility === opt.value ? 'text-purple-600' : 'text-primary'}`}
                                         >
                                             <opt.icon size={16} />
                                             <div>

@@ -101,15 +101,15 @@ const Notifications = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+                    <h1 className="text-2xl font-bold text-primary">Notifications</h1>
                     {unreadCount > 0 && (
-                        <p className="text-sm text-gray-500">{unreadCount} unread</p>
+                        <p className="text-sm text-secondary">{unreadCount} unread</p>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
                     <Link
                         to="/settings/notifications"
-                        className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                        className="p-2 text-secondary hover:bg-secondary rounded-lg"
                         title="Notification settings"
                     >
                         <Settings size={20} />
@@ -118,13 +118,13 @@ const Notifications = () => {
             </div>
 
             {/* Actions bar */}
-            <div className="flex items-center justify-between mb-4 bg-white rounded-xl p-3 border border-gray-200">
+            <div className="flex items-center justify-between mb-4 bg-elevated rounded-xl p-3 border border-theme">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'all'
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-secondary hover:bg-secondary'
                             }`}
                     >
                         All
@@ -132,8 +132,8 @@ const Notifications = () => {
                     <button
                         onClick={() => setFilter('unread')}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'unread'
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-secondary hover:bg-secondary'
                             }`}
                     >
                         Unread
@@ -143,7 +143,7 @@ const Notifications = () => {
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllAsRead}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-lg"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-lg"
                         >
                             <CheckCheck size={16} />
                             Mark all read
@@ -152,7 +152,7 @@ const Notifications = () => {
                     {notifications.length > 0 && (
                         <button
                             onClick={clearAll}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-500/10 rounded-lg"
                         >
                             <Trash2 size={16} />
                             Clear all
@@ -162,16 +162,16 @@ const Notifications = () => {
             </div>
 
             {/* Notifications list */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-elevated rounded-xl border border-theme overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">
-                        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
+                    <div className="p-8 text-center text-secondary">
+                        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
                         Loading notifications...
                     </div>
                 ) : notifications.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-secondary">
                         <Bell size={48} className="mx-auto mb-4 opacity-30" />
-                        <h3 className="font-medium text-gray-700 mb-1">No notifications</h3>
+                        <h3 className="font-medium text-primary mb-1">No notifications</h3>
                         <p className="text-sm">When you get notifications, they'll show up here</p>
                     </div>
                 ) : (
@@ -180,7 +180,7 @@ const Notifications = () => {
                             <div
                                 key={notification.id}
                                 onClick={() => !notification.is_read && markAsRead(notification.id)}
-                                className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.is_read ? 'bg-purple-50/50' : ''
+                                className={`p-4 border-b border-theme hover:bg-tertiary/5 cursor-pointer transition-colors ${!notification.is_read ? 'bg-primary/5' : ''
                                     }`}
                             >
                                 <div className="flex gap-4">
@@ -193,7 +193,7 @@ const Notifications = () => {
                                                 className="w-12 h-12 rounded-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+                                            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-xl">
                                                 {getNotificationIcon(notification.notification_type)}
                                             </div>
                                         )}
@@ -201,7 +201,7 @@ const Notifications = () => {
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-gray-800">
+                                        <p className="text-primary">
                                             {notification.actor_name && (
                                                 <Link
                                                     to={`/profile/${notification.extra_data?.actor_id}`}
@@ -216,12 +216,12 @@ const Notifications = () => {
                                         </p>
 
                                         {notification.title && (
-                                            <p className="text-sm text-gray-600 mt-1 font-medium">
+                                            <p className="text-sm text-secondary mt-1 font-medium">
                                                 {notification.title}
                                             </p>
                                         )}
 
-                                        <p className="text-xs text-gray-500 mt-2">
+                                        <p className="text-xs text-tertiary mt-2">
                                             {notification.time_ago}
                                         </p>
                                     </div>
@@ -229,7 +229,7 @@ const Notifications = () => {
                                     {/* Unread indicator */}
                                     {!notification.is_read && (
                                         <div className="flex-shrink-0">
-                                            <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                                            <div className="w-3 h-3 bg-primary rounded-full" />
                                         </div>
                                     )}
                                 </div>
@@ -239,7 +239,7 @@ const Notifications = () => {
                                     <Link
                                         to={notification.action_url}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="mt-3 inline-block text-sm text-purple-600 hover:text-purple-700 font-medium"
+                                        className="mt-3 inline-block text-sm text-primary hover:underline font-medium"
                                     >
                                         View →
                                     </Link>
@@ -251,7 +251,7 @@ const Notifications = () => {
                         {hasMore && (
                             <button
                                 onClick={() => loadNotifications(true)}
-                                className="w-full p-4 text-center text-purple-600 hover:bg-gray-50 font-medium"
+                                className="w-full p-4 text-center text-primary hover:bg-secondary font-medium"
                             >
                                 Load more
                             </button>

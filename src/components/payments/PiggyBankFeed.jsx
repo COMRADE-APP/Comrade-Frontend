@@ -52,7 +52,7 @@ const PiggyBankFeed = ({ limit = 5 }) => {
             <CardHeader className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <PiggyBank className="w-5 h-5 text-pink-600" />
-                    <h3 className="font-semibold text-gray-900">Savings Goals</h3>
+                    <h3 className="font-semibold text-primary">Savings Goals</h3>
                 </div>
                 <button
                     onClick={() => navigate('/piggy-banks')}
@@ -64,8 +64,8 @@ const PiggyBankFeed = ({ limit = 5 }) => {
             <CardBody className="p-0">
                 {piggyBanks.length === 0 ? (
                     <div className="p-8 text-center">
-                        <PiggyBank className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm">No savings goals yet</p>
+                        <PiggyBank className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                        <p className="text-secondary text-sm">No savings goals yet</p>
                         <Button
                             variant="outline"
                             className="mt-3"
@@ -75,18 +75,18 @@ const PiggyBankFeed = ({ limit = 5 }) => {
                         </Button>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-theme">
                         {piggyBanks.map((piggy) => {
                             const progress = calculateProgress(piggy.current_amount, piggy.target_amount);
                             return (
                                 <div
                                     key={piggy.id}
-                                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                                    className="p-4 hover:bg-secondary/5 cursor-pointer transition-colors"
                                     onClick={() => navigate(`/piggy-banks/${piggy.id}`)}
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${piggy.achieved ? 'bg-green-100' : 'bg-pink-100'
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${piggy.achieved ? 'bg-green-500/10' : 'bg-pink-500/10'
                                                 }`}>
                                                 {piggy.achieved ? (
                                                     <TrendingUp className="w-5 h-5 text-green-600" />
@@ -95,22 +95,22 @@ const PiggyBankFeed = ({ limit = 5 }) => {
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900">{piggy.name}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="font-medium text-primary">{piggy.name}</p>
+                                                <p className="text-xs text-secondary">
                                                     ${piggy.current_amount || 0} / ${piggy.target_amount || 0}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-sm font-medium ${piggy.achieved ? 'text-green-600' : 'text-gray-600'
+                                            <span className={`text-sm font-medium ${piggy.achieved ? 'text-green-600' : 'text-secondary'
                                                 }`}>
                                                 {progress.toFixed(0)}%
                                             </span>
-                                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                                            <ChevronRight className="w-5 h-5 text-tertiary" />
                                         </div>
                                     </div>
                                     {/* Progress Bar */}
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div className="w-full bg-secondary/10 rounded-full h-2">
                                         <div
                                             className={`h-2 rounded-full transition-all ${piggy.achieved ? 'bg-green-500' : 'bg-pink-500'
                                                 }`}
@@ -124,7 +124,7 @@ const PiggyBankFeed = ({ limit = 5 }) => {
                 )}
 
                 {piggyBanks.length > 0 && (
-                    <div className="p-3 border-t border-gray-100">
+                    <div className="p-3 border-t border-theme">
                         <button
                             onClick={() => navigate('/piggy-banks')}
                             className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"

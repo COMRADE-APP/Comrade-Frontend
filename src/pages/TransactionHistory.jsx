@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import paymentService from '../services/payment.service';
+import paymentsService from "../services/payments.service";
 
 const TransactionHistory = () => {
     const [transactions, setTransactions] = useState([]);
@@ -13,7 +13,7 @@ const TransactionHistory = () => {
     const fetchTransactions = async () => {
         try {
             setLoading(true);
-            const data = await paymentService.getTransactions();
+            const data = await paymentsService.getTransactions();
             setTransactions(data);
         } catch (error) {
             console.error('Error fetching transactions:', error);
@@ -50,8 +50,8 @@ const TransactionHistory = () => {
                                 key={status}
                                 onClick={() => setFilter(status)}
                                 className={`px-4 py-2 rounded ${filter === status
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                     }`}
                             >
                                 {status.charAt(0).toUpperCase() + status.slice(1)}

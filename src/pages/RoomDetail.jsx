@@ -20,8 +20,8 @@ const MessageTicks = ({ status, isOwn }) => {
     const getTickColor = () => {
         switch (status) {
             case 'read': return 'text-blue-500';
-            case 'delivered': return 'text-gray-400';
-            default: return 'text-gray-300';
+            case 'delivered': return 'text-secondary';
+            default: return 'text-tertiary';
         }
     };
 
@@ -41,7 +41,7 @@ const ForwardedIndicator = ({ message }) => {
     if (!message.is_forwarded) return null;
 
     return (
-        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1 italic">
+        <div className="flex items-center gap-1 text-xs text-secondary mb-1 italic">
             <Forward className="w-3 h-3" />
             {message.forwarded_from_room_name ? (
                 <span>Forwarded from <Link to={`/ rooms / ${message.forwarded_from_room} `} className="text-primary-600 hover:underline">{message.forwarded_from_room_name}</Link></span>
@@ -57,13 +57,13 @@ const ReplyPreview = ({ replyTo, onClear }) => {
     if (!replyTo) return null;
 
     return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 border-l-4 border-primary-500">
-            <Reply className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center gap-2 px-4 py-2 bg-secondary border-l-4 border-primary-500">
+            <Reply className="w-4 h-4 text-secondary" />
             <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-primary-600">{replyTo.sender_name}</p>
-                <p className="text-sm text-gray-600 truncate">{replyTo.content}</p>
+                <p className="text-sm text-secondary truncate">{replyTo.content}</p>
             </div>
-            <button onClick={onClear} className="p-1 hover:bg-gray-200 rounded">
+            <button onClick={onClear} className="p-1 hover:bg-tertiary/20 rounded">
                 <X className="w-4 h-4" />
             </button>
         </div>
@@ -76,19 +76,19 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
 
     const bubbleClass = isOwn
         ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-br-md ml-auto'
-        : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md';
+        : 'bg-elevated border border-theme text-primary rounded-bl-md';
 
-    const timeClass = isOwn ? 'text-primary-100' : 'text-gray-400';
+    const timeClass = isOwn ? 'text-primary-100' : 'text-tertiary';
 
     return (
         <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
             {/* Avatar for other users */}
             {!isOwn && (
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 mr-2 overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 mr-2 overflow-hidden">
                     {message.sender_avatar ? (
                         <img src={message.sender_avatar} alt="" className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-medium text-gray-600">
+                        <div className="w-full h-full flex items-center justify-center text-xs font-medium text-secondary">
                             {message.sender_info?.first_name?.[0]}{message.sender_info?.last_name?.[0]}
                         </div>
                     )}
@@ -108,7 +108,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
 
                 {/* Reply preview */}
                 {message.reply_to_preview && (
-                    <div className="px-2 py-1 mb-1 rounded bg-black/10 border-l-2 border-primary-300">
+                    <div className="px-2 py-1 mb-1 rounded bg-secondary border-l-2 border-primary-300">
                         <p className="text-xs font-medium">{message.reply_to_preview.sender_name}</p>
                         <p className="text-xs opacity-80 truncate">{message.reply_to_preview.content}</p>
                     </div>
@@ -147,7 +147,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                                     );
                                 } else if (file.file_type === 'audio') {
                                     return (
-                                        <div key={idx} className={`p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-gray-100'}`}>
+                                        <div key={idx} className={`p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-secondary'}`}>
                                             <audio src={file.file} controls className="w-full" />
                                             <p className="text-xs mt-1 opacity-70">{file.file_name}</p>
                                         </div>
@@ -155,7 +155,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                                 } else {
                                     return (
                                         <a key={idx} href={file.file} target="_blank" rel="noopener noreferrer"
-                                            className={`flex items-center gap-2 p-2 rounded ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}>
+                                            className={`flex items-center gap-2 p-2 rounded ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-secondary hover:bg-tertiary/10'} transition-colors`}>
                                             <File className="w-5 h-5 flex-shrink-0" />
                                             <span className="text-sm truncate flex-1">{file.file_name}</span>
                                             <Download className="w-4 h-4 flex-shrink-0" />
@@ -171,25 +171,25 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
 
                     {/* Entity references */}
                     {message.event && (
-                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary-50'} flex items-center gap-2`}>
+                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary/5'} flex items-center gap-2`}>
                             <Calendar className="w-4 h-4" />
                             <span className="text-sm">Event shared</span>
                         </div>
                     )}
                     {message.task && (
-                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary-50'} flex items-center gap-2`}>
+                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary/5'} flex items-center gap-2`}>
                             <ClipboardList className="w-4 h-4" />
                             <span className="text-sm">Task shared</span>
                         </div>
                     )}
                     {message.resource && (
-                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary-50'} flex items-center gap-2`}>
+                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary/5'} flex items-center gap-2`}>
                             <BookOpen className="w-4 h-4" />
                             <span className="text-sm">Resource shared</span>
                         </div>
                     )}
                     {message.announcement && (
-                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary-50'} flex items-center gap-2`}>
+                        <div className={`mt-2 p-2 rounded ${isOwn ? 'bg-white/20' : 'bg-primary/5'} flex items-center gap-2`}>
                             <Megaphone className="w-4 h-4" />
                             <span className="text-sm">Announcement shared</span>
                         </div>
@@ -214,29 +214,29 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                     <div className="relative">
                         <button
                             onClick={() => setShowMenu(!showMenu)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-secondary rounded"
                         >
-                            <MoreVertical className="w-4 h-4 text-gray-400" />
+                            <MoreVertical className="w-4 h-4 text-tertiary" />
                         </button>
 
                         {showMenu && (
-                            <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                            <div className="absolute top-full right-0 mt-1 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-10 min-w-[120px]">
                                 <button
                                     onClick={() => { onReply(message); setShowMenu(false); }}
-                                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                                    className="w-full px-3 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2"
                                 >
                                     <Reply className="w-4 h-4" /> Reply
                                 </button>
                                 <button
                                     onClick={() => { onForward(message); setShowMenu(false); }}
-                                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                                    className="w-full px-3 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2"
                                 >
                                     <Forward className="w-4 h-4" /> Forward
                                 </button>
                                 {canDelete && (
                                     <button
                                         onClick={() => { onDelete(message.id); setShowMenu(false); }}
-                                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 text-red-600 flex items-center gap-2"
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-secondary text-red-600 flex items-center gap-2"
                                     >
                                         <Trash2 className="w-4 h-4" /> Delete
                                     </button>
@@ -264,21 +264,21 @@ const MemberItem = ({ member, role, roomId, currentUserId, onFollow }) => {
     };
 
     return (
-        <div className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+        <div className="flex items-center gap-3 py-2 px-2 hover:bg-secondary/50 rounded-lg transition-colors">
+            <div className="w-10 h-10 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
                 {member.avatar_url ? (
                     <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm font-medium text-gray-600">
+                    <div className="w-full h-full flex items-center justify-center text-sm font-medium text-secondary">
                         {member.first_name?.[0]}{member.last_name?.[0]}
                     </div>
                 )}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-primary truncate">
                     {member.first_name} {member.last_name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                <p className="text-xs text-secondary truncate">{member.email}</p>
             </div>
             <div className="flex items-center gap-2">
                 {role === 'admin' && <Crown className="w-4 h-4 text-yellow-500" />}
@@ -287,7 +287,7 @@ const MemberItem = ({ member, role, roomId, currentUserId, onFollow }) => {
                     <button
                         onClick={handleFollow}
                         disabled={loading}
-                        className={`p-1.5 rounded-full transition-colors ${member.is_following ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100'}`}
+                        className={`p-1.5 rounded-full transition-colors ${member.is_following ? 'bg-primary-100 text-primary-600' : 'hover:bg-secondary'}`}
                     >
                         {member.is_following ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                     </button>
@@ -322,10 +322,10 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
     ];
 
     return (
-        <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">Room Settings</h3>
-                <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+        <div className="w-80 bg-elevated border-l border-theme overflow-y-auto">
+            <div className="p-4 border-b border-theme flex items-center justify-between">
+                <h3 className="font-semibold text-primary">Room Settings</h3>
+                <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
                     <X className="w-4 h-4" />
                 </button>
             </div>
@@ -333,10 +333,10 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
             <div className="p-4 space-y-5">
                 {/* Chat Settings */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Chat Settings</h4>
+                    <h4 className="text-sm font-medium text-primary mb-3">Chat Settings</h4>
 
                     <label className="flex items-center justify-between py-2">
-                        <span className="text-sm text-gray-700">Enable Chat</span>
+                        <span className="text-sm text-secondary">Enable Chat</span>
                         <input
                             type="checkbox"
                             checked={localSettings.chat_enabled ?? true}
@@ -347,11 +347,11 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                     </label>
 
                     <div className="py-2">
-                        <label className="block text-sm text-gray-700 mb-1">Who can send messages</label>
+                        <label className="block text-sm text-secondary mb-1">Who can send messages</label>
                         <select
                             value={localSettings.chat_permission || 'all_members'}
                             onChange={(e) => handleChange('chat_permission', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg text-sm"
                             disabled={!isAdmin}
                         >
                             {selectOptions.map(opt => (
@@ -361,11 +361,11 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                     </div>
 
                     <div className="py-2">
-                        <label className="block text-sm text-gray-700 mb-1">Who can send media</label>
+                        <label className="block text-sm text-secondary mb-1">Who can send media</label>
                         <select
                             value={localSettings.who_can_send_media || 'all_members'}
                             onChange={(e) => handleChange('who_can_send_media', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg text-sm"
                             disabled={!isAdmin}
                         >
                             {selectOptions.map(opt => (
@@ -377,14 +377,14 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
 
                 {/* Member Settings */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Member Permissions</h4>
+                    <h4 className="text-sm font-medium text-primary mb-3">Member Permissions</h4>
 
                     <div className="py-2">
-                        <label className="block text-sm text-gray-700 mb-1">Who can add members</label>
+                        <label className="block text-sm text-secondary mb-1">Who can add members</label>
                         <select
                             value={localSettings.who_can_add_members || 'admins_only'}
                             onChange={(e) => handleChange('who_can_add_members', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg text-sm"
                             disabled={!isAdmin}
                         >
                             {selectOptions.map(opt => (
@@ -394,11 +394,11 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                     </div>
 
                     <div className="py-2">
-                        <label className="block text-sm text-gray-700 mb-1">Who can edit room info</label>
+                        <label className="block text-sm text-secondary mb-1">Who can edit room info</label>
                         <select
                             value={localSettings.who_can_edit_info || 'admins_only'}
                             onChange={(e) => handleChange('who_can_edit_info', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg text-sm"
                             disabled={!isAdmin}
                         >
                             {selectOptions.map(opt => (
@@ -410,10 +410,10 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
 
                 {/* Tagging & Forwarding */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Tagging & Forwarding</h4>
+                    <h4 className="text-sm font-medium text-primary mb-3">Tagging & Forwarding</h4>
 
                     <label className="flex items-center justify-between py-2">
-                        <span className="text-sm text-gray-700">Allow opinion tagging</span>
+                        <span className="text-sm text-secondary">Allow opinion tagging</span>
                         <input
                             type="checkbox"
                             checked={localSettings.allow_opinion_tagging ?? true}
@@ -424,7 +424,7 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                     </label>
 
                     <label className="flex items-center justify-between py-2">
-                        <span className="text-sm text-gray-700">Allow message forwarding</span>
+                        <span className="text-sm text-secondary">Allow message forwarding</span>
                         <input
                             type="checkbox"
                             checked={localSettings.allow_message_forwarding ?? true}
@@ -435,7 +435,7 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                     </label>
 
                     <label className="flex items-center justify-between py-2">
-                        <span className="text-sm text-gray-700">Show forward source</span>
+                        <span className="text-sm text-secondary">Show forward source</span>
                         <input
                             type="checkbox"
                             checked={localSettings.show_forward_source ?? true}
@@ -472,7 +472,7 @@ const ContentTabs = ({ room, activeTab, onTabChange }) => {
     ];
 
     return (
-        <div className="flex gap-1 p-2 bg-gray-100 overflow-x-auto">
+        <div className="flex gap-1 p-2 bg-secondary overflow-x-auto">
             {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -480,14 +480,14 @@ const ContentTabs = ({ room, activeTab, onTabChange }) => {
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
-                            ? 'bg-white text-primary-600 shadow-sm'
-                            : 'text-gray-600 hover:bg-white/50'
+                            ? 'bg-elevated text-primary shadow-sm'
+                            : 'text-secondary hover:bg-elevated/50'
                             }`}
                     >
                         <Icon className="w-4 h-4" />
                         {tab.label}
                         {tab.count !== null && tab.count > 0 && (
-                            <span className="text-xs bg-gray-200 px-1.5 rounded-full">{tab.count}</span>
+                            <span className="text-xs bg-tertiary/20 px-1.5 rounded-full">{tab.count}</span>
                         )}
                     </button>
                 );
@@ -678,8 +678,8 @@ const RoomDetail = () => {
         return (
             <Card>
                 <CardBody className="text-center py-12">
-                    <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Room not found</p>
+                    <MessageSquare className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                    <p className="text-secondary">Room not found</p>
                     <Button variant="outline" onClick={() => navigate(ROUTES.ROOMS)} className="mt-4">
                         Back to Rooms
                     </Button>
@@ -691,13 +691,13 @@ const RoomDetail = () => {
     return (
         <div className="h-[calc(100vh-180px)] flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
+            <div className="bg-elevated border-b border-theme px-4 py-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate(ROUTES.ROOMS)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-secondary rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-5 h-5 text-secondary" />
                     </button>
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
                         {room.avatar ? (
@@ -707,8 +707,8 @@ const RoomDetail = () => {
                         )}
                     </div>
                     <div>
-                        <h1 className="font-semibold text-gray-900">{room.name}</h1>
-                        <p className="text-sm text-gray-500">
+                        <h1 className="font-semibold text-primary">{room.name}</h1>
+                        <p className="text-sm text-secondary">
                             {members.length || room.members?.length || 0} members
                         </p>
                     </div>
@@ -716,13 +716,13 @@ const RoomDetail = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => { setShowMembersPanel(!showMembersPanel); setShowSettings(false); }}
-                        className={`p-2 rounded-lg transition-colors ${showMembersPanel ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100'}`}
+                        className={`p-2 rounded-lg transition-colors ${showMembersPanel ? 'bg-primary/10 text-primary-600' : 'hover:bg-secondary text-secondary'}`}
                     >
                         <Users className="w-5 h-5" />
                     </button>
                     <button
                         onClick={() => { setShowSettings(!showSettings); setShowMembersPanel(false); }}
-                        className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100'}`}
+                        className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-primary/10 text-primary-600' : 'hover:bg-secondary text-secondary'}`}
                     >
                         <Settings className="w-5 h-5" />
                     </button>
@@ -739,15 +739,15 @@ const RoomDetail = () => {
                     {activeTab === 'chat' ? (
                         <>
                             {/* Message Filter */}
-                            <div className="px-4 py-2 bg-white border-b border-gray-100 flex items-center gap-2">
-                                <span className="text-xs text-gray-500">Filter:</span>
+                            <div className="px-4 py-2 bg-elevated border-b border-theme flex items-center gap-2">
+                                <span className="text-xs text-secondary">Filter:</span>
                                 {['all', 'text', 'file', 'event', 'task'].map(filter => (
                                     <button
                                         key={filter}
                                         onClick={() => setMessageFilter(filter === 'all' ? null : filter)}
                                         className={`px-2 py-1 text-xs rounded ${(filter === 'all' && !messageFilter) || messageFilter === filter
-                                            ? 'bg-primary-100 text-primary-700'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-primary/10 text-primary'
+                                            : 'bg-secondary text-secondary hover:bg-tertiary/20'
                                             }`}
                                     >
                                         {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -756,11 +756,11 @@ const RoomDetail = () => {
                             </div>
 
                             {/* Messages List */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-tertiary/5">
                                 {messages.length === 0 ? (
                                     <div className="text-center py-12">
-                                        <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                        <p className="text-gray-500">No messages yet. Start the conversation!</p>
+                                        <MessageSquare className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                                        <p className="text-secondary">No messages yet. Start the conversation!</p>
                                     </div>
                                 ) : (
                                     messages.map((message) => (
@@ -783,14 +783,14 @@ const RoomDetail = () => {
 
                             {/* Selected Files Preview */}
                             {selectedFiles.length > 0 && (
-                                <div className="px-4 py-2 bg-gray-100 flex flex-wrap gap-2">
+                                <div className="px-4 py-2 bg-secondary flex flex-wrap gap-2">
                                     {selectedFiles.map((file, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 bg-white px-2 py-1 rounded text-sm">
+                                        <div key={idx} className="flex items-center gap-2 bg-elevated px-2 py-1 rounded text-sm text-primary">
                                             <File className="w-4 h-4" />
                                             <span className="truncate max-w-[100px]">{file.name}</span>
                                             <button
                                                 onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
-                                                className="text-gray-400 hover:text-red-500"
+                                                className="text-tertiary hover:text-red-500"
                                             >
                                                 <X className="w-3 h-3" />
                                             </button>
@@ -800,7 +800,7 @@ const RoomDetail = () => {
                             )}
 
                             {/* Message Input */}
-                            <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-200">
+                            <form onSubmit={handleSendMessage} className="p-4 bg-elevated border-t border-theme">
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="file"
@@ -812,7 +812,7 @@ const RoomDetail = () => {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"
+                                        className="p-2 hover:bg-secondary rounded-lg transition-colors text-secondary"
                                     >
                                         <Paperclip className="w-5 h-5" />
                                     </button>
@@ -821,7 +821,7 @@ const RoomDetail = () => {
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         placeholder="Type a message..."
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="flex-1 px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                     />
                                     <Button variant="primary" type="submit" disabled={!newMessage.trim() && selectedFiles.length === 0}>
                                         <Send className="w-4 h-4" />
@@ -831,11 +831,11 @@ const RoomDetail = () => {
                         </>
                     ) : (
                         /* Entity content tabs */
-                        <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                        <div className="flex-1 overflow-y-auto p-4 bg-tertiary/5">
                             {activeTab === 'resources' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">Room Resources</h3>
+                                        <h3 className="font-semibold text-primary">Room Resources</h3>
                                         <Button variant="primary" size="sm" onClick={() => navigate('/resources/create?room=' + id)}>
                                             <Plus className="w-4 h-4 mr-1" />
                                             Add Resource
@@ -844,19 +844,19 @@ const RoomDetail = () => {
                                     {room?.resources?.length > 0 ? (
                                         <div className="grid gap-3">
                                             {room.resources.map((resource, idx) => (
-                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                <div key={idx} className="bg-elevated p-3 rounded-lg border border-theme flex items-center gap-3 hover:shadow-sm transition-shadow">
                                                     <BookOpen className="w-5 h-5 text-blue-500" />
                                                     <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{resource.title || 'Untitled'}</p>
-                                                        <p className="text-sm text-gray-500">{resource.file_type || 'Document'}</p>
+                                                        <p className="font-medium text-primary">{resource.title || 'Untitled'}</p>
+                                                        <p className="text-sm text-secondary">{resource.file_type || 'Document'}</p>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No resources in this room yet</p>
+                                            <BookOpen className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                                            <p className="text-secondary text-sm">No resources in this room yet</p>
                                         </div>
                                     )}
                                 </div>
@@ -865,7 +865,7 @@ const RoomDetail = () => {
                             {activeTab === 'events' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">Room Events</h3>
+                                        <h3 className="font-semibold text-primary">Room Events</h3>
                                         <Button variant="primary" size="sm" onClick={() => navigate('/events/create?room=' + id)}>
                                             <Plus className="w-4 h-4 mr-1" />
                                             Create Event
@@ -874,19 +874,19 @@ const RoomDetail = () => {
                                     {room?.events?.length > 0 ? (
                                         <div className="grid gap-3">
                                             {room.events.map((event, idx) => (
-                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => navigate(`/ events / ${event.id} `)}>
+                                                <div key={idx} className="bg-elevated p-3 rounded-lg border border-theme flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => navigate(`/ events / ${event.id} `)}>
                                                     <Calendar className="w-5 h-5 text-orange-500" />
                                                     <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{event.title || 'Untitled Event'}</p>
-                                                        <p className="text-sm text-gray-500">{event.status || 'Active'}</p>
+                                                        <p className="font-medium text-primary">{event.title || 'Untitled Event'}</p>
+                                                        <p className="text-sm text-secondary">{event.status || 'Active'}</p>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No events in this room yet</p>
+                                            <Calendar className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                                            <p className="text-secondary text-sm">No events in this room yet</p>
                                         </div>
                                     )}
                                 </div>
@@ -895,7 +895,7 @@ const RoomDetail = () => {
                             {activeTab === 'tasks' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">Room Tasks</h3>
+                                        <h3 className="font-semibold text-primary">Room Tasks</h3>
                                         <Button variant="primary" size="sm" onClick={() => navigate('/tasks?create=true&room=' + id)}>
                                             <Plus className="w-4 h-4 mr-1" />
                                             Create Task
@@ -904,19 +904,19 @@ const RoomDetail = () => {
                                     {room?.tasks?.length > 0 ? (
                                         <div className="grid gap-3">
                                             {room.tasks.map((task, idx) => (
-                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                <div key={idx} className="bg-elevated p-3 rounded-lg border border-theme flex items-center gap-3 hover:shadow-sm transition-shadow">
                                                     <ClipboardList className="w-5 h-5 text-green-500" />
                                                     <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{task.heading || 'Untitled Task'}</p>
-                                                        <p className="text-sm text-gray-500">{task.status || task.state || 'Pending'}</p>
+                                                        <p className="font-medium text-primary">{task.heading || 'Untitled Task'}</p>
+                                                        <p className="text-sm text-secondary">{task.status || task.state || 'Pending'}</p>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <ClipboardList className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No tasks in this room yet</p>
+                                            <ClipboardList className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                                            <p className="text-secondary text-sm">No tasks in this room yet</p>
                                         </div>
                                     )}
                                 </div>
@@ -925,7 +925,7 @@ const RoomDetail = () => {
                             {activeTab === 'announcements' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">Room Announcements</h3>
+                                        <h3 className="font-semibold text-primary">Room Announcements</h3>
                                         <Button variant="primary" size="sm" onClick={() => navigate('/announcements/create?room=' + id)}>
                                             <Plus className="w-4 h-4 mr-1" />
                                             Create Announcement
@@ -934,19 +934,19 @@ const RoomDetail = () => {
                                     {room?.announcements?.length > 0 ? (
                                         <div className="grid gap-3">
                                             {room.announcements.map((announcement, idx) => (
-                                                <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 hover:shadow-sm transition-shadow">
+                                                <div key={idx} className="bg-elevated p-3 rounded-lg border border-theme flex items-center gap-3 hover:shadow-sm transition-shadow">
                                                     <Megaphone className="w-5 h-5 text-purple-500" />
                                                     <div className="flex-1">
-                                                        <p className="font-medium text-gray-900 line-clamp-1">{announcement.message || 'Announcement'}</p>
-                                                        <p className="text-sm text-gray-500">{announcement.created_on ? formatTimeAgo(announcement.created_on) : 'Recent'}</p>
+                                                        <p className="font-medium text-primary line-clamp-1">{announcement.message || 'Announcement'}</p>
+                                                        <p className="text-sm text-secondary">{announcement.created_on ? formatTimeAgo(announcement.created_on) : 'Recent'}</p>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
-                                            <Megaphone className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No announcements in this room yet</p>
+                                            <Megaphone className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                                            <p className="text-secondary text-sm">No announcements in this room yet</p>
                                         </div>
                                     )}
                                 </div>
@@ -957,14 +957,14 @@ const RoomDetail = () => {
 
                 {/* Members Panel */}
                 {showMembersPanel && (
-                    <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Members</h3>
+                    <div className="w-80 bg-elevated border-l border-theme overflow-y-auto">
+                        <div className="p-4 border-b border-theme flex items-center justify-between">
+                            <h3 className="font-semibold text-primary">Members</h3>
                             <button
                                 onClick={() => setShowMembersPanel(false)}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1 hover:bg-secondary rounded"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4 text-secondary" />
                             </button>
                         </div>
                         <div className="p-2 space-y-1">
@@ -979,7 +979,7 @@ const RoomDetail = () => {
                                 />
                             ))}
                         </div>
-                        <div className="p-4 border-t border-gray-200">
+                        <div className="p-4 border-t border-theme">
                             <Button variant="outline" className="w-full" onClick={handleLeaveRoom}>
                                 Leave Room
                             </Button>

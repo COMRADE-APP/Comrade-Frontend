@@ -93,10 +93,10 @@ const FeedItem = ({
     const categoryLabel = item.category_label || contentType.charAt(0).toUpperCase() + contentType.slice(1);
 
     return (
-        <div className="relative bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+        <div className="relative bg-elevated rounded-xl border border-theme p-4 hover:shadow-md transition-shadow">
             {/* Repost indicator */}
             {item.is_repost && item.reposted_by_user && (
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-2 -mt-1">
+                <div className="flex items-center gap-2 text-secondary text-sm mb-2 -mt-1">
                     <Repeat2 size={14} />
                     <span>{item.reposted_by_user.name} reposted</span>
                 </div>
@@ -125,7 +125,7 @@ const FeedItem = ({
                         <div className="flex items-center gap-2 flex-wrap">
                             <Link
                                 to={`/profile/${item.user?.id || item.creator?.id}`}
-                                className="font-semibold text-gray-900 hover:underline"
+                                className="font-semibold text-primary hover:underline"
                             >
                                 {item.user?.full_name || item.user?.first_name || item.creator?.name || 'User'}
                             </Link>
@@ -142,17 +142,17 @@ const FeedItem = ({
                             )}
 
                             {/* Category Badge */}
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors[contentType] || 'bg-gray-100 text-gray-800'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors[contentType] || 'bg-secondary text-primary'}`}>
                                 {categoryLabel}
                             </span>
 
-                            <span className="text-gray-400 text-sm">·</span>
-                            <span className="text-gray-500 text-sm">{item.time_ago || 'now'}</span>
+                            <span className="text-tertiary text-sm">·</span>
+                            <span className="text-secondary text-sm">{item.time_ago || 'now'}</span>
                         </div>
 
                         {/* Title for articles/research/products */}
                         {item.title && (
-                            <h3 className="font-semibold text-gray-900 mt-1">{item.title}</h3>
+                            <h3 className="font-semibold text-primary mt-1">{item.title}</h3>
                         )}
                     </div>
                 </div>
@@ -161,7 +161,7 @@ const FeedItem = ({
                 <div className="relative">
                     <button
                         onClick={() => setShowOptions(!showOptions)}
-                        className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                        className="p-1 rounded-full hover:bg-secondary text-tertiary hover:text-primary"
                     >
                         <MoreHorizontal size={18} />
                     </button>
@@ -169,31 +169,31 @@ const FeedItem = ({
                     {showOptions && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowOptions(false)} />
-                            <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-52">
+                            <div className="absolute right-0 top-8 z-20 bg-elevated rounded-lg shadow-lg border border-theme py-1 w-52">
                                 <button
                                     onClick={() => { onHide?.(item.id); setShowOptions(false); }}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3"
                                 >
                                     <EyeOff size={16} />
                                     I don't like this
                                 </button>
                                 <button
                                     onClick={() => { onBlock?.(item.user?.id); setShowOptions(false); }}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3"
                                 >
                                     <Ban size={16} />
                                     Block {item.user?.first_name}
                                 </button>
                                 <button
                                     onClick={() => { onReport?.(item.id); setShowOptions(false); }}
-                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-3"
+                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-secondary flex items-center gap-3"
                                 >
                                     <Flag size={16} />
                                     Report
                                 </button>
-                                <hr className="my-1" />
+                                <hr className="my-1 border-theme" />
                                 <button
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3"
                                 >
                                     <HelpCircle size={16} />
                                     Help
@@ -206,7 +206,7 @@ const FeedItem = ({
 
             {/* Content */}
             <div className="mt-3">
-                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                <p className="text-primary whitespace-pre-wrap leading-relaxed">
                     {item.content}
                 </p>
 
@@ -214,7 +214,7 @@ const FeedItem = ({
                 {item.media_files?.length > 0 && (
                     <div className={`mt-3 grid gap-2 ${item.media_files.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                         {item.media_files.map((media, idx) => (
-                            <div key={idx} className="rounded-xl overflow-hidden bg-gray-100 relative">
+                            <div key={idx} className="rounded-xl overflow-hidden bg-secondary relative">
                                 {media.media_type === 'video' ? (
                                     <div className="relative">
                                         <video
@@ -228,11 +228,11 @@ const FeedItem = ({
                                         href={media.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100"
+                                        className="flex items-center gap-3 p-4 bg-secondary hover:bg-tertiary"
                                     >
-                                        <FileText size={24} className="text-gray-500" />
-                                        <span className="text-sm text-gray-700">{media.file_name}</span>
-                                        <ExternalLink size={14} className="text-gray-400 ml-auto" />
+                                        <FileText size={24} className="text-secondary" />
+                                        <span className="text-sm text-primary">{media.file_name}</span>
+                                        <ExternalLink size={14} className="text-tertiary ml-auto" />
                                     </a>
                                 ) : (
                                     <img
@@ -272,7 +272,7 @@ const FeedItem = ({
 
             {/* Action buttons */}
             {contentType === 'opinion' && (
-                <div className="mt-4 flex items-center justify-between text-gray-500">
+                <div className="mt-4 flex items-center justify-between text-secondary">
                     <button
                         onClick={handleLike}
                         className={`flex items-center gap-1.5 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}`}

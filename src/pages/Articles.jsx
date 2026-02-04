@@ -74,8 +74,8 @@ const Articles = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Articles</h1>
-                    <p className="text-gray-600 mt-1">Discover insights and stories from our community</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Articles</h1>
+                    <p className="text-secondary mt-1">Discover insights and stories from our community</p>
                 </div>
                 <Button variant="primary" onClick={() => navigate('/articles/create')}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -86,13 +86,13 @@ const Articles = () => {
             {/* Search and Categories */}
             <div className="space-y-4">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                     <input
                         type="text"
                         placeholder="Search articles..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                        className="w-full pl-12 pr-4 py-3 bg-elevated border border-theme text-primary rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2">
@@ -101,8 +101,8 @@ const Articles = () => {
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-primary text-white'
+                                : 'bg-elevated text-secondary hover:bg-secondary'
                                 }`}
                         >
                             {cat === 'all' ? 'All' : cat}
@@ -115,14 +115,14 @@ const Articles = () => {
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-96 bg-gray-100 rounded-xl animate-pulse" />
+                        <div key={i} className="h-96 bg-tertiary/10 rounded-xl animate-pulse" />
                     ))}
                 </div>
             ) : articles.length === 0 ? (
                 <div className="text-center py-16">
-                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No articles found</h3>
-                    <p className="text-gray-500">Try adjusting your search or filters</p>
+                    <BookOpen className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-primary mb-2">No articles found</h3>
+                    <p className="text-secondary">Try adjusting your search or filters</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -130,7 +130,7 @@ const Articles = () => {
                         <Link to={`/articles/${article.id}`} key={article.id}>
                             <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group h-full">
                                 {/* Cover Image */}
-                                <div className="relative h-48 overflow-hidden bg-gray-200">
+                                <div className="relative h-48 overflow-hidden bg-secondary">
                                     {article.cover_image ? (
                                         <img
                                             src={article.cover_image}
@@ -138,22 +138,22 @@ const Articles = () => {
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        <div className="w-full h-full flex items-center justify-center text-tertiary">
                                             <BookOpen className="w-12 h-12" />
                                         </div>
                                     )}
                                     <div className="absolute top-3 left-3">
-                                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-gray-900">
+                                        <span className="px-3 py-1 bg-elevated/90 backdrop-blur-sm rounded-full text-xs font-semibold text-primary">
                                             {article.category}
                                         </span>
                                     </div>
                                 </div>
 
                                 <CardBody className="p-5 flex flex-col h-full">
-                                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                                    <h3 className="font-bold text-primary mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                                         {article.title}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                    <p className="text-secondary text-sm mb-4 line-clamp-2">
                                         {article.excerpt || article.content.substring(0, 100) + '...'}
                                     </p>
 
@@ -169,8 +169,8 @@ const Articles = () => {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-900">{article.author_name}</p>
-                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <p className="text-sm font-medium text-primary">{article.author_name}</p>
+                                                    <p className="text-xs text-secondary flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
                                                         {new Date(article.created_at).toLocaleDateString()}
                                                     </p>
@@ -179,8 +179,8 @@ const Articles = () => {
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                            <div className="flex items-center gap-4 text-gray-500 text-sm">
+                                        <div className="flex items-center justify-between pt-4 border-t border-theme">
+                                            <div className="flex items-center gap-4 text-secondary text-sm">
                                                 <span className="flex items-center gap-1">
                                                     <Heart className={`w-4 h-4 ${article.is_liked ? 'fill-red-500 text-red-500' : ''}`} />
                                                     {article.likes_count || 0}
@@ -193,7 +193,7 @@ const Articles = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={(e) => handleBookmark(e, article.id)}
-                                                    className={`p-2 rounded-full transition-colors ${article.is_bookmarked ? 'text-primary-600 bg-primary-50' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50'}`}
+                                                    className={`p-2 rounded-full transition-colors ${article.is_bookmarked ? 'text-primary bg-primary/10' : 'text-secondary hover:text-primary hover:bg-primary/10'}`}
                                                 >
                                                     <Bookmark className={`w-4 h-4 ${article.is_bookmarked ? 'fill-current' : ''}`} />
                                                 </button>
@@ -202,7 +202,7 @@ const Articles = () => {
                                                         e.preventDefault();
                                                         navigator.share?.({ title: article.title, url: window.location.href + '/' + article.id });
                                                     }}
-                                                    className="p-2 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors"
+                                                    className="p-2 text-secondary hover:text-primary hover:bg-primary/10 rounded-full transition-colors"
                                                 >
                                                     <Share className="w-4 h-4" />
                                                 </button>

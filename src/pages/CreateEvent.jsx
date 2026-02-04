@@ -148,21 +148,21 @@ const CreateEvent = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="min-h-screen bg-background py-8 px-4">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                    <button onClick={() => navigate('/events')} className="p-2 hover:bg-gray-200 rounded-full">
+                    <button onClick={() => navigate('/events')} className="p-2 hover:bg-secondary/10 rounded-full text-primary">
                         <ArrowLeft size={24} />
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Create Event</h1>
+                    <h1 className="text-2xl font-bold text-primary">Create Event</h1>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-elevated rounded-xl shadow-sm p-6 border border-theme">
                     {/* Cover Image Upload */}
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-500 transition-colors">
+                        <label className="block text-sm font-medium text-secondary mb-2">Cover Image</label>
+                        <div className="border-2 border-dashed border-theme rounded-xl p-6 text-center hover:border-primary transition-colors">
                             {coverImage ? (
                                 <div className="relative">
                                     <img src={URL.createObjectURL(coverImage)} alt="" className="max-h-48 mx-auto rounded-lg" />
@@ -172,8 +172,8 @@ const CreateEvent = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                                    <label className="cursor-pointer text-primary-600 hover:underline">
+                                    <ImageIcon className="w-12 h-12 mx-auto text-tertiary mb-2" />
+                                    <label className="cursor-pointer text-primary hover:underline">
                                         Upload cover image
                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => setCoverImage(e.target.files?.[0])} />
                                     </label>
@@ -184,13 +184,13 @@ const CreateEvent = () => {
 
                     {/* Event Name */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Event Name *</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none bg-elevated text-primary ${errors.name ? 'border-red-500' : 'border-theme'}`}
                             placeholder="Enter event name"
                         />
                         {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -198,13 +198,13 @@ const CreateEvent = () => {
 
                     {/* Description */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Description *</label>
                         <textarea
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
                             rows={4}
-                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none bg-elevated text-primary ${errors.description ? 'border-red-500' : 'border-theme'}`}
                             placeholder="Describe your event..."
                         />
                         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
@@ -212,14 +212,14 @@ const CreateEvent = () => {
 
                     {/* Event Location Type */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Format</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Event Format</label>
                         <div className="flex gap-4">
                             {[
                                 { value: 'physical', label: 'Physical', icon: Building },
                                 { value: 'online', label: 'Virtual', icon: Globe },
                                 { value: 'hybrid', label: 'Hybrid', icon: Users }
                             ].map(({ value, label, icon: Icon }) => (
-                                <label key={value} className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-all ${formData.event_location === value ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                <label key={value} className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-all ${formData.event_location === value ? 'border-primary bg-primary/5 text-primary' : 'border-theme text-secondary hover:bg-secondary/5'}`}>
                                     <input
                                         type="radio"
                                         name="event_location"
@@ -239,7 +239,7 @@ const CreateEvent = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         {formData.event_location !== 'online' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-secondary mb-2">
                                     <MapPin size={16} className="inline mr-1" /> Physical Location *
                                 </label>
                                 <input
@@ -247,7 +247,7 @@ const CreateEvent = () => {
                                     name="location"
                                     value={formData.location}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg ${errors.location ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg bg-elevated text-primary ${errors.location ? 'border-red-500' : 'border-theme'}`}
                                     placeholder="Event venue address"
                                 />
                                 {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
@@ -255,7 +255,7 @@ const CreateEvent = () => {
                         )}
                         {formData.event_location !== 'physical' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-secondary mb-2">
                                     <Globe size={16} className="inline mr-1" /> Virtual Link *
                                 </label>
                                 <input
@@ -263,7 +263,7 @@ const CreateEvent = () => {
                                     name="event_url"
                                     value={formData.event_url}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg ${errors.event_url ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg bg-elevated text-primary ${errors.event_url ? 'border-red-500' : 'border-theme'}`}
                                     placeholder="https://zoom.us/j/..."
                                 />
                                 {errors.event_url && <p className="text-red-500 text-sm mt-1">{errors.event_url}</p>}
@@ -274,44 +274,44 @@ const CreateEvent = () => {
                     {/* Date/Time */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Date *</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">Event Date *</label>
                             <input
                                 type="date"
                                 name="event_date"
                                 value={formData.event_date}
                                 onChange={handleChange}
                                 min={new Date().toISOString().split('T')[0]}
-                                className={`w-full px-4 py-2 border rounded-lg ${errors.event_date ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full px-4 py-2 border rounded-lg bg-elevated text-primary ${errors.event_date ? 'border-red-500' : 'border-theme'}`}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">Start Time *</label>
                             <input
                                 type="time"
                                 name="start_time"
                                 value={formData.start_time}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">End Time *</label>
                             <input
                                 type="time"
                                 name="end_time"
                                 value={formData.end_time}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Booking Deadline</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">Booking Deadline</label>
                             <input
                                 type="date"
                                 name="booking_deadline"
                                 value={formData.booking_deadline}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             />
                         </div>
                     </div>
@@ -319,7 +319,7 @@ const CreateEvent = () => {
                     {/* Capacity & Complexity */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-secondary mb-2">
                                 <Users size={16} className="inline mr-1" /> Capacity *
                             </label>
                             <input
@@ -328,17 +328,17 @@ const CreateEvent = () => {
                                 value={formData.capacity}
                                 onChange={handleChange}
                                 min="1"
-                                className={`w-full px-4 py-2 border rounded-lg ${errors.capacity ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`w-full px-4 py-2 border rounded-lg bg-elevated text-primary ${errors.capacity ? 'border-red-500' : 'border-theme'}`}
                                 placeholder="Max attendees"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">Event Type</label>
                             <select
                                 name="event_type"
                                 value={formData.event_type}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             >
                                 <option value="public">Public</option>
                                 <option value="private">Private</option>
@@ -347,12 +347,12 @@ const CreateEvent = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Scale</label>
+                            <label className="block text-sm font-medium text-secondary mb-2">Event Scale</label>
                             <select
                                 name="complexity_level"
                                 value={formData.complexity_level}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             >
                                 <option value="small">Small (Simple gathering)</option>
                                 <option value="midlevel">Mid-Level (Conference)</option>
@@ -363,7 +363,7 @@ const CreateEvent = () => {
 
                     {/* Duration */}
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Duration (hours)</label>
+                        <label className="block text-sm font-medium text-secondary mb-2">Duration (hours)</label>
                         <input
                             type="number"
                             name="duration"
@@ -371,14 +371,14 @@ const CreateEvent = () => {
                             onChange={(e) => setFormData(prev => ({ ...prev, duration: formatDuration(parseInt(e.target.value) || 1) }))}
                             min="1"
                             max="72"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg"
                             placeholder="Event duration in hours"
                         />
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-3 justify-end border-t pt-6">
-                        <button onClick={() => navigate('/events')} className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <div className="flex flex-wrap gap-3 justify-end border-t border-theme pt-6">
+                        <button onClick={() => navigate('/events')} className="px-6 py-2 border border-theme rounded-lg hover:bg-secondary/5 text-primary">Cancel</button>
                         <button onClick={() => handleSubmit('draft')} disabled={loading} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2">
                             <Save size={18} /> Save Draft
                         </button>
@@ -394,20 +394,20 @@ const CreateEvent = () => {
 
             {/* Confirmation Modal */}
             {showConfirmation && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
-                        <h3 className="text-lg font-bold mb-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-elevated rounded-xl p-6 max-w-md w-full border border-theme">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                             {confirmAction === 'draft' && '💾 Save as Draft?'}
                             {confirmAction === 'publish' && '🎉 Publish Event?'}
                             {confirmAction === 'announcement' && '📢 Request Announcement?'}
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-secondary mb-6">
                             {confirmAction === 'draft' && 'Your event will be saved as a draft. You can edit and publish it later.'}
                             {confirmAction === 'publish' && 'Your event will be visible to your audience based on event type settings. A discussion room will be created automatically.'}
                             {confirmAction === 'announcement' && 'Your event will be published and an announcement request will be sent for admin approval.'}
                         </p>
                         <div className="flex gap-3 justify-end">
-                            <button onClick={() => setShowConfirmation(false)} className="px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
+                            <button onClick={() => setShowConfirmation(false)} className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-secondary/5">Cancel</button>
                             <button onClick={confirmSubmit} disabled={loading} className="px-4 py-2 bg-primary-600 text-white rounded-lg">
                                 {loading ? 'Processing...' : 'Confirm'}
                             </button>

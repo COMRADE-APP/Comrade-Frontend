@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import ThemeSwitcher from '../components/common/ThemeSwitcher';
 import authService from '../services/auth.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
@@ -134,15 +135,15 @@ const Settings = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Settings</h1>
-                <p className="text-gray-600 mt-1">Manage your account and preferences</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary">Settings</h1>
+                <p className="text-secondary mt-1">Manage your account and preferences</p>
             </div>
 
             {/* Message Alert */}
             {message.text && (
                 <div className={`p-4 rounded-lg flex items-center gap-2 ${message.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-700'
-                    : 'bg-red-50 border border-red-200 text-red-700'
+                    ? 'bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
+                    : 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
                     }`}>
                     {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                     {message.text}
@@ -150,7 +151,7 @@ const Settings = () => {
             )}
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 overflow-x-auto">
+            <div className="border-b border-theme overflow-x-auto">
                 <nav className="-mb-px flex space-x-8">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
@@ -159,8 +160,8 @@ const Settings = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-700'
                                     }`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -176,8 +177,8 @@ const Settings = () => {
                 <div className="space-y-6">
                     {/* User Info Card */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <User className="w-5 h-5" />
                                 Account Information
                             </h3>
@@ -186,22 +187,22 @@ const Settings = () => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                        <p className="text-gray-900">{user?.first_name} {user?.last_name}</p>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Name</label>
+                                        <p className="text-primary">{user?.first_name} {user?.last_name}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                        <p className="text-gray-900">{user?.email}</p>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Email</label>
+                                        <p className="text-primary">{user?.email}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">User Type</label>
                                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 capitalize">
                                             {user?.user_type?.replace('_', ' ') || 'Student'}
                                         </span>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                        <p className="text-gray-900">{user?.phone_number || 'Not set'}</p>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Phone</label>
+                                        <p className="text-primary">{user?.phone_number || 'Not set'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -210,25 +211,25 @@ const Settings = () => {
 
                     {/* Role Change Request */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <UserCog className="w-5 h-5" />
                                 Request Role Change
                             </h3>
                         </CardHeader>
                         <CardBody>
-                            <p className="text-sm text-gray-600 mb-4">
+                            <p className="text-sm text-secondary mb-4">
                                 Need a different role? Submit a request and our team will review it.
                             </p>
                             <form onSubmit={handleRoleChangeRequest} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-secondary mb-1">
                                         Requested Role
                                     </label>
                                     <select
                                         value={roleChangeRequest.requestedRole}
                                         onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, requestedRole: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
                                     >
                                         <option value="">Select a role...</option>
                                         {USER_TYPE_OPTIONS.filter(opt => opt.value !== user?.user_type).map(opt => (
@@ -237,14 +238,14 @@ const Settings = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-secondary mb-1">
                                         Reason for Request
                                     </label>
                                     <textarea
                                         value={roleChangeRequest.reason}
                                         onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, reason: e.target.value })}
                                         rows="3"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
                                         placeholder="Please explain why you need this role change..."
                                     />
                                 </div>
@@ -296,8 +297,8 @@ const Settings = () => {
                 <div className="space-y-6">
                     {/* Change Password */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Lock className="w-5 h-5" />
                                 Change Password
                             </h3>
@@ -310,6 +311,7 @@ const Settings = () => {
                                     value={passwordData.currentPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                                     required
+                                    className="bg-primary border-theme text-primary"
                                 />
                                 <Input
                                     label="New Password"
@@ -317,6 +319,7 @@ const Settings = () => {
                                     value={passwordData.newPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                     required
+                                    className="bg-primary border-theme text-primary"
                                 />
                                 <Input
                                     label="Confirm New Password"
@@ -324,6 +327,7 @@ const Settings = () => {
                                     value={passwordData.confirmPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                     required
+                                    className="bg-primary border-theme text-primary"
                                 />
                                 <div className="flex items-center gap-2">
                                     <input
@@ -331,9 +335,9 @@ const Settings = () => {
                                         id="showPassword"
                                         checked={showPassword}
                                         onChange={(e) => setShowPassword(e.target.checked)}
-                                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                        className="w-4 h-4 text-primary-600 border-theme rounded focus:ring-primary-500"
                                     />
-                                    <label htmlFor="showPassword" className="text-sm text-gray-700">
+                                    <label htmlFor="showPassword" className="text-sm text-primary">
                                         Show passwords
                                     </label>
                                 </div>
@@ -346,8 +350,8 @@ const Settings = () => {
 
                     {/* Two-Factor Authentication */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Shield className="w-5 h-5" />
                                 Two-Factor Authentication (2FA)
                             </h3>
@@ -355,12 +359,12 @@ const Settings = () => {
                         <CardBody>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-medium text-gray-900">Enable 2FA</h4>
-                                    <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                                    <h4 className="font-medium text-primary">Enable 2FA</h4>
+                                    <p className="text-sm text-secondary">Add an extra layer of security to your account</p>
                                 </div>
                                 <button
                                     onClick={handleToggle2FA}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFactorEnabled ? 'bg-primary-600' : 'bg-gray-200'
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFactorEnabled ? 'bg-primary-600' : 'bg-secondary'
                                         }`}
                                 >
                                     <span
@@ -374,19 +378,19 @@ const Settings = () => {
 
                     {/* Active Sessions */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Globe className="w-5 h-5" />
                                 Active Sessions
                             </h3>
                         </CardHeader>
                         <CardBody>
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                                     <div>
-                                        <h4 className="font-medium text-gray-900">Current Device</h4>
-                                        <p className="text-sm text-gray-600">Windows • Chrome</p>
-                                        <p className="text-xs text-gray-500">Last active: Just now</p>
+                                        <h4 className="font-medium text-primary">Current Device</h4>
+                                        <p className="text-sm text-secondary">Windows • Chrome</p>
+                                        <p className="text-xs text-tertiary">Last active: Just now</p>
                                     </div>
                                     <span className="text-xs text-green-600 font-medium">Active</span>
                                 </div>
@@ -403,8 +407,8 @@ const Settings = () => {
             {activeTab === 'notifications' && (
                 <div className="space-y-6">
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Bell className="w-5 h-5" />
                                 Notification Preferences
                             </h3>
@@ -417,10 +421,10 @@ const Settings = () => {
                                     { key: 'taskReminders', label: 'Task Reminders', description: 'Get reminded about pending tasks' },
                                     { key: 'eventUpdates', label: 'Event Updates', description: 'Receive updates about events' },
                                 ].map((setting) => (
-                                    <div key={setting.key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                                    <div key={setting.key} className="flex items-center justify-between py-3 border-b border-theme last:border-0">
                                         <div>
-                                            <h4 className="font-medium text-gray-900">{setting.label}</h4>
-                                            <p className="text-sm text-gray-600">{setting.description}</p>
+                                            <h4 className="font-medium text-primary">{setting.label}</h4>
+                                            <p className="text-sm text-secondary">{setting.description}</p>
                                         </div>
                                         <button
                                             onClick={() =>
@@ -429,7 +433,7 @@ const Settings = () => {
                                                     [setting.key]: !notificationSettings[setting.key],
                                                 })
                                             }
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationSettings[setting.key] ? 'bg-primary-600' : 'bg-gray-200'
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationSettings[setting.key] ? 'bg-primary-600' : 'bg-secondary'
                                                 }`}
                                         >
                                             <span
@@ -448,39 +452,23 @@ const Settings = () => {
             {/* Appearance Tab */}
             {activeTab === 'appearance' && (
                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Card className="overflow-visible">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Palette className="w-5 h-5" />
                                 Theme
                             </h3>
                         </CardHeader>
                         <CardBody>
-                            <div className="grid grid-cols-3 gap-4">
-                                {[
-                                    { value: 'light', label: 'Light', icon: '☀️' },
-                                    { value: 'dark', label: 'Dark', icon: '🌙' },
-                                    { value: 'system', label: 'System', icon: '💻' },
-                                ].map((themeOption) => (
-                                    <button
-                                        key={themeOption.value}
-                                        onClick={() => changeTheme(themeOption.value)}
-                                        className={`p-4 rounded-lg border-2 transition-all ${theme === themeOption.value
-                                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        <span className="text-2xl mb-2 block">{themeOption.icon}</span>
-                                        <span className="font-medium text-gray-900 dark:text-gray-100">{themeOption.label}</span>
-                                    </button>
-                                ))}
+                            <div className="flex justify-start">
+                                <ThemeSwitcher />
                             </div>
                         </CardBody>
                     </Card>
 
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Languages className="w-5 h-5" />
                                 Language & Region
                             </h3>
@@ -488,8 +476,8 @@ const Settings = () => {
                         <CardBody>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
+                                    <label className="block text-sm font-medium text-secondary mb-1">Language</label>
+                                    <select className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary">
                                         <option value="en">English</option>
                                         <option value="sw">Kiswahili</option>
                                         <option value="fr">Français</option>
@@ -505,8 +493,8 @@ const Settings = () => {
             {activeTab === 'privacy' && (
                 <div className="space-y-6">
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <User className="w-5 h-5" />
                                 Profile Visibility
                             </h3>
@@ -518,12 +506,12 @@ const Settings = () => {
                                     { label: 'Show Email', description: 'Display your email on your profile' },
                                     { label: 'Show Activity', description: 'Let others see your recent activity' },
                                 ].map((setting, idx) => (
-                                    <div key={idx} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                                    <div key={idx} className="flex items-center justify-between py-3 border-b border-theme last:border-0">
                                         <div>
-                                            <h4 className="font-medium text-gray-900">{setting.label}</h4>
-                                            <p className="text-sm text-gray-600">{setting.description}</p>
+                                            <h4 className="font-medium text-primary">{setting.label}</h4>
+                                            <p className="text-sm text-secondary">{setting.description}</p>
                                         </div>
-                                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
+                                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
                                             <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
                                         </button>
                                     </div>
@@ -533,9 +521,9 @@ const Settings = () => {
                     </Card>
 
                     {/* Danger Zone */}
-                    <Card className="border-red-200">
-                        <CardHeader className="p-4 border-b border-red-200 bg-red-50">
-                            <h3 className="font-semibold text-red-900 flex items-center gap-2">
+                    <Card className="border-red-200 dark:border-red-900/50">
+                        <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
+                            <h3 className="font-semibold text-red-900 dark:text-red-200 flex items-center gap-2">
                                 <AlertTriangle className="w-5 h-5" />
                                 Danger Zone
                             </h3>
@@ -543,8 +531,8 @@ const Settings = () => {
                         <CardBody>
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-medium text-gray-900">Delete Account</h4>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <h4 className="font-medium text-primary">Delete Account</h4>
+                                    <p className="text-sm text-secondary mt-1">
                                         Once you delete your account, there is no going back. Please be certain.
                                     </p>
                                 </div>

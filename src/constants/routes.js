@@ -65,6 +65,15 @@ export const ROUTES = {
     // AI Assistant
     QOMAI: '/qomai',
 
+    // Business Funding
+    FUNDING: '/funding',
+    CREATE_BUSINESS: '/business/create',
+
+    // Careers & Gigs
+    GIGS: '/gigs',
+    CREATE_GIG: '/gigs/create',
+    CAREERS: '/careers',
+
     // Create Content
     CREATE_EVENT: '/events/create',
     CREATE_TASK: '/tasks/create',

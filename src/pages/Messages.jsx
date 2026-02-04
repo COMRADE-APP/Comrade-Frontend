@@ -310,9 +310,9 @@ const Messages = () => {
             {/* Conversations List */}
             <div className={`w-80 flex-shrink-0 flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                 <Card className="h-full flex flex-col">
-                    <div className="p-4 border-b border-gray-200">
+                    <div className="p-4 border-b border-theme">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+                            <h2 className="text-lg font-semibold text-primary">Messages</h2>
                             <button
                                 onClick={() => setShowNewConversation(true)}
                                 className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
@@ -323,12 +323,12 @@ const Messages = () => {
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                        <div className="flex gap-1 bg-secondary p-1 rounded-lg">
                             <button
                                 onClick={() => setActiveTab('chats')}
                                 className={`flex-1 flex items-center justify-center gap-1 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'chats'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-elevated text-primary shadow-sm'
+                                    : 'text-tertiary hover:text-primary'
                                     }`}
                             >
                                 <MessageCircle size={16} />
@@ -337,8 +337,8 @@ const Messages = () => {
                             <button
                                 onClick={() => setActiveTab('requests')}
                                 className={`flex-1 flex items-center justify-center gap-1 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'requests'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-elevated text-primary shadow-sm'
+                                    : 'text-tertiary hover:text-primary'
                                     }`}
                             >
                                 <Inbox size={16} />
@@ -347,8 +347,8 @@ const Messages = () => {
                             <button
                                 onClick={() => setActiveTab('circles')}
                                 className={`flex-1 flex items-center justify-center gap-1 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'circles'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-elevated text-primary shadow-sm'
+                                    : 'text-tertiary hover:text-primary'
                                     }`}
                             >
                                 <Users size={16} />
@@ -365,8 +365,8 @@ const Messages = () => {
                         ) : activeTab === 'chats' ? (
                             conversations.length === 0 ? (
                                 <div className="text-center py-8 px-4">
-                                    <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                    <p className="text-gray-500 text-sm mb-4">No conversations yet</p>
+                                    <MessageCircle className="w-12 h-12 text-tertiary mx-auto mb-2" />
+                                    <p className="text-secondary text-sm mb-4">No conversations yet</p>
                                     <Button variant="outline" onClick={() => setShowNewConversation(true)} className="text-sm">
                                         Start a conversation
                                     </Button>
@@ -379,7 +379,7 @@ const Messages = () => {
                                         <div
                                             key={conv.id}
                                             onClick={() => setSelectedConversation(conv)}
-                                            className={`p-4 flex items-start gap-3 cursor-pointer transition-colors border-b border-gray-100 ${selectedConversation?.id === conv.id ? 'bg-primary-50' : 'hover:bg-gray-50'
+                                            className={`p-4 flex items-start gap-3 cursor-pointer transition-colors border-b border-theme ${selectedConversation?.id === conv.id ? 'bg-primary/10' : 'hover:bg-secondary/50'
                                                 }`}
                                         >
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden">
@@ -391,16 +391,16 @@ const Messages = () => {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">
-                                                    <h4 className="font-medium text-gray-900 truncate">
+                                                    <h4 className="font-medium text-primary truncate">
                                                         {getParticipantName(other)}
                                                     </h4>
                                                     {lastMsg && (
-                                                        <span className="text-xs text-gray-500">
+                                                        <span className="text-xs text-secondary">
                                                             {formatTimeAgo(lastMsg.time_stamp || lastMsg.created_at)}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-600 truncate">
+                                                <p className="text-sm text-secondary truncate">
                                                     {lastMsg?.content || 'No messages yet'}
                                                 </p>
                                                 {conv.unread_count > 0 && (
@@ -416,12 +416,12 @@ const Messages = () => {
                         ) : activeTab === 'requests' ? (
                             requests.length === 0 ? (
                                 <div className="text-center py-8 px-4">
-                                    <Inbox className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                    <p className="text-gray-500 text-sm">No message requests</p>
+                                    <Inbox className="w-12 h-12 text-tertiary mx-auto mb-2" />
+                                    <p className="text-secondary text-sm">No message requests</p>
                                 </div>
                             ) : (
                                 requests.map((req) => (
-                                    <div key={req.id} className="p-4 border-b border-gray-100">
+                                    <div key={req.id} className="p-4 border-b border-theme">
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                 {req.sender?.avatar_url ? (
@@ -431,8 +431,8 @@ const Messages = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <h4 className="font-medium text-gray-900">{getParticipantName(req.sender)}</h4>
-                                                <p className="text-xs text-gray-500">Wants to send you a message</p>
+                                                <h4 className="font-medium text-primary">{getParticipantName(req.sender)}</h4>
+                                                <p className="text-xs text-secondary">Wants to send you a message</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -444,7 +444,7 @@ const Messages = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleDeclineRequest(req.id)}
-                                                className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
+                                                className="flex-1 px-3 py-1.5 bg-secondary text-primary text-sm rounded-lg hover:bg-tertiary"
                                             >
                                                 Decline
                                             </button>
@@ -454,8 +454,8 @@ const Messages = () => {
                             )
                         ) : (
                             circles.length === 0 ? (
-                                <div className="text-center py-8 px-4 text-gray-500">
-                                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                <div className="text-center py-8 px-4 text-secondary">
+                                    <Users className="w-12 h-12 text-tertiary mx-auto mb-2" />
                                     <p>No circles yet</p>
                                     <p className="text-xs mt-1">Follow people who follow you back</p>
                                 </div>
@@ -464,7 +464,7 @@ const Messages = () => {
                                     <div
                                         key={circle.user?.id || circle.id}
                                         onClick={() => handleStartConversation(circle.user?.id || circle.id)}
-                                        className="p-4 flex items-center gap-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100"
+                                        className="p-4 flex items-center gap-3 cursor-pointer hover:bg-secondary/50 border-b border-theme"
                                     >
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
                                             {circle.user?.avatar_url || circle.avatar_url ? (
@@ -474,10 +474,10 @@ const Messages = () => {
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="font-medium text-gray-900">
+                                            <h4 className="font-medium text-primary">
                                                 {circle.user?.full_name || circle.full_name || getParticipantName(circle.user || circle)}
                                             </h4>
-                                            <p className="text-sm text-gray-500">Start chatting!</p>
+                                            <p className="text-sm text-secondary">Start chatting!</p>
                                         </div>
                                         <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">Circle</span>
                                     </div>
@@ -493,9 +493,9 @@ const Messages = () => {
                 {selectedConversation ? (
                     <Card className="h-full flex flex-col">
                         {/* Chat Header */}
-                        <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+                        <div className="p-4 border-b border-theme flex items-center gap-3">
                             <button
-                                className="md:hidden p-1 text-gray-500 hover:bg-gray-100 rounded"
+                                className="md:hidden p-1 text-secondary hover:bg-secondary rounded"
                                 onClick={() => setSelectedConversation(null)}
                             >
                                 <ChevronLeft size={24} />
@@ -512,10 +512,10 @@ const Messages = () => {
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-gray-900">
+                                            <h3 className="font-semibold text-primary">
                                                 {getParticipantName(other)}
                                             </h3>
-                                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                                            <p className="text-xs text-secondary flex items-center gap-1">
                                                 <Lock className="w-3 h-3" /> Direct Message
                                             </p>
                                         </div>
@@ -525,15 +525,15 @@ const Messages = () => {
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-tertiary/5">
                             {messagesLoading ? (
                                 <div className="flex items-center justify-center h-full">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                                 </div>
                             ) : messages.length === 0 ? (
-                                <div className="flex items-center justify-center h-full text-gray-500">
+                                <div className="flex items-center justify-center h-full text-secondary">
                                     <div className="text-center">
-                                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-tertiary" />
                                         <p>No messages yet. Say hello!</p>
                                     </div>
                                 </div>
@@ -545,7 +545,7 @@ const Messages = () => {
                                             <div key={message.id || idx} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                                                 <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${isOwn
                                                     ? 'bg-primary-600 text-white rounded-br-sm'
-                                                    : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
+                                                    : 'bg-elevated text-primary rounded-bl-sm shadow-sm border border-theme'
                                                     }`}>
                                                     {message.file && (
                                                         <div className="mb-2">
@@ -565,7 +565,7 @@ const Messages = () => {
                                                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                                     )}
                                                     <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
-                                                        <span className={`text-xs ${isOwn ? 'text-primary-200' : 'text-gray-500'}`}>
+                                                        <span className={`text-xs ${isOwn ? 'text-primary-200' : 'text-tertiary'}`}>
                                                             {formatTimeAgo(message.time_stamp || message.created_at)}
                                                         </span>
                                                         {isOwn && (
@@ -582,39 +582,39 @@ const Messages = () => {
                         </div>
 
                         {/* Input */}
-                        <div className="p-4 border-t border-gray-200 bg-white">
+                        <div className="p-4 border-t border-theme bg-elevated">
                             {/* Media preview */}
                             {selectedMedia && (
                                 <div className="mb-2 relative inline-block">
                                     {selectedMedia.type?.startsWith('image/') ? (
                                         <img src={URL.createObjectURL(selectedMedia)} alt="" className="h-16 rounded-lg" />
                                     ) : selectedMedia.type?.startsWith('audio/') ? (
-                                        <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
+                                        <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
                                             <Mic size={18} className="text-primary-600" />
-                                            <span className="text-sm">Voice note ready</span>
+                                            <span className="text-sm text-primary">Voice note ready</span>
                                         </div>
                                     ) : (
-                                        <div className="px-3 py-2 bg-gray-100 rounded-lg text-sm">📎 {selectedMedia.name}</div>
+                                        <div className="px-3 py-2 bg-secondary rounded-lg text-sm text-primary">📎 {selectedMedia.name}</div>
                                     )}
-                                    <button onClick={() => setSelectedMedia(null)} className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full text-xs">×</button>
+                                    <button onClick={() => setSelectedMedia(null)} className="absolute -top-1 -right-1 w-5 h-5 bg-black/80 text-white rounded-full text-xs">×</button>
                                 </div>
                             )}
 
                             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*,video/*,application/pdf,.doc,.docx" />
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-secondary hover:bg-secondary rounded-lg transition-colors">
                                     <Paperclip className="w-5 h-5" />
                                 </button>
 
                                 {/* Emoji picker */}
                                 <div className="relative">
-                                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-secondary hover:bg-secondary rounded-lg transition-colors">
                                         <Smile className="w-5 h-5" />
                                     </button>
                                     {showEmojiPicker && (
-                                        <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-10 gap-1 z-30">
+                                        <div className="absolute bottom-full mb-2 left-0 bg-elevated border border-theme rounded-lg shadow-lg p-2 grid grid-cols-10 gap-1 z-30">
                                             {COMMON_EMOJIS.map(emoji => (
-                                                <button key={emoji} type="button" onClick={() => { setNewMessage(prev => prev + emoji); setShowEmojiPicker(false); }} className="p-1 hover:bg-gray-100 rounded text-lg">
+                                                <button key={emoji} type="button" onClick={() => { setNewMessage(prev => prev + emoji); setShowEmojiPicker(false); }} className="p-1 hover:bg-secondary rounded text-lg">
                                                     {emoji}
                                                 </button>
                                             ))}
@@ -629,7 +629,7 @@ const Messages = () => {
                                         <span className="text-sm">{formatRecordingTime(recordingTime)}</span>
                                     </button>
                                 ) : (
-                                    <button type="button" onClick={startRecording} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                    <button type="button" onClick={startRecording} className="p-2 text-secondary hover:bg-secondary rounded-lg transition-colors">
                                         <Mic className="w-5 h-5" />
                                     </button>
                                 )}
@@ -639,7 +639,7 @@ const Messages = () => {
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Type a message..."
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    className="flex-1 px-4 py-2 border border-theme bg-secondary text-primary placeholder-tertiary rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                 />
                                 <button type="submit" className="p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50" disabled={!newMessage.trim() && !selectedMedia}>
                                     <Send className="w-5 h-5" />
@@ -650,9 +650,9 @@ const Messages = () => {
                 ) : (
                     <Card className="h-full flex items-center justify-center">
                         <CardBody className="text-center">
-                            <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Your Messages</h3>
-                            <p className="text-gray-500 mb-4">Send messages to friends and connections</p>
+                            <MessageCircle className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-primary mb-2">Your Messages</h3>
+                            <p className="text-secondary mb-4">Send messages to friends and connections</p>
                             <Button variant="primary" onClick={() => setShowNewConversation(true)}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 New Message
@@ -664,24 +664,24 @@ const Messages = () => {
 
             {/* New Conversation Modal */}
             {showNewConversation && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">New Message</h2>
-                                <button onClick={() => { setShowNewConversation(false); setSearchQuery(''); setSearchResults([]); }} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">New Message</h2>
+                                <button onClick={() => { setShowNewConversation(false); setSearchQuery(''); setSearchResults([]); }} className="text-tertiary hover:text-primary transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
                             <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
                                 <input
                                     type="text"
                                     placeholder="Search users by name..."
                                     value={searchQuery}
                                     onChange={(e) => handleSearchUsers(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                    className="w-full pl-10 pr-4 py-2 border border-theme bg-secondary text-primary placeholder-tertiary rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                                 />
                             </div>
 
@@ -692,40 +692,40 @@ const Messages = () => {
                                     </div>
                                 ) : searchQuery.length >= 2 && searchResults.length > 0 ? (
                                     <>
-                                        <p className="text-xs text-gray-500 mb-2 px-1">Search Results</p>
+                                        <p className="text-xs text-secondary mb-2 px-1">Search Results</p>
                                         {searchResults.map((searchUser) => (
-                                            <button key={searchUser.id} onClick={() => handleStartConversation(searchUser.id)} className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 rounded-lg">
+                                            <button key={searchUser.id} onClick={() => handleStartConversation(searchUser.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                     {searchUser.avatar_url ? <img src={searchUser.avatar_url} alt="" className="w-full h-full object-cover" /> : searchUser.first_name?.[0] || 'U'}
                                                 </div>
                                                 <div className="text-left">
-                                                    <p className="font-medium text-gray-900">{searchUser.first_name} {searchUser.last_name}</p>
-                                                    <p className="text-sm text-gray-500">{searchUser.email}</p>
+                                                    <p className="font-medium text-primary">{searchUser.first_name} {searchUser.last_name}</p>
+                                                    <p className="text-sm text-secondary">{searchUser.email}</p>
                                                 </div>
                                             </button>
                                         ))}
                                     </>
                                 ) : searchQuery.length >= 2 ? (
-                                    <p className="text-center text-gray-500 py-4">No users found</p>
+                                    <p className="text-center text-secondary py-4">No users found</p>
                                 ) : (
                                     <>
                                         {followers.length > 0 && (
                                             <>
-                                                <p className="text-xs text-gray-500 mb-2 px-1 flex items-center gap-1"><UserPlus size={12} /> Your Followers</p>
+                                                <p className="text-xs text-secondary mb-2 px-1 flex items-center gap-1"><UserPlus size={12} /> Your Followers</p>
                                                 {followers.slice(0, 10).map((follower) => (
-                                                    <button key={follower.id} onClick={() => handleStartConversation(follower.id)} className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 rounded-lg">
+                                                    <button key={follower.id} onClick={() => handleStartConversation(follower.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
                                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                             {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="w-full h-full object-cover" /> : follower.first_name?.[0] || 'U'}
                                                         </div>
                                                         <div className="text-left">
-                                                            <p className="font-medium text-gray-900">{follower.first_name} {follower.last_name}</p>
-                                                            <p className="text-sm text-gray-500">{follower.email || follower.user_type}</p>
+                                                            <p className="font-medium text-primary">{follower.first_name} {follower.last_name}</p>
+                                                            <p className="text-sm text-secondary">{follower.email || follower.user_type}</p>
                                                         </div>
                                                     </button>
                                                 ))}
                                             </>
                                         )}
-                                        <p className="text-center text-gray-400 py-2 text-sm">Type to search more users</p>
+                                        <p className="text-center text-tertiary py-2 text-sm">Type to search more users</p>
                                     </>
                                 )}
                             </div>

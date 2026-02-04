@@ -91,12 +91,12 @@ const Following = () => {
         <div className="max-w-3xl mx-auto space-y-6">
             {/* Header */}
             <div className="space-y-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Connect</h1>
-                <p className="text-gray-600">Discover people and grow your network</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary">Connect</h1>
+                <p className="text-secondary">Discover people and grow your network</p>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+            <div className="flex gap-2 p-1 bg-elevated/50 border border-theme rounded-xl">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     return (
@@ -104,8 +104,8 @@ const Following = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${activeTab === tab.id
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-elevated text-primary shadow-sm border border-theme'
+                                : 'text-secondary hover:text-primary hover:bg-secondary/5'
                                 }`}
                         >
                             <Icon className="w-4 h-4" />
@@ -117,31 +117,31 @@ const Following = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                 <input
                     type="text"
                     placeholder="Search users..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-elevated border border-theme rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-primary placeholder-secondary transition-all"
                 />
             </div>
 
             {/* List */}
             <Card>
-                <CardBody className="p-0 divide-y divide-gray-100">
+                <CardBody className="p-0 divide-y divide-theme">
                     {loading ? (
                         <div className="flex items-center justify-center py-16">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                         </div>
                     ) : filteredList.length === 0 ? (
                         <div className="text-center py-16 px-4">
-                            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            <Users className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-primary mb-2">
                                 {activeTab === 'suggestions' ? 'No suggestions' :
                                     activeTab === 'followers' ? 'No followers yet' : 'Not following anyone'}
                             </h3>
-                            <p className="text-gray-500">
+                            <p className="text-secondary">
                                 {activeTab === 'suggestions'
                                     ? 'Check back later for new people to follow'
                                     : activeTab === 'followers'
@@ -170,10 +170,10 @@ const UserCard = ({ user, onFollow, currentUserId }) => {
     const isOwnProfile = user.id === currentUserId;
 
     return (
-        <div className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+        <div className="flex items-center gap-4 p-4 hover:bg-secondary/5 transition-colors">
             {/* Avatar */}
             <Link to={`/profile/${user.id}`} className="shrink-0">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-xl">
                     {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                 </div>
             </Link>
@@ -181,17 +181,17 @@ const UserCard = ({ user, onFollow, currentUserId }) => {
             {/* Info */}
             <div className="flex-1 min-w-0">
                 <Link to={`/profile/${user.id}`} className="block">
-                    <h3 className="font-bold text-gray-900 hover:underline truncate">
+                    <h3 className="font-bold text-primary hover:underline truncate">
                         {user.full_name || user.first_name || user.email}
                     </h3>
-                    <p className="text-sm text-gray-500 truncate">@{user.email?.split('@')[0]}</p>
+                    <p className="text-sm text-secondary truncate">@{user.email?.split('@')[0]}</p>
                 </Link>
                 {user.bio && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{user.bio}</p>
+                    <p className="text-sm text-secondary mt-1 line-clamp-2">{user.bio}</p>
                 )}
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span><strong className="text-gray-900">{user.followers_count || 0}</strong> followers</span>
-                    <span><strong className="text-gray-900">{user.following_count || 0}</strong> following</span>
+                <div className="flex items-center gap-4 mt-2 text-sm text-secondary">
+                    <span><strong className="text-primary">{user.followers_count || 0}</strong> followers</span>
+                    <span><strong className="text-primary">{user.following_count || 0}</strong> following</span>
                 </div>
             </div>
 

@@ -59,6 +59,11 @@ import GroupTargets from './pages/payments/GroupTargets';
 import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
 import PaymentGroups from './pages/payments/PaymentGroups';
 import PaymentGroupDetail from './pages/payments/PaymentGroupDetail';
+import VerifyAccount from './pages/payments/VerifyAccount';
+import BusinessRegistration from './pages/payments/BusinessRegistration';
+import RegisterAgent from './pages/payments/RegisterAgent';
+import RegisterSupplier from './pages/payments/RegisterSupplier';
+import RegisterShop from './pages/payments/RegisterShop';
 
 // Opinions & Social
 import Opinions from './pages/Opinions';
@@ -87,6 +92,13 @@ import AdminDeletionReview from './pages/admin/AdminDeletionReview';
 import BecomePartner from './pages/partners/BecomePartner';
 import CreateProduct from './pages/products/CreateProduct';
 import QomAI from './pages/QomAI';
+import FundingHub from './pages/funding/FundingHub';
+import CreateBusiness from './pages/funding/CreateBusiness';
+
+// Careers & Gigs
+import GigsPage from './pages/careers/GigsPage';
+import CareersPage from './pages/careers/CareersPage';
+import CreateGig from './pages/careers/CreateGig';
 
 // New Portal Components
 import EntityCreationPortal from './components/entities/EntityCreationPortal';
@@ -152,6 +164,58 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <QomAI />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.FUNDING}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <FundingHub />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/create'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateBusiness />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            {/* Gigs Routes */}
+            <Route
+                path={ROUTES.GIGS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GigsPage />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.CREATE_GIG}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateGig />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            {/* Careers Routes */}
+            <Route
+                path={ROUTES.CAREERS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CareersPage />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -613,6 +677,59 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreatePaymentGroup />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/payments/verify-account"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <VerifyAccount />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Business Registration Routes */}
+            <Route
+                path="/business/register"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BusinessRegistration />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/register-agent"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RegisterAgent />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/register-supplier"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RegisterSupplier />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/register-shop"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RegisterShop />
                         </MainLayout>
                     </ProtectedRoute>
                 }

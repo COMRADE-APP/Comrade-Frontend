@@ -271,7 +271,7 @@ const Profile = () => {
                     {/* Avatar */}
                     <div className="absolute -bottom-16 left-6 md:left-8">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-full bg-white p-1 shadow-xl">
+                            <div className="w-32 h-32 rounded-full bg-elevated p-1 shadow-xl">
                                 {profile.avatar_url ? (
                                     <img
                                         src={profile.avatar_url}
@@ -347,40 +347,40 @@ const Profile = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
-                                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                className="p-2 rounded-full hover:bg-secondary transition-colors"
                             >
-                                <MoreHorizontal className="w-5 h-5 text-gray-600" />
+                                <MoreHorizontal className="w-5 h-5 text-secondary" />
                             </button>
 
                             {showMenu && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-elevated rounded-xl shadow-lg border border-theme py-2 z-50">
                                     {isOwner ? (
                                         <>
                                             <button
                                                 onClick={() => { setShowPrivacySettings(true); setShowMenu(false); }}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                                className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2"
                                             >
                                                 <Shield className="w-4 h-4" /> Privacy Settings
                                             </button>
                                             <button
                                                 onClick={() => { navigate('/settings'); setShowMenu(false); }}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                                className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2"
                                             >
                                                 <Settings className="w-4 h-4" /> Account Settings
                                             </button>
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                                            <button className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2">
                                                 <Share2 className="w-4 h-4" /> Share Profile
                                             </button>
                                         </>
                                     ) : (
                                         <>
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                                            <button className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2">
                                                 <Share2 className="w-4 h-4" /> Share Profile
                                             </button>
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                                            <button className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2">
                                                 <Ban className="w-4 h-4" /> Block User
                                             </button>
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600">
+                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 text-red-600">
                                                 <Flag className="w-4 h-4" /> Report
                                             </button>
                                         </>
@@ -411,7 +411,7 @@ const Profile = () => {
                             </div>
                         ) : (
                             <>
-                                <h1 className="text-2xl font-bold text-gray-900">
+                                <h1 className="text-2xl font-bold text-primary">
                                     {profile.full_name || `${profile.first_name} ${profile.last_name}`}
                                 </h1>
                                 <p className="text-primary-600 font-medium capitalize">{profile.user_type?.replace('_', ' ')}</p>
@@ -420,29 +420,29 @@ const Profile = () => {
                     </div>
 
                     {/* Contact Info */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-secondary mb-4">
                         {profile.email && (
                             <div className="flex items-center gap-1">
                                 <Mail className="w-4 h-4" />
-                                <span>{profile.email}</span>
+                                <span className="text-primary">{profile.email}</span>
                             </div>
                         )}
                         {profile.phone_number && (
                             <div className="flex items-center gap-1">
                                 <Phone className="w-4 h-4" />
-                                <span>{profile.phone_number}</span>
+                                <span className="text-primary">{profile.phone_number}</span>
                             </div>
                         )}
                         {profile.location && (
                             <div className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
-                                <span>{profile.location}</span>
+                                <span className="text-primary">{profile.location}</span>
                             </div>
                         )}
                         {profile.occupation && (
                             <div className="flex items-center gap-1">
                                 <Briefcase className="w-4 h-4" />
-                                <span>{profile.occupation}</span>
+                                <span className="text-primary">{profile.occupation}</span>
                             </div>
                         )}
                         {profile.website && (
@@ -456,12 +456,12 @@ const Profile = () => {
                     {/* Follower counts */}
                     <div className="flex items-center gap-6 text-sm mb-4">
                         <button className="hover:underline">
-                            <span className="font-bold text-gray-900">{profile.following_count || 0}</span>
-                            <span className="text-gray-500 ml-1">Following</span>
+                            <span className="font-bold text-primary">{profile.following_count || 0}</span>
+                            <span className="text-secondary ml-1">Following</span>
                         </button>
                         <button className="hover:underline">
-                            <span className="font-bold text-gray-900">{profile.followers_count || 0}</span>
-                            <span className="text-gray-500 ml-1">Followers</span>
+                            <span className="font-bold text-primary">{profile.followers_count || 0}</span>
+                            <span className="text-secondary ml-1">Followers</span>
                         </button>
                     </div>
 
@@ -474,21 +474,21 @@ const Profile = () => {
                             rows="3"
                             maxLength={500}
                             placeholder="Tell us about yourself..."
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                            className="w-full px-4 py-3 border border-theme bg-primary text-primary placeholder-tertiary rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                         />
                     ) : profile.bio ? (
-                        <p className="text-gray-700">{profile.bio}</p>
+                        <p className="text-primary">{profile.bio}</p>
                     ) : isOwner ? (
-                        <p className="text-gray-400 italic">Add a bio to tell people about yourself</p>
+                        <p className="text-tertiary italic">Add a bio to tell people about yourself</p>
                     ) : null}
 
                     {/* Interests */}
                     {profile.interests?.length > 0 && !isEditing && (
                         <div className="mt-4">
-                            <h3 className="text-sm font-medium text-gray-500 uppercase mb-2">Interests</h3>
+                            <h3 className="text-sm font-medium text-tertiary uppercase mb-2">Interests</h3>
                             <div className="flex flex-wrap gap-2">
                                 {profile.interests.map((interest, i) => (
-                                    <span key={i} className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+                                    <span key={i} className="px-3 py-1 bg-secondary text-primary rounded-full text-sm">
                                         {interest}
                                     </span>
                                 ))}
@@ -527,20 +527,20 @@ const Profile = () => {
 
             {/* Content Tabs */}
             <Card>
-                <div className="border-b border-gray-100">
+                <div className="border-b border-theme">
                     <div className="flex">
                         {TABS.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex-1 py-4 px-4 text-sm font-medium text-center transition-colors ${activeTab === tab.id
-                                        ? 'text-primary-600 border-b-2 border-primary-600'
-                                        : 'text-gray-500 hover:text-gray-700'
+                                    ? 'text-primary-600 border-b-2 border-primary-600'
+                                    : 'text-tertiary hover:text-primary'
                                     }`}
                             >
                                 {tab.label}
                                 {tab.count !== undefined && (
-                                    <span className="ml-1 text-xs text-gray-400">({tab.count})</span>
+                                    <span className="ml-1 text-xs text-tertiary">({tab.count})</span>
                                 )}
                             </button>
                         ))}
@@ -550,14 +550,14 @@ const Profile = () => {
                 <CardBody className="p-0">
                     {/* Posts Tab */}
                     {activeTab === 'posts' && (
-                        <div className="divide-y divide-gray-100">
+                        <div className="divide-y divide-theme">
                             {loadingPosts ? (
                                 <div className="flex justify-center py-8">
                                     <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
                                 </div>
                             ) : userPosts.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500">
-                                    <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                <div className="text-center py-12 text-secondary">
+                                    <MessageSquare className="w-12 h-12 mx-auto mb-3 text-tertiary" />
                                     <p className="font-medium">No posts yet</p>
                                     <p className="text-sm">
                                         {isOwner ? "Share your first opinion!" : "This user hasn't posted anything yet."}
@@ -565,20 +565,20 @@ const Profile = () => {
                                 </div>
                             ) : (
                                 userPosts.map((post) => (
-                                    <div key={post.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                    <div key={post.id} className="p-4 hover:bg-secondary/50 transition-colors">
                                         <div className="flex items-start gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
                                                 {profile.first_name?.[0]}{profile.last_name?.[0]}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold text-gray-900">{profile.full_name}</span>
-                                                    <span className="text-gray-400 text-sm">·</span>
-                                                    <span className="text-gray-500 text-sm">
+                                                    <span className="font-semibold text-primary">{profile.full_name}</span>
+                                                    <span className="text-tertiary text-sm">·</span>
+                                                    <span className="text-secondary text-sm">
                                                         {new Date(post.created_at).toLocaleDateString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-700 mt-1">{post.content}</p>
+                                                <p className="text-primary mt-1">{post.content}</p>
                                                 {post.media_url && (
                                                     <img
                                                         src={post.media_url}
@@ -586,7 +586,7 @@ const Profile = () => {
                                                         className="mt-3 rounded-xl max-h-80 object-cover"
                                                     />
                                                 )}
-                                                <div className="flex items-center gap-6 mt-3 text-gray-500">
+                                                <div className="flex items-center gap-6 mt-3 text-secondary">
                                                     <button
                                                         onClick={() => handleLikePost(post.id)}
                                                         className={`flex items-center gap-1 hover:text-red-500 transition-colors ${post.is_liked ? 'text-red-500' : ''}`}
@@ -616,7 +616,7 @@ const Profile = () => {
 
                     {/* Placeholder for other tabs */}
                     {activeTab !== 'posts' && (
-                        <div className="text-center py-12 text-gray-500">
+                        <div className="text-center py-12 text-secondary">
                             <p>Coming soon</p>
                         </div>
                     )}
@@ -627,7 +627,7 @@ const Profile = () => {
             {!isOwner && followSuggestions.length > 0 && (
                 <Card>
                     <CardBody>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <h2 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                             <Users className="w-5 h-5" />
                             You might also like
                         </h2>
@@ -639,8 +639,8 @@ const Profile = () => {
                                             {user.first_name?.[0]}{user.last_name?.[0]}
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">{user.first_name} {user.last_name}</p>
-                                            <p className="text-sm text-gray-500 capitalize">{user.user_type?.replace('_', ' ')}</p>
+                                            <p className="font-medium text-primary">{user.first_name} {user.last_name}</p>
+                                            <p className="text-sm text-secondary capitalize">{user.user_type?.replace('_', ' ')}</p>
                                         </div>
                                     </div>
                                     <Button
@@ -662,7 +662,7 @@ const Profile = () => {
             {isOwner && (
                 <Card>
                     <CardBody>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                        <h2 className="text-lg font-semibold text-primary mb-4">Quick Actions</h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <Button variant="outline" onClick={() => navigate('/settings')}>
                                 <Settings className="w-4 h-4 mr-2" />
@@ -686,22 +686,22 @@ const Profile = () => {
 
             {/* Privacy Settings Modal */}
             {showPrivacySettings && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                            <h2 className="text-xl font-bold">Privacy Settings</h2>
-                            <button onClick={() => setShowPrivacySettings(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-elevated rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto border border-theme">
+                        <div className="p-6 border-b border-theme flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-primary">Privacy Settings</h2>
+                            <button onClick={() => setShowPrivacySettings(false)} className="p-2 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Who can see your email?</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Who can see your email?</label>
                                 <select
                                     name="show_email"
                                     value={formData.show_email}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500"
+                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="public">Everyone</option>
                                     <option value="followers">Followers Only</option>
@@ -709,12 +709,12 @@ const Profile = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Who can see your phone?</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Who can see your phone?</label>
                                 <select
                                     name="show_phone"
                                     value={formData.show_phone}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500"
+                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="public">Everyone</option>
                                     <option value="followers">Followers Only</option>
@@ -722,12 +722,12 @@ const Profile = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Who can message you?</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Who can message you?</label>
                                 <select
                                     name="allow_messages"
                                     value={formData.allow_messages}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500"
+                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="anyone">Anyone</option>
                                     <option value="followers">Followers Only</option>
@@ -735,7 +735,7 @@ const Profile = () => {
                                 </select>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">Show activity status</span>
+                                <span className="text-sm font-medium text-primary">Show activity status</span>
                                 <input
                                     type="checkbox"
                                     name="show_activity_status"
@@ -745,7 +745,7 @@ const Profile = () => {
                                 />
                             </div>
                         </div>
-                        <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+                        <div className="p-6 border-t border-theme flex justify-end gap-3">
                             <Button variant="outline" onClick={() => setShowPrivacySettings(false)}>Cancel</Button>
                             <Button variant="primary" onClick={() => { handleSave(); setShowPrivacySettings(false); }} disabled={saving}>
                                 {saving ? 'Saving...' : 'Save Changes'}

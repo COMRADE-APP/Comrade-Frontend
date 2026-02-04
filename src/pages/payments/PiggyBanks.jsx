@@ -144,13 +144,13 @@ const PiggyBanks = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/payments')}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        <ArrowLeft className="w-5 h-5 text-secondary" />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Piggy Banks</h1>
-                        <p className="text-gray-600 mt-1">Manage your savings goals</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-primary">Piggy Banks</h1>
+                        <p className="text-secondary mt-1">Manage your savings goals</p>
                     </div>
                 </div>
                 <Button variant="primary" onClick={() => setShowCreateModal(true)}>
@@ -165,7 +165,7 @@ const PiggyBanks = () => {
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-pink-100 text-xs mb-1">Total Saved</p>
+                                <p className="text-white/80 text-xs mb-1">Total Saved</p>
                                 <h2 className="text-2xl font-bold">${totalSaved.toFixed(2)}</h2>
                             </div>
                             <div className="bg-white/20 p-2 rounded-full">
@@ -178,10 +178,10 @@ const PiggyBanks = () => {
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-500 text-xs mb-1">Target Amount</p>
-                                <h2 className="text-2xl font-bold text-gray-900">${totalTarget.toFixed(2)}</h2>
+                                <p className="text-secondary text-xs mb-1">Target Amount</p>
+                                <h2 className="text-2xl font-bold text-primary">${totalTarget.toFixed(2)}</h2>
                             </div>
-                            <div className="bg-blue-50 p-2 rounded-full">
+                            <div className="bg-blue-500/10 p-2 rounded-full">
                                 <Target className="w-5 h-5 text-blue-600" />
                             </div>
                         </div>
@@ -191,10 +191,10 @@ const PiggyBanks = () => {
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-500 text-xs mb-1">Active Goals</p>
-                                <h2 className="text-2xl font-bold text-gray-900">{piggyBanks.length}</h2>
+                                <p className="text-secondary text-xs mb-1">Active Goals</p>
+                                <h2 className="text-2xl font-bold text-primary">{piggyBanks.length}</h2>
                             </div>
-                            <div className="bg-green-50 p-2 rounded-full">
+                            <div className="bg-green-500/10 p-2 rounded-full">
                                 <TrendingUp className="w-5 h-5 text-green-600" />
                             </div>
                         </div>
@@ -204,10 +204,10 @@ const PiggyBanks = () => {
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-500 text-xs mb-1">Avg. Progress</p>
-                                <h2 className="text-2xl font-bold text-gray-900">{avgCompletion.toFixed(0)}%</h2>
+                                <p className="text-secondary text-xs mb-1">Avg. Progress</p>
+                                <h2 className="text-2xl font-bold text-primary">{avgCompletion.toFixed(0)}%</h2>
                             </div>
-                            <div className="bg-purple-50 p-2 rounded-full">
+                            <div className="bg-purple-500/10 p-2 rounded-full">
                                 <CheckCircle className="w-5 h-5 text-purple-600" />
                             </div>
                         </div>
@@ -218,13 +218,13 @@ const PiggyBanks = () => {
             {/* Search and Tabs */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                     <input
                         type="text"
                         placeholder="Search piggy banks..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                        className="w-full pl-10 pr-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div className="flex gap-2 overflow-x-auto">
@@ -238,8 +238,8 @@ const PiggyBanks = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${activeTab === tab.id
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                ? 'bg-primary text-white'
+                                : 'bg-elevated text-secondary border border-theme hover:bg-secondary/10'
                                 }`}
                         >
                             {tab.icon && <tab.icon className="w-4 h-4" />}
@@ -257,11 +257,11 @@ const PiggyBanks = () => {
             ) : filteredPiggyBanks.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <PiggyBank className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        <PiggyBank className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-primary mb-2">
                             {searchTerm ? 'No piggy banks found' : 'No piggy banks yet'}
                         </h3>
-                        <p className="text-gray-500 mb-6">
+                        <p className="text-secondary mb-6">
                             {searchTerm
                                 ? 'Try a different search term'
                                 : 'Create a piggy bank to start saving towards your goals'
@@ -294,14 +294,14 @@ const PiggyBanks = () => {
                     <Card className="w-full max-w-lg relative">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">
+                                <h2 className="text-xl font-bold text-primary">
                                     {createStep === 1 ? 'Create Piggy Bank' : 'Configure Target'}
                                 </h2>
                                 <button
                                     onClick={() => { setShowCreateModal(false); resetForm(); }}
-                                    className="p-1 hover:bg-gray-100 rounded"
+                                    className="p-1 hover:bg-secondary/10 rounded"
                                 >
-                                    <X className="w-5 h-5 text-gray-500" />
+                                    <X className="w-5 h-5 text-secondary" />
                                 </button>
                             </div>
 
@@ -310,13 +310,13 @@ const PiggyBanks = () => {
                                 {[1, 2].map((s) => (
                                     <React.Fragment key={s}>
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${s < createStep ? 'bg-green-500 text-white' :
-                                                s === createStep ? 'bg-primary-600 text-white' :
-                                                    'bg-gray-200 text-gray-500'
+                                            s === createStep ? 'bg-primary text-white' :
+                                                'bg-tertiary/20 text-secondary'
                                             }`}>
                                             {s < createStep ? <CheckCircle className="w-5 h-5" /> : s}
                                         </div>
                                         {s < 2 && (
-                                            <div className={`flex-1 h-1 ${s < createStep ? 'bg-green-500' : 'bg-gray-200'}`} />
+                                            <div className={`flex-1 h-1 ${s < createStep ? 'bg-green-500' : 'bg-tertiary/20'}`} />
                                         )}
                                     </React.Fragment>
                                 ))}
@@ -334,56 +334,56 @@ const PiggyBanks = () => {
                                         />
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Description</label>
                                             <textarea
                                                 value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 rows={2}
                                                 placeholder="What are you saving for?"
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
+                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Type</label>
                                             <div className="flex gap-3">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, piggy_type: 'individual', payment_group: null })}
                                                     className={`flex-1 p-4 rounded-lg border-2 transition-all ${formData.piggy_type === 'individual'
-                                                            ? 'border-primary-600 bg-primary-50'
-                                                            : 'border-gray-200 hover:border-gray-300'
+                                                        ? 'border-primary bg-primary/10'
+                                                        : 'border-theme hover:border-theme-hover'
                                                         }`}
                                                 >
-                                                    <User className={`w-6 h-6 mx-auto mb-2 ${formData.piggy_type === 'individual' ? 'text-primary-600' : 'text-gray-400'
+                                                    <User className={`w-6 h-6 mx-auto mb-2 ${formData.piggy_type === 'individual' ? 'text-primary' : 'text-tertiary'
                                                         }`} />
-                                                    <p className="font-medium text-sm">Individual</p>
-                                                    <p className="text-xs text-gray-500">Just for you</p>
+                                                    <p className="font-medium text-sm text-primary">Individual</p>
+                                                    <p className="text-xs text-secondary">Just for you</p>
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, piggy_type: 'group' })}
                                                     className={`flex-1 p-4 rounded-lg border-2 transition-all ${formData.piggy_type === 'group'
-                                                            ? 'border-primary-600 bg-primary-50'
-                                                            : 'border-gray-200 hover:border-gray-300'
+                                                        ? 'border-primary bg-primary/10'
+                                                        : 'border-theme hover:border-theme-hover'
                                                         }`}
                                                 >
-                                                    <Users className={`w-6 h-6 mx-auto mb-2 ${formData.piggy_type === 'group' ? 'text-primary-600' : 'text-gray-400'
+                                                    <Users className={`w-6 h-6 mx-auto mb-2 ${formData.piggy_type === 'group' ? 'text-primary' : 'text-tertiary'
                                                         }`} />
-                                                    <p className="font-medium text-sm">Group</p>
-                                                    <p className="text-xs text-gray-500">Linked to a group</p>
+                                                    <p className="font-medium text-sm text-primary">Group</p>
+                                                    <p className="text-xs text-secondary">Linked to a group</p>
                                                 </button>
                                             </div>
                                         </div>
 
                                         {formData.piggy_type === 'group' && (
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Group *</label>
+                                                <label className="block text-sm font-medium text-secondary mb-1">Select Group *</label>
                                                 <select
                                                     value={formData.payment_group || ''}
                                                     onChange={(e) => setFormData({ ...formData, payment_group: e.target.value })}
                                                     required={formData.piggy_type === 'group'}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                                    className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                                 >
                                                     <option value="">Choose a group...</option>
                                                     {groups.map(group => (
@@ -391,8 +391,8 @@ const PiggyBanks = () => {
                                                     ))}
                                                 </select>
                                                 {groups.length === 0 && (
-                                                    <p className="text-sm text-gray-500 mt-1">
-                                                        No groups available. <button type="button" onClick={() => navigate('/payments/create-group')} className="text-primary-600 underline">Create a group first</button>
+                                                    <p className="text-sm text-secondary mt-1">
+                                                        No groups available. <button type="button" onClick={() => navigate('/payments/create-group')} className="text-primary underline">Create a group first</button>
                                                     </p>
                                                 )}
                                             </div>
@@ -421,14 +421,14 @@ const PiggyBanks = () => {
                                         />
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Lock Status</label>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Lock Status</label>
                                             <div className="flex gap-3">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, locking_status: 'unlocked' })}
                                                     className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${formData.locking_status === 'unlocked'
-                                                            ? 'border-primary-600 bg-primary-50'
-                                                            : 'border-gray-200'
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-theme text-secondary'
                                                         }`}
                                                 >
                                                     <Unlock className="w-4 h-4" />
@@ -438,15 +438,15 @@ const PiggyBanks = () => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, locking_status: 'locked' })}
                                                     className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 ${formData.locking_status === 'locked'
-                                                            ? 'border-primary-600 bg-primary-50'
-                                                            : 'border-gray-200'
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-theme text-secondary'
                                                         }`}
                                                 >
                                                     <Lock className="w-4 h-4" />
                                                     <span className="font-medium text-sm">Locked</span>
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="text-xs text-secondary mt-1">
                                                 {formData.locking_status === 'locked'
                                                     ? 'Funds cannot be withdrawn until the target date'
                                                     : 'You can withdraw funds at any time'}
@@ -495,20 +495,20 @@ const PiggyBanks = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-gray-900">Contribute to {showContributeModal.name}</h3>
-                                <button onClick={() => setShowContributeModal(null)} className="p-1 hover:bg-gray-100 rounded">
-                                    <X className="w-5 h-5 text-gray-500" />
+                                <h3 className="text-xl font-bold text-primary">Contribute to {showContributeModal.name}</h3>
+                                <button onClick={() => setShowContributeModal(null)} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
                                 </button>
                             </div>
                             <form onSubmit={handleContribute} className="space-y-4">
-                                <div className="p-4 bg-gray-50 rounded-lg">
+                                <div className="p-4 bg-secondary/10 rounded-lg">
                                     <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-gray-500">Current</span>
-                                        <span className="font-medium">${parseFloat(showContributeModal.current_amount || 0).toFixed(2)}</span>
+                                        <span className="text-secondary">Current</span>
+                                        <span className="font-medium text-primary">${parseFloat(showContributeModal.current_amount || 0).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Target</span>
-                                        <span className="font-medium">${parseFloat(showContributeModal.target_amount || 0).toFixed(2)}</span>
+                                        <span className="text-secondary">Target</span>
+                                        <span className="font-medium text-primary">${parseFloat(showContributeModal.target_amount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <Input
@@ -546,12 +546,12 @@ const PiggyBankCard = ({ piggy, progress, onContribute }) => {
             <CardBody className="p-6 space-y-4">
                 <div className="flex justify-between items-start">
                     <div className="flex gap-4">
-                        <div className={`p-3 rounded-xl ${isAchieved ? 'bg-green-100' : 'bg-rose-100'}`}>
+                        <div className={`p-3 rounded-xl ${isAchieved ? 'bg-green-500/10' : 'bg-rose-500/10'}`}>
                             <PiggyBank className={`w-6 h-6 ${isAchieved ? 'text-green-600' : 'text-rose-600'}`} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900">{piggy.name}</h3>
-                            <p className="text-sm text-gray-500 line-clamp-1">{piggy.description || 'No description'}</p>
+                            <h3 className="text-lg font-bold text-primary">{piggy.name}</h3>
+                            <p className="text-sm text-secondary line-clamp-1">{piggy.description || 'No description'}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -578,23 +578,23 @@ const PiggyBankCard = ({ piggy, progress, onContribute }) => {
                 {/* Progress Bar */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium">
-                        <span className="text-gray-700">${parseFloat(piggy.current_amount || 0).toFixed(2)}</span>
-                        <span className="text-gray-400">Target: ${parseFloat(piggy.target_amount || 0).toFixed(2)}</span>
+                        <span className="text-primary">${parseFloat(piggy.current_amount || 0).toFixed(2)}</span>
+                        <span className="text-secondary">Target: ${parseFloat(piggy.target_amount || 0).toFixed(2)}</span>
                     </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-3 bg-secondary/10 rounded-full overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all duration-500 ${isAchieved
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                                    : 'bg-gradient-to-r from-pink-500 to-rose-500'
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                : 'bg-gradient-to-r from-pink-500 to-rose-500'
                                 }`}
                             style={{ width: `${Math.min(100, progress)}%` }}
                         />
                     </div>
-                    <div className="text-right text-xs text-gray-500">{progress.toFixed(1)}% complete</div>
+                    <div className="text-right text-xs text-secondary">{progress.toFixed(1)}% complete</div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center text-sm text-gray-500">
+                <div className="flex items-center justify-between pt-4 border-t border-theme">
+                    <div className="flex items-center text-sm text-secondary">
                         <Calendar className="w-4 h-4 mr-2" />
                         {piggy.maturity_date ? formatDate(piggy.maturity_date) : 'No deadline'}
                     </div>

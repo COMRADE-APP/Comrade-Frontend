@@ -21,7 +21,7 @@ const MobileNav = () => {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-theme z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex justify-around items-center h-16 px-1">
                 {navItems.map((item) => {
                     const Icon = item.icon;
@@ -30,7 +30,7 @@ const MobileNav = () => {
                         <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${active ? 'text-primary-600' : 'text-gray-500 hover:text-gray-700'
+                            className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${active ? 'text-primary-600' : 'text-tertiary hover:text-primary'
                                 }`}
                         >
                             <Icon className={`w-6 h-6 ${active ? 'stroke-[2.5]' : ''}`} />

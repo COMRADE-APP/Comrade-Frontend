@@ -77,8 +77,8 @@ const Resources = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Resources</h1>
-                    <p className="text-gray-600 mt-1">Browse and manage shared resources</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Resources</h1>
+                    <p className="text-secondary mt-1">Browse and manage shared resources</p>
                 </div>
                 {canManageResources && (
                     <Button variant="primary" onClick={() => navigate('/resources/create')}>
@@ -90,13 +90,13 @@ const Resources = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
                 <input
                     type="text"
                     placeholder="Search resources..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 />
             </div>
 
@@ -107,8 +107,8 @@ const Resources = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary text-white'
+                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
                             }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1).replace('_', ' ')}
@@ -124,8 +124,8 @@ const Resources = () => {
             ) : filteredResources.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">No resources found. Upload your first resource!</p>
+                        <FileText className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary">No resources found. Upload your first resource!</p>
                     </CardBody>
                 </Card>
             ) : (
@@ -142,8 +142,8 @@ const Resources = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Upload Resource</h2>
-                                <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Upload Resource</h2>
+                                <button onClick={() => setShowUploadModal(false)} className="text-secondary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -156,21 +156,21 @@ const Resources = () => {
                                     placeholder="Resource title"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Description</label>
                                     <textarea
                                         value={uploadData.desc}
                                         onChange={(e) => setUploadData({ ...uploadData, desc: e.target.value })}
                                         rows="3"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         placeholder="Resource description"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Type</label>
                                     <select
                                         value={uploadData.file_type}
                                         onChange={(e) => setUploadData({ ...uploadData, file_type: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                     >
                                         <option value="doc">Document</option>
                                         <option value="image">Image</option>
@@ -180,11 +180,11 @@ const Resources = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">File</label>
                                     <input
                                         type="file"
                                         onChange={(e) => setUploadData({ ...uploadData, res_file: e.target.files[0] })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                     />
                                 </div>
                                 <div className="flex gap-2 justify-end">
@@ -223,25 +223,25 @@ const ResourceCard = ({ resource, onDelete }) => {
             <CardBody>
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                             {getIcon(resource.file_type)}
                         </div>
                         <button
                             onClick={() => onDelete(resource.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            className="text-tertiary hover:text-red-600 transition-colors"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
 
                     <div>
-                        <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">{resource.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <h3 className="font-semibold text-lg text-primary line-clamp-1">{resource.title}</h3>
+                        <p className="text-sm text-secondary mt-1 line-clamp-2">
                             {resource.desc || 'No description'}
                         </p>
                     </div>
 
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-tertiary">
                         Uploaded {formatDate(resource.created_on)}
                     </div>
 

@@ -91,8 +91,8 @@ const PaymentGroupDetail = () => {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading group...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-secondary">Loading group...</p>
                 </div>
             </div>
         );
@@ -101,8 +101,8 @@ const PaymentGroupDetail = () => {
     if (!group) {
         return (
             <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Group not found</h3>
+                <AlertCircle className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-primary mb-2">Group not found</h3>
                 <Button variant="primary" onClick={() => navigate('/payments/groups')}>
                     Back to Groups
                 </Button>
@@ -119,13 +119,13 @@ const PaymentGroupDetail = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/payments/groups')}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        <ArrowLeft className="w-5 h-5 text-secondary" />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{group.name}</h1>
-                        <p className="text-gray-600 mt-1">{group.description || 'No description'}</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-primary">{group.name}</h1>
+                        <p className="text-secondary mt-1">{group.description || 'No description'}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -141,29 +141,29 @@ const PaymentGroupDetail = () => {
             </div>
 
             {/* Progress Card */}
-            <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white">
+            <Card className="bg-gradient-to-br from-primary to-primary/80 text-white">
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="text-primary-100 text-sm mb-2">Group Balance</p>
+                            <p className="text-white/80 text-sm mb-2">Group Balance</p>
                             <h2 className="text-4xl font-bold">
                                 ${parseFloat(group.current_amount || 0).toFixed(2)}
                             </h2>
                         </div>
                         <div className="text-right">
-                            <p className="text-primary-100 text-sm mb-2">Target</p>
+                            <p className="text-white/80 text-sm mb-2">Target</p>
                             <h3 className="text-2xl font-bold">
                                 ${parseFloat(group.target_amount || 0).toFixed(2)}
                             </h3>
                         </div>
                     </div>
-                    <div className="h-3 bg-primary-400/50 rounded-full overflow-hidden">
+                    <div className="h-3 bg-white/20 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-white rounded-full transition-all"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
-                    <div className="flex items-center justify-between mt-2 text-sm text-primary-100">
+                    <div className="flex items-center justify-between mt-2 text-sm text-white/80">
                         <span>{progress.toFixed(1)}% complete</span>
                         <span>{members.length} members</span>
                     </div>
@@ -171,7 +171,7 @@ const PaymentGroupDetail = () => {
             </Card>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+            <div className="flex gap-2 border-b border-theme overflow-x-auto">
                 {[
                     { id: 'overview', label: 'Overview', icon: Target },
                     { id: 'members', label: 'Members', icon: Users },
@@ -182,8 +182,8 @@ const PaymentGroupDetail = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 -mb-px transition-colors ${activeTab === tab.id
-                                ? 'border-primary-600 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-secondary hover:text-primary'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -196,45 +196,45 @@ const PaymentGroupDetail = () => {
             {activeTab === 'overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
-                        <CardHeader className="p-4 border-b">
-                            <h3 className="font-semibold text-gray-900">Group Details</h3>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary">Group Details</h3>
                         </CardHeader>
                         <CardBody className="p-4 space-y-3">
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Status</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                <span className="text-secondary">Status</span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.is_active ? 'bg-green-500/10 text-green-700' : 'bg-secondary/10 text-secondary'
                                     }`}>
                                     {group.is_active ? 'Active' : 'Completed'}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Members</span>
-                                <span className="font-medium">{members.length} / {group.max_capacity || '∞'}</span>
+                                <span className="text-secondary">Members</span>
+                                <span className="font-medium text-primary">{members.length} / {group.max_capacity || '∞'}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Created</span>
-                                <span className="font-medium">{formatDate(group.created_at)}</span>
+                                <span className="text-secondary">Created</span>
+                                <span className="font-medium text-primary">{formatDate(group.created_at)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Tier</span>
-                                <span className="font-medium capitalize">{group.tier || 'Free'}</span>
+                                <span className="text-secondary">Tier</span>
+                                <span className="font-medium text-primary capitalize">{group.tier || 'Free'}</span>
                             </div>
                             {group.expiry_date && (
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Deadline</span>
-                                    <span className="font-medium">{formatDate(group.expiry_date)}</span>
+                                    <span className="text-secondary">Deadline</span>
+                                    <span className="font-medium text-primary">{formatDate(group.expiry_date)}</span>
                                 </div>
                             )}
                         </CardBody>
                     </Card>
 
                     <Card>
-                        <CardHeader className="p-4 border-b">
-                            <h3 className="font-semibold text-gray-900">Recent Contributions</h3>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary">Recent Contributions</h3>
                         </CardHeader>
                         <CardBody className="p-0">
                             {contributions.slice(0, 5).length === 0 ? (
-                                <div className="p-4 text-center text-gray-500">
+                                <div className="p-4 text-center text-secondary">
                                     No contributions yet
                                 </div>
                             ) : (
@@ -242,14 +242,14 @@ const PaymentGroupDetail = () => {
                                     {contributions.slice(0, 5).map((contribution, idx) => (
                                         <div key={idx} className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
                                                     <TrendingUp className="w-4 h-4 text-green-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="font-medium text-primary">
                                                         ${parseFloat(contribution.amount).toFixed(2)}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-secondary">
                                                         {formatDate(contribution.contributed_at)}
                                                     </p>
                                                 </div>
@@ -265,8 +265,8 @@ const PaymentGroupDetail = () => {
 
             {activeTab === 'members' && (
                 <Card>
-                    <CardHeader className="p-4 border-b flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">Members ({members.length})</h3>
+                    <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                        <h3 className="font-semibold text-primary">Members ({members.length})</h3>
                         <Button variant="outline" size="sm" onClick={() => setShowInviteModal(true)}>
                             <UserPlus className="w-4 h-4 mr-2" />
                             Invite Member
@@ -275,36 +275,36 @@ const PaymentGroupDetail = () => {
                     <CardBody className="p-0">
                         {members.length === 0 ? (
                             <div className="p-8 text-center">
-                                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-500">No members yet. Invite some friends!</p>
+                                <Users className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                                <p className="text-secondary">No members yet. Invite some friends!</p>
                             </div>
                         ) : (
                             <div className="divide-y">
                                 {members.map((member, idx) => (
                                     <div key={idx} className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-semibold">
                                                 {member.payment_profile?.user?.username?.[0]?.toUpperCase() || 'U'}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="font-medium text-primary">
                                                         {member.payment_profile?.user?.username || 'Unknown User'}
                                                     </p>
                                                     {member.is_admin && (
                                                         <Crown className="w-4 h-4 text-yellow-500" />
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-secondary">
                                                     Joined {formatDate(member.joined_at)}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-medium text-gray-900">
+                                            <p className="font-medium text-primary">
                                                 ${parseFloat(member.total_contributed || 0).toFixed(2)}
                                             </p>
-                                            <p className="text-xs text-gray-500">contributed</p>
+                                            <p className="text-xs text-secondary">contributed</p>
                                         </div>
                                     </div>
                                 ))}
@@ -316,8 +316,8 @@ const PaymentGroupDetail = () => {
 
             {activeTab === 'contributions' && (
                 <Card>
-                    <CardHeader className="p-4 border-b flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">All Contributions</h3>
+                    <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                        <h3 className="font-semibold text-primary">All Contributions</h3>
                         <Button variant="primary" size="sm" onClick={() => setShowContributeModal(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Add Contribution
@@ -326,8 +326,8 @@ const PaymentGroupDetail = () => {
                     <CardBody className="p-0">
                         {contributions.length === 0 ? (
                             <div className="p-8 text-center">
-                                <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-500">No contributions yet. Be the first to contribute!</p>
+                                <History className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                                <p className="text-secondary">No contributions yet. Be the first to contribute!</p>
                             </div>
                         ) : (
                             <div className="divide-y">
@@ -338,14 +338,14 @@ const PaymentGroupDetail = () => {
                                                 <TrendingUp className="w-5 h-5 text-green-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900">
+                                                <p className="font-medium text-primary">
                                                     ${parseFloat(contribution.amount).toFixed(2)}
                                                 </p>
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-secondary">
                                                     {formatDate(contribution.contributed_at)}
                                                 </p>
                                                 {contribution.notes && (
-                                                    <p className="text-xs text-gray-400 mt-1">
+                                                    <p className="text-xs text-tertiary mt-1">
                                                         "{contribution.notes}"
                                                     </p>
                                                 )}
@@ -387,9 +387,9 @@ const PaymentGroupDetail = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Invite Member</h2>
-                                <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-gray-100 rounded">
-                                    <X className="w-5 h-5 text-gray-500" />
+                                <h2 className="text-xl font-bold text-primary">Invite Member</h2>
+                                <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
                                 </button>
                             </div>
                             <div className="space-y-4">
@@ -400,7 +400,7 @@ const PaymentGroupDetail = () => {
                                     onChange={(e) => setInviteEmail(e.target.value)}
                                     placeholder="user@example.com"
                                 />
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-secondary">
                                     An invitation email will be sent to this address.
                                 </p>
                                 <div className="flex gap-2 pt-4">
@@ -428,9 +428,9 @@ const PaymentGroupDetail = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Make Contribution</h2>
-                                <button onClick={() => setShowContributeModal(false)} className="p-1 hover:bg-gray-100 rounded">
-                                    <X className="w-5 h-5 text-gray-500" />
+                                <h2 className="text-xl font-bold text-primary">Make Contribution</h2>
+                                <button onClick={() => setShowContributeModal(false)} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
                                 </button>
                             </div>
                             <div className="space-y-4">
@@ -444,13 +444,13 @@ const PaymentGroupDetail = () => {
                                     placeholder="0.00"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Notes (optional)</label>
                                     <textarea
                                         value={contributeNotes}
                                         onChange={(e) => setContributeNotes(e.target.value)}
                                         rows={2}
                                         placeholder="Add a note..."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                                     />
                                 </div>
                                 <div className="flex gap-2 pt-4">

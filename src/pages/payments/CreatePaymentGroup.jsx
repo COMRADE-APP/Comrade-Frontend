@@ -99,13 +99,13 @@ const CreatePaymentGroup = () => {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => step > 1 ? setStep(step - 1) : navigate('/payments')}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5 text-gray-600" />
+                    <ArrowLeft className="w-5 h-5 text-secondary" />
                 </button>
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create Payment Group</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Create Payment Group</h1>
+                    <p className="text-secondary mt-1">
                         {step === 1 && 'Set up a group savings goal or contribution pool'}
                         {step === 2 && 'Invite members to your payment group'}
                         {step === 3 && 'Group created successfully!'}
@@ -118,13 +118,13 @@ const CreatePaymentGroup = () => {
                 {[1, 2, 3].map((s) => (
                     <React.Fragment key={s}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${s < step ? 'bg-green-500 text-white' :
-                                s === step ? 'bg-primary-600 text-white' :
-                                    'bg-gray-200 text-gray-500'
+                            s === step ? 'bg-primary text-white' :
+                                'bg-tertiary/20 text-secondary'
                             }`}>
                             {s < step ? <CheckCircle className="w-5 h-5" /> : s}
                         </div>
                         {s < 3 && (
-                            <div className={`flex-1 h-1 ${s < step ? 'bg-green-500' : 'bg-gray-200'}`} />
+                            <div className={`flex-1 h-1 ${s < step ? 'bg-green-500' : 'bg-tertiary/20'}`} />
                         )}
                     </React.Fragment>
                 ))}
@@ -137,8 +137,8 @@ const CreatePaymentGroup = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Basic Info */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-primary-600" />
+                                <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-primary" />
                                     Group Details
                                 </h3>
 
@@ -151,13 +151,13 @@ const CreatePaymentGroup = () => {
                                 />
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Description</label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         rows={3}
                                         placeholder="Describe the purpose of this payment group..."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                                     />
                                 </div>
 
@@ -173,9 +173,9 @@ const CreatePaymentGroup = () => {
                             </div>
 
                             {/* Financial Settings */}
-                            <div className="space-y-4 pt-4 border-t">
-                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <Target className="w-5 h-5 text-primary-600" />
+                            <div className="space-y-4 pt-4 border-t border-theme">
+                                <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                    <Target className="w-5 h-5 text-primary" />
                                     Financial Settings
                                 </h3>
 
@@ -191,11 +191,11 @@ const CreatePaymentGroup = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Contribution Type</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Contribution Type</label>
                                         <select
                                             value={formData.contribution_type}
                                             onChange={(e) => setFormData({ ...formData, contribution_type: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         >
                                             <option value="fixed">Fixed Amount</option>
                                             <option value="flexible">Flexible</option>
@@ -216,11 +216,11 @@ const CreatePaymentGroup = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Frequency</label>
                                         <select
                                             value={formData.frequency}
                                             onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         >
                                             <option value="daily">Daily</option>
                                             <option value="weekly">Weekly</option>
@@ -239,8 +239,8 @@ const CreatePaymentGroup = () => {
                             </div>
 
                             {/* Settings */}
-                            <div className="space-y-4 pt-4 border-t">
-                                <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
+                            <div className="space-y-4 pt-4 border-t border-theme">
+                                <h3 className="text-lg font-semibold text-primary">Settings</h3>
 
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
@@ -249,9 +249,9 @@ const CreatePaymentGroup = () => {
                                             id="is_public"
                                             checked={formData.is_public}
                                             onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
-                                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                            className="w-4 h-4 text-primary border-theme rounded focus:ring-primary"
                                         />
-                                        <label htmlFor="is_public" className="text-sm text-gray-700">
+                                        <label htmlFor="is_public" className="text-sm text-secondary">
                                             Make this group public (visible to all users)
                                         </label>
                                     </div>
@@ -261,9 +261,9 @@ const CreatePaymentGroup = () => {
                                             id="requires_approval"
                                             checked={formData.requires_approval}
                                             onChange={(e) => setFormData({ ...formData, requires_approval: e.target.checked })}
-                                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                            className="w-4 h-4 text-primary border-theme rounded focus:ring-primary"
                                         />
-                                        <label htmlFor="requires_approval" className="text-sm text-gray-700">
+                                        <label htmlFor="requires_approval" className="text-sm text-secondary">
                                             Require admin approval for new members
                                         </label>
                                     </div>
@@ -300,11 +300,11 @@ const CreatePaymentGroup = () => {
                     <CardBody>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <UserPlus className="w-5 h-5 text-primary-600" />
+                                <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                    <UserPlus className="w-5 h-5 text-primary" />
                                     Invite Members
                                 </h3>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-secondary">
                                     Add members by email. They'll receive an invitation to join your group.
                                     You can skip this step and invite members later.
                                 </p>
@@ -335,27 +335,27 @@ const CreatePaymentGroup = () => {
                                 {/* Member List */}
                                 {invitedMembers.length > 0 && (
                                     <div className="space-y-2">
-                                        <h4 className="text-sm font-medium text-gray-700">
+                                        <h4 className="text-sm font-medium text-secondary">
                                             Members to invite ({invitedMembers.length})
                                         </h4>
                                         <div className="space-y-2 max-h-64 overflow-y-auto">
                                             {invitedMembers.map((member) => (
                                                 <div
                                                     key={member.email}
-                                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                                    className="flex items-center justify-between p-3 bg-secondary/10 rounded-lg"
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                                            <Mail className="w-4 h-4 text-primary-600" />
+                                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <Mail className="w-4 h-4 text-primary" />
                                                         </div>
-                                                        <span className="text-sm text-gray-700">{member.email}</span>
+                                                        <span className="text-sm text-primary">{member.email}</span>
                                                     </div>
                                                     <button
                                                         type="button"
                                                         onClick={() => removeMember(member.email)}
-                                                        className="p-1 hover:bg-gray-200 rounded"
+                                                        className="p-1 hover:bg-secondary/10 rounded"
                                                     >
-                                                        <X className="w-4 h-4 text-gray-500" />
+                                                        <X className="w-4 h-4 text-secondary" />
                                                     </button>
                                                 </div>
                                             ))}
@@ -392,29 +392,29 @@ const CreatePaymentGroup = () => {
             {step === 3 && (
                 <Card>
                     <CardBody className="text-center py-8">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <CheckCircle className="w-8 h-8 text-green-600" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h3 className="text-xl font-semibold text-primary mb-2">
                             Payment Group Created!
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-secondary mb-6">
                             "{formData.name}" has been created successfully.
                         </p>
 
                         {invitedMembers.length > 0 && (
                             <div className="mb-6 text-left">
-                                <h4 className="text-sm font-medium text-gray-700 mb-2">Invitation Status:</h4>
+                                <h4 className="text-sm font-medium text-secondary mb-2">Invitation Status:</h4>
                                 <div className="space-y-2">
                                     {invitedMembers.map((member) => (
                                         <div
                                             key={member.email}
-                                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"
+                                            className="flex items-center justify-between p-2 bg-secondary/10 rounded-lg text-sm"
                                         >
-                                            <span>{member.email}</span>
-                                            <span className={`px-2 py-1 rounded-full text-xs ${member.status === 'sent' ? 'bg-green-100 text-green-700' :
-                                                    member.status === 'failed' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
+                                            <span className="text-primary">{member.email}</span>
+                                            <span className={`px-2 py-1 rounded-full text-xs ${member.status === 'sent' ? 'bg-green-500/10 text-green-700' :
+                                                member.status === 'failed' ? 'bg-red-500/10 text-red-700' :
+                                                    'bg-yellow-500/10 text-yellow-700'
                                                 }`}>
                                                 {member.status === 'sent' ? 'Sent' :
                                                     member.status === 'failed' ? 'Failed' : 'Pending'}

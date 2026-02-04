@@ -81,8 +81,8 @@ const Institutions = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Institutions</h1>
-                    <p className="text-gray-600 mt-1">Browse and manage educational institutions</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Institutions</h1>
+                    <p className="text-secondary mt-1">Browse and manage educational institutions</p>
                 </div>
                 {canManageInstitutions && (
                     <Button variant="primary" onClick={() => navigate('/institutions/create')}>
@@ -94,13 +94,13 @@ const Institutions = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
                 <input
                     type="text"
                     placeholder="Search institutions..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-2 border border-theme bg-elevated rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-primary placeholder-secondary"
                 />
             </div>
 
@@ -112,8 +112,8 @@ const Institutions = () => {
             ) : filteredInstitutions.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">
+                        <Building2 className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary">
                             {searchTerm ? 'No institutions found matching your search.' : 'No institutions available yet.'}
                         </p>
                     </CardBody>
@@ -138,8 +138,8 @@ const Institutions = () => {
                     <Card className="w-full max-w-md">
                         <CardBody>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Add New Institution</h2>
-                                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <h2 className="text-xl font-bold text-primary">Add New Institution</h2>
+                                <button onClick={() => setShowCreateModal(false)} className="text-secondary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -152,12 +152,12 @@ const Institutions = () => {
                                     placeholder="University of..."
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">About</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">About</label>
                                     <textarea
                                         value={formData.about}
                                         onChange={(e) => setFormData({ ...formData, about: e.target.value })}
                                         rows="3"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                         placeholder="Brief description..."
                                     />
                                 </div>
@@ -195,39 +195,39 @@ const Institutions = () => {
                         <CardBody>
                             <div className="flex items-start justify-between mb-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-lg bg-primary-100 flex items-center justify-center">
-                                        <Building2 className="w-8 h-8 text-primary-600" />
+                                    <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                                        <Building2 className="w-8 h-8 text-primary" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-gray-900">{selectedInstitution.name}</h2>
+                                        <h2 className="text-xl font-bold text-primary">{selectedInstitution.name}</h2>
                                         {selectedInstitution.location && (
-                                            <p className="text-gray-500 flex items-center gap-1 mt-1">
+                                            <p className="text-secondary flex items-center gap-1 mt-1">
                                                 <MapPin className="w-4 h-4" />
                                                 {selectedInstitution.location}
                                             </p>
                                         )}
                                     </div>
                                 </div>
-                                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <button onClick={() => setShowDetailModal(false)} className="text-secondary hover:text-primary">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
                             {selectedInstitution.about && (
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium text-gray-700 mb-2">About</h3>
-                                    <p className="text-gray-600">{selectedInstitution.about}</p>
+                                    <h3 className="text-sm font-medium text-secondary mb-2">About</h3>
+                                    <p className="text-secondary">{selectedInstitution.about}</p>
                                 </div>
                             )}
 
                             {selectedInstitution.website && (
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium text-gray-700 mb-2">Website</h3>
+                                    <h3 className="text-sm font-medium text-secondary mb-2">Website</h3>
                                     <a
                                         href={selectedInstitution.website}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                                        className="text-primary hover:underline flex items-center gap-1"
                                     >
                                         <Globe className="w-4 h-4" />
                                         {selectedInstitution.website}
@@ -235,7 +235,7 @@ const Institutions = () => {
                                 </div>
                             )}
 
-                            <div className="flex gap-2 pt-4 border-t">
+                            <div className="flex gap-2 pt-4 border-t border-theme">
                                 <Button variant="outline" className="flex-1" onClick={() => setShowDetailModal(false)}>
                                     Close
                                 </Button>
@@ -253,13 +253,13 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
         <CardBody>
             <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-primary-600" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-primary" />
                     </div>
                     {canManage && (
                         <button
                             onClick={onDelete}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-1 text-secondary hover:text-red-600 transition-colors"
                             title="Delete institution"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -268,9 +268,9 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">{institution.name}</h3>
+                    <h3 className="font-semibold text-lg text-primary line-clamp-1">{institution.name}</h3>
                     {institution.location && (
-                        <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                        <p className="text-sm text-secondary flex items-center gap-1 mt-1">
                             <MapPin className="w-3.5 h-3.5" />
                             {institution.location}
                         </p>
@@ -278,7 +278,7 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
                 </div>
 
                 {institution.about && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{institution.about}</p>
+                    <p className="text-sm text-secondary line-clamp-2">{institution.about}</p>
                 )}
 
                 <Button variant="outline" className="w-full" onClick={onView}>

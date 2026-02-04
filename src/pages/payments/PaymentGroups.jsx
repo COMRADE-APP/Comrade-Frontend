@@ -84,13 +84,13 @@ const PaymentGroups = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/payments')}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        <ArrowLeft className="w-5 h-5 text-secondary" />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payment Groups</h1>
-                        <p className="text-gray-600 mt-1">Manage your group savings and contributions</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-primary">Payment Groups</h1>
+                        <p className="text-secondary mt-1">Manage your group savings and contributions</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -112,12 +112,12 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                <Users className="w-5 h-5 text-primary-600" />
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Users className="w-5 h-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Total Groups</p>
-                                <p className="text-xl font-bold text-gray-900">{groups.length}</p>
+                                <p className="text-xs text-secondary">Total Groups</p>
+                                <p className="text-xl font-bold text-primary">{groups.length}</p>
                             </div>
                         </div>
                     </CardBody>
@@ -125,12 +125,12 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
                                 <TrendingUp className="w-5 h-5 text-green-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Active Groups</p>
-                                <p className="text-xl font-bold text-gray-900">{activeCount}</p>
+                                <p className="text-xs text-secondary">Active Groups</p>
+                                <p className="text-xl font-bold text-primary">{activeCount}</p>
                             </div>
                         </div>
                     </CardBody>
@@ -138,12 +138,12 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                                 <DollarSign className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Total Saved</p>
-                                <p className="text-xl font-bold text-gray-900">${totalSaved.toFixed(2)}</p>
+                                <p className="text-xs text-secondary">Total Saved</p>
+                                <p className="text-xl font-bold text-primary">${totalSaved.toFixed(2)}</p>
                             </div>
                         </div>
                     </CardBody>
@@ -151,12 +151,12 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
                                 <Target className="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500">Target Amount</p>
-                                <p className="text-xl font-bold text-gray-900">${totalTarget.toFixed(2)}</p>
+                                <p className="text-xs text-secondary">Target Amount</p>
+                                <p className="text-xl font-bold text-primary">${totalTarget.toFixed(2)}</p>
                             </div>
                         </div>
                     </CardBody>
@@ -166,13 +166,13 @@ const PaymentGroups = () => {
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                     <input
                         type="text"
                         placeholder="Search groups..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                        className="w-full pl-10 pr-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -181,8 +181,8 @@ const PaymentGroups = () => {
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                ? 'bg-primary text-white'
+                                : 'bg-elevated text-secondary border border-theme hover:bg-secondary/10'
                                 }`}
                         >
                             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -193,16 +193,16 @@ const PaymentGroups = () => {
 
             {/* Pending Invitations Banner */}
             {pendingInvites > 0 && (
-                <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
+                <Card className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border-amber-500/20">
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
                                     <Mail className="w-5 h-5 text-amber-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900">You have {pendingInvites} pending invitation(s)</h3>
-                                    <p className="text-sm text-gray-600">Review and respond to group invitations</p>
+                                    <h3 className="font-semibold text-primary">You have {pendingInvites} pending invitation(s)</h3>
+                                    <p className="text-sm text-secondary">Review and respond to group invitations</p>
                                 </div>
                             </div>
                             <Button variant="outline" onClick={() => setShowInvitationsModal(true)}>
@@ -222,11 +222,11 @@ const PaymentGroups = () => {
             ) : filteredGroups.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        <Users className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-primary mb-2">
                             {searchTerm ? 'No groups found' : 'No payment groups yet'}
                         </h3>
-                        <p className="text-gray-500 mb-6">
+                        <p className="text-secondary mb-6">
                             {searchTerm
                                 ? 'Try a different search term'
                                 : 'Create a payment group to start saving with others'
@@ -260,35 +260,35 @@ const PaymentGroups = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
                         <CardBody className="p-0">
-                            <div className="flex items-center justify-between p-4 border-b">
-                                <h2 className="text-xl font-bold text-gray-900">Group Invitations</h2>
-                                <button onClick={() => setShowInvitationsModal(false)} className="p-1 hover:bg-gray-100 rounded">
-                                    <X className="w-5 h-5 text-gray-500" />
+                            <div className="flex items-center justify-between p-4 border-b border-theme">
+                                <h2 className="text-xl font-bold text-primary">Group Invitations</h2>
+                                <button onClick={() => setShowInvitationsModal(false)} className="p-1 hover:bg-secondary/10 rounded text-secondary">
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
                             <div className="overflow-y-auto p-4">
                                 {invitations.length === 0 ? (
                                     <div className="text-center py-8">
-                                        <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                        <p className="text-gray-500">No pending invitations</p>
+                                        <Mail className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                                        <p className="text-secondary">No pending invitations</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
                                         {invitations.map((invitation) => (
-                                            <div key={invitation.id} className="p-4 bg-gray-50 rounded-lg">
+                                            <div key={invitation.id} className="p-4 bg-secondary/10 rounded-lg">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                                            <Users className="w-5 h-5 text-primary-600" />
+                                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <Users className="w-5 h-5 text-primary" />
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-semibold text-gray-900">
+                                                            <h4 className="font-semibold text-primary">
                                                                 {invitation.group_name || invitation.payment_group?.name || 'Payment Group'}
                                                             </h4>
-                                                            <p className="text-sm text-gray-500">
+                                                            <p className="text-sm text-secondary">
                                                                 Invited by {invitation.invited_by_name || invitation.invited_by?.username || 'Unknown'}
                                                             </p>
-                                                            <p className="text-xs text-gray-400 mt-1">
+                                                            <p className="text-xs text-tertiary mt-1">
                                                                 {formatDate(invitation.created_at)}
                                                             </p>
                                                         </div>
@@ -340,46 +340,46 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
             <CardBody className="p-4">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                             <Users className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-900">{group.name}</h3>
-                            <p className="text-sm text-gray-500">
+                            <h3 className="font-semibold text-primary">{group.name}</h3>
+                            <p className="text-sm text-secondary">
                                 {group.members_count || 0} members
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.is_active ? 'bg-green-500/10 text-green-700' : 'bg-secondary/10 text-secondary'
                             }`}>
                             {group.is_active ? 'Active' : 'Completed'}
                         </span>
                         <div className="relative">
                             <button
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1 hover:bg-secondary/10 rounded"
                                 onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
                             >
-                                <MoreVertical className="w-4 h-4 text-gray-600" />
+                                <MoreVertical className="w-4 h-4 text-secondary" />
                             </button>
                             {showMenu && (
-                                <div className="absolute right-0 top-8 bg-white border shadow-lg rounded-lg py-1 z-10 min-w-[150px]">
+                                <div className="absolute right-0 top-8 bg-elevated border border-theme shadow-lg rounded-lg py-1 z-10 min-w-[150px]">
                                     <button
-                                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary/10 flex items-center gap-2"
                                         onClick={(e) => { e.stopPropagation(); onInvite(); setShowMenu(false); }}
                                     >
                                         <UserPlus className="w-4 h-4" />
                                         Invite Members
                                     </button>
                                     <button
-                                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary/10 flex items-center gap-2"
                                         onClick={(e) => { e.stopPropagation(); onPiggyBank(); setShowMenu(false); }}
                                     >
                                         <PiggyBank className="w-4 h-4" />
                                         Create Piggy Bank
                                     </button>
                                     <button
-                                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary/10 flex items-center gap-2"
                                         onClick={(e) => { e.stopPropagation(); onClick(); setShowMenu(false); }}
                                     >
                                         <Settings className="w-4 h-4" />
@@ -392,23 +392,23 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                 </div>
 
                 {group.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{group.description}</p>
+                    <p className="text-sm text-secondary mb-4 line-clamp-2">{group.description}</p>
                 )}
 
                 {/* Progress Bar */}
                 {group.target_amount > 0 && (
                     <div className="mb-4">
                         <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-gray-600">Progress</span>
-                            <span className="font-medium text-gray-900">{progress.toFixed(0)}%</span>
+                            <span className="text-secondary">Progress</span>
+                            <span className="font-medium text-primary">{progress.toFixed(0)}%</span>
                         </div>
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-2 bg-secondary/10 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all"
+                                className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all"
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
-                        <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex items-center justify-between text-xs text-secondary mt-1">
                             <span>${parseFloat(group.current_amount || 0).toFixed(2)}</span>
                             <span>${parseFloat(group.target_amount).toFixed(2)}</span>
                         </div>
@@ -416,23 +416,23 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                 )}
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                <div className="flex items-center justify-between pt-3 border-t border-theme">
+                    <div className="flex items-center gap-1 text-sm text-secondary">
                         <Calendar className="w-4 h-4" />
                         <span>{formatDate(group.created_at)}</span>
                     </div>
                     <div className="flex gap-1">
                         <button
-                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            className="p-2 hover:bg-secondary/10 rounded-lg"
                             onClick={(e) => { e.stopPropagation(); onInvite(); }}
                         >
-                            <UserPlus className="w-4 h-4 text-gray-600" />
+                            <UserPlus className="w-4 h-4 text-secondary" />
                         </button>
                         <button
-                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            className="p-2 hover:bg-secondary/10 rounded-lg"
                             onClick={(e) => { e.stopPropagation(); onPiggyBank(); }}
                         >
-                            <PiggyBank className="w-4 h-4 text-gray-600" />
+                            <PiggyBank className="w-4 h-4 text-secondary" />
                         </button>
                     </div>
                 </div>

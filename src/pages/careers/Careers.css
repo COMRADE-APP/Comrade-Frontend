@@ -1,0 +1,447 @@
+/* Careers & Gigs Page Styles */
+
+.careers-page {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.header-content h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary, #111827);
+    margin: 0 0 8px 0;
+}
+
+.header-content p {
+    color: var(--text-secondary, #6b7280);
+    margin: 0;
+}
+
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 4px;
+    background: var(--bg-secondary, #f3f4f6);
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary, #6b7280);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    color: var(--text-primary, #111827);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.tab.active {
+    background: white;
+    color: var(--text-primary, #111827);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Filters Bar */
+.filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group select {
+    padding: 8px 16px;
+    border: 1px solid var(--border-theme);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+/* Gigs/Careers Grid */
+.gigs-grid,
+.careers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+}
+
+/* Card Styles */
+.gig-card,
+.career-card {
+    position: relative;
+    background: var(--bg-elevated);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-theme);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gig-card:hover,
+.career-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: #667eea;
+}
+
+.gig-card.recommended,
+.career-card.recommended {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+}
+
+.recommended-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+}
+
+.gig-header,
+.career-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.gig-title,
+.career-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.company-info {
+    display: flex;
+    gap: 12px;
+}
+
+.company-logo {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    color: var(--text-secondary);
+}
+
+.company-name {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 4px 0 0 0;
+}
+
+.gig-status,
+.job-type {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+    text-transform: capitalize;
+}
+
+.status-open {
+    background: rgba(5, 150, 105, 0.1);
+    color: #059669;
+}
+
+.status-in_progress {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.status-completed {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.job-type-full_time {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.job-type-part_time {
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+}
+
+.job-type-contract {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+}
+
+.job-type-internship {
+    background: rgba(5, 150, 105, 0.1);
+    color: #059669;
+}
+
+.gig-description,
+.career-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+/* Meta Items */
+.gig-meta,
+.career-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.meta-item svg {
+    color: #667eea;
+}
+
+/* Tags */
+.career-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tag {
+    padding: 4px 12px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-radius: 20px;
+    text-transform: capitalize;
+}
+
+.tag.remote {
+    background: #d1fae5;
+    color: #059669;
+}
+
+/* Footer */
+.gig-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    font-size: 12px;
+    color: var(--text-secondary, #6b7280);
+}
+
+.gig-industry {
+    text-transform: capitalize;
+    padding: 4px 10px;
+    background: #f3f4f6;
+    border-radius: 6px;
+}
+
+.gig-actions,
+.career-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.applications-count {
+    font-size: 13px;
+    color: var(--text-secondary, #6b7280);
+}
+
+.btn-apply {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-apply:hover {
+    transform: translateX(4px);
+}
+
+/* States */
+.loading-state,
+.error-state,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    text-align: center;
+    color: var(--text-secondary, #6b7280);
+}
+
+.loading-state .spinner {
+    animation: spin 1s linear infinite;
+    color: #667eea;
+    width: 40px;
+    height: 40px;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-state button,
+.empty-state button {
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Recommended Section */
+.recommended-section {
+    margin-bottom: 32px;
+}
+
+.recommended-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+    margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .careers-page {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .gigs-grid,
+    .careers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+    }
+
+    .tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+}

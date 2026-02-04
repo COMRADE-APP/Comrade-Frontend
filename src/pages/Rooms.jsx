@@ -194,8 +194,8 @@ const Rooms = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rooms</h1>
-                    <p className="text-gray-600 mt-1">Join rooms and collaborate with your peers</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Rooms</h1>
+                    <p className="text-secondary mt-1">Join rooms and collaborate with your peers</p>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -221,11 +221,11 @@ const Rooms = () => {
                     <CardBody className="p-4">
                         <div className="flex flex-wrap gap-4 items-end">
                             <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Member Count</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Member Count</label>
                                 <select
                                     value={filters.memberCount}
                                     onChange={(e) => setFilters({ ...filters, memberCount: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                 >
                                     <option value="any">Any Size</option>
                                     <option value="small">Small (≤10)</option>
@@ -234,11 +234,11 @@ const Rooms = () => {
                                 </select>
                             </div>
                             <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
                                 <select
                                     value={filters.status}
                                     onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="active">Active</option>
@@ -247,11 +247,11 @@ const Rooms = () => {
                                 </select>
                             </div>
                             <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Sort By</label>
                                 <select
                                     value={filters.sortBy}
                                     onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                 >
                                     <option value="newest">Newest First</option>
                                     <option value="oldest">Oldest First</option>
@@ -271,7 +271,7 @@ const Rooms = () => {
             )}
 
             {/* Tabs */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-theme">
                 <nav className="-mb-px flex space-x-8">
                     {[
                         { id: 'my_rooms', label: 'My Rooms', icon: Users, count: myRooms.length },
@@ -285,14 +285,14 @@ const Rooms = () => {
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
                                     ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                                     }`}
                             >
                                 <Icon className="w-4 h-4" />
                                 {tab.label}
                                 <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id
                                     ? 'bg-primary-100 text-primary-600'
-                                    : 'bg-gray-100 text-gray-600'
+                                    : 'bg-secondary text-secondary'
                                     }`}>
                                     {tab.count}
                                 </span>
@@ -304,13 +304,13 @@ const Rooms = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
                 <input
                     type="text"
                     placeholder="Search rooms..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full pl-10 pr-4 py-2 border border-theme bg-elevated text-primary placeholder-tertiary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
             </div>
 
@@ -322,8 +322,8 @@ const Rooms = () => {
             ) : filteredRooms.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">
+                        <MessageSquare className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <p className="text-secondary">
                             {activeTab === 'my_rooms'
                                 ? "You haven't joined any rooms yet."
                                 : activeTab === 'recommended'
@@ -364,10 +364,10 @@ const Rooms = () => {
 
             {/* Create Room Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-md">
                         <CardBody>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Create New Room</h2>
+                            <h2 className="text-xl font-bold text-primary mb-4">Create New Room</h2>
                             <form onSubmit={handleCreateRoom} className="space-y-4">
                                 <Input
                                     label="Room Name"
@@ -377,12 +377,12 @@ const Rooms = () => {
                                     placeholder="Enter room name"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                     <textarea
                                         value={newRoom.description}
                                         onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
                                         rows="3"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                         placeholder="Room description (optional)"
                                     />
                                 </div>
@@ -402,10 +402,10 @@ const Rooms = () => {
 
             {/* Edit Room Modal */}
             {showEditModal && editingRoom && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-md">
                         <CardBody>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Room</h2>
+                            <h2 className="text-xl font-bold text-primary mb-4">Edit Room</h2>
                             <form onSubmit={handleEditRoom} className="space-y-4">
                                 <Input
                                     label="Room Name"
@@ -415,12 +415,12 @@ const Rooms = () => {
                                     placeholder="Enter room name"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                     <textarea
                                         value={editingRoom.description || ''}
                                         onChange={(e) => setEditingRoom({ ...editingRoom, description: e.target.value })}
                                         rows="3"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                         placeholder="Room description"
                                     />
                                 </div>
@@ -449,7 +449,7 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
         <CardBody>
             <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                         <MessageSquare className="w-6 h-6 text-primary-600" />
                     </div>
                     <div className="flex items-center gap-2">
@@ -458,20 +458,20 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
                                 Active
                             </span>
                         ) : (
-                            <Lock className="w-4 h-4 text-gray-400" />
+                            <Lock className="w-4 h-4 text-tertiary" />
                         )}
                         {canManage && (
                             <div className="flex gap-1">
                                 <button
                                     onClick={() => onEdit(room)}
-                                    className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                                    className="p-1 text-tertiary hover:text-primary-600 transition-colors"
                                     title="Edit room"
                                 >
                                     <Edit className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => onDelete(room.id)}
-                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                    className="p-1 text-tertiary hover:text-red-600 transition-colors"
                                     title="Delete room"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -482,8 +482,8 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">{room.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    <h3 className="font-semibold text-lg text-primary line-clamp-1">{room.name}</h3>
+                    <p className="text-sm text-secondary mt-1 line-clamp-2">
                         {room.description || 'No description available'}
                     </p>
                 </div>
@@ -495,7 +495,7 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
                     </div>
                 )}
 
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-secondary">
                     <Users className="w-4 h-4" />
                     <span>{room.member_count || 0} members</span>
                 </div>

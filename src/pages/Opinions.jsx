@@ -344,7 +344,7 @@ const Opinions = () => {
         <>
             <div className="max-w-2xl mx-auto space-y-0">
                 {/* Header */}
-                <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-100">
+                <div className="sticky top-0 z-20 bg-primary/80 backdrop-blur-md border-b border-theme">
                     <div className="flex">
                         {[
                             { id: 'for_you', label: 'For You', icon: Sparkles },
@@ -358,8 +358,8 @@ const Opinions = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex-1 py-4 text-sm font-medium relative transition-colors flex items-center justify-center gap-2 ${activeTab === tab.id
-                                        ? 'text-gray-900'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                        ? 'text-primary'
+                                        : 'text-secondary hover:text-primary hover:bg-secondary'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -387,7 +387,7 @@ const Opinions = () => {
 
                 {/* Composer */}
                 {isAuthenticated && (
-                    <div className="bg-white border-b border-gray-100 p-4">
+                    <div className="bg-primary border-b border-theme p-4">
                         <div className="flex gap-3">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shrink-0 overflow-hidden">
                                 {user?.avatar_url ? (
@@ -405,7 +405,7 @@ const Opinions = () => {
                                         autoResize();
                                     }}
                                     placeholder="What's on your mind?"
-                                    className="w-full resize-none border-0 focus:ring-0 text-xl placeholder-gray-400 outline-none min-h-[80px]"
+                                    className="w-full resize-none border-0 focus:ring-0 text-xl text-primary placeholder-tertiary outline-none min-h-[80px] bg-transparent"
                                     rows={1}
                                 />
 
@@ -413,13 +413,13 @@ const Opinions = () => {
                                 {mediaFiles.length > 0 && (
                                     <div className={`grid gap-2 mt-3 ${mediaFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                                         {mediaFiles.map((media, index) => (
-                                            <div key={index} className="relative rounded-xl overflow-hidden bg-gray-100">
+                                            <div key={index} className="relative rounded-xl overflow-hidden bg-secondary">
                                                 {media.type === 'video' ? (
                                                     <video src={media.preview} className="w-full h-32 object-cover" />
                                                 ) : media.type === 'file' ? (
-                                                    <div className="flex items-center gap-2 p-3 bg-gray-50">
-                                                        <FileText size={20} className="text-gray-500" />
-                                                        <span className="text-sm text-gray-700 truncate">{media.name}</span>
+                                                    <div className="flex items-center gap-2 p-3 bg-secondary">
+                                                        <FileText size={20} className="text-secondary" />
+                                                        <span className="text-sm text-primary truncate">{media.name}</span>
                                                     </div>
                                                 ) : (
                                                     <img src={media.preview} alt="" className="w-full h-32 object-cover" />
@@ -541,16 +541,16 @@ const Opinions = () => {
                 )}
 
                 {/* Opinions Feed */}
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-theme">
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                         </div>
                     ) : opinions.length === 0 ? (
                         <div className="text-center py-16 px-4">
-                            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">No opinions yet</h3>
-                            <p className="text-gray-500">
+                            <MessageCircle className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-primary mb-2">No opinions yet</h3>
+                            <p className="text-secondary">
                                 {activeTab === 'following'
                                     ? "Follow people to see their opinions here"
                                     : "Be the first to share your thoughts!"
@@ -582,13 +582,13 @@ const Opinions = () => {
             {
                 showComments && (
 
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
-                            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                                <h3 className="text-lg font-bold text-gray-900">Comments</h3>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-elevated rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col border border-theme">
+                            <div className="p-4 border-b border-theme flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-primary">Comments</h3>
                                 <button
                                     onClick={() => { setShowComments(null); setComments([]); setNewComment(''); }}
-                                    className="p-2 hover:bg-gray-100 rounded-full"
+                                    className="p-2 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors"
                                 >
                                     <X size={20} />
                                 </button>
@@ -600,8 +600,8 @@ const Opinions = () => {
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                                     </div>
                                 ) : comments.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                                    <div className="text-center py-8 text-secondary">
+                                        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-tertiary" />
                                         <p>No comments yet. Be the first!</p>
                                     </div>
                                 ) : (
@@ -618,18 +618,18 @@ const Opinions = () => {
                                             </Link>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
-                                                    <Link to={`/profile/${comment.user?.id}`} className="font-bold text-gray-900 hover:underline">
+                                                    <Link to={`/profile/${comment.user?.id}`} className="font-bold text-primary hover:underline">
                                                         {comment.user?.first_name} {comment.user?.last_name}
                                                     </Link>
-                                                    <span className="text-sm text-gray-500">{formatTimeAgo(comment.created_at)}</span>
+                                                    <span className="text-sm text-secondary">{formatTimeAgo(comment.created_at)}</span>
                                                 </div>
-                                                <p className="text-gray-800 mt-0.5">{comment.content}</p>
+                                                <p className="text-primary mt-0.5">{comment.content}</p>
                                                 <div className="flex items-center gap-4 mt-2">
-                                                    <button className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1">
+                                                    <button className="text-sm text-tertiary hover:text-red-500 flex items-center gap-1 transition-colors">
                                                         <Heart size={14} />
                                                         {comment.likes_count || ''}
                                                     </button>
-                                                    <button className="text-sm text-gray-500 hover:text-primary-500">Reply</button>
+                                                    <button className="text-sm text-tertiary hover:text-primary-500 transition-colors">Reply</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -638,7 +638,7 @@ const Opinions = () => {
                             </div>
 
                             {isAuthenticated && (
-                                <div className="p-4 border-t border-gray-100">
+                                <div className="p-4 border-t border-theme">
                                     <div className="flex gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                                             {user?.avatar_url ? (
@@ -653,7 +653,7 @@ const Opinions = () => {
                                                 value={newComment}
                                                 onChange={(e) => setNewComment(e.target.value)}
                                                 placeholder="Write a comment..."
-                                                className="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                                className="flex-1 px-4 py-2 bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary"
                                                 onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
                                             />
                                             <button
@@ -682,10 +682,10 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
 
     return (
         <>
-            <article className="bg-white hover:bg-gray-50/50 transition-colors px-4 py-4">
+            <article className="bg-elevated hover:bg-secondary/50 transition-colors px-4 py-4">
                 {/* Enhanced Repost indicator with avatar */}
                 {opinion.is_repost && opinion.reposted_by_user && (
-                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-3 ml-1">
+                    <div className="flex items-center gap-2 text-secondary text-sm mb-3 ml-1">
                         <Repeat2 size={14} className="text-green-500" />
                         <div className="flex items-center gap-1.5">
                             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center overflow-hidden">
@@ -722,7 +722,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                         {/* Header */}
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-gray-900 hover:underline">
+                                <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-primary hover:underline">
                                     {opinion.user?.full_name || opinion.user?.first_name || 'User'}
                                 </Link>
 
@@ -737,12 +737,12 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                                     </button>
                                 )}
 
-                                <span className="text-gray-500">·</span>
-                                <span className="text-gray-500 text-sm">
+                                <span className="text-tertiary">·</span>
+                                <span className="text-secondary text-sm">
                                     {opinion.time_ago || formatTimeAgo(opinion.created_at)}
                                 </span>
                                 {opinion.visibility !== 'public' && (
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary flex items-center gap-1">
                                         {opinion.visibility === 'followers' ? <Users className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                                         {opinion.visibility}
                                     </span>
@@ -753,17 +753,17 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
-                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                                    className="p-1.5 text-tertiary hover:text-primary hover:bg-secondary rounded-full"
                                 >
                                     <MoreHorizontal className="w-5 h-5" />
                                 </button>
                                 {showMenu && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                                        <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-gray-200 py-1 w-52">
+                                        <div className="absolute right-0 top-8 z-20 bg-elevated rounded-xl shadow-lg border border-theme py-1 w-52">
                                             <button
                                                 onClick={() => { onHide(opinion.id); setShowMenu(false); }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                                className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3"
                                             >
                                                 <EyeOff size={16} />
                                                 I don't like this
@@ -771,7 +771,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                                             {opinion.user?.id !== currentUser?.id && (
                                                 <button
                                                     onClick={() => { onBlock(opinion.user?.id); setShowMenu(false); }}
-                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                                                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3"
                                                 >
                                                     <Ban size={16} />
                                                     Block {opinion.user?.first_name}
@@ -779,13 +779,13 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                                             )}
                                             <button
                                                 onClick={() => { onReport(opinion.id); setShowMenu(false); }}
-                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-3"
+                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-secondary flex items-center gap-3"
                                             >
                                                 <Flag size={16} />
                                                 Report
                                             </button>
-                                            <hr className="my-1" />
-                                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                                            <hr className="my-1 border-theme" />
+                                            <button className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-3">
                                                 <HelpCircle size={16} />
                                                 Help
                                             </button>
@@ -797,7 +797,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
 
                         {/* Opinion Content */}
                         <Link to={`/opinions/${opinion.id}`}>
-                            <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+                            <p className="text-primary mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed">
                                 {opinion.content}
                             </p>
                         </Link>
@@ -806,7 +806,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                         {opinion.media_files?.length > 0 && (
                             <div className={`mt-3 grid gap-2 ${opinion.media_files.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                                 {opinion.media_files.map((media, idx) => (
-                                    <div key={idx} className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 relative">
+                                    <div key={idx} className="rounded-2xl overflow-hidden border border-theme bg-secondary relative">
                                         {media.media_type === 'video' ? (
                                             <video
                                                 src={media.url}
@@ -818,11 +818,11 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                                                 href={media.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100"
+                                                className="flex items-center gap-3 p-4 bg-secondary hover:bg-tertiary"
                                             >
-                                                <FileText size={24} className="text-gray-500" />
-                                                <span className="text-sm text-gray-700 truncate">{media.file_name}</span>
-                                                <ExternalLink size={14} className="text-gray-400 ml-auto" />
+                                                <FileText size={24} className="text-secondary" />
+                                                <span className="text-sm text-primary truncate">{media.file_name}</span>
+                                                <ExternalLink size={14} className="text-tertiary ml-auto" />
                                             </a>
                                         ) : (
                                             <img
@@ -843,7 +843,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
 
                         {/* Legacy single media field */}
                         {!opinion.media_files?.length && opinion.media_url && (
-                            <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200">
+                            <div className="mt-3 rounded-2xl overflow-hidden border border-theme">
                                 {opinion.media_type === 'video' ? (
                                     <video src={opinion.media_url} className="w-full max-h-80 object-cover" controls />
                                 ) : (
@@ -854,9 +854,9 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
 
                         {/* Quoted Opinion */}
                         {opinion.quoted_opinion && (
-                            <div className="mt-3 p-3 border border-gray-200 rounded-xl">
-                                <p className="text-sm text-gray-600">
-                                    <span className="font-medium">{opinion.quoted_opinion.user?.first_name}</span>
+                            <div className="mt-3 p-3 border border-theme rounded-xl">
+                                <p className="text-sm text-secondary">
+                                    <span className="font-medium text-primary">{opinion.quoted_opinion.user?.first_name}</span>
                                     {' · '}
                                     {opinion.quoted_opinion.content}
                                 </p>
@@ -867,7 +867,7 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                         <div className="flex items-center justify-between mt-3 -ml-2 max-w-md">
                             <button
                                 onClick={() => onOpenComments(opinion.id)}
-                                className="flex items-center gap-1.5 text-gray-500 hover:text-primary-500 group p-2 rounded-full hover:bg-primary-50 transition-colors"
+                                className="flex items-center gap-1.5 text-secondary hover:text-primary-500 group p-2 rounded-full hover:bg-secondary transition-colors"
                             >
                                 <MessageCircle className="w-5 h-5" />
                                 <span className="text-sm">{opinion.comments_count || ''}</span>
@@ -875,8 +875,8 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             <button
                                 onClick={() => onRepost(opinion.id, opinion.is_reposted)}
                                 className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted
-                                    ? 'text-green-500 hover:bg-green-50'
-                                    : 'text-gray-500 hover:text-green-500 hover:bg-green-50'
+                                    ? 'text-green-500 hover:bg-green-500/10'
+                                    : 'text-secondary hover:text-green-500 hover:bg-green-500/10'
                                     }`}
                             >
                                 <Repeat2 className="w-5 h-5" />
@@ -885,8 +885,8 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             <button
                                 onClick={() => onLike(opinion.id)}
                                 className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_liked
-                                    ? 'text-red-500 hover:bg-red-50'
-                                    : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                                    ? 'text-red-500 hover:bg-red-500/10'
+                                    : 'text-secondary hover:text-red-500 hover:bg-red-500/10'
                                     }`}
                             >
                                 <Heart className={`w-5 h-5 ${opinion.is_liked ? 'fill-current' : ''}`} />
@@ -895,15 +895,15 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             <button
                                 onClick={() => onBookmark(opinion.id)}
                                 className={`p-2 rounded-full transition-colors ${opinion.is_bookmarked
-                                    ? 'text-primary-500 hover:bg-primary-50'
-                                    : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+                                    ? 'text-primary-500 hover:bg-primary-500/10'
+                                    : 'text-secondary hover:text-primary-500 hover:bg-primary-500/10'
                                     }`}
                             >
                                 <Bookmark className={`w-5 h-5 ${opinion.is_bookmarked ? 'fill-current' : ''}`} />
                             </button>
                             <button
                                 onClick={() => onShare(opinion)}
-                                className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-colors"
+                                className="p-2 text-secondary hover:text-primary-500 hover:bg-secondary rounded-full transition-colors"
                             >
                                 <Share2 className="w-5 h-5" />
                             </button>

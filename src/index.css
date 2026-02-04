@@ -2,30 +2,236 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==============================================================================
+   THEME SYSTEM - CSS Custom Properties
+   ============================================================================== */
+
+:root {
+  /* Light Theme (Default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-elevated: #ffffff;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-inverse: #ffffff;
+
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+
+  --accent-primary: #667eea;
+  --accent-secondary: #764ba2;
+  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+}
+
+/* Dark Theme */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-elevated: #1e293b;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-inverse: #0f172a;
+
+  --border-color: #334155;
+  --border-light: #1e293b;
+
+  --accent-primary: #818cf8;
+  --accent-secondary: #a78bfa;
+  --accent-gradient: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+
+/* Dark High Contrast Theme */
+.dark-hc {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #171717;
+  --bg-elevated: #171717;
+
+  --text-primary: #ffffff;
+  --text-secondary: #e5e5e5;
+  --text-tertiary: #a3a3a3;
+  --text-inverse: #000000;
+
+  --border-color: #404040;
+  --border-light: #262626;
+
+  --accent-primary: #a5b4fc;
+  --accent-secondary: #c4b5fd;
+  --accent-gradient: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+
+  --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 4px 6px rgba(255, 255, 255, 0.05);
+  --shadow-lg: 0 10px 15px rgba(255, 255, 255, 0.05);
+}
+
+/* Ambient Theme - Matches QomAI/Institution Portal */
+.ambient {
+  --bg-primary: #0c0a1d;
+  --bg-secondary: #13102a;
+  --bg-tertiary: #1a1535;
+  --bg-elevated: #1e1840;
+
+  --text-primary: #e2e8f0;
+  --text-secondary: #a5b4fc;
+  --text-tertiary: #7c8adb;
+  --text-inverse: #0c0a1d;
+
+  --border-color: #312e81;
+  --border-light: #1e1b4b;
+
+  --accent-primary: #a78bfa;
+  --accent-secondary: #c084fc;
+  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #a855f7 100%);
+
+  --shadow-sm: 0 1px 2px rgba(139, 92, 246, 0.1);
+  --shadow-md: 0 4px 6px rgba(139, 92, 246, 0.15);
+  --shadow-lg: 0 10px 25px rgba(139, 92, 246, 0.2);
+
+  /* Ambient-specific effects */
+  --ambient-glow: 0 0 40px rgba(139, 92, 246, 0.15);
+  --ambient-gradient: linear-gradient(180deg,
+      rgba(102, 126, 234, 0.1) 0%,
+      rgba(118, 75, 162, 0.05) 50%,
+      rgba(12, 10, 29, 0) 100%);
+}
+
+/* Apply ambient background effect */
+.ambient body {
+  background: var(--bg-primary);
+  background-image:
+    radial-gradient(ellipse at top, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+/* ==============================================================================
+   BASE STYLES
+   ============================================================================== */
+
 @layer base {
   body {
     @apply font-sans antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--accent-gradient);
+    color: var(--text-inverse);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.1);
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200;
+    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--bg-secondary);
   }
 
   .btn-outline {
-    @apply px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200;
+    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    background: transparent;
+  }
+
+  .btn-outline:hover {
+    background-color: var(--bg-secondary);
   }
 
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200;
+    @apply w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-opacity-50 outline-none transition-all duration-200;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .input-field:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-tertiary);
   }
 
   .card {
-    @apply bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden;
+    @apply rounded-2xl overflow-hidden;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
   }
+
+  /* Ambient theme card glow */
+  .ambient .card {
+    box-shadow: var(--ambient-glow);
+  }
+
+  /* Text utilities */
+  .text-primary {
+    color: var(--text-primary);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-tertiary {
+    color: var(--text-tertiary);
+  }
+
+  /* Background utilities */
+  .bg-elevated {
+    background-color: var(--bg-elevated);
+  }
+
+  .bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+
+  /* Border utilities */
+  .border-theme {
+    border-color: var(--border-color);
+  }
+}
+
+/* Smooth theme transitions */
+*,
+*::before,
+*::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }

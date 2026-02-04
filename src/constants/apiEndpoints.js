@@ -117,6 +117,22 @@ export const API_ENDPOINTS = {
     CREATE_TRANSACTION: `${API_BASE_URL}/api/payments/create/`,
     TRANSACTION_HISTORY: `${API_BASE_URL}/api/payments/history/`,
 
+    // Transaction Actions
+    DEPOSIT: `${API_BASE_URL}/api/payments/deposit/`,
+    WITHDRAW: `${API_BASE_URL}/api/payments/withdraw/`,
+    TRANSFER: `${API_BASE_URL}/api/payments/transfer/`,
+    VERIFY_ACCOUNT: `${API_BASE_URL}/api/payments/verify-account/`,
+
+    // Registration
+    PARTNER_APPLICATIONS: `${API_BASE_URL}/api/payments/partner-applications/`,
+    AGENT_APPLICATIONS: `${API_BASE_URL}/api/payments/agent-applications/`,
+    SUPPLIER_APPLICATIONS: `${API_BASE_URL}/api/payments/supplier-applications/`,
+    SHOP_REGISTRATIONS: `${API_BASE_URL}/api/payments/shop-registrations/`,
+
+    // Partners
+    PARTNERS: `${API_BASE_URL}/api/payments/partners/`,
+    PARTNER_STATUS: `${API_BASE_URL}/api/payments/partners/my_status/`,
+
     // Payment Methods
     PAYMENT_METHODS: `${API_BASE_URL}/api/payments/methods/`,
     PAYMENT_METHOD_DETAIL: (id) => `${API_BASE_URL}/api/payments/methods/${id}/`,
@@ -218,6 +234,12 @@ export const API_ENDPOINTS = {
         LIKE: (id) => `${API_BASE_URL}/api/articles/${id}/like/`,
         BOOKMARK: (id) => `${API_BASE_URL}/api/articles/${id}/bookmark/`,
         COMMENTS: (id) => `${API_BASE_URL}/api/articles/${id}/comments/`,
+    },
+    FUNDING: {
+        BUSINESSES: `${API_BASE_URL}/api/funding/businesses/`,
+        DOCUMENTS: `${API_BASE_URL}/api/funding/documents/`,
+        REQUESTS: `${API_BASE_URL}/api/funding/requests/`,
+        OPPORTUNITIES: `${API_BASE_URL}/api/funding/opportunities/`,
     },
 }
 

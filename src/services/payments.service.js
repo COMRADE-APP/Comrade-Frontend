@@ -39,9 +39,9 @@ export const paymentsService = {
         return response.data;
     },
 
-    // ========== Deposit & Withdraw ==========
+    // ========== Deposit, Withdraw, Transfer ==========
     async deposit(amount, paymentMethod = 'bank_transfer') {
-        const response = await api.post(`${API_ENDPOINTS.TRANSACTIONS}deposit/`, {
+        const response = await api.post(API_ENDPOINTS.DEPOSIT, {
             amount,
             payment_method: paymentMethod
         });
@@ -49,11 +49,21 @@ export const paymentsService = {
     },
 
     async withdraw(amount, accountNumber = '', paymentMethod = 'bank_transfer') {
-        const response = await api.post(`${API_ENDPOINTS.TRANSACTIONS}withdraw/`, {
+        const response = await api.post(API_ENDPOINTS.WITHDRAW, {
             amount,
             account_number: accountNumber,
             payment_method: paymentMethod
         });
+        return response.data;
+    },
+
+    async transfer(data) {
+        const response = await api.post(API_ENDPOINTS.TRANSFER, data);
+        return response.data;
+    },
+
+    async verifyAccount(data) {
+        const response = await api.post(API_ENDPOINTS.VERIFY_ACCOUNT, data);
         return response.data;
     },
 
@@ -213,6 +223,110 @@ export const paymentsService = {
         const response = await api.get(API_ENDPOINTS.User_SUBSCRIPTIONS);
         return response.data;
     },
+
+    // ========== Partner & Registration ==========
+    async registerPartnerApplication(data) {
+        const response = await api.post(API_ENDPOINTS.PARTNER_APPLICATIONS, data);
+        return response.data;
+    },
+
+    async registerAgentApplication(data) {
+        const response = await api.post(API_ENDPOINTS.AGENT_APPLICATIONS, data);
+        return response.data;
+    },
+
+    async registerSupplierApplication(data) {
+        const response = await api.post(API_ENDPOINTS.SUPPLIER_APPLICATIONS, data);
+        return response.data;
+    },
+
+    async registerShop(data) {
+        const response = await api.post(API_ENDPOINTS.SHOP_REGISTRATIONS, data);
+        return response.data;
+    },
+
+    async checkPartnerStatus() {
+        try {
+            const partnerRes = await api.get(API_ENDPOINTS.PARTNER_STATUS);
+            return { is_partner: true, ...partnerRes.data };
+        } catch (e) {
+            // Check applications
+            try {
+                const appRes = await api.get(API_ENDPOINTS.PARTNER_APPLICATIONS);
+                if (appRes.data && Array.isArray(appRes.data) && appRes.data.length > 0) {
+                    return { is_partner: false, has_application: true, application: appRes.data[0] };
+                }
+            } catch (err) { }
+            return { is_partner: false, has_application: false };
+        }
+    },
+};
+
+// Tier Limits Configuration
+export const TIER_LIMITS = {
+    free: {
+        maxGroupMembers: 3,
+        maxGroups: 3,
+        monthlyPurchases: 6,
+        offlineNotifications: 5,
+        features: [
+            'Up to 3 members per group',
+            '6 purchases per month',
+            '5 offline notification subscriptions',
+            'Basic support'
+        ]
+    },
+    standard: {
+        maxGroupMembers: 7,
+        maxGroups: 5,
+        monthlyPurchases: 25,
+        offlineNotifications: 25,
+        price: 9.99,
+        priceAnnual: 99.99,
+        features: [
+            'Up to 7 members per group',
+            '25 purchases per month',
+            '25 offline notification subscriptions',
+            'Priority support',
+            'Group purchases up to 25 people'
+        ]
+    },
+    premium: {
+        maxGroupMembers: 12,
+        maxGroups: 15,
+        monthlyPurchases: 45,
+        offlineNotifications: 100,
+        price: 19.99,
+        priceAnnual: 199.99,
+        features: [
+            'Up to 12 members per group',
+            '45 purchases per month',
+            '100 offline notification subscriptions',
+            'Premium support',
+            'Advanced analytics'
+        ]
+    },
+    gold: {
+        maxGroupMembers: Infinity,
+        maxGroups: Infinity,
+        monthlyPurchases: Infinity,
+        offlineNotifications: Infinity,
+        price: 49.99,
+        priceAnnual: 499.99,
+        features: [
+            'Unlimited group members',
+            'Unlimited purchases',
+            'Unlimited offline notifications',
+            'Dedicated support',
+            'Custom features',
+            'API access'
+        ]
+    }
+};
+
+export const getTierLimit = (tier, limitType) => {
+    const limits = TIER_LIMITS[tier] || TIER_LIMITS.free;
+    return limits[limitType];
 };
 
 export default paymentsService;

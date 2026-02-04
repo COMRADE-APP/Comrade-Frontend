@@ -201,10 +201,10 @@ const Dashboard = () => {
     const StatCard = ({ label, value, sublabel, color = 'gray' }) => (
         <Card>
             <CardBody className="p-4">
-                <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+                <p className="text-xs font-medium text-secondary uppercase">{label}</p>
+                <p className="text-2xl font-bold text-primary mt-1">{value}</p>
                 {sublabel && (
-                    <span className={`text-xs font-medium mt-1 text-${color}-600`}>{sublabel}</span>
+                    <span className={`text-xs font-medium mt-1 text-${color}-600 dark:text-${color}-400`}>{sublabel}</span>
                 )}
             </CardBody>
         </Card>
@@ -214,10 +214,10 @@ const Dashboard = () => {
         <div className="space-y-6">
             {/* Welcome Section */}
             <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl font-bold text-primary">
                     Welcome back, {user?.first_name}! 👋
                 </h1>
-                <p className="text-gray-600">Here's what's happening in your community today.</p>
+                <p className="text-secondary">Here's what's happening in your community today.</p>
             </div>
 
             {/* Stats Cards */}
@@ -270,14 +270,14 @@ const Dashboard = () => {
                     )}
 
                     {/* Feed Tabs */}
-                    <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-gray-200">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-theme">
                         {feedTabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
-                                    ? 'bg-purple-100 text-purple-700'
-                                    : 'text-gray-600 hover:bg-gray-100'
+                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                    : 'text-secondary hover:bg-secondary'
                                     }`}
                             >
                                 <tab.icon size={16} />
@@ -290,23 +290,23 @@ const Dashboard = () => {
                     {loading ? (
                         <div className="space-y-4">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+                                <div key={i} className="bg-elevated rounded-xl border border-theme p-4 animate-pulse">
                                     <div className="flex gap-3">
-                                        <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                                        <div className="w-10 h-10 bg-secondary rounded-full" />
                                         <div className="flex-1 space-y-2">
-                                            <div className="h-4 bg-gray-200 rounded w-1/4" />
-                                            <div className="h-3 bg-gray-200 rounded w-3/4" />
-                                            <div className="h-3 bg-gray-200 rounded w-1/2" />
+                                            <div className="h-4 bg-secondary rounded w-1/4" />
+                                            <div className="h-3 bg-secondary rounded w-3/4" />
+                                            <div className="h-3 bg-secondary rounded w-1/2" />
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : feedItems.length === 0 ? (
-                        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                            <MessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
-                            <h3 className="font-semibold text-gray-700 mb-2">No posts yet</h3>
-                            <p className="text-gray-500 text-sm">Be the first to share something!</p>
+                        <div className="bg-elevated rounded-xl border border-theme p-8 text-center">
+                            <MessageSquare size={48} className="mx-auto text-tertiary mb-4" />
+                            <h3 className="font-semibold text-primary mb-2">No posts yet</h3>
+                            <p className="text-secondary text-sm">Be the first to share something!</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -336,19 +336,19 @@ const Dashboard = () => {
                         <CardHeader>
                             <div className="flex items-center gap-2">
                                 <Calendar size={18} className="text-purple-600" />
-                                <h3 className="font-semibold text-gray-900">Upcoming Events</h3>
+                                <h3 className="font-semibold text-primary">Upcoming Events</h3>
                             </div>
                         </CardHeader>
                         <CardBody className="p-4">
                             {stats.upcomingEvents === 0 ? (
-                                <p className="text-gray-500 text-sm">No upcoming events</p>
+                                <p className="text-secondary text-sm">No upcoming events</p>
                             ) : (
                                 <div className="space-y-3">
-                                    <p className="text-sm text-gray-600">{stats.upcomingEvents} events coming up</p>
+                                    <p className="text-sm text-secondary">{stats.upcomingEvents} events coming up</p>
                                 </div>
                             )}
                         </CardBody>
-                        <CardFooter className="border-t border-gray-100 p-3">
+                        <CardFooter className="border-t border-theme p-3">
                             <Link to="/events" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
                                 View all events <ArrowRight size={14} />
                             </Link>
@@ -360,19 +360,19 @@ const Dashboard = () => {
                         <CardHeader>
                             <div className="flex items-center gap-2">
                                 <ClipboardList size={18} className="text-purple-600" />
-                                <h3 className="font-semibold text-gray-900">Your Tasks</h3>
+                                <h3 className="font-semibold text-primary">Your Tasks</h3>
                             </div>
                         </CardHeader>
                         <CardBody className="p-4">
                             {stats.pendingTasks === 0 ? (
-                                <p className="text-gray-500 text-sm">No pending tasks</p>
+                                <p className="text-secondary text-sm">No pending tasks</p>
                             ) : (
                                 <div className="space-y-3">
-                                    <p className="text-sm text-gray-600">{stats.pendingTasks} tasks pending</p>
+                                    <p className="text-sm text-secondary">{stats.pendingTasks} tasks pending</p>
                                 </div>
                             )}
                         </CardBody>
-                        <CardFooter className="border-t border-gray-100 p-3">
+                        <CardFooter className="border-t border-theme p-3">
                             <Link to="/tasks" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
                                 View all tasks <ArrowRight size={14} />
                             </Link>
@@ -384,26 +384,26 @@ const Dashboard = () => {
                         <CardHeader>
                             <div className="flex items-center gap-2">
                                 <Users size={18} className="text-purple-600" />
-                                <h3 className="font-semibold text-gray-900">Suggested Communities</h3>
+                                <h3 className="font-semibold text-primary">Suggested Communities</h3>
                             </div>
                         </CardHeader>
                         <CardBody className="p-4">
                             {recommendedRooms.length === 0 ? (
-                                <p className="text-gray-500 text-sm">No communities to show</p>
+                                <p className="text-secondary text-sm">No communities to show</p>
                             ) : (
                                 <div className="space-y-3">
                                     {recommendedRooms.map(room => (
                                         <Link
                                             key={room.id}
                                             to={`/rooms/${room.id}`}
-                                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
+                                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary"
                                         >
                                             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium">
                                                 {room.name?.[0]?.toUpperCase() || 'R'}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-gray-900 truncate">{room.name}</p>
-                                                <p className="text-xs text-gray-500">{room.members_count || 0} members</p>
+                                                <p className="font-medium text-primary truncate">{room.name}</p>
+                                                <p className="text-xs text-secondary">{room.members_count || 0} members</p>
                                             </div>
                                         </Link>
                                     ))}
