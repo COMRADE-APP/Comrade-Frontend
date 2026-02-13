@@ -60,6 +60,16 @@ export const organizationsService = {
         return response.data;
     },
 
+    // Get hierarchy (branches, divisions, etc.)
+    async getHierarchy(id) {
+        const response = await api.get(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}hierarchy/`);
+        return response.data;
+    },
+
+    // ============================================================================
+    // MEMBER MANAGEMENT
+    // ============================================================================
+
     // Get members
     async getMembers(id) {
         const response = await api.get(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}members/`);
@@ -71,6 +81,42 @@ export const organizationsService = {
         const response = await api.post(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}invite_member/`, data);
         return response.data;
     },
+
+    // Add member (direct add)
+    async addMember(organisationId, userId, role = 'member', title = '') {
+        const response = await api.post(API_ENDPOINTS.ORGANISATION_MEMBERS, {
+            organisation: organisationId,
+            user: userId,
+            role,
+            title
+        });
+        return response.data;
+    },
+
+    // Update member title
+    async updateMemberTitle(memberId, title) {
+        const response = await api.patch(`${API_ENDPOINTS.ORGANISATION_MEMBERS}${memberId}/update_title/`, { title });
+        return response.data;
+    },
+
+    // Update member role
+    async updateMemberRole(memberId, role) {
+        const response = await api.patch(`${API_ENDPOINTS.ORGANISATION_MEMBERS}${memberId}/update_role/`, { role });
+        return response.data;
+    },
+
+    // Remove member (deactivate)
+    async removeMember(memberId) {
+        const response = await api.post(`${API_ENDPOINTS.ORGANISATION_MEMBERS}${memberId}/deactivate/`);
+        return response.data;
+    },
+
+    // Get user's organizations where they are a member
+    async getMyOrganizations() {
+        const response = await api.get(`${API_ENDPOINTS.ORGANISATIONS}my_organizations/`);
+        return response.data;
+    },
 };
 
 export default organizationsService;
+

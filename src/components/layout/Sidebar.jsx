@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
-    Sparkles
+    Sparkles, ChevronDown, Check, User
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
+import SwitchAccountModal from '../SwitchAccountModal';
 
 const Sidebar = () => {
     const location = useLocation();
-    const { user } = useAuth();
+    const { user, activeProfile, availableAccounts, switchAccount } = useAuth();
+    const [showAccountModal, setShowAccountModal] = useState(false);
 
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
@@ -40,50 +42,120 @@ const Sidebar = () => {
 
     const isActive = (path) => location.pathname === path;
 
+    const getProfileIcon = () => {
+        if (activeProfile?.type === 'organisation') return Building2;
+        if (activeProfile?.type === 'institution') return GraduationCap;
+        return null;
+    };
+
+    const ProfileIcon = getProfileIcon();
+
     return (
-        <aside className="hidden md:flex flex-col w-64 bg-primary border-r border-theme h-screen sticky top-0">
-            {/* Logo */}
-            <div className="p-6">
-                <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
-                    <Zap className="w-6 h-6" />
-                    Comrade
+        <>
+            <aside className="hidden md:flex flex-col w-64 bg-primary border-r border-theme h-screen sticky top-0">
+                {/* Logo */}
+                <div className="p-6">
+                    <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
+                        <Zap className="w-6 h-6" />
+                        Comrade
+                    </div>
                 </div>
-            </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-                {navItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${isActive(item.path)
-                                ? 'bg-primary-50 text-primary-700'
-                                : 'text-secondary hover:bg-secondary hover:text-primary'
-                                }`}
-                        >
-                            <Icon className="w-5 h-5" />
-                            {item.label}
-                        </Link>
-                    );
-                })}
-            </nav>
+                {/* Navigation */}
+                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${isActive(item.path)
+                                    ? 'bg-primary-50 text-primary-700'
+                                    : 'text-secondary hover:bg-secondary hover:text-primary'
+                                    }`}
+                            >
+                                <Icon className="w-5 h-5" />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
+                </nav>
 
-            {/* User Profile */}
-            <div className="p-4 border-t border-theme">
-                <Link to={ROUTES.PROFILE} className="flex items-center gap-3 hover:bg-secondary p-2 rounded-lg transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold">
-                        {user?.first_name?.[0]}{user?.last_name?.[0]}
+                {/* Active Profile Indicator (if not personal) */}
+                {activeProfile && activeProfile.type !== 'personal' && (
+                    <div className="px-4 py-2 border-t border-theme">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg text-sm">
+                            {ProfileIcon && <ProfileIcon className="w-4 h-4 text-primary-600" />}
+                            <span className="text-primary-700 font-medium truncate">
+                                Posting as: {activeProfile.name}
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm font-medium text-primary">{user?.first_name} {user?.last_name}</p>
-                        <p className="text-xs text-secondary">View Profile</p>
-                    </div>
-                </Link>
-            </div>
-        </aside>
+                )}
+
+                {/* User Profile + Account Switcher */}
+                <div className="p-4 border-t border-theme">
+                    <button
+                        onClick={() => setShowAccountModal(true)}
+                        className="w-full flex items-center gap-3 hover:bg-secondary p-2 rounded-lg transition-colors"
+                    >
+                        <div className="relative">
+                            {activeProfile?.avatar ? (
+                                <img
+                                    src={activeProfile.avatar}
+                                    alt={activeProfile.name}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold">
+                                    {user?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}{user?.last_name?.[0] || ''}
+                                </div>
+                            )}
+                            {availableAccounts.length > 1 && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-600 rounded-full flex items-center justify-center">
+                                    <span className="text-[10px] text-white font-bold">{availableAccounts.length}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-primary truncate">
+                                {activeProfile?.name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email || 'User')}
+                            </p>
+                            <p className="text-xs text-secondary">
+                                {activeProfile?.type === 'personal' ? 'Personal Account' :
+                                    activeProfile?.type === 'organisation' ? 'Organization' :
+                                        activeProfile?.type === 'institution' ? 'Institution' : 'Switch Account'}
+                            </p>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-secondary" />
+                    </button>
+
+                    {/* View Profile Link */}
+                    <Link
+                        to={activeProfile?.type === 'personal'
+                            ? (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')
+                            : activeProfile?.type === 'organisation' ? `/organizations/${activeProfile?.id}`
+                                : activeProfile?.type === 'institution' ? `/institutions/${activeProfile?.id}`
+                                    : (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')}
+                        className="flex items-center gap-2 mt-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-secondary rounded-lg transition-colors"
+                    >
+                        <User className="w-4 h-4" />
+                        View Profile
+                    </Link>
+                </div>
+            </aside>
+
+            {/* Account Switch Modal */}
+            <SwitchAccountModal
+                isOpen={showAccountModal}
+                onClose={() => setShowAccountModal(false)}
+                accounts={availableAccounts}
+                activeAccountId={activeProfile?.id}
+                onSwitch={switchAccount}
+            />
+        </>
     );
 };
 
 export default Sidebar;
+

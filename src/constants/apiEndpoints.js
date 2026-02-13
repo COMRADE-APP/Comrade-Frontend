@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     REGISTER: `${API_BASE_URL}/auth/register/`,
     REGISTER_VERIFY: `${API_BASE_URL}/auth/register-verify/`,
     VERIFY_EMAIL: `${API_BASE_URL}/auth/verify/`, // Initial email verification link (GET)
+    HEARTBEAT: `${API_BASE_URL}/auth/heartbeat/`,
 
     // Password Reset
     PASSWORD_RESET_REQUEST: `${API_BASE_URL}/auth/password-reset-request/`,
@@ -69,6 +70,7 @@ export const API_ENDPOINTS = {
     ROOM_MEMBERS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/members/`,
     ROOM_MAKE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/make_moderator/`,
     ROOM_REMOVE_MODERATOR: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/remove_moderator/`,
+    TYPING: (id) => `${API_BASE_URL}/api/rooms/typing/${id}/`,
 
     // Room Chat
     ROOM_CHATS: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/chats/`,
@@ -82,6 +84,9 @@ export const API_ENDPOINTS = {
     // Room Members Detail
     ROOM_MEMBERS_DETAIL: (id) => `${API_BASE_URL}/api/rooms/rooms/${id}/members_detail/`,
     ROOM_MEMBER_FOLLOW: (roomId, userId) => `${API_BASE_URL}/api/rooms/rooms/${roomId}/members/${userId}/follow/`,
+
+    // Room Opinions
+    ROOM_OPINIONS: (roomId) => `${API_BASE_URL}/api/opinions/opinions/room/${roomId}/opinions/`,
 
     // Direct Messages
     DM_ROOMS: `${API_BASE_URL}/api/rooms/dm_rooms/`,
@@ -109,9 +114,11 @@ export const API_ENDPOINTS = {
     // Organizations
     ORGANIZATIONS: `${API_BASE_URL}/api/organizations/organisation/`,
     ORGANIZATION_DETAIL: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/`,
+    ORGANISATION_MEMBERS: `${API_BASE_URL}/api/organizations/organisation_members/`,
 
     // Payment
-    PAYMENT_PROFILE: `${API_BASE_URL}/api/payments/profile/`,
+    PAYMENT_PROFILE: `${API_BASE_URL}/api/payments/profiles/my_profile/`,
+    PAYMENT_BALANCE: `${API_BASE_URL}/api/payments/profiles/balance/`,
     TRANSACTIONS: `${API_BASE_URL}/api/payments/transactions/`,
     TRANSACTION_DETAIL: (id) => `${API_BASE_URL}/api/payments/transactions/${id}/`,
     CREATE_TRANSACTION: `${API_BASE_URL}/api/payments/create/`,
@@ -218,6 +225,12 @@ export const API_ENDPOINTS = {
     OPINION_BOOKMARK: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/bookmark/`,
     OPINION_COMMENTS: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/comments/`,
 
+    // Stories
+    STORIES: `${API_BASE_URL}/api/opinions/stories/`,
+    STORY_VIEW: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/view/`,
+    STORY_VIEWERS: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/viewers/`,
+    MY_STORIES: `${API_BASE_URL}/api/opinions/stories/my_stories/`,
+
     // Following
     FOLLOW_TOGGLE: `${API_BASE_URL}/api/opinions/follow/toggle/`,
     FOLLOWERS: `${API_BASE_URL}/api/opinions/follow/followers/`,
@@ -240,7 +253,38 @@ export const API_ENDPOINTS = {
         DOCUMENTS: `${API_BASE_URL}/api/funding/documents/`,
         REQUESTS: `${API_BASE_URL}/api/funding/requests/`,
         OPPORTUNITIES: `${API_BASE_URL}/api/funding/opportunities/`,
+        VENTURES: `${API_BASE_URL}/api/funding/ventures/`,
+        VENTURE_DETAIL: (id) => `${API_BASE_URL}/api/funding/ventures/${id}/`,
+        VENTURE_REQUESTS: (id) => `${API_BASE_URL}/api/funding/ventures/${id}/funding_requests/`,
+        VENTURE_REVIEW: (id) => `${API_BASE_URL}/api/funding/ventures/${id}/review_request/`,
     },
+
+    // Marketplace
+    ESTABLISHMENTS: `${API_BASE_URL}/api/payments/establishments/`,
+    ESTABLISHMENT_DETAIL: (id) => `${API_BASE_URL}/api/payments/establishments/${id}/`,
+    ESTABLISHMENT_MENU: (id) => `${API_BASE_URL}/api/payments/establishments/${id}/menu/`,
+    ESTABLISHMENT_ROOMS: (id) => `${API_BASE_URL}/api/payments/establishments/${id}/rooms/`,
+    ESTABLISHMENT_SERVICES: (id) => `${API_BASE_URL}/api/payments/establishments/${id}/services/`,
+    ESTABLISHMENT_REVIEWS: (id) => `${API_BASE_URL}/api/payments/establishments/${id}/reviews_list/`,
+    MY_ESTABLISHMENTS: `${API_BASE_URL}/api/payments/establishments/my_establishments/`,
+    MENU_ITEMS: `${API_BASE_URL}/api/payments/menu-items/`,
+    MENU_ITEM_DETAIL: (id) => `${API_BASE_URL}/api/payments/menu-items/${id}/`,
+    HOTEL_ROOMS: `${API_BASE_URL}/api/payments/hotel-rooms/`,
+    HOTEL_ROOM_DETAIL: (id) => `${API_BASE_URL}/api/payments/hotel-rooms/${id}/`,
+    BOOKINGS: `${API_BASE_URL}/api/payments/bookings/`,
+    BOOKING_DETAIL: (id) => `${API_BASE_URL}/api/payments/bookings/${id}/`,
+    BOOKING_CONFIRM: (id) => `${API_BASE_URL}/api/payments/bookings/${id}/confirm/`,
+    BOOKING_CANCEL: (id) => `${API_BASE_URL}/api/payments/bookings/${id}/cancel/`,
+    SERVICES: `${API_BASE_URL}/api/payments/services/`,
+    SERVICE_DETAIL: (id) => `${API_BASE_URL}/api/payments/services/${id}/`,
+    SERVICE_AVAILABLE_SLOTS: (id) => `${API_BASE_URL}/api/payments/services/${id}/available_slots/`,
+    TIME_SLOTS: `${API_BASE_URL}/api/payments/time-slots/`,
+    TIME_SLOT_BOOK: (id) => `${API_BASE_URL}/api/payments/time-slots/${id}/book/`,
+    ORDERS: `${API_BASE_URL}/api/payments/orders/`,
+    ORDER_DETAIL: (id) => `${API_BASE_URL}/api/payments/orders/${id}/`,
+    ORDER_UPDATE_STATUS: (id) => `${API_BASE_URL}/api/payments/orders/${id}/update_status/`,
+    MY_ORDERS: `${API_BASE_URL}/api/payments/orders/my_orders/`,
+    REVIEWS: `${API_BASE_URL}/api/payments/reviews/`,
 }
 
 export default API_ENDPOINTS;

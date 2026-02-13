@@ -340,8 +340,12 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
             <CardBody className="p-4">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                            <Users className="w-6 h-6 text-white" />
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${group.group_type === 'piggy_bank' ? 'from-pink-500 to-rose-500' : 'from-primary to-primary/80'} flex items-center justify-center`}>
+                            {group.group_type === 'piggy_bank' ? (
+                                <PiggyBank className="w-6 h-6 text-white" />
+                            ) : (
+                                <Users className="w-6 h-6 text-white" />
+                            )}
                         </div>
                         <div>
                             <h3 className="font-semibold text-primary">{group.name}</h3>

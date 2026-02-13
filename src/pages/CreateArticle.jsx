@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Save, Send, Image as ImageIcon, Bold, Italic, Link,
     List, ListOrdered, Quote, Code, Heading1, Heading2, Heading3,
-    Upload, X, FileText, Eye, EyeOff
+    Upload, X, FileText, Eye, EyeOff, Building2, GraduationCap, User
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import articlesService from '../services/articles.service';
+import { useAuth } from '../contexts/AuthContext';
 
 const CreateArticle = () => {
     const navigate = useNavigate();
+    const { activeProfile, user } = useAuth();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [excerpt, setExcerpt] = useState('');
@@ -25,6 +27,14 @@ const CreateArticle = () => {
     const coverInputRef = useRef(null);
 
     const categories = ['Technology', 'Business', 'Wellness', 'Education', 'Science', 'Arts', 'Lifestyle'];
+
+    // Get profile icon based on type
+    const getProfileIcon = () => {
+        if (activeProfile?.type === 'organisation') return Building2;
+        if (activeProfile?.type === 'institution') return GraduationCap;
+        return User;
+    };
+    const ProfileIcon = getProfileIcon();
 
     const handleCoverUpload = (e) => {
         const file = e.target.files?.[0];
@@ -131,6 +141,13 @@ const CreateArticle = () => {
                 attachments: uploadedFiles.map(f => f.file),
             };
 
+            // Add entity authorship based on active profile
+            if (activeProfile?.type === 'organisation') {
+                articleData.organisation = activeProfile.id;
+            } else if (activeProfile?.type === 'institution') {
+                articleData.institution = activeProfile.id;
+            }
+
             if (publish) {
                 await articlesService.publish(articleData);
                 alert('Article published successfully!');
@@ -225,6 +242,16 @@ const CreateArticle = () => {
                 ) : (
                     /* Editor Mode */
                     <div className="space-y-6">
+                        {/* Posting as indicator - show when not personal */}
+                        {activeProfile && activeProfile.type !== 'personal' && (
+                            <div className="px-4 py-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center gap-3">
+                                <ProfileIcon className="w-5 h-5 text-primary-600" />
+                                <span className="text-primary-700 dark:text-primary-300">
+                                    Writing article as <strong>{activeProfile.name}</strong>
+                                </span>
+                            </div>
+                        )}
+
                         {/* Cover Image */}
                         <div className="bg-elevated rounded-xl shadow-sm overflow-hidden border border-theme">
                             {coverPreview ? (

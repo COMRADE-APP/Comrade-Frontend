@@ -9,7 +9,7 @@ import paymentsService from '../../services/payments.service';
 const VerifyAccount = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        method: 'mpesa',
+        payment_method: 'mpesa',
         account_number: ''
     });
     const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ const VerifyAccount = () => {
             const response = await paymentsService.verifyAccount(formData);
             setResult(response);
         } catch (err) {
-            setError(err.response?.data?.error || 'Verification failed. Please check details.');
+            setError(err.response?.data?.detail || err.response?.data?.error || 'Verification failed. Please check details.');
         } finally {
             setLoading(false);
         }
@@ -56,8 +56,8 @@ const VerifyAccount = () => {
                                     Account Type
                                 </label>
                                 <select
-                                    value={formData.method}
-                                    onChange={(e) => setFormData({ ...formData, method: e.target.value })}
+                                    value={formData.payment_method}
+                                    onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
                                     className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 >
                                     <option value="mpesa">M-Pesa</option>
@@ -67,14 +67,14 @@ const VerifyAccount = () => {
                             </div>
 
                             <Input
-                                label={formData.method === 'mpesa' ? 'Phone Number' :
-                                    formData.method === 'paypal' ? 'PayPal Email' : 'Account Number'}
-                                type={formData.method === 'paypal' ? 'email' : 'text'}
+                                label={formData.payment_method === 'mpesa' ? 'Phone Number' :
+                                    formData.payment_method === 'paypal' ? 'PayPal Email' : 'Account Number'}
+                                type={formData.payment_method === 'paypal' ? 'email' : 'text'}
                                 value={formData.account_number}
                                 onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
                                 placeholder={
-                                    formData.method === 'mpesa' ? 'e.g. 254712345678' :
-                                        formData.method === 'paypal' ? 'email@example.com' : 'Account Number'
+                                    formData.payment_method === 'mpesa' ? 'e.g. 254712345678' :
+                                        formData.payment_method === 'paypal' ? 'email@example.com' : 'Account Number'
                                 }
                                 required
                             />

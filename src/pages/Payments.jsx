@@ -25,7 +25,7 @@ const Payments = () => {
 
     // Form data
     const [sendData, setSendData] = useState({ amount: '', recipient: '', payment_option: 'comrade_balance' });
-    const [depositData, setDepositData] = useState({ amount: '', payment_method: 'bank_transfer' });
+    const [depositData, setDepositData] = useState({ amount: '', payment_method: 'bank_transfer', phone_number: '' });
     const [withdrawData, setWithdrawData] = useState({ amount: '', account_number: '', payment_method: 'bank_transfer' });
 
     // Confirmation states
@@ -87,8 +87,12 @@ const Payments = () => {
     const handleDepositSubmit = async () => {
         setProcessing(true);
         try {
-            const result = await paymentsService.deposit(parseFloat(depositData.amount), depositData.payment_method);
-            setResultMessage(result.message || `Successfully deposited $${depositData.amount}`);
+            const result = await paymentsService.deposit(
+                parseFloat(depositData.amount),
+                depositData.payment_method,
+                { phone_number: depositData.phone_number }
+            );
+            setResultMessage(result.message || result.detail || `Successfully initiated deposit of $${depositData.amount}`);
             setConfirmationStep('success');
             loadData();
         } catch (error) {
@@ -100,7 +104,7 @@ const Payments = () => {
     };
     const resetDepositModal = () => {
         setShowDepositModal(false);
-        setDepositData({ amount: '', payment_method: 'bank_transfer' });
+        setDepositData({ amount: '', payment_method: 'bank_transfer', phone_number: '' });
         setConfirmationStep('form');
         setResultMessage('');
     };
@@ -152,32 +156,51 @@ const Payments = () => {
                     <p className="text-secondary mt-1">Manage your transactions and wallet</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" onClick={() => setShowDepositModal(true)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowDepositModal(true)}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <ArrowDownCircle className="w-4 h-4 mr-2" />
                         Deposit
                     </Button>
-                    <Button variant="outline" onClick={() => setShowWithdrawModal(true)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowWithdrawModal(true)}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <ArrowUpCircle className="w-4 h-4 mr-2" />
                         Withdraw
                     </Button>
-                    {/* Verify Account Button could go here, but omitted for brevity if not explicitly requested in UI spec, 
-                        though I will add it if requested. For now, sticking to required features. 
-                        Actually, 'Integrate the account verification flow' is a requirement. 
-                        I'll add a Verify Account button.
-                    */}
-                    <Button variant="outline" onClick={() => navigate('/payments/verify-account')}>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/verify-account')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <CheckCircle className="w-4 h-4 mr-2" />
                         Verify Account
                     </Button>
-                    <Button variant="outline" onClick={() => navigate('/payments/create-group')}>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/create-group')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <Users className="w-4 h-4 mr-2" />
                         Create Group
                     </Button>
-                    <Button variant="outline" onClick={() => navigate('/payments/groups')}>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/groups')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <Users className="w-4 h-4 mr-2" />
                         View Groups
                     </Button>
-                    <Button variant="outline" onClick={() => navigate('/piggy-banks')}>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/piggy-banks')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
                         <PiggyBank className="w-4 h-4 mr-2" />
                         Piggy Banks
                     </Button>
@@ -398,6 +421,20 @@ const Payments = () => {
                                             <option value="stripe">Credit/Debit Card</option>
                                         </select>
                                     </div>
+
+                                    {depositData.payment_method === 'mpesa' && (
+                                        <div className="pt-2">
+                                            <Input
+                                                label="M-Pesa Phone Number"
+                                                type="tel"
+                                                value={depositData.phone_number}
+                                                onChange={(e) => setDepositData({ ...depositData, phone_number: e.target.value })}
+                                                placeholder="2547XXXXXXXX"
+                                                required
+                                            />
+                                            <p className="text-xs text-secondary mt-1">You will receive an STK Push on this number.</p>
+                                        </div>
+                                    )}
                                     <div className="flex gap-2 justify-end pt-4">
                                         <Button variant="outline" onClick={resetDepositModal}>Cancel</Button>
                                         <Button variant="primary" onClick={handleDepositConfirm} disabled={!depositData.amount}>

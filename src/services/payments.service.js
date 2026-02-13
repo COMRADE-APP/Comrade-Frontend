@@ -9,12 +9,14 @@ export const paymentsService = {
     },
 
     async updatePaymentProfile(profileData) {
+        // Note: Update usually requires ID, check if this endpoint supports direct PUT on my_profile or needs ID
+        // For now trusting it follows the same pattern, or we might need to change this if my_profile doesn't support PUT
         const response = await api.put(API_ENDPOINTS.PAYMENT_PROFILE, profileData);
         return response.data;
     },
 
     async getBalance() {
-        const response = await api.get(`${API_ENDPOINTS.PAYMENT_PROFILE}balance/`);
+        const response = await api.get(API_ENDPOINTS.PAYMENT_BALANCE);
         return response.data;
     },
 
@@ -40,10 +42,11 @@ export const paymentsService = {
     },
 
     // ========== Deposit, Withdraw, Transfer ==========
-    async deposit(amount, paymentMethod = 'bank_transfer') {
+    async deposit(amount, paymentMethod = 'bank_transfer', additionalData = {}) {
         const response = await api.post(API_ENDPOINTS.DEPOSIT, {
             amount,
-            payment_method: paymentMethod
+            payment_method: paymentMethod,
+            ...additionalData
         });
         return response.data;
     },
@@ -108,8 +111,11 @@ export const paymentsService = {
         return response.data;
     },
 
-    async inviteToGroup(groupId, email) {
-        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}invite/`, { email });
+    async inviteToGroup(groupId, email, forceExternal = false) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}invite/`, {
+            email,
+            force_external: forceExternal
+        });
         return response.data;
     },
 

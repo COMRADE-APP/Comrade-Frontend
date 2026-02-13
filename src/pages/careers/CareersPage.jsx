@@ -66,7 +66,8 @@ const CareersPage = () => {
             });
 
             const response = await careersService.getAll(params);
-            setCareers(response.data);
+            const data = response.data;
+            setCareers(Array.isArray(data) ? data : data.results || []);
         } catch (err) {
             setError('Failed to load career opportunities');
             console.error(err);
@@ -78,7 +79,8 @@ const CareersPage = () => {
     const fetchRecommended = async () => {
         try {
             const response = await careersService.getRecommended();
-            setRecommendedCareers(response.data);
+            const data = response.data;
+            setRecommendedCareers(Array.isArray(data) ? data : data.results || []);
         } catch (err) {
             console.error('Failed to load recommendations:', err);
         }

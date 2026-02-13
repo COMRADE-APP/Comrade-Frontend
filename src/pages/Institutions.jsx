@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
+
 import { Building2, Search, Plus, Users, MapPin, Globe, Edit, Trash2, X, Eye } from 'lucide-react';
 import institutionsService from '../services/institutions.service';
 
@@ -13,15 +13,6 @@ const Institutions = () => {
     const [institutions, setInstitutions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedInstitution, setSelectedInstitution] = useState(null);
-    const [formData, setFormData] = useState({
-        name: '',
-        about: '',
-        location: '',
-        website: '',
-    });
 
     // All authenticated users can create institutions
     const canManageInstitutions = true;
@@ -43,18 +34,7 @@ const Institutions = () => {
         }
     };
 
-    const handleCreate = async (e) => {
-        e.preventDefault();
-        try {
-            await institutionsService.create(formData);
-            setShowCreateModal(false);
-            setFormData({ name: '', about: '', location: '', website: '' });
-            loadInstitutions();
-        } catch (error) {
-            console.error('Failed to create institution:', error);
-            alert('Failed to create institution');
-        }
-    };
+
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this institution?')) return;
@@ -68,13 +48,12 @@ const Institutions = () => {
     };
 
     const viewDetails = (institution) => {
-        setSelectedInstitution(institution);
-        setShowDetailModal(true);
+        navigate(`/institutions/${institution.id}`);
     };
 
     const filteredInstitutions = institutions.filter(inst =>
-        inst.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inst.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inst.location || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -131,134 +110,27 @@ const Institutions = () => {
                     ))}
                 </div>
             )}
-
-            {/* Create Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <Card className="w-full max-w-md">
-                        <CardBody>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-primary">Add New Institution</h2>
-                                <button onClick={() => setShowCreateModal(false)} className="text-secondary hover:text-primary">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleCreate} className="space-y-4">
-                                <Input
-                                    label="Institution Name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    required
-                                    placeholder="University of..."
-                                />
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">About</label>
-                                    <textarea
-                                        value={formData.about}
-                                        onChange={(e) => setFormData({ ...formData, about: e.target.value })}
-                                        rows="3"
-                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                        placeholder="Brief description..."
-                                    />
-                                </div>
-                                <Input
-                                    label="Location"
-                                    value={formData.location}
-                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                    placeholder="City, Country"
-                                />
-                                <Input
-                                    label="Website"
-                                    value={formData.website}
-                                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                    placeholder="https://..."
-                                    type="url"
-                                />
-                                <div className="flex gap-2 justify-end pt-4">
-                                    <Button variant="outline" type="button" onClick={() => setShowCreateModal(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button variant="primary" type="submit">
-                                        Create Institution
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardBody>
-                    </Card>
-                </div>
-            )}
-
-            {/* Detail Modal */}
-            {showDetailModal && selectedInstitution && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <Card className="w-full max-w-2xl">
-                        <CardBody>
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <Building2 className="w-8 h-8 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold text-primary">{selectedInstitution.name}</h2>
-                                        {selectedInstitution.location && (
-                                            <p className="text-secondary flex items-center gap-1 mt-1">
-                                                <MapPin className="w-4 h-4" />
-                                                {selectedInstitution.location}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                                <button onClick={() => setShowDetailModal(false)} className="text-secondary hover:text-primary">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            {selectedInstitution.about && (
-                                <div className="mb-6">
-                                    <h3 className="text-sm font-medium text-secondary mb-2">About</h3>
-                                    <p className="text-secondary">{selectedInstitution.about}</p>
-                                </div>
-                            )}
-
-                            {selectedInstitution.website && (
-                                <div className="mb-6">
-                                    <h3 className="text-sm font-medium text-secondary mb-2">Website</h3>
-                                    <a
-                                        href={selectedInstitution.website}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary hover:underline flex items-center gap-1"
-                                    >
-                                        <Globe className="w-4 h-4" />
-                                        {selectedInstitution.website}
-                                    </a>
-                                </div>
-                            )}
-
-                            <div className="flex gap-2 pt-4 border-t border-theme">
-                                <Button variant="outline" className="flex-1" onClick={() => setShowDetailModal(false)}>
-                                    Close
-                                </Button>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-            )}
         </div>
     );
 };
 
 const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+        className="hover:shadow-md transition-shadow cursor-pointer group"
+        onClick={onView}
+    >
         <CardBody>
             <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                         <Building2 className="w-6 h-6 text-primary" />
                     </div>
                     {canManage && (
                         <button
-                            onClick={onDelete}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete();
+                            }}
                             className="p-1 text-secondary hover:text-red-600 transition-colors"
                             title="Delete institution"
                         >
@@ -268,7 +140,7 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-lg text-primary line-clamp-1">{institution.name}</h3>
+                    <h3 className="font-semibold text-lg text-primary line-clamp-1 group-hover:text-primary-600 transition-colors">{institution.name}</h3>
                     {institution.location && (
                         <p className="text-sm text-secondary flex items-center gap-1 mt-1">
                             <MapPin className="w-3.5 h-3.5" />
@@ -281,7 +153,7 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
                     <p className="text-sm text-secondary line-clamp-2">{institution.about}</p>
                 )}
 
-                <Button variant="outline" className="w-full" onClick={onView}>
+                <Button variant="primary" className="w-full mt-2">
                     <Eye className="w-4 h-4 mr-2" />
                     View Details
                 </Button>

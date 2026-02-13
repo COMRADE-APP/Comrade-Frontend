@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../services/auth.service';
+import organizationsService from '../services/organizations.service';
+import institutionsService from '../services/institutions.service';
 import { ROUTES } from '../constants/routes';
 
 const AuthContext = createContext(null);
@@ -29,6 +31,14 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [profileComplete, setProfileComplete] = useState(true);
+    // Active profile for content creation context (personal, org, or institution)
+    const [activeProfile, setActiveProfile] = useState(null);
+    // List of available accounts the user can switch to
+    const [availableAccounts, setAvailableAccounts] = useState([]);
+    // Whether to show account selection modal after login
+    const [showAccountSelection, setShowAccountSelection] = useState(false);
+    // Flag to indicate fresh login (vs page refresh)
+    const [justLoggedIn, setJustLoggedIn] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -37,6 +47,80 @@ export const AuthProvider = ({ children }) => {
         return PROFILE_EXEMPT_ROUTES.some(route =>
             location.pathname.toLowerCase().startsWith(route)
         );
+    };
+
+    // Fetch user's organizations and institutions for account switching
+    const fetchAvailableAccounts = async (userData, isLogin = false) => {
+        const accounts = [];
+
+        // Add personal account first
+        const personalAccount = {
+            id: userData?.id || null,
+            name: userData?.first_name ? `${userData.first_name} ${userData.last_name || ''}`.trim() : (userData?.email || 'User'),
+            type: 'personal',
+            avatar: userData?.profile_picture || userData?.avatar
+        };
+        accounts.push(personalAccount);
+
+        // Fetch organizations
+        try {
+            const orgs = await organizationsService.getMyOrganizations();
+            if (Array.isArray(orgs)) {
+                accounts.push(...orgs);
+            }
+        } catch (err) {
+            console.log('Could not fetch organizations:', err);
+        }
+
+        // Fetch institutions
+        try {
+            const institutions = await institutionsService.getMyInstitutions();
+            if (Array.isArray(institutions)) {
+                accounts.push(...institutions);
+            }
+        } catch (err) {
+            console.log('Could not fetch institutions:', err);
+        }
+
+        setAvailableAccounts(accounts);
+
+        // Check if we should show account selection (on login with multiple accounts)
+        const skipSelection = localStorage.getItem('skipAccountSelection') === 'true';
+        const defaultAccountId = localStorage.getItem('defaultAccountId');
+
+        if (isLogin && accounts.length > 1 && !skipSelection) {
+            // Show account selection modal after login
+            setShowAccountSelection(true);
+            // Default to personal but let user choose
+            setActiveProfile(personalAccount);
+        } else if (defaultAccountId && skipSelection) {
+            // User chose to remember their selection
+            const defaultAccount = accounts.find(a => a.id === defaultAccountId);
+            if (defaultAccount) {
+                setActiveProfile(defaultAccount);
+            } else {
+                setActiveProfile(personalAccount);
+            }
+        } else {
+            // Restore active profile from localStorage or default to personal
+            const storedActiveProfile = localStorage.getItem('activeProfile');
+            if (storedActiveProfile) {
+                try {
+                    const parsed = JSON.parse(storedActiveProfile);
+                    // Verify the stored profile still exists in available accounts
+                    const stillExists = accounts.find(a => a.id === parsed.id && a.type === parsed.type);
+                    if (stillExists) {
+                        setActiveProfile(stillExists);
+                    } else {
+                        setActiveProfile(personalAccount);
+                    }
+                } catch {
+                    setActiveProfile(personalAccount);
+                }
+            } else {
+                setActiveProfile(personalAccount);
+            }
+        }
     };
 
     useEffect(() => {
@@ -67,10 +151,14 @@ export const AuthProvider = ({ children }) => {
                                 }
                             });
                         }
+
+                        // Fetch available accounts for switching
+                        await fetchAvailableAccounts(freshUser);
                     }
                 } catch (error) {
                     console.error('Error fetching user:', error);
-                    // Keep using stored user data if API fails
+                    // Fallback: Build accounts from stored user
+                    await fetchAvailableAccounts(storedUser);
                 }
             }
             setLoading(false);
@@ -91,6 +179,29 @@ export const AuthProvider = ({ children }) => {
         }
     }, [location.pathname, loading, user, profileComplete]);
 
+    // Heartbeat for activity status
+    useEffect(() => {
+        if (!user) return;
+
+        const sendHeartbeat = async () => {
+            try {
+                if (authService.heartbeat) {
+                    await authService.heartbeat();
+                }
+            } catch (error) {
+                console.error("Heartbeat failed", error);
+            }
+        };
+
+        // Send immediately on login/load
+        sendHeartbeat();
+
+        // Then every 2 minutes
+        const interval = setInterval(sendHeartbeat, 2 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [user]);
+
     const login = async (email, password) => {
         try {
             const data = await authService.login(email, password);
@@ -102,6 +213,7 @@ export const AuthProvider = ({ children }) => {
 
             const userData = data.user || authService.getStoredUser();
             setUser(userData);
+            setJustLoggedIn(true);
 
             const isProfileComplete = userData?.profile_completed !== false;
             setProfileComplete(isProfileComplete);
@@ -112,6 +224,8 @@ export const AuthProvider = ({ children }) => {
                     state: { email: userData.email, userType: userData.user_type }
                 });
             } else {
+                // Fetch accounts and check if we need to show selection
+                await fetchAvailableAccounts(userData, true);
                 navigate(ROUTES.DASHBOARD);
             }
 
@@ -176,6 +290,31 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Switch active profile (personal, organisation, or institution)
+    const switchAccount = (account) => {
+        setActiveProfile(account);
+        localStorage.setItem('activeProfile', JSON.stringify(account));
+        setShowAccountSelection(false);
+    };
+
+    // Handle account selection from modal (after login)
+    const handleAccountSelected = (account) => {
+        switchAccount(account);
+        setShowAccountSelection(false);
+        setJustLoggedIn(false);
+    };
+
+    // Dismiss account selection modal
+    const dismissAccountSelection = () => {
+        setShowAccountSelection(false);
+        setJustLoggedIn(false);
+    };
+
+    // Add accounts (called when user's orgs/institutions are fetched)
+    const updateAvailableAccounts = (accounts) => {
+        setAvailableAccounts(accounts);
+    };
+
     const value = {
         user,
         login,
@@ -186,6 +325,15 @@ export const AuthProvider = ({ children }) => {
         profileComplete,
         updateUser,
         completeProfile,
+        // Account switching
+        activeProfile,
+        availableAccounts,
+        switchAccount,
+        updateAvailableAccounts,
+        // Post-login account selection
+        showAccountSelection,
+        handleAccountSelected,
+        dismissAccountSelection,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

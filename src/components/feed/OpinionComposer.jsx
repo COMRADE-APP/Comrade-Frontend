@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search } from 'lucide-react';
+import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import roomsService from '../../services/rooms.service';
 
 /**
  * OpinionComposer - Create new opinions with media upload and room tagging
+ * Supports entity authorship (post as personal, organisation, or institution)
  */
 const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
-    const { user } = useAuth();
+    const { user, activeProfile } = useAuth();
     const [content, setContent] = useState('');
     const [mediaFiles, setMediaFiles] = useState([]);
     const [visibility, setVisibility] = useState('public');
@@ -18,10 +19,33 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
     const [availableRooms, setAvailableRooms] = useState([]);
     const [roomSearchQuery, setRoomSearchQuery] = useState('');
     const [loadingRooms, setLoadingRooms] = useState(false);
+    const [isAnonymous, setIsAnonymous] = useState(false);
     const fileInputRef = useRef(null);
 
     const characterLimit = isPremium ? 5000 : 500;
     const remainingChars = characterLimit - content.length;
+
+    // Get profile icon based on type
+    const getProfileIcon = () => {
+        if (activeProfile?.type === 'organisation') return Building2;
+        if (activeProfile?.type === 'institution') return GraduationCap;
+        return User;
+    };
+    const ProfileIcon = getProfileIcon();
+
+    // Get avatar display (profile avatar or user initials)
+    const getAvatarDisplay = () => {
+        if (activeProfile?.avatar) {
+            return <img src={activeProfile.avatar} alt="" className="w-full h-full object-cover" />;
+        }
+        if (activeProfile?.type !== 'personal') {
+            return <ProfileIcon className="w-5 h-5" />;
+        }
+        if (user?.avatar_url) {
+            return <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />;
+        }
+        return (user?.first_name?.[0] || 'U').toUpperCase();
+    };
 
     // Load user's rooms for tagging
     useEffect(() => {
@@ -110,10 +134,23 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                 });
             }
 
+            // Add entity authorship based on active profile
+            if (activeProfile?.type === 'organisation') {
+                formData.append('organisation', activeProfile.id);
+            } else if (activeProfile?.type === 'institution') {
+                formData.append('institution', activeProfile.id);
+            }
+
+            // Add anonymous flag
+            if (isAnonymous) {
+                formData.append('is_anonymous', 'true');
+            }
+
             await onSubmit(formData);
             setContent('');
             setMediaFiles([]);
             setTaggedRooms([]);
+            setIsAnonymous(false);
         } catch (error) {
             console.error('Failed to post:', error);
         } finally {
@@ -131,21 +168,32 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
 
     return (
         <div className="bg-elevated rounded-xl border border-theme p-4">
+            {/* Posting as indicator - show when not personal */}
+            {activeProfile && activeProfile.type !== 'personal' && (
+                <div className="mb-3 px-3 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center gap-2 text-sm">
+                    <ProfileIcon className="w-4 h-4 text-primary-600" />
+                    <span className="text-primary-700 dark:text-primary-300">
+                        Posting as <strong>{activeProfile.name}</strong>
+                    </span>
+                </div>
+            )}
+
             {/* User avatar and input */}
             <div className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
-                    {user?.avatar_url ? (
-                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                        (user?.first_name?.[0] || 'U').toUpperCase()
-                    )}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden ${activeProfile?.type === 'organisation' ? 'bg-blue-500' :
+                    activeProfile?.type === 'institution' ? 'bg-purple-500' :
+                        'bg-gradient-to-br from-purple-400 to-blue-500'
+                    }`}>
+                    {getAvatarDisplay()}
                 </div>
 
                 <div className="flex-1">
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="What's on your mind?"
+                        placeholder={activeProfile?.type !== 'personal'
+                            ? `What does ${activeProfile?.name} want to share?`
+                            : "What's on your mind?"}
                         className="w-full resize-none border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent"
                         rows={3}
                     />
@@ -316,6 +364,19 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                             </>
                         )}
                     </div>
+
+                    {/* Anonymous toggle */}
+                    <button
+                        onClick={() => setIsAnonymous(!isAnonymous)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isAnonymous
+                                ? 'bg-gray-700 text-white'
+                                : 'text-secondary hover:bg-secondary'
+                            }`}
+                        title={isAnonymous ? 'Posting anonymously' : 'Post with your identity'}
+                    >
+                        {isAnonymous ? <EyeOff size={16} /> : <Eye size={16} />}
+                        <span className="hidden sm:inline">{isAnonymous ? 'Anonymous' : 'Visible'}</span>
+                    </button>
                 </div>
 
                 {/* Character count and submit */}

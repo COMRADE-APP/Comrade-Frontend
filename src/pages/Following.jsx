@@ -172,10 +172,18 @@ const UserCard = ({ user, onFollow, currentUserId }) => {
     return (
         <div className="flex items-center gap-4 p-4 hover:bg-secondary/5 transition-colors">
             {/* Avatar */}
-            <Link to={`/profile/${user.id}`} className="shrink-0">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-xl">
-                    {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
-                </div>
+            <Link to={`/profile/${user.id}`} className="shrink-0 relative">
+                {user.avatar || user.profile_picture ? (
+                    <img
+                        src={user.avatar || user.profile_picture}
+                        alt={user.first_name || 'User'}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-primary"
+                    />
+                ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-xl border-2 border-primary">
+                        {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                )}
             </Link>
 
             {/* Info */}

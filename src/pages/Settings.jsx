@@ -8,7 +8,7 @@ import ThemeSwitcher from '../components/common/ThemeSwitcher';
 import authService from '../services/auth.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
-    UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock
+    UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail
 } from 'lucide-react';
 
 const USER_TYPE_OPTIONS = [
@@ -20,6 +20,19 @@ const USER_TYPE_OPTIONS = [
     { value: 'author', label: 'Author' },
     { value: 'editor', label: 'Editor' },
 ];
+
+
+const AppleLogo = ({ className }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+);
+
+const XLogo = ({ className }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+);
 
 const Settings = () => {
     const { user, logout } = useAuth();
@@ -259,8 +272,8 @@ const Settings = () => {
 
                     {/* Linked Accounts */}
                     <Card>
-                        <CardHeader className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <Globe className="w-5 h-5" />
                                 Linked Accounts
                             </h3>
@@ -268,24 +281,29 @@ const Settings = () => {
                         <CardBody>
                             <div className="space-y-3">
                                 {[
-                                    { name: 'Google', connected: true, icon: '🔗' },
-                                    { name: 'Apple', connected: false, icon: '🍎' },
-                                    { name: 'X (Twitter)', connected: false, icon: '𝕏' },
-                                ].map((account) => (
-                                    <div key={account.name} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xl">{account.icon}</span>
-                                            <span className="font-medium text-gray-900">{account.name}</span>
+                                    { name: 'Google', connected: true, icon: Mail },
+                                    { name: 'Apple', connected: false, icon: AppleLogo },
+                                    { name: 'X (formerly Twitter)', connected: false, icon: XLogo },
+                                ].map((account) => {
+                                    const Icon = account.icon;
+                                    return (
+                                        <div key={account.name} className="flex items-center justify-between py-3 border-b border-theme last:border-0">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-primary">
+                                                    <Icon className="w-5 h-5" />
+                                                </div>
+                                                <span className="font-medium text-primary">{account.name}</span>
+                                            </div>
+                                            {account.connected ? (
+                                                <span className="text-sm text-green-600 flex items-center gap-1">
+                                                    <CheckCircle className="w-4 h-4" /> Connected
+                                                </span>
+                                            ) : (
+                                                <Button variant="outline" size="sm">Connect</Button>
+                                            )}
                                         </div>
-                                        {account.connected ? (
-                                            <span className="text-sm text-green-600 flex items-center gap-1">
-                                                <CheckCircle className="w-4 h-4" /> Connected
-                                            </span>
-                                        ) : (
-                                            <Button variant="outline" size="sm">Connect</Button>
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </CardBody>
                     </Card>
@@ -500,22 +518,69 @@ const Settings = () => {
                             </h3>
                         </CardHeader>
                         <CardBody>
-                            <div className="space-y-3">
-                                {[
-                                    { label: 'Public Profile', description: 'Allow others to view your profile' },
-                                    { label: 'Show Email', description: 'Display your email on your profile' },
-                                    { label: 'Show Activity', description: 'Let others see your recent activity' },
-                                ].map((setting, idx) => (
-                                    <div key={idx} className="flex items-center justify-between py-3 border-b border-theme last:border-0">
-                                        <div>
-                                            <h4 className="font-medium text-primary">{setting.label}</h4>
-                                            <p className="text-sm text-secondary">{setting.description}</p>
-                                        </div>
-                                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
-                                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
-                                        </button>
+                            <div className="space-y-4">
+                                {/* Activity Status */}
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Show Activity Status</h4>
+                                        <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
                                     </div>
-                                ))}
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !user?.user_profile?.show_activity_status;
+                                                // Optimistic update (if user object is structured this way, else fetch profile)
+                                                // Better to just call API and reload
+                                                await authService.updateProfile({ show_activity_status: newStatus });
+                                                // Ideally we should reload user context or profile here. 
+                                                // For now, assuming authService.getCurrentUser() will be called or page reload
+                                                showMessage('success', 'Privacy setting updated');
+                                                // Trigger a reload of user data if possible, or just let the user know
+                                                setTimeout(() => window.location.reload(), 500); // Simple reload to refresh context
+                                            } catch (error) {
+                                                showMessage('error', 'Failed to update setting');
+                                            }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
+                                            }`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Read Receipts */}
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Read Receipts</h4>
+                                        <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !user?.user_profile?.show_read_receipts;
+                                                await authService.updateProfile({ show_read_receipts: newStatus });
+                                                showMessage('success', 'Privacy setting updated');
+                                                setTimeout(() => window.location.reload(), 500);
+                                            } catch (error) {
+                                                showMessage('error', 'Failed to update setting');
+                                            }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
+                                            }`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Public Profile</h4>
+                                        <p className="text-sm text-secondary">Allow others to view your profile</p>
+                                    </div>
+                                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
+                                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
+                                    </button>
+                                </div>
                             </div>
                         </CardBody>
                     </Card>

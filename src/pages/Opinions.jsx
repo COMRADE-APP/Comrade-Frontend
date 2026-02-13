@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
+import OpinionComposer from '../components/feed/OpinionComposer';
 import {
-    Heart, MessageCircle, Repeat2, Share2, MoreHorizontal, Image as ImageIcon,
-    Smile, MapPin, Globe, Lock, Users, Send, Bookmark, Sparkles, TrendingUp,
-    X, Video, FileText, ExternalLink, UserPlus, Ban, Flag, EyeOff, HelpCircle,
-    RefreshCw
+    Heart, MessageCircle, Repeat2, Share2, MoreHorizontal,
+    Users, Bookmark, Sparkles, TrendingUp,
+    X, FileText, ExternalLink, UserPlus, Ban, Flag, EyeOff, HelpCircle,
+    RefreshCw, User
 } from 'lucide-react';
 import opinionsService from '../services/opinions.service';
 import api from '../services/api';
@@ -16,31 +17,17 @@ import { formatTimeAgo } from '../utils/dateFormatter';
 // Simple emoji picker data
 const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀'];
 
-const VISIBILITY_OPTIONS = [
-    { value: 'public', label: 'Everyone', icon: Globe },
-    { value: 'followers', label: 'Followers', icon: Users },
-    { value: 'only_me', label: 'Only me', icon: Lock },
-];
+
 
 const Opinions = () => {
     const { user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState('for_you');
     const [opinions, setOpinions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [posting, setPosting] = useState(false);
-    const [newOpinion, setNewOpinion] = useState('');
-    const [visibility, setVisibility] = useState('public');
-    const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [mediaFiles, setMediaFiles] = useState([]);
     const [newContentAvailable, setNewContentAvailable] = useState(false);
     const [lastFetchTime, setLastFetchTime] = useState(null);
-    const textareaRef = useRef(null);
-    const fileInputRef = useRef(null);
-
     // Character limits based on user tier
     const isPremium = user?.tier === 'premium' || user?.tier === 'gold';
-    const MAX_CHARS = isPremium ? 5000 : 500;
 
     useEffect(() => {
         loadOpinions();
@@ -89,79 +76,15 @@ const Opinions = () => {
         }
     };
 
-    const handleFileSelect = (e) => {
-        const files = Array.from(e.target.files);
-        const newFiles = files.slice(0, 4 - mediaFiles.length);
-
-        newFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setMediaFiles(prev => [...prev, {
-                    file,
-                    preview: event.target.result,
-                    type: file.type.startsWith('video') ? 'video' :
-                        file.type.includes('gif') ? 'gif' :
-                            file.type.startsWith('image') ? 'image' : 'file',
-                    name: file.name
-                }]);
-            };
-            if (file.type.startsWith('image') || file.type.startsWith('video')) {
-                reader.readAsDataURL(file);
-            } else {
-                setMediaFiles(prev => [...prev, {
-                    file,
-                    preview: null,
-                    type: 'file',
-                    name: file.name
-                }]);
-            }
-        });
-        e.target.value = '';
-    };
-
-    const removeFile = (index) => {
-        setMediaFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleEmojiSelect = (emoji) => {
-        const textarea = textareaRef.current;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = newOpinion;
-        const before = text.substring(0, start);
-        const after = text.substring(end);
-        setNewOpinion(before + emoji + after);
-        setShowEmojiPicker(false);
-        setTimeout(() => {
-            textarea.focus();
-            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-        }, 0);
-    };
-
-    const handlePost = async () => {
-        if (!newOpinion.trim() || posting) return;
-
-        setPosting(true);
+    const handlePostOpinion = async (formData) => {
         try {
-            const formData = new FormData();
-            formData.append('content', newOpinion.trim());
-            formData.append('visibility', visibility);
-            mediaFiles.forEach((media) => {
-                formData.append('media', media.file);
-            });
-
             const response = await api.post('/api/opinions/opinions/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setOpinions([response.data, ...opinions]);
-            setNewOpinion('');
-            setVisibility('public');
-            setMediaFiles([]);
         } catch (error) {
             console.error('Error posting opinion:', error);
-            alert(error.response?.data?.content?.[0] || 'Failed to post opinion');
-        } finally {
-            setPosting(false);
+            throw error;
         }
     };
 
@@ -330,15 +253,6 @@ const Opinions = () => {
         }
     };
 
-    const autoResize = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-        }
-    };
-
-    const charactersLeft = MAX_CHARS - newOpinion.length;
-    const isOverLimit = charactersLeft < 0;
 
     return (
         <>
@@ -387,156 +301,11 @@ const Opinions = () => {
 
                 {/* Composer */}
                 {isAuthenticated && (
-                    <div className="bg-primary border-b border-theme p-4">
-                        <div className="flex gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shrink-0 overflow-hidden">
-                                {user?.avatar_url ? (
-                                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    user?.first_name?.[0] || 'U'
-                                )}
-                            </div>
-                            <div className="flex-1">
-                                <textarea
-                                    ref={textareaRef}
-                                    value={newOpinion}
-                                    onChange={(e) => {
-                                        setNewOpinion(e.target.value);
-                                        autoResize();
-                                    }}
-                                    placeholder="What's on your mind?"
-                                    className="w-full resize-none border-0 focus:ring-0 text-xl text-primary placeholder-tertiary outline-none min-h-[80px] bg-transparent"
-                                    rows={1}
-                                />
-
-                                {/* Media Previews */}
-                                {mediaFiles.length > 0 && (
-                                    <div className={`grid gap-2 mt-3 ${mediaFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                                        {mediaFiles.map((media, index) => (
-                                            <div key={index} className="relative rounded-xl overflow-hidden bg-secondary">
-                                                {media.type === 'video' ? (
-                                                    <video src={media.preview} className="w-full h-32 object-cover" />
-                                                ) : media.type === 'file' ? (
-                                                    <div className="flex items-center gap-2 p-3 bg-secondary">
-                                                        <FileText size={20} className="text-secondary" />
-                                                        <span className="text-sm text-primary truncate">{media.name}</span>
-                                                    </div>
-                                                ) : (
-                                                    <img src={media.preview} alt="" className="w-full h-32 object-cover" />
-                                                )}
-                                                <button
-                                                    onClick={() => removeFile(index)}
-                                                    className="absolute top-2 right-2 p-1 bg-black/60 rounded-full text-white hover:bg-black/80"
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Actions row */}
-                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
-                                    <div className="flex items-center gap-1">
-                                        {/* Visibility selector */}
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
-                                                className="flex items-center gap-1 text-primary-500 text-sm font-medium hover:bg-primary-50 px-2 py-1 rounded-full"
-                                            >
-                                                {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.icon &&
-                                                    React.createElement(VISIBILITY_OPTIONS.find(v => v.value === visibility).icon, { className: 'w-4 h-4' })
-                                                }
-                                                {VISIBILITY_OPTIONS.find(v => v.value === visibility)?.label}
-                                            </button>
-                                            {showVisibilityMenu && (
-                                                <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => setShowVisibilityMenu(false)} />
-                                                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 w-48">
-                                                        {VISIBILITY_OPTIONS.map((option) => {
-                                                            const Icon = option.icon;
-                                                            return (
-                                                                <button
-                                                                    key={option.value}
-                                                                    onClick={() => {
-                                                                        setVisibility(option.value);
-                                                                        setShowVisibilityMenu(false);
-                                                                    }}
-                                                                    className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 ${visibility === option.value ? 'text-primary-600 bg-primary-50' : 'text-gray-700'}`}
-                                                                >
-                                                                    <Icon className="w-4 h-4" />
-                                                                    {option.label}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div >
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* Media upload */}
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileSelect}
-                                            accept="image/*,video/*,.pdf,.doc,.docx"
-                                            multiple
-                                            className="hidden"
-                                        />
-                                        <button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={mediaFiles.length >= 4}
-                                            className="p-2 text-primary-500 hover:bg-primary-50 rounded-full disabled:opacity-50"
-                                            title="Add media"
-                                        >
-                                            <ImageIcon className="w-5 h-5" />
-                                        </button>
-
-                                        {/* Emoji picker */}
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                                className="p-2 text-primary-500 hover:bg-primary-50 rounded-full"
-                                            >
-                                                <Smile className="w-5 h-5" />
-                                            </button>
-                                            {showEmojiPicker && (
-                                                <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => setShowEmojiPicker(false)} />
-                                                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-20 w-56">
-                                                        <div className="grid grid-cols-8 gap-1">
-                                                            {COMMON_EMOJIS.map(emoji => (
-                                                                <button
-                                                                    key={emoji}
-                                                                    onClick={() => handleEmojiSelect(emoji)}
-                                                                    className="p-1 hover:bg-gray-100 rounded text-xl"
-                                                                >
-                                                                    {emoji}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <span className={`text-sm ${isOverLimit ? 'text-red-500' : charactersLeft < 50 ? 'text-yellow-500' : 'text-gray-400'}`}>
-                                            {charactersLeft}
-                                        </span>
-                                        <Button
-                                            variant="primary"
-                                            onClick={handlePost}
-                                            disabled={!newOpinion.trim() || isOverLimit || posting}
-                                            className="rounded-full px-5"
-                                        >
-                                            {posting ? 'Posting...' : 'Post'}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="border-b border-theme p-4">
+                        <OpinionComposer
+                            onSubmit={handlePostOpinion}
+                            isPremium={isPremium}
+                        />
                     </div>
                 )}
 
@@ -678,7 +447,26 @@ const Opinions = () => {
 const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFollow, onShare, onHide, onReport, onBlock, onOpenComments }) => {
     const [showMenu, setShowMenu] = useState(false);
 
-    const canFollow = opinion.user?.id !== currentUser?.id && opinion.user?.is_following === false;
+    const canFollow = opinion.user?.id !== currentUser?.id && opinion.user?.is_following === false && !opinion.is_anonymous;
+
+    // Check if this is an entity-authored opinion
+    const entityAuthor = opinion.entity_author;
+    const isAnonymous = opinion.is_anonymous;
+
+    // User type badge styles
+    const getUserTypeBadge = (userType) => {
+        const badges = {
+            student: { label: 'Student', color: 'bg-blue-100 text-blue-700' },
+            staff: { label: 'Staff', color: 'bg-purple-100 text-purple-700' },
+            org_staff: { label: 'Org Staff', color: 'bg-green-100 text-green-700' },
+            org_admin: { label: 'Org Admin', color: 'bg-emerald-100 text-emerald-700' },
+            inst_admin: { label: 'Inst Admin', color: 'bg-orange-100 text-orange-700' },
+            inst_staff: { label: 'Inst Staff', color: 'bg-amber-100 text-amber-700' },
+            lecturer: { label: 'Lecturer', color: 'bg-indigo-100 text-indigo-700' },
+            default: { label: 'Member', color: 'bg-gray-100 text-gray-700' },
+        };
+        return badges[userType] || badges.default;
+    };
 
     return (
         <>
@@ -706,27 +494,73 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                 )}
 
                 <div className="flex gap-3">
-                    {/* Avatar */}
-                    <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
-                            {opinion.user?.avatar_url ? (
-                                <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                                opinion.user?.first_name?.[0] || 'U'
-                            )}
+                    {/* Avatar - changes based on anonymous/entity */}
+                    {isAnonymous ? (
+                        <div className="shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white font-bold text-lg">
+                                <User size={24} />
+                            </div>
                         </div>
-                    </Link>
+                    ) : entityAuthor ? (
+                        <Link to={`/${entityAuthor.type === 'organisation' ? 'organizations' : 'institutions'}/${entityAuthor.id}`} className="shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden ring-2 ring-blue-200">
+                                {entityAuthor.avatar ? (
+                                    <img src={entityAuthor.avatar} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    entityAuthor.name?.[0] || 'O'
+                                )}
+                            </div>
+                        </Link>
+                    ) : (
+                        <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                {opinion.user?.avatar_url ? (
+                                    <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    opinion.user?.first_name?.[0] || 'U'
+                                )}
+                            </div>
+                        </Link>
+                    )}
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                         {/* Header */}
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-primary hover:underline">
-                                    {opinion.user?.full_name || opinion.user?.first_name || 'User'}
-                                </Link>
+                                {/* Name - changes based on anonymous/entity */}
+                                {isAnonymous ? (
+                                    <span className="font-bold text-gray-500 italic">Anonymous</span>
+                                ) : entityAuthor ? (
+                                    <>
+                                        <Link to={`/${entityAuthor.type === 'organisation' ? 'organizations' : 'institutions'}/${entityAuthor.id}`} className="font-bold text-primary hover:underline flex items-center gap-1">
+                                            {entityAuthor.name}
+                                            <span className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 rounded-full">
+                                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            </span>
+                                        </Link>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${entityAuthor.type === 'organisation' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                            {entityAuthor.type === 'organisation' ? 'Organization' : 'Institution'}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link to={`/profile/${opinion.user?.id}`} className="font-bold text-primary hover:underline">
+                                            {opinion.user?.full_name || opinion.user?.first_name || 'User'}
+                                        </Link>
 
-                                {/* Follow button */}
+                                        {/* User type badge */}
+                                        {opinion.user_type && (
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${getUserTypeBadge(opinion.user_type).color}`}>
+                                                {getUserTypeBadge(opinion.user_type).label}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Follow button - only for regular users */}
                                 {canFollow && (
                                     <button
                                         onClick={() => onFollow(opinion.user.id)}
@@ -745,6 +579,14 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                                     <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary flex items-center gap-1">
                                         {opinion.visibility === 'followers' ? <Users className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                                         {opinion.visibility}
+                                    </span>
+                                )}
+
+                                {/* Anonymous indicator */}
+                                {isAnonymous && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 flex items-center gap-1">
+                                        <User className="w-3 h-3" />
+                                        Anonymous
                                     </span>
                                 )}
                             </div>

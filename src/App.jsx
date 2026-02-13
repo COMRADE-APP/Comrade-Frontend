@@ -49,6 +49,8 @@ import Devices from './pages/Devices';
 import PermissionsSettings from './pages/PermissionsSettings';
 import Shop from './pages/shop/Shop';
 import ProductDetails from './pages/shop/ProductDetails';
+import EstablishmentDetail from './pages/shop/EstablishmentDetail';
+import RegisterEstablishment from './pages/shop/RegisterEstablishment';
 import PiggyBanks from './pages/payments/PiggyBanks';
 
 // Payment System Components
@@ -94,6 +96,11 @@ import CreateProduct from './pages/products/CreateProduct';
 import QomAI from './pages/QomAI';
 import FundingHub from './pages/funding/FundingHub';
 import CreateBusiness from './pages/funding/CreateBusiness';
+import CreateFundingOrg from './pages/funding/CreateFundingOrg';
+import FundingOrgDashboard from './pages/funding/FundingOrgDashboard';
+import RequestFunding from './pages/funding/RequestFunding';
+import BusinessDetail from './pages/funding/BusinessDetail';
+import OpportunitiesExplorer from './pages/funding/OpportunitiesExplorer';
 
 // Careers & Gigs
 import GigsPage from './pages/careers/GigsPage';
@@ -184,6 +191,56 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreateBusiness />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/ventures/create'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateFundingOrg />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/ventures/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <FundingOrgDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/request/:businessId'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RequestFunding />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/business/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BusinessDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/opportunities/:category?'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <OpportunitiesExplorer />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -583,6 +640,26 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <PiggyBanks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/shop/establishment/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <EstablishmentDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/shop/register-establishment"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RegisterEstablishment />
                         </MainLayout>
                     </ProtectedRoute>
                 }

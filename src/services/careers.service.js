@@ -4,7 +4,7 @@
  */
 import api from './api';
 
-const API_BASE = '/careers';
+const API_BASE = '/api/careers';
 
 // ==============================================================================
 // GIGS

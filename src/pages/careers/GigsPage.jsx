@@ -44,7 +44,8 @@ const GigsPage = () => {
             if (params.is_remote === null) delete params.is_remote;
 
             const response = await gigsService.getAll(params);
-            setGigs(response.data);
+            const data = response.data;
+            setGigs(Array.isArray(data) ? data : data.results || []);
         } catch (err) {
             setError('Failed to load gigs');
             console.error(err);
@@ -56,7 +57,8 @@ const GigsPage = () => {
     const fetchRecommended = async () => {
         try {
             const response = await gigsService.getRecommended();
-            setRecommendedGigs(response.data);
+            const data = response.data;
+            setRecommendedGigs(Array.isArray(data) ? data : data.results || []);
         } catch (err) {
             console.error('Failed to load recommendations:', err);
         }

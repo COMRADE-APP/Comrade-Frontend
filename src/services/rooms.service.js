@@ -161,6 +161,24 @@ export const roomsService = {
         const response = await api.post(API_ENDPOINTS.ROOM_MEMBER_FOLLOW(roomId, userId));
         return response.data;
     },
+
+    // ==================== ROOM OPINIONS ====================
+
+    // Get opinions tagged to this room
+    async getRoomOpinions(roomId) {
+        const response = await api.get(API_ENDPOINTS.ROOM_OPINIONS(roomId));
+        return response.data;
+    },
+
+    // ==================== TYPING ====================
+    async sendTyping(roomId, type = 'room') {
+        await api.post(API_ENDPOINTS.TYPING(roomId), { type });
+    },
+
+    async getTypingUsers(roomId, type = 'room') {
+        const response = await api.get(API_ENDPOINTS.TYPING(roomId), { params: { type } });
+        return response.data;
+    },
 };
 
 export default roomsService;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
+import TypingIndicator from '../components/common/TypingIndicator';
 import {
     MessageCircle, Send, Paperclip, Search, Plus, X, User, Lock,
     ChevronLeft, Check, CheckCheck, Image as ImageIcon, Users,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import messagesService from '../services/messages.service';
 import opinionsService from '../services/opinions.service';
+import roomsService from '../services/rooms.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
 
 // Common emojis for picker
@@ -39,6 +41,9 @@ const Messages = () => {
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const recordingIntervalRef = useRef(null);
+    const [typingUsers, setTypingUsers] = useState([]);
+    const lastTypingRef = useRef(0);
+    const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadData();
@@ -56,13 +61,28 @@ const Messages = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Poll for new messages every 3 seconds
+    // Poll for new messages and typing (Real-time feel)
     useEffect(() => {
         if (!selectedConversation) return;
+
         const interval = setInterval(() => {
             loadMessages(selectedConversation.id, false);
-        }, 3000);
-        return () => clearInterval(interval);
+        }, 1000);
+
+        // Poll for typing users
+        const typingInterval = setInterval(async () => {
+            try {
+                const users = await roomsService.getTypingUsers(selectedConversation.id, 'dm');
+                setTypingUsers(users);
+            } catch (error) {
+                console.error('Error fetching typing users:', error);
+            }
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+            clearInterval(typingInterval);
+        };
     }, [selectedConversation]);
 
     // Play notification sound for new messages
@@ -152,6 +172,21 @@ const Messages = () => {
         // Handle first_name/last_name
         const name = `${participant.first_name || ''} ${participant.last_name || ''}`.trim();
         return name || participant.email || participant.username || 'User';
+    };
+
+    const handleTyping = () => {
+        if (!selectedConversation) return;
+
+        const now = Date.now();
+        if (now - lastTypingRef.current > 2000) {
+            roomsService.sendTyping(selectedConversation.id, 'dm').catch(err => console.error(err));
+            lastTypingRef.current = now;
+        }
+    };
+
+    const onInputChange = (e) => {
+        setNewMessage(e.target.value);
+        handleTyping();
     };
 
     const handleSendMessage = async (e) => {
@@ -502,22 +537,36 @@ const Messages = () => {
                             </button>
                             {(() => {
                                 const other = getOtherParticipant(selectedConversation);
+                                const isOnline = other?.is_online;
+                                const lastSeen = other?.last_seen;
+
                                 return (
                                     <>
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
-                                            {other?.avatar_url ? (
-                                                <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                other?.first_name?.[0] || 'U'
+                                        <div className="relative">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                                {other?.avatar_url ? (
+                                                    <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    other?.first_name?.[0] || 'U'
+                                                )}
+                                            </div>
+                                            {isOnline && (
+                                                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></span>
                                             )}
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-semibold text-primary">
                                                 {getParticipantName(other)}
                                             </h3>
-                                            <p className="text-xs text-secondary flex items-center gap-1">
-                                                <Lock className="w-3 h-3" /> Direct Message
-                                            </p>
+                                            <div className="text-xs text-secondary flex items-center gap-1">
+                                                {isOnline ? (
+                                                    <span className="text-green-600 font-medium">Online</span>
+                                                ) : lastSeen ? (
+                                                    <span>Last seen {formatTimeAgo(lastSeen)}</span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Direct Message</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </>
                                 );
@@ -540,21 +589,59 @@ const Messages = () => {
                             ) : (
                                 <>
                                     {messages.map((message, idx) => {
-                                        const isOwn = message.sender === user?.id || message.sender?.id === user?.id;
+                                        // Use backend is_own calculation if available, fallback to ID check
+                                        const isOwn = message.is_own !== undefined
+                                            ? message.is_own
+                                            : (user?.id && String(typeof message.sender === 'object' ? message.sender.id : message.sender) === String(user.id));
+
+                                        const messageDate = new Date(message.time_stamp || message.created_at);
+                                        const isToday = new Date().toDateString() === messageDate.toDateString();
+                                        const timeString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                        const dateString = isToday ? timeString : `${messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeString}`;
+
+                                        // Detailed styling from RoomDetail.jsx
+                                        const bubbleClass = isOwn
+                                            ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-br-sm ml-auto'
+                                            : 'bg-white dark:bg-gray-800 border border-theme text-primary rounded-bl-sm';
+
+                                        const timeClass = isOwn ? 'text-primary-100' : 'text-secondary';
+
+                                        // Read Receipt Component
+                                        const MessageStatus = () => {
+                                            if (!isOwn) return null;
+                                            if (message.is_read || message.status === 'read') {
+                                                return <CheckCheck size={14} className="text-blue-200" />;
+                                            } else if (message.status === 'delivered') {
+                                                return <CheckCheck size={14} className="text-primary-200" />;
+                                            } else {
+                                                return <Check size={14} className="text-primary-200" />;
+                                            }
+                                        };
+
                                         return (
-                                            <div key={message.id || idx} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${isOwn
-                                                    ? 'bg-primary-600 text-white rounded-br-sm'
-                                                    : 'bg-elevated text-primary rounded-bl-sm shadow-sm border border-theme'
-                                                    }`}>
+                                            <div key={message.id || idx} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group max-w-full mb-4`}>
+                                                {/* Avatar for other users */}
+                                                {!isOwn && (
+                                                    <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 mr-2 overflow-hidden self-end mb-1">
+                                                        {message.sender_info?.avatar_url ? (
+                                                            <img src={message.sender_info.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-xs font-medium text-secondary">
+                                                                {message.sender_info?.first_name?.[0] || '?'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm relative ${bubbleClass}`}>
                                                     {message.file && (
                                                         <div className="mb-2">
                                                             {message.file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                                                <img src={message.file} alt="" className="rounded-lg max-h-48 w-full object-cover" />
+                                                                <img src={message.file} alt="" className="rounded-lg max-h-60 w-full object-cover cursor-pointer" onClick={() => window.open(message.file, '_blank')} />
                                                             ) : message.file.match(/\.(mp3|wav|webm|ogg)$/i) ? (
                                                                 <audio src={message.file} controls className="w-full" />
                                                             ) : (
-                                                                <a href={message.file} target="_blank" rel="noopener noreferrer" className="text-sm underline flex items-center gap-1">
+                                                                <a href={message.file} target="_blank" rel="noopener noreferrer" className="text-sm underline flex items-center gap-1 hover:opacity-80">
                                                                     <Paperclip size={14} />
                                                                     Attachment
                                                                 </a>
@@ -562,20 +649,36 @@ const Messages = () => {
                                                         </div>
                                                     )}
                                                     {message.content && (
-                                                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed min-w-[60px]">{message.content}</p>
                                                     )}
-                                                    <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
-                                                        <span className={`text-xs ${isOwn ? 'text-primary-200' : 'text-tertiary'}`}>
-                                                            {formatTimeAgo(message.time_stamp || message.created_at)}
-                                                        </span>
-                                                        {isOwn && (
-                                                            <CheckCheck size={14} className={message.is_read ? 'text-blue-300' : 'text-primary-200'} />
-                                                        )}
+                                                    <div className={`flex items-center gap-1 mt-1 text-[10px] justify-end ${timeClass}`}>
+                                                        <span>{dateString}</span>
+                                                        <MessageStatus />
                                                     </div>
                                                 </div>
                                             </div>
                                         );
                                     })}
+                                    {typingUsers.length > 0 && (
+                                        <div className="flex flex-col gap-2 mb-4 px-4">
+                                            {typingUsers.map(u => (
+                                                <div key={u.id} className="flex items-center gap-2">
+                                                    <div className="flex items-end gap-2">
+                                                        <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
+                                                            {u.avatar_url ? (
+                                                                <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-[10px] font-medium text-secondary">
+                                                                    {u.first_name?.[0] || '?'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <TypingIndicator />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                     <div ref={messagesEndRef} />
                                 </>
                             )}
@@ -599,6 +702,8 @@ const Messages = () => {
                                     <button onClick={() => setSelectedMedia(null)} className="absolute -top-1 -right-1 w-5 h-5 bg-black/80 text-white rounded-full text-xs">×</button>
                                 </div>
                             )}
+
+
 
                             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*,video/*,application/pdf,.doc,.docx" />
@@ -637,7 +742,7 @@ const Messages = () => {
                                 <input
                                     type="text"
                                     value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onChange={onInputChange}
                                     placeholder="Type a message..."
                                     className="flex-1 px-4 py-2 border border-theme bg-secondary text-primary placeholder-tertiary rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                 />

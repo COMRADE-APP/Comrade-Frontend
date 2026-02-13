@@ -19,6 +19,14 @@ api.interceptors.request.use((config) => {
 });
 
 const authService = {
+    heartbeat: async () => {
+        try {
+            await api.post(API_ENDPOINTS.HEARTBEAT);
+        } catch (error) {
+            // Heartbeat failures should be silent
+        }
+    },
+
     login: async (email, password, otp_method = 'email') => {
         const response = await api.post(API_ENDPOINTS.LOGIN, { email, password, otp_method });
         return response.data;
@@ -81,12 +89,24 @@ const authService = {
 
     getCurrentUser: async () => {
         try {
-            // Check if token exists
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) return null;
-            return user;
+            const stored = JSON.parse(localStorage.getItem('user'));
+            if (!stored?.access_token) return null;
+
+            // Fetch fresh user data from server
+            const response = await api.get('/api/auth/me/');
+            const freshData = response.data;
+
+            // Merge fresh user data with stored tokens
+            const merged = { ...stored, ...freshData };
+            localStorage.setItem('user', JSON.stringify(merged));
+            return merged;
         } catch (error) {
-            return null;
+            // Fallback to stored data if server is unreachable
+            try {
+                return JSON.parse(localStorage.getItem('user'));
+            } catch {
+                return null;
+            }
         }
     },
 

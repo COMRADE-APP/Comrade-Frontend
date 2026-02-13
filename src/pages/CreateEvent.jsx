@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send, Megaphone, X, Ticket, Globe, Building } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send, Megaphone, X, Ticket, Globe, Building, Building2, GraduationCap, User } from 'lucide-react';
 import api from '../services/api';
 import eventsService from '../services/events.service';
+import { useAuth } from '../contexts/AuthContext';
 
 const CreateEvent = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const roomId = searchParams.get('room');
+    const { activeProfile, user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [confirmAction, setConfirmAction] = useState(''); // 'publish', 'draft', 'announcement'
@@ -32,6 +34,14 @@ const CreateEvent = () => {
         status: 'active',
     });
     const [errors, setErrors] = useState({});
+
+    // Get profile icon based on type
+    const getProfileIcon = () => {
+        if (activeProfile?.type === 'organisation') return Building2;
+        if (activeProfile?.type === 'institution') return GraduationCap;
+        return User;
+    };
+    const ProfileIcon = getProfileIcon();
 
     // Format duration from hours to Django DurationField format
     const formatDuration = (hours) => {
@@ -115,6 +125,13 @@ const CreateEvent = () => {
                 submitData.room = roomId;
             }
 
+            // Add entity authorship based on active profile
+            if (activeProfile?.type === 'organisation') {
+                submitData.organisation = activeProfile.id;
+            } else if (activeProfile?.type === 'institution') {
+                submitData.institution = activeProfile.id;
+            }
+
             const response = await eventsService.createEvent(submitData);
 
             // If requesting announcement, create an announcement request
@@ -159,6 +176,16 @@ const CreateEvent = () => {
                 </div>
 
                 <div className="bg-elevated rounded-xl shadow-sm p-6 border border-theme">
+                    {/* Posting as indicator - show when not personal */}
+                    {activeProfile && activeProfile.type !== 'personal' && (
+                        <div className="mb-4 px-4 py-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center gap-3">
+                            <ProfileIcon className="w-5 h-5 text-primary-600" />
+                            <span className="text-primary-700 dark:text-primary-300">
+                                Creating event as <strong>{activeProfile.name}</strong>
+                            </span>
+                        </div>
+                    )}
+
                     {/* Cover Image Upload */}
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-secondary mb-2">Cover Image</label>

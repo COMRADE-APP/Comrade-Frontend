@@ -19,6 +19,7 @@ import opinionsService from '../services/opinions.service';
 import { formatTimeAgo, formatDate } from '../utils/dateFormatter';
 import PaymentGroupsFeed from '../components/payments/PaymentGroupsFeed';
 import PiggyBankFeed from '../components/payments/PiggyBankFeed';
+import StoriesBar from '../components/stories/StoriesBar';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -252,6 +253,9 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Feed Column */}
                 <div className="lg:col-span-2 space-y-4">
+                    {/* Stories Bar */}
+                    <StoriesBar />
+
                     {/* Opinion Composer */}
                     <OpinionComposer
                         onSubmit={handlePostOpinion}

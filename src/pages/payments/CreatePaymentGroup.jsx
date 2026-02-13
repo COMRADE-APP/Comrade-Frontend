@@ -14,6 +14,7 @@ const CreatePaymentGroup = () => {
     const [newEmail, setNewEmail] = useState('');
     const [inviteError, setInviteError] = useState('');
     const [createdGroup, setCreatedGroup] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -85,11 +86,20 @@ const CreatePaymentGroup = () => {
             }
 
             setStep(3);
+            setShowSuccessModal(true);
         } catch (error) {
             console.error('Failed to create payment group:', error);
             alert('Failed to create payment group. Please try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFinish = () => {
+        if (formData.group_type === 'piggy_bank') {
+            navigate('/piggy-banks');
+        } else {
+            navigate('/payments/groups');
         }
     };
 
@@ -170,6 +180,20 @@ const CreatePaymentGroup = () => {
                                     onChange={(e) => setFormData({ ...formData, max_capacity: e.target.value })}
                                     placeholder="10"
                                 />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Group Type</label>
+                                    <select
+                                        value={formData.group_type || 'standard'}
+                                        onChange={(e) => setFormData({ ...formData, group_type: e.target.value })}
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                    >
+                                        <option value="standard">Standard Group</option>
+                                        <option value="piggy_bank">Piggy Bank Group</option>
+                                    </select>
+                                </div>
+
+
                             </div>
 
                             {/* Financial Settings */}
@@ -443,6 +467,27 @@ const CreatePaymentGroup = () => {
                         </div>
                     </CardBody>
                 </Card>
+            )}
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md">
+                        <CardBody className="text-center p-8">
+                            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-primary mb-2">Success!</h2>
+                            <p className="text-secondary mb-8">
+                                {formData.group_type === 'piggy_bank'
+                                    ? 'Your Piggy Bank has been created successfully.'
+                                    : 'Your Payment Group has been created successfully.'}
+                            </p>
+                            <Button variant="primary" className="w-full" onClick={handleFinish}>
+                                {formData.group_type === 'piggy_bank' ? 'View Piggy Banks' : 'View Groups'}
+                            </Button>
+                        </CardBody>
+                    </Card>
+                </div>
             )}
         </div>
     );

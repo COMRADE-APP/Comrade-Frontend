@@ -2,10 +2,19 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileNav from './MobileNav';
+import AccountSelectionModal from '../AccountSelectionModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 import { Toaster } from 'react-hot-toast';
 
 const MainLayout = ({ children }) => {
+    const {
+        user,
+        availableAccounts,
+        showAccountSelection,
+        handleAccountSelected
+    } = useAuth();
+
     return (
         <div className="flex h-screen overflow-hidden bg-secondary">
             <Toaster position="top-right" />
@@ -25,6 +34,14 @@ const MainLayout = ({ children }) => {
 
             {/* Mobile Bottom Navigation */}
             <MobileNav />
+
+            {/* Post-Login Account Selection Modal */}
+            <AccountSelectionModal
+                isOpen={showAccountSelection}
+                accounts={availableAccounts}
+                onSelect={handleAccountSelected}
+                userName={user?.first_name}
+            />
         </div>
     );
 };

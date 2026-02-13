@@ -204,46 +204,53 @@ const Organizations = () => {
     );
 };
 
-const OrganizationCard = ({ organization }) => (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardBody>
-            <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+const OrganizationCard = ({ organization }) => {
+    const navigate = useNavigate();
+
+    return (
+        <Card
+            className="hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate(`/organizations/${organization.id}`)}
+        >
+            <CardBody>
+                <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                        <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                            <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary">
+                            {organization.org_type?.replace('_', ' ') || 'Other'}
+                        </span>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary">
-                        {organization.org_type?.replace('_', ' ') || 'Other'}
-                    </span>
-                </div>
 
-                <div>
-                    <h3 className="font-semibold text-lg text-primary">{organization.name}</h3>
-                    {organization.abbreviation && (
-                        <p className="text-sm text-secondary">({organization.abbreviation})</p>
-                    )}
-                </div>
+                    <div>
+                        <h3 className="font-semibold text-lg text-primary">{organization.name}</h3>
+                        {organization.abbreviation && (
+                            <p className="text-sm text-secondary">({organization.abbreviation})</p>
+                        )}
+                    </div>
 
-                <div className="space-y-2 text-sm text-secondary">
-                    {organization.city && (
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            <span>{organization.city}, {organization.origin || 'Kenya'}</span>
-                        </div>
-                    )}
-                    {organization.industry && (
-                        <p className="text-xs text-secondary line-clamp-2">Industry: {organization.industry}</p>
-                    )}
-                    {organization.members?.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span>{organization.members.length} members</span>
-                        </div>
-                    )}
+                    <div className="space-y-2 text-sm text-secondary">
+                        {organization.city && (
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                <span>{organization.city}, {organization.origin || 'Kenya'}</span>
+                            </div>
+                        )}
+                        {organization.industry && (
+                            <p className="text-xs text-secondary line-clamp-2">Industry: {organization.industry}</p>
+                        )}
+                        {organization.members?.length > 0 && (
+                            <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                <span>{organization.members.length} members</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </CardBody>
-    </Card>
-);
+            </CardBody>
+        </Card>
+    );
+};
 
 export default Organizations;

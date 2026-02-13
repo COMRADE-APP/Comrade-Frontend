@@ -6,7 +6,7 @@ import Input from '../../components/common/Input';
 import {
     Users, ArrowLeft, Target, DollarSign, UserPlus, Settings,
     Calendar, TrendingUp, Mail, X, Plus, Check, AlertCircle,
-    PiggyBank, History, Crown, MoreVertical
+    PiggyBank, History, Crown, MoreVertical, Share2, MessageCircle, FileText, Calendar as CalendarIcon, Megaphone, BookOpen
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
@@ -23,6 +23,14 @@ const PaymentGroupDetail = () => {
     // Modal states
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showContributeModal, setShowContributeModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+
+    // New Modal States
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    const [pendingInviteEmail, setPendingInviteEmail] = useState('');
+
     const [inviteEmail, setInviteEmail] = useState('');
     const [contributeAmount, setContributeAmount] = useState('');
     const [contributeNotes, setContributeNotes] = useState('');
@@ -55,11 +63,39 @@ const PaymentGroupDetail = () => {
         setActionLoading(true);
         try {
             await paymentsService.inviteToGroup(groupId, inviteEmail);
-            alert('Invitation sent successfully!');
+            setModalMessage('Invitation sent successfully!');
+            setShowSuccessModal(true);
             setShowInviteModal(false);
             setInviteEmail('');
         } catch (error) {
-            alert('Failed to send invitation');
+            console.error('Invite Error:', error);
+            if (error.response && error.response.status === 404 && error.response.data.requires_confirmation) {
+                // User not found, show custom confirmation modal
+                setModalMessage(error.response.data.message);
+                setPendingInviteEmail(inviteEmail);
+                setShowConfirmModal(true);
+                setShowInviteModal(false); // Close the initial invite modal
+            } else {
+                alert('Failed to send invitation: ' + (error.response?.data?.error || 'Unknown error'));
+            }
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleConfirmInvite = async () => {
+        if (!pendingInviteEmail) return;
+        setActionLoading(true);
+        try {
+            await paymentsService.inviteToGroup(groupId, pendingInviteEmail, true); // true for force_external
+            setModalMessage('Invitation sent to external email successfully!');
+            setShowSuccessModal(true);
+            setShowConfirmModal(false);
+            setPendingInviteEmail('');
+            setInviteEmail('');
+        } catch (retryError) {
+            console.error('Retry Invite Error:', retryError);
+            alert('Failed to send external invitation');
         } finally {
             setActionLoading(false);
         }
@@ -129,6 +165,10 @@ const PaymentGroupDetail = () => {
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setShowShareModal(true)}>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                    </Button>
                     <Button variant="outline" onClick={() => setShowInviteModal(true)}>
                         <UserPlus className="w-4 h-4 mr-2" />
                         Invite
@@ -471,6 +511,132 @@ const PaymentGroupDetail = () => {
                     </Card>
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-primary">Confirm Invitation</h2>
+                                <button onClick={() => setShowConfirmModal(false)} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-secondary">{modalMessage}</p>
+                                <div className="flex gap-2 pt-4">
+                                    <Button variant="outline" className="flex-1" onClick={() => setShowConfirmModal(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        className="flex-1"
+                                        onClick={handleConfirmInvite}
+                                        disabled={actionLoading}
+                                    >
+                                        {actionLoading ? 'Sending...' : 'Send Anyway'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md">
+                        <CardBody className="text-center p-6">
+                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                <Check className="w-6 h-6 text-green-600" />
+                            </div>
+                            <h2 className="text-xl font-bold text-primary mb-2">Success</h2>
+                            <p className="text-secondary mb-6">{modalMessage}</p>
+                            <Button variant="primary" className="w-full" onClick={() => setShowSuccessModal(false)}>
+                                Done
+                            </Button>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+            {/* Share Modal */}
+            {showShareModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-primary">Share Group</h2>
+                                <button onClick={() => setShowShareModal(false)} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        setModalMessage('Link copied to clipboard!');
+                                        setShowSuccessModal(true);
+                                        setShowShareModal(false);
+                                    }}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                        <Share2 className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Copy Link</span>
+                                </button>
+
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => navigate('/messages', { state: { shareContent: `Check out this payment group: ${window.location.href}` } })}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                        <MessageCircle className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Forward to Chat</span>
+                                </button>
+
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => navigate('/opinions', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                                        <Megaphone className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Attach to Opinion</span>
+                                </button>
+
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => navigate('/events/create', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                                        <CalendarIcon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Add to Event</span>
+                                </button>
+
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => navigate('/articles/create', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                                        <FileText className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Use in Article</span>
+                                </button>
+
+                                <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
+                                    onClick={() => navigate('/research/create', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                        <BookOpen className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary">Attach to Research</span>
+                                </button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
         </div>
     );
 };

@@ -97,6 +97,12 @@ const institutionsService = {
         });
         return response.data;
     },
+
+    // Get user's institutions where they are a member (for account switching)
+    getMyInstitutions: async () => {
+        const response = await api.get('/api/institutions/institutions/my_institutions/');
+        return response.data;
+    },
 };
 
 export default institutionsService;

@@ -7,8 +7,9 @@ import {
     MessageSquare, Users, Settings, ArrowLeft, Send, Paperclip, Image, File, Mic,
     UserPlus, UserMinus, Shield, Crown, MoreVertical, X, Bell, BellOff, Check, CheckCheck,
     Forward, Reply, Trash2, Calendar, ClipboardList, BookOpen, Megaphone, ChevronDown,
-    Eye, UserCheck, AlertCircle, Download, Plus
+    Eye, UserCheck, AlertCircle, Download, Plus, MessageCircle, Heart, Repeat2, Share2, EyeOff, User
 } from 'lucide-react';
+import TypingIndicator from '../components/common/TypingIndicator';
 import roomsService from '../services/rooms.service';
 import { formatTimeAgo, formatLocalTime } from '../utils/dateFormatter';
 import { ROUTES } from '../constants/routes';
@@ -167,7 +168,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                     )}
 
                     {/* Text content */}
-                    {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+                    {message.content && <p className="whitespace-pre-wrap break-words">{message.content}</p>}
 
                     {/* Entity references */}
                     {message.event && (
@@ -465,6 +466,7 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
 const ContentTabs = ({ room, activeTab, onTabChange }) => {
     const tabs = [
         { id: 'chat', label: 'Chat', icon: MessageSquare, count: null },
+        { id: 'opinions', label: 'Opinions', icon: MessageCircle, count: room?.opinions_count || 0 },
         { id: 'resources', label: 'Resources', icon: BookOpen, count: room?.resources?.length || 0 },
         { id: 'events', label: 'Events', icon: Calendar, count: room?.events?.length || 0 },
         { id: 'tasks', label: 'Tasks', icon: ClipboardList, count: room?.tasks?.length || 0 },
@@ -516,6 +518,8 @@ const RoomDetail = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [activeTab, setActiveTab] = useState('chat');
     const [messageFilter, setMessageFilter] = useState(null);
+    const [typingUsers, setTypingUsers] = useState([]);
+    const lastTypingRef = useRef(0);
 
     // Check user role in room
     const isAdmin = room?.admins?.some(a => a.id === user?.id);
@@ -538,15 +542,28 @@ const RoomDetail = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Poll for new messages every 3 seconds
+    // Poll for new messages and typing users (Real-time feel)
     useEffect(() => {
         if (!id || activeTab !== 'chat') return;
 
         const interval = setInterval(() => {
             loadChats();
-        }, 3000);
+        }, 1000);
 
-        return () => clearInterval(interval);
+        // Poll for typing users independently
+        const typingInterval = setInterval(async () => {
+            try {
+                const users = await roomsService.getTypingUsers(id, 'room');
+                setTypingUsers(users);
+            } catch (error) {
+                console.error('Error fetching typing users:', error);
+            }
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+            clearInterval(typingInterval);
+        };
     }, [id, activeTab, messageFilter]);
 
     const loadRoomData = async () => {
@@ -577,6 +594,19 @@ const RoomDetail = () => {
             setMessages(Array.isArray(chatsData) ? chatsData : chatsData?.results || []);
         } catch (error) {
             console.error('Error loading chats:', error);
+        }
+    };
+
+    const handleTyping = useCallback(() => {
+        roomsService.sendTyping(id, 'room');
+    }, [id]);
+
+    const onInputChange = (e) => {
+        setNewMessage(e.target.value);
+        const now = Date.now();
+        if (now - lastTypingRef.current > 2000) {
+            handleTyping();
+            lastTypingRef.current = now;
         }
     };
 
@@ -775,6 +805,26 @@ const RoomDetail = () => {
                                         />
                                     ))
                                 )}
+                                {typingUsers.length > 0 && (
+                                    <div className="flex flex-col gap-2 mb-4 px-4">
+                                        {typingUsers.map(u => (
+                                            <div key={u.id} className="flex items-center gap-2">
+                                                <div className="flex items-end gap-2">
+                                                    <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
+                                                        {u.avatar_url ? (
+                                                            <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-[10px] font-medium text-secondary">
+                                                                {u.first_name?.[0] || '?'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <TypingIndicator />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div ref={messagesEndRef} />
                             </div>
 
@@ -799,6 +849,15 @@ const RoomDetail = () => {
                                 </div>
                             )}
 
+                            {/* Typing Indicator */}
+                            {typingUsers.length > 0 && (
+                                <div className="px-4 py-1 text-xs text-secondary italic animate-pulse">
+                                    {typingUsers.length === 1
+                                        ? `${typingUsers[0].first_name} is typing...`
+                                        : `${typingUsers.map(u => u.first_name).join(', ')} are typing...`}
+                                </div>
+                            )}
+
                             {/* Message Input */}
                             <form onSubmit={handleSendMessage} className="p-4 bg-elevated border-t border-theme">
                                 <div className="flex items-center gap-2">
@@ -819,7 +878,7 @@ const RoomDetail = () => {
                                     <input
                                         type="text"
                                         value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onChange={onInputChange}
                                         placeholder="Type a message..."
                                         className="flex-1 px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                                     />
@@ -949,6 +1008,27 @@ const RoomDetail = () => {
                                             <p className="text-secondary text-sm">No announcements in this room yet</p>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {activeTab === 'opinions' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-primary">Room Opinions</h3>
+                                    </div>
+                                    <p className="text-sm text-secondary">View opinions tagged to this room in the Opinions section.</p>
+                                    <div className="text-center py-8">
+                                        <MessageCircle className="w-10 h-10 text-tertiary mx-auto mb-2" />
+                                        <p className="text-secondary text-sm">Opinions tagged to this room will appear here</p>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="mt-4"
+                                            onClick={() => navigate('/opinions?room=' + id)}
+                                        >
+                                            View Room Opinions
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>
