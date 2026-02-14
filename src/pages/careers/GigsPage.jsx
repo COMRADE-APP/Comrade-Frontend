@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Briefcase, DollarSign, Clock, MapPin, Filter, Plus,
-    ChevronRight, Star, Loader2, AlertCircle, Sparkles
+    ChevronRight, Star, Loader2, AlertCircle, Sparkles,
+    BarChart2, User
 } from 'lucide-react';
 import { gigsService } from '../../services/careers.service';
+import { useAuth } from '../../contexts/AuthContext';
+import Button from '../../components/common/Button';
 
 const GigsPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [gigs, setGigs] = useState([]);
     const [recommendedGigs, setRecommendedGigs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -96,12 +100,23 @@ const GigsPage = () => {
             className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''}`}
             onClick={() => navigate(`/gigs/${gig.id}`)}
         >
-            {isRecommended && (
-                <div className="absolute top-4 right-4 flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                    <Sparkles size={14} />
-                    <span>Recommended</span>
+            {(isRecommended || gig.creator === user?.id) && (
+                <div className="flex justify-end gap-2 mb-2">
+                    {isRecommended && (
+                        <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                            <Sparkles size={14} />
+                            <span>Recommended</span>
+                        </div>
+                    )}
+                    {gig.creator === user?.id && (
+                        <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                            <User size={12} />
+                            <span>Created by You</span>
+                        </div>
+                    )}
                 </div>
             )}
+
             <div className="flex justify-between items-start mb-4">
                 <h3 className="font-bold text-lg text-primary">{gig.title}</h3>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${gig.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-secondary/10 text-secondary'
@@ -136,7 +151,14 @@ const GigsPage = () => {
                 <span className="text-xs text-tertiary">
                     {gig.applications_count || 0} applications
                 </span>
-                <button className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm">
+                <button
+                    className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        gigsService.incrementView(gig.id);
+                        navigate(`/gigs/${gig.id}`);
+                    }}
+                >
                     View Details <ChevronRight size={16} />
                 </button>
             </div>
@@ -150,12 +172,19 @@ const GigsPage = () => {
                     <h1 className="text-3xl font-bold flex items-center gap-2 text-primary"><Briefcase /> Gigs Marketplace</h1>
                     <p className="text-secondary mt-1">Find freelance work or post your own gig</p>
                 </div>
-                <button
-                    className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:bg-primary-dark transition-colors"
-                    onClick={() => navigate('/gigs/create')}
-                >
-                    <Plus size={20} />
+                <Button variant="primary" onClick={() => navigate('/gigs/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
                     Post a Gig
+                </Button>
+            </div>
+
+            <div className="flex justify-end mb-4">
+                <button
+                    onClick={() => navigate('/careers/tracking')}
+                    className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                >
+                    <BarChart2 size={16} />
+                    Track your postings
                 </button>
             </div>
 

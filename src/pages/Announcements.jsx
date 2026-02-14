@@ -7,12 +7,15 @@ import Input from '../components/common/Input';
 import { Megaphone, ThumbsUp, MessageSquare, Share2, Plus, X } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
+import SearchFilterBar from '../components/common/SearchFilterBar';
 
 const Announcements = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState('newest');
 
     // All authenticated users can create announcements
     const canCreate = true;
@@ -47,6 +50,18 @@ const Announcements = () => {
                 </Button>
             </div>
 
+            <SearchFilterBar
+                searchQuery={searchQuery}
+                onSearch={setSearchQuery}
+                placeholder="Search announcements..."
+                sortOptions={[
+                    { value: 'newest', label: 'Newest First' },
+                    { value: 'oldest', label: 'Oldest First' },
+                ]}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+            />
+
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
@@ -60,9 +75,19 @@ const Announcements = () => {
                 </Card>
             ) : (
                 <div className="space-y-6">
-                    {announcements.map((announcement) => (
-                        <AnnouncementCard key={announcement.id} announcement={announcement} />
-                    ))}
+                    {announcements
+                        .filter(a =>
+                            a.heading?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            a.content?.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .sort((a, b) => {
+                            if (sortBy === 'newest') return new Date(b.time_stamp) - new Date(a.time_stamp);
+                            if (sortBy === 'oldest') return new Date(a.time_stamp) - new Date(b.time_stamp);
+                            return 0;
+                        })
+                        .map((announcement) => (
+                            <AnnouncementCard key={announcement.id} announcement={announcement} />
+                        ))}
                 </div>
             )}
         </div>

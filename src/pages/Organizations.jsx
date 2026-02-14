@@ -215,8 +215,16 @@ const OrganizationCard = ({ organization }) => {
             <CardBody>
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                            <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center overflow-hidden">
+                            {organization.profile_picture || organization.logo_url ? (
+                                <img
+                                    src={organization.profile_picture || organization.logo_url}
+                                    alt={organization.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            )}
                         </div>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary">
                             {organization.org_type?.replace('_', ' ') || 'Other'}

@@ -3,19 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Star, MapPin, Clock, Phone, Globe, Mail,
     Package, Truck, UtensilsCrossed, Plus, Minus, ShoppingCart,
-    Hotel, Briefcase, Check, Calendar
+    Hotel, Briefcase, Check, Calendar, Loader2, X
 } from 'lucide-react';
 import shopService from '../../services/shop.service';
-import './Shop.css';
+import Button from '../../components/common/Button';
 
 const StarRating = ({ rating, count }) => (
-    <div className="est-rating">
-        <div className="est-stars">
+    <div className="flex items-center gap-1">
+        <div className="flex gap-0.5">
             {[1, 2, 3, 4, 5].map(s => (
-                <Star key={s} className={`est-star ${s <= Math.round(rating) ? '' : 'empty'}`} fill={s <= Math.round(rating) ? '#fbbf24' : 'none'} />
+                <Star
+                    key={s}
+                    size={16}
+                    className={`${s <= Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                />
             ))}
         </div>
-        <span className="est-rating-text">{Number(rating).toFixed(1)} ({count} reviews)</span>
+        <span className="text-sm text-secondary font-medium ml-1">
+            {Number(rating).toFixed(1)} <span className="text-tertiary">({count} reviews)</span>
+        </span>
     </div>
 );
 
@@ -149,17 +155,18 @@ export default function EstablishmentDetail() {
 
     if (loading) {
         return (
-            <div className="shop-page" style={{ padding: '2rem', textAlign: 'center' }}>
-                <div style={{ width: 40, height: 40, border: '3px solid var(--border-color)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center text-secondary">
+                <Loader2 className="animate-spin mb-4 text-primary" size={32} />
+                <p>Loading establishment...</p>
             </div>
         );
     }
 
     if (!establishment) {
         return (
-            <div className="shop-page" style={{ padding: '2rem', textAlign: 'center' }}>
-                <p>Establishment not found.</p>
-                <button className="shop-action-btn" onClick={() => navigate('/shop')}>Back to Shop</button>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center p-8">
+                <p className="text-secondary text-lg mb-6">Establishment not found.</p>
+                <Button variant="primary" onClick={() => navigate('/shop')}>Back to Shop</Button>
             </div>
         );
     }
@@ -179,259 +186,404 @@ export default function EstablishmentDetail() {
     }, {});
 
     return (
-        <div className="shop-page">
+        <div className="min-h-screen bg-background pb-24">
             {/* Banner */}
-            <div style={{ position: 'relative' }}>
+            <div className="relative h-64 md:h-80 w-full overflow-hidden">
                 {establishment.banner ? (
-                    <img src={establishment.banner} alt="" style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                    <img src={establishment.banner} alt={establishment.name} className="w-full h-full object-cover" />
                 ) : (
-                    <div className="shop-hero" style={{ height: 220, display: 'flex', alignItems: 'flex-end', padding: '1.5rem' }}>
-                        <div>
-                            <h1 style={{ fontSize: '1.75rem' }}>{establishment.name}</h1>
-                            <span className={`est-card-type-badge ${establishment.establishment_type}`} style={{ fontSize: '0.8rem' }}>
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <div className="text-center">
+                            <h1 className="text-4xl font-bold text-primary opacity-50">{establishment.name}</h1>
+                            <span className="text-secondary uppercase tracking-widest text-sm font-medium mt-2 block">
                                 {establishment.establishment_type_display}
                             </span>
                         </div>
                     </div>
                 )}
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+
                 <button
                     onClick={() => navigate('/shop')}
-                    style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md text-white flex items-center justify-center transition-colors"
                 >
-                    <ArrowLeft size={18} />
+                    <ArrowLeft size={20} />
                 </button>
             </div>
 
-            {/* Info */}
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                {establishment.banner && <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{establishment.name}</h1>}
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>{establishment.description}</p>
+            <div className="container mx-auto px-4 md:px-8 -mt-20 relative z-10">
+                {/* Info Card */}
+                <div className="bg-elevated border border-theme rounded-2xl p-6 shadow-lg mb-8">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-primary mb-2">{establishment.name}</h1>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-secondary">
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider
+                                    ${establishment.establishment_type === 'restaurant' ? 'bg-orange-500/10 text-orange-600' :
+                                        establishment.establishment_type === 'hotel' ? 'bg-blue-500/10 text-blue-600' :
+                                            establishment.establishment_type === 'service_provider' ? 'bg-indigo-500/10 text-indigo-600' :
+                                                'bg-emerald-500/10 text-emerald-600'
+                                    }`}>
+                                    {establishment.establishment_type_display}
+                                </span>
+                                <StarRating rating={establishment.rating || 0} count={establishment.review_count || 0} />
+                            </div>
+                        </div>
+                    </div>
 
-                <StarRating rating={establishment.rating || 0} count={establishment.review_count || 0} />
+                    <p className="text-secondary text-base mb-6 max-w-3xl leading-relaxed">{establishment.description}</p>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                    {establishment.city && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {establishment.city}{establishment.country ? `, ${establishment.country}` : ''}</span>}
-                    {establishment.phone && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Phone size={14} /> {establishment.phone}</span>}
-                    {establishment.website && <a href={establishment.website} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--accent-primary)' }}><Globe size={14} /> Website</a>}
-                    {establishment.email && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Mail size={14} /> {establishment.email}</span>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-secondary mb-6">
+                        {establishment.city && (
+                            <div className="flex items-center gap-2">
+                                <MapPin size={16} className="text-tertiary shrink-0" />
+                                <span>{establishment.city}{establishment.country ? `, ${establishment.country}` : ''}</span>
+                            </div>
+                        )}
+                        {establishment.phone && (
+                            <div className="flex items-center gap-2">
+                                <Phone size={16} className="text-tertiary shrink-0" />
+                                <span>{establishment.phone}</span>
+                            </div>
+                        )}
+                        {establishment.website && (
+                            <a href={establishment.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-primary hover:underline">
+                                <Globe size={16} className="text-tertiary shrink-0" />
+                                <span>Website</span>
+                            </a>
+                        )}
+                        {establishment.email && (
+                            <div className="flex items-center gap-2">
+                                <Mail size={16} className="text-tertiary shrink-0" />
+                                <span>{establishment.email}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 pt-6 border-t border-theme">
+                        <div className={`flex items-center gap-2 text-sm ${establishment.pickup_available ? 'text-green-600' : 'text-gray-400 opacity-50'}`}>
+                            <Package size={16} /> <span>Pickup</span> {establishment.pickup_available && <Check size={14} />}
+                        </div>
+                        <div className={`flex items-center gap-2 text-sm ${establishment.delivery_available ? 'text-green-600' : 'text-gray-400 opacity-50'}`}>
+                            <Truck size={16} /> <span>Delivery</span> {establishment.delivery_available && <Check size={14} />}
+                        </div>
+                        <div className={`flex items-center gap-2 text-sm ${establishment.dine_in_available ? 'text-green-600' : 'text-gray-400 opacity-50'}`}>
+                            <UtensilsCrossed size={16} /> <span>Dine-in</span> {establishment.dine_in_available && <Check size={14} />}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="est-modes" style={{ marginTop: '0.75rem' }}>
-                    <span className={`est-mode ${establishment.pickup_available ? 'available' : ''}`}><Package size={14} /> Pickup {establishment.pickup_available ? <Check size={12} /> : ''}</span>
-                    <span className={`est-mode ${establishment.delivery_available ? 'available' : ''}`}><Truck size={14} /> Delivery {establishment.delivery_available ? <Check size={12} /> : ''}</span>
-                    <span className={`est-mode ${establishment.dine_in_available ? 'available' : ''}`}><UtensilsCrossed size={14} /> Dine-in {establishment.dine_in_available ? <Check size={12} /> : ''}</span>
+                {/* Section Tabs */}
+                <div className="flex overflow-x-auto pb-4 gap-2 mb-6 scrollbar-none">
+                    {sections.map(s => (
+                        <button
+                            key={s.key}
+                            onClick={() => setActiveSection(s.key)}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all whitespace-nowrap
+                                ${activeSection === s.key
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'bg-elevated border border-theme text-secondary hover:text-primary hover:border-primary/30'
+                                }`}
+                        >
+                            <s.icon size={16} /> {s.label}
+                        </button>
+                    ))}
                 </div>
-            </div>
 
-            {/* Section Tabs */}
-            <div className="shop-tabs">
-                {sections.map(s => (
-                    <button key={s.key} className={`shop-tab ${activeSection === s.key ? 'active' : ''}`} onClick={() => setActiveSection(s.key)}>
-                        <s.icon size={16} /> {s.label}
-                    </button>
-                ))}
-            </div>
+                {/* Section Content */}
+                <div className="min-h-[400px]">
+                    {/* Menu */}
+                    {activeSection === 'menu' && (
+                        <div className="space-y-8 animate-in fade-in duration-500">
+                            {Object.entries(menuByCategory).map(([category, items]) => (
+                                <div key={category}>
+                                    <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                                        {category}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {items.map(item => (
+                                            <div key={item.id} className="bg-elevated border border-theme rounded-xl p-4 flex gap-4 hover:border-primary/30 transition-colors group">
+                                                {item.image && (
+                                                    <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-lg bg-secondary/10 shrink-0" />
+                                                )}
+                                                <div className="flex-1 flex flex-col">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h4 className="font-bold text-primary">{item.name}</h4>
+                                                        <span className="font-bold text-primary text-lg">${Number(item.price).toFixed(2)}</span>
+                                                    </div>
+                                                    <p className="text-sm text-secondary line-clamp-2 mb-2 flex-1">{item.description}</p>
 
-            {/* Section Content */}
-            <div className="shop-content">
-                {/* Menu */}
-                {activeSection === 'menu' && (
-                    <>
-                        {Object.entries(menuByCategory).map(([category, items]) => (
-                            <div key={category} style={{ marginBottom: '1.5rem' }}>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>{category}</h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    {items.map(item => (
-                                        <div key={item.id} style={{ display: 'flex', gap: '1rem', padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: '0.75rem', border: '1px solid var(--border-color)' }}>
-                                            {item.image && <img src={item.image} alt={item.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: '0.5rem' }} />}
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.15rem' }}>{item.name}</div>
-                                                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>{item.description}</p>
-                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                    {item.dietary_tags?.map((tag, i) => <span key={i} className="est-tag">{tag}</span>)}
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-                                                    <Clock size={13} style={{ color: 'var(--text-secondary)' }} />
-                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.preparation_time} min</span>
+                                                    {item.dietary_tags?.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1.5 mb-3">
+                                                            {item.dietary_tags.map((tag, i) => (
+                                                                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded-md bg-secondary/10 text-secondary font-medium uppercase">{tag}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-center justify-between mt-auto pt-2">
+                                                        <div className="flex items-center gap-1.5 text-xs text-secondary">
+                                                            <Clock size={12} /> {item.preparation_time} min
+                                                        </div>
+                                                        <button
+                                                            onClick={() => addToCart(item, 'menu')}
+                                                            className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors"
+                                                        >
+                                                            <Plus size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                                                <span style={{ fontWeight: 700, color: 'var(--accent-primary)', fontSize: '1rem' }}>${Number(item.price).toFixed(2)}</span>
-                                                <button className="product-card-btn" onClick={() => addToCart(item, 'menu')}><Plus size={14} /></button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                            {menuItems.length === 0 && (
+                                <div className="text-center py-20 bg-elevated border border-dashed border-theme rounded-2xl">
+                                    <UtensilsCrossed size={48} className="mx-auto text-tertiary mb-4 opacity-50" />
+                                    <h3 className="text-lg font-medium text-primary">No menu items yet</h3>
+                                    <p className="text-secondary mt-1">This establishment hasn't added any items to their menu.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Rooms */}
+                    {activeSection === 'rooms' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+                            {rooms.map(room => (
+                                <div key={room.id} className="bg-elevated border border-theme rounded-xl overflow-hidden hover:shadow-lg transition-all group flex flex-col">
+                                    <div className="h-48 bg-secondary/10 relative overflow-hidden flex items-center justify-center">
+                                        <Hotel size={48} className="text-tertiary opacity-30" />
+                                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-800 text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
+                                            {room.room_type_display || room.room_type}
+                                        </div>
+                                    </div>
+                                    <div className="p-5 flex flex-col flex-1">
+                                        <h3 className="font-bold text-lg text-primary mb-2 group-hover:text-amber-600 transition-colors">{room.name}</h3>
+                                        <p className="text-sm text-secondary line-clamp-2 mb-4 flex-1">{room.description}</p>
+
+                                        <div className="flex items-center gap-4 text-xs text-secondary mb-4">
+                                            <span className="flex items-center gap-1"><Check size={12} className="text-green-500" /> {room.capacity} Guests</span>
+                                            {room.amenities?.length > 0 && (
+                                                <span className="flex items-center gap-1"><Check size={12} className="text-green-500" /> {room.amenities.length} Amenities</span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-4 border-t border-theme mt-auto">
+                                            <div>
+                                                <span className="text-xl font-bold text-primary">${Number(room.price_per_night).toFixed(2)}</span>
+                                                <span className="text-xs text-secondary font-medium ml-1">/night</span>
                                             </div>
+                                            <Button size="sm" variant="primary" onClick={() => setSelectedRoom(room)}>Book Now</Button>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                        {menuItems.length === 0 && (
-                            <div className="shop-empty">
-                                <UtensilsCrossed size={48} />
-                                <h3>No menu items yet</h3>
-                                <p>This establishment hasn't added any items to their menu.</p>
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {/* Rooms */}
-                {activeSection === 'rooms' && (
-                    <div className="shop-grid">
-                        {rooms.map(room => (
-                            <div key={room.id} className="product-card">
-                                <div className="product-card-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Hotel size={40} style={{ color: 'var(--text-secondary)', opacity: 0.3 }} />
-                                </div>
-                                <div className="product-card-body">
-                                    <span className="product-card-type physical">{room.room_type_display || room.room_type}</span>
-                                    <h3 className="product-card-name">{room.name}</h3>
-                                    <p className="product-card-desc">{room.description}</p>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                        Capacity: {room.capacity} guests
                                     </div>
-                                    {room.amenities?.length > 0 && (
-                                        <div className="est-tags" style={{ marginBottom: '0.5rem' }}>
-                                            {room.amenities.slice(0, 4).map((a, i) => <span key={i} className="est-tag">{a}</span>)}
+                                </div>
+                            ))}
+                            {rooms.length === 0 && (
+                                <div className="col-span-full text-center py-20 bg-elevated border border-dashed border-theme rounded-2xl">
+                                    <Hotel size={48} className="mx-auto text-tertiary mb-4 opacity-50" />
+                                    <h3 className="text-lg font-medium text-primary">No rooms listed</h3>
+                                    <p className="text-secondary mt-1">No accommodations are available at the moment.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Services */}
+                    {activeSection === 'services' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+                            {services.map(svc => (
+                                <div
+                                    key={svc.id}
+                                    className="bg-elevated border border-theme rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group flex flex-col"
+                                    onClick={() => navigate(`/shop/service/${svc.id}`)}
+                                >
+                                    <div className="h-40 bg-secondary/10 relative overflow-hidden flex items-center justify-center">
+                                        <Briefcase size={40} className="text-tertiary opacity-30" />
+                                        <div className="absolute top-3 right-3 bg-indigo-500/90 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
+                                            {svc.service_mode_display || 'Service'}
                                         </div>
-                                    )}
-                                    <div className="product-card-footer">
-                                        <span className="product-card-price">${Number(room.price_per_night).toFixed(2)}<small style={{ fontWeight: 400, fontSize: '0.75rem' }}>/night</small></span>
-                                        <button className="product-card-btn" onClick={() => setSelectedRoom(room)}>Book</button>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
-                        {rooms.length === 0 && (
-                            <div className="shop-empty" style={{ gridColumn: '1/-1' }}>
-                                <Hotel size={48} />
-                                <h3>No rooms listed</h3>
-                            </div>
-                        )}
-                    </div>
-                )}
+                                    <div className="p-5 flex flex-col flex-1">
+                                        <h3 className="font-bold text-lg text-primary mb-1 group-hover:text-indigo-600 transition-colors">{svc.name}</h3>
 
-                {/* Services */}
-                {activeSection === 'services' && (
-                    <div className="shop-grid">
-                        {services.map(svc => (
-                            <div key={svc.id} className="product-card" onClick={() => navigate(`/shop/service/${svc.id}`)}>
-                                <div className="product-card-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Briefcase size={40} style={{ color: 'var(--text-secondary)', opacity: 0.3 }} />
-                                </div>
-                                <div className="product-card-body">
-                                    <span className="product-card-type service">{svc.service_mode_display || 'Service'}</span>
-                                    <h3 className="product-card-name">{svc.name}</h3>
-                                    <p className="product-card-desc">{svc.description}</p>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                        <Clock size={13} style={{ display: 'inline', verticalAlign: 'middle' }} /> {svc.duration_minutes} min
-                                        {svc.available_slots_count > 0 && <span style={{ color: '#22c55e' }}> • {svc.available_slots_count} slots available</span>}
-                                    </div>
-                                    <div className="product-card-footer">
-                                        <span className="product-card-price">${Number(svc.price).toFixed(2)}</span>
-                                        <button className="product-card-btn">Book Appointment</button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        {services.length === 0 && (
-                            <div className="shop-empty" style={{ gridColumn: '1/-1' }}>
-                                <Briefcase size={48} />
-                                <h3>No services listed</h3>
-                            </div>
-                        )}
-                    </div>
-                )}
+                                        <div className="flex items-center gap-3 text-xs text-secondary mb-3">
+                                            <span className="flex items-center gap-1"><Clock size={12} /> {svc.duration_minutes} min</span>
+                                            {svc.available_slots_count > 0 && <span className="text-green-600 font-medium flex items-center gap-1">● {svc.available_slots_count} slots</span>}
+                                        </div>
 
-                {/* Reviews */}
-                {activeSection === 'reviews' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {reviews.map(review => (
-                            <div key={review.id} style={{ padding: '1rem', background: 'var(--bg-elevated)', borderRadius: '0.75rem', border: '1px solid var(--border-color)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{review.user_name}</span>
-                                    <StarRating rating={review.rating} count={0} />
+                                        <p className="text-sm text-secondary line-clamp-2 mb-4 flex-1">{svc.description}</p>
+
+                                        <div className="flex items-center justify-between pt-4 border-t border-theme mt-auto">
+                                            <span className="text-lg font-bold text-primary">${Number(svc.price).toFixed(2)}</span>
+                                            <Button size="sm" variant="primary">Book Appointment</Button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{review.comment}</p>
-                            </div>
-                        ))}
-                        {reviews.length === 0 && (
-                            <div className="shop-empty">
-                                <Star size={48} />
-                                <h3>No reviews yet</h3>
-                                <p>Be the first to leave a review!</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            ))}
+                            {services.length === 0 && (
+                                <div className="col-span-full text-center py-20 bg-elevated border border-dashed border-theme rounded-2xl">
+                                    <Briefcase size={48} className="mx-auto text-tertiary mb-4 opacity-50" />
+                                    <h3 className="text-lg font-medium text-primary">No services listed</h3>
+                                    <p className="text-secondary mt-1">No services are currently offered.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Reviews */}
+                    {activeSection === 'reviews' && (
+                        <div className="space-y-4 animate-in fade-in duration-500 max-w-3xl mx-auto">
+                            {reviews.map(review => (
+                                <div key={review.id} className="bg-elevated border border-theme rounded-xl p-5">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span className="font-bold text-primary block">{review.user_name}</span>
+                                            <span className="text-xs text-secondary">{new Date(review.created_at).toLocaleDateString()}</span>
+                                        </div>
+                                        <StarRating rating={review.rating} count={0} />
+                                    </div>
+                                    <p className="text-sm text-secondary leading-relaxed">{review.comment}</p>
+                                </div>
+                            ))}
+                            {reviews.length === 0 && (
+                                <div className="text-center py-16 bg-elevated border border-dashed border-theme rounded-2xl">
+                                    <Star size={48} className="mx-auto text-tertiary mb-4 opacity-50" />
+                                    <h3 className="text-lg font-medium text-primary">No reviews yet</h3>
+                                    <p className="text-secondary mt-1">Be the first to leave a review!</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Floating Cart */}
             {cart.length > 0 && (
-                <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--accent-primary)', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '2rem', boxShadow: '0 8px 24px rgba(99,102,241,0.4)', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', zIndex: 100 }} onClick={() => setShowPurchase(true)}>
-                    <ShoppingCart size={20} />
-                    <span style={{ fontWeight: 600 }}>{cart.reduce((s, c) => s + c.quantity, 0)} items</span>
-                    <span style={{ fontWeight: 700 }}>${cartTotal.toFixed(2)}</span>
-                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.85rem' }}>Place Order</span>
+                <div
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300"
+                    onClick={() => setShowPurchase(true)}
+                >
+                    <div className="bg-primary text-white pl-4 pr-6 py-3 rounded-full shadow-xl shadow-primary/30 flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                            <ShoppingCart size={20} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-white/80">{cart.reduce((s, c) => s + c.quantity, 0)} items</span>
+                            <span className="font-bold text-lg">${cartTotal.toFixed(2)}</span>
+                        </div>
+                        <div className="h-8 w-[1px] bg-white/20 mx-1"></div>
+                        <span className="font-semibold text-sm">View Cart</span>
+                    </div>
                 </div>
             )}
 
             {/* Purchase Modal */}
             {showPurchase && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setShowPurchase(false)}>
-                    <div style={{ background: 'var(--bg-primary)', borderRadius: '1.5rem 1.5rem 0 0', width: '100%', maxWidth: 500, maxHeight: '85vh', overflow: 'auto', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>Your Order</h2>
-
-                        {/* Cart Items */}
-                        {cart.map(c => (
-                            <div key={c.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)' }}>
-                                <div>
-                                    <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{c.item.name}</div>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>${c.price.toFixed(2)} each</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <button onClick={() => removeFromCart(c.key)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}><Minus size={14} /></button>
-                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{c.quantity}</span>
-                                    <button onClick={() => addToCart(c.item, c.type)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}><Plus size={14} /></button>
-                                </div>
-                            </div>
-                        ))}
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 0', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                            <span>Total</span>
-                            <span>${cartTotal.toFixed(2)}</span>
-                        </div>
-
-                        {/* Delivery Mode */}
-                        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>How would you like to receive this?</h3>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                            {[
-                                { key: 'pickup', label: 'Pickup', icon: Package },
-                                { key: 'delivery', label: 'Delivery', icon: Truck },
-                                { key: 'appointment', label: 'Dine-in / Visit', icon: UtensilsCrossed },
-                            ].map(mode => (
-                                <button key={mode.key} className={`shop-action-btn ${deliveryMode === mode.key ? 'primary' : ''}`} onClick={() => setDeliveryMode(mode.key)} style={{ flex: 1 }}>
-                                    <mode.icon size={16} /> {mode.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {deliveryMode === 'delivery' && (
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Delivery Address</label>
-                                <input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Enter your delivery address" style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontSize: '0.9rem' }} />
-                            </div>
-                        )}
-
-                        <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Notes (optional)</label>
-                            <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} placeholder="Any special instructions..." rows={2} style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontSize: '0.9rem', resize: 'vertical' }} />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                            <button className="shop-action-btn" onClick={() => setShowPurchase(false)} style={{ flex: 1 }}>Cancel</button>
-                            <button className="shop-action-btn primary" onClick={handlePlaceOrder} disabled={submitting} style={{ flex: 2 }}>
-                                {submitting ? 'Placing Order...' : `Pay $${cartTotal.toFixed(2)} with Comrade Balance`}
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowPurchase(false)}>
+                    <div className="w-full sm:max-w-md bg-elevated rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-10 duration-300" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-theme flex items-center justify-between bg-primary/5">
+                            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+                                <ShoppingCart size={20} /> Your Order
+                            </h2>
+                            <button onClick={() => setShowPurchase(false)} className="text-secondary hover:text-primary transition-colors">
+                                <X size={20} />
                             </button>
+                        </div>
+
+                        <div className="overflow-y-auto p-4 flex-1">
+                            {/* Cart Items */}
+                            <div className="space-y-4 mb-6">
+                                {cart.map(c => (
+                                    <div key={c.key} className="flex justify-between items-center gap-3">
+                                        <div className="flex-1">
+                                            <div className="font-medium text-primary text-sm">{c.item.name}</div>
+                                            <span className="text-xs text-secondary">${c.price.toFixed(2)} each</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-secondary/10 rounded-lg p-1">
+                                            <button
+                                                onClick={() => removeFromCart(c.key)}
+                                                className="w-6 h-6 rounded-md bg-background text-primary flex items-center justify-center shadow-sm hover:bg-white transition-colors"
+                                            >
+                                                <Minus size={12} />
+                                            </button>
+                                            <span className="font-bold text-primary text-sm min-w-[16px] text-center">{c.quantity}</span>
+                                            <button
+                                                onClick={() => addToCart(c.item, c.type)}
+                                                className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center shadow-sm hover:bg-primary-light transition-colors"
+                                            >
+                                                <Plus size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-between items-center py-3 border-t border-dashed border-theme mb-6">
+                                <span className="text-secondary font-medium">Total Amount</span>
+                                <span className="text-xl font-bold text-primary">${cartTotal.toFixed(2)}</span>
+                            </div>
+
+                            {/* Delivery Mode */}
+                            <div className="mb-6">
+                                <h3 className="text-sm font-semibold text-primary mb-3">Delivery Method</h3>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { key: 'pickup', label: 'Pickup', icon: Package },
+                                        { key: 'delivery', label: 'Delivery', icon: Truck },
+                                        { key: 'appointment', label: 'Dine-in', icon: UtensilsCrossed },
+                                    ].map(mode => (
+                                        <button
+                                            key={mode.key}
+                                            onClick={() => setDeliveryMode(mode.key)}
+                                            className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-xs font-medium border transition-all
+                                                ${deliveryMode === mode.key
+                                                    ? 'bg-primary/10 border-primary text-primary'
+                                                    : 'bg-background border-theme text-secondary hover:border-primary/30'
+                                                }`}
+                                        >
+                                            <mode.icon size={18} /> {mode.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {deliveryMode === 'delivery' && (
+                                <div className="mb-4 animate-in fade-in slide-in-from-top-2">
+                                    <label className="text-xs text-secondary font-medium mb-1.5 block">Delivery Address</label>
+                                    <input
+                                        type="text"
+                                        value={deliveryAddress}
+                                        onChange={e => setDeliveryAddress(e.target.value)}
+                                        placeholder="Enter your full address"
+                                        className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    />
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="text-xs text-secondary font-medium mb-1.5 block">Notes (Optional)</label>
+                                <textarea
+                                    value={orderNotes}
+                                    onChange={e => setOrderNotes(e.target.value)}
+                                    placeholder="Any special requests or allergies..."
+                                    rows={2}
+                                    className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-theme bg-secondary/5">
+                            <Button variant="primary" className="w-full py-3 text-base shadow-lg shadow-primary/20" onClick={handlePlaceOrder} disabled={submitting}>
+                                {submitting ? (
+                                    <><Loader2 className="animate-spin mr-2" size={18} /> Processing...</>
+                                ) : (
+                                    <>Pay ${cartTotal.toFixed(2)}</>
+                                )}
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -439,28 +591,74 @@ export default function EstablishmentDetail() {
 
             {/* Booking Modal */}
             {selectedRoom && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedRoom(null)}>
-                    <div style={{ background: 'var(--bg-primary)', borderRadius: '1rem', width: '100%', maxWidth: 440, padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Book {selectedRoom.name}</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem' }}>{selectedRoom.room_type_display} • Capacity: {selectedRoom.capacity} • ${Number(selectedRoom.price_per_night).toFixed(2)}/night</p>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedRoom(null)}>
+                    <div className="w-full max-w-lg bg-elevated rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="p-5 border-b border-theme flex justify-between items-start bg-primary/5">
+                            <div>
+                                <h2 className="text-lg font-bold text-primary mb-1">Book {selectedRoom.name}</h2>
+                                <p className="text-xs text-secondary flex items-center gap-2">
+                                    <Hotel size={12} /> {selectedRoom.room_type_display}
+                                    <span className="w-1 h-1 rounded-full bg-secondary block"></span>
+                                    <span className="font-semibold text-primary">${Number(selectedRoom.price_per_night).toFixed(2)}/night</span>
+                                </p>
+                            </div>
+                            <button onClick={() => setSelectedRoom(null)} className="text-secondary hover:text-primary transition-colors bg-background rounded-full p-1"><X size={18} /></button>
+                        </div>
 
-                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Check-in</label>
-                        <input type="datetime-local" value={bookingData.check_in} onChange={e => setBookingData(d => ({ ...d, check_in: e.target.value }))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', marginBottom: '0.75rem' }} />
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-secondary font-medium mb-1.5 block">Check-in</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={bookingData.check_in}
+                                        onChange={e => setBookingData(d => ({ ...d, check_in: e.target.value }))}
+                                        className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-secondary font-medium mb-1.5 block">Check-out</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={bookingData.check_out}
+                                        onChange={e => setBookingData(d => ({ ...d, check_out: e.target.value }))}
+                                        className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Check-out</label>
-                        <input type="datetime-local" value={bookingData.check_out} onChange={e => setBookingData(d => ({ ...d, check_out: e.target.value }))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', marginBottom: '0.75rem' }} />
+                            <div>
+                                <label className="text-xs text-secondary font-medium mb-1.5 block">Guests (Max {selectedRoom.capacity})</label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="range"
+                                        min={1}
+                                        max={selectedRoom.capacity}
+                                        value={bookingData.guests}
+                                        onChange={e => setBookingData(d => ({ ...d, guests: parseInt(e.target.value) || 1 }))}
+                                        className="flex-1 accent-primary h-2 bg-secondary/20 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <span className="text-sm font-bold text-primary w-8 text-center">{bookingData.guests}</span>
+                                </div>
+                            </div>
 
-                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Guests</label>
-                        <input type="number" min={1} max={selectedRoom.capacity} value={bookingData.guests} onChange={e => setBookingData(d => ({ ...d, guests: parseInt(e.target.value) || 1 }))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', marginBottom: '0.75rem' }} />
+                            <div>
+                                <label className="text-xs text-secondary font-medium mb-1.5 block">Special Requests</label>
+                                <textarea
+                                    value={bookingData.special_requests}
+                                    onChange={e => setBookingData(d => ({ ...d, special_requests: e.target.value }))}
+                                    placeholder="Early check-in, extra towels..."
+                                    rows={3}
+                                    className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                        </div>
 
-                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Special Requests</label>
-                        <textarea value={bookingData.special_requests} onChange={e => setBookingData(d => ({ ...d, special_requests: e.target.value }))} placeholder="Any special requests..." rows={2} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', marginBottom: '1rem', resize: 'vertical' }} />
-
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                            <button className="shop-action-btn" onClick={() => setSelectedRoom(null)} style={{ flex: 1 }}>Cancel</button>
-                            <button className="shop-action-btn primary" onClick={handleBookRoom} disabled={submitting || !bookingData.check_in} style={{ flex: 2 }}>
-                                {submitting ? 'Booking...' : 'Confirm Booking'}
-                            </button>
+                        <div className="p-5 border-t border-theme bg-secondary/5 flex gap-3">
+                            <Button variant="outline" className="flex-1" onClick={() => setSelectedRoom(null)}>Cancel</Button>
+                            <Button variant="primary" className="flex-[2]" onClick={handleBookRoom} disabled={submitting || !bookingData.check_in}>
+                                {submitting ? <Loader2 className="animate-spin" /> : 'Confirm Booking'}
+                            </Button>
                         </div>
                     </div>
                 </div>

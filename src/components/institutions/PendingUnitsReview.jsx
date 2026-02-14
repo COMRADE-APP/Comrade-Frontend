@@ -110,8 +110,8 @@ const PendingUnitsReview = ({ institutionId, isAdmin }) => {
 
     if (loading) {
         return (
-            <div className="p-4 bg-gray-800/50 rounded-xl border border-gray-700/50">
-                <div className="flex items-center gap-3 text-gray-400">
+            <div className="p-4 bg-secondary/10 rounded-xl border border-theme">
+                <div className="flex items-center gap-3 text-secondary">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Loading pending units...</span>
                 </div>
@@ -141,21 +141,21 @@ const PendingUnitsReview = ({ institutionId, isAdmin }) => {
                 {/* Header */}
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-amber-500/5 transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-amber-500/10 transition-colors"
                 >
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-amber-500/20 rounded-xl">
-                            <Clock className="w-5 h-5 text-amber-400" />
+                            <Clock className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                         </div>
                         <div className="text-left">
-                            <h3 className="text-lg font-semibold text-white">Pending Unit Requests</h3>
-                            <p className="text-sm text-gray-400">{totalPending} unit(s) awaiting your review</p>
+                            <h3 className="text-lg font-semibold text-primary">Pending Unit Requests</h3>
+                            <p className="text-sm text-secondary">{totalPending} unit(s) awaiting your review</p>
                         </div>
                     </div>
                     {expanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                        <ChevronUp className="w-5 h-5 text-tertiary" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-5 h-5 text-tertiary" />
                     )}
                 </button>
 
@@ -175,24 +175,24 @@ const PendingUnitsReview = ({ institutionId, isAdmin }) => {
                                     {units.map(unit => (
                                         <div
                                             key={unit.id}
-                                            className="p-4 bg-gray-800/50 rounded-xl border border-gray-700/50 space-y-3"
+                                            className="p-4 bg-elevated rounded-xl border border-theme space-y-3"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div>
-                                                    <h5 className="text-white font-medium">{unit.name}</h5>
-                                                    <p className="text-sm text-gray-400">
+                                                    <h5 className="text-primary font-medium">{unit.name}</h5>
+                                                    <p className="text-sm text-secondary">
                                                         Code: {unit.branch_code || unit.faculty_code || unit.dep_code || unit.programme_code || unit.admin_code || unit.office_code || 'N/A'}
                                                     </p>
                                                     {unit.description && (
-                                                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                                        <p className="text-sm text-secondary mt-1 line-clamp-2">
                                                             {unit.description}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
-                                                <span className="text-xs text-gray-500">
+                                            <div className="flex items-center justify-between pt-2 border-t border-theme">
+                                                <span className="text-xs text-secondary">
                                                     Requested by: {unit.created_by_email || 'Unknown'}
                                                 </span>
 
@@ -238,10 +238,10 @@ const PendingUnitsReview = ({ institutionId, isAdmin }) => {
             {/* Reject Reason Modal */}
             {rejectModal.isOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-2xl w-full max-w-md shadow-2xl border border-gray-700/50">
-                        <div className="p-6 border-b border-gray-700/50">
-                            <h3 className="text-lg font-semibold text-white">Reject Unit Request</h3>
-                            <p className="text-sm text-gray-400 mt-1">
+                    <div className="bg-elevated rounded-2xl w-full max-w-md shadow-2xl border border-theme">
+                        <div className="p-6 border-b border-theme">
+                            <h3 className="text-lg font-semibold text-primary">Reject Unit Request</h3>
+                            <p className="text-sm text-secondary mt-1">
                                 Please provide a reason for rejection (optional)
                             </p>
                         </div>
@@ -252,8 +252,8 @@ const PendingUnitsReview = ({ institutionId, isAdmin }) => {
                                 onChange={(e) => setRejectReason(e.target.value)}
                                 rows={4}
                                 placeholder="Reason for rejection..."
-                                className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 
-                                         text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 
+                                className="w-full px-4 py-3 rounded-xl bg-primary border border-theme
+                                         text-primary placeholder-secondary focus:ring-2 focus:ring-red-500
                                          focus:border-transparent transition-all duration-200 resize-none"
                             />
 

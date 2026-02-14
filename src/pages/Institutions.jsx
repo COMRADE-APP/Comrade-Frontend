@@ -122,8 +122,16 @@ const InstitutionCard = ({ institution, onView, onDelete, canManage }) => (
         <CardBody>
             <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <Building2 className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors overflow-hidden">
+                        {institution.profile_picture || institution.logo_url ? (
+                            <img
+                                src={institution.profile_picture || institution.logo_url}
+                                alt={institution.name}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <Building2 className="w-6 h-6 text-primary" />
+                        )}
                     </div>
                     {canManage && (
                         <button

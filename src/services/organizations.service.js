@@ -26,6 +26,16 @@ export const organizationsService = {
         return response.data;
     },
 
+    // Partial update organization (for files etc)
+    async partialUpdate(id, data) {
+        const config = {};
+        if (data instanceof FormData) {
+            config.headers = { 'Content-Type': 'multipart/form-data' };
+        }
+        const response = await api.patch(API_ENDPOINTS.ORGANIZATION_DETAIL(id), data, config);
+        return response.data;
+    },
+
     // Send email verification
     async sendEmailVerification(id) {
         const response = await api.post(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}send_email_verification/`);
@@ -114,6 +124,18 @@ export const organizationsService = {
     // Get user's organizations where they are a member
     async getMyOrganizations() {
         const response = await api.get(`${API_ENDPOINTS.ORGANISATIONS}my_organizations/`);
+        return response.data;
+    },
+
+    // Follow organization
+    async follow(id) {
+        const response = await api.post(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}follow/`);
+        return response.data;
+    },
+
+    // Unfollow organization
+    async unfollow(id) {
+        const response = await api.post(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}unfollow/`);
         return response.data;
     },
 };

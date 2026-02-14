@@ -58,6 +58,12 @@ const opinionsService = {
         return response.data;
     },
 
+    // Get reposters (followed users only)
+    getReposters: async (id) => {
+        const response = await api.get(`${BASE_URL}/opinions/${id}/reposters/`);
+        return response.data;
+    },
+
     // Bookmark opinion
     toggleBookmark: async (id) => {
         const response = await api.post(`${BASE_URL}/opinions/${id}/bookmark/`);

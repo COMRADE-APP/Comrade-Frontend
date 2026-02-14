@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
-    Sparkles, ChevronDown, Check, User
+    Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +14,15 @@ const Sidebar = () => {
     const location = useLocation();
     const { user, activeProfile, availableAccounts, switchAccount } = useAuth();
     const [showAccountModal, setShowAccountModal] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        try {
+            return localStorage.getItem('sidebar_collapsed') === 'true';
+        } catch { return false; }
+    });
+
+    useEffect(() => {
+        try { localStorage.setItem('sidebar_collapsed', String(isCollapsed)); } catch { }
+    }, [isCollapsed]);
 
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
@@ -52,30 +61,44 @@ const Sidebar = () => {
 
     return (
         <>
-            <aside className="hidden md:flex flex-col w-64 bg-primary border-r border-theme h-screen sticky top-0">
-                {/* Logo */}
-                <div className="p-6">
-                    <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
-                        <Zap className="w-6 h-6" />
-                        Comrade
-                    </div>
+            <aside
+                className={`hidden md:flex flex-col bg-primary border-r border-theme h-screen sticky top-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
+                    }`}
+            >
+                {/* Logo + Collapse Toggle */}
+                <div className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+                    {!isCollapsed && (
+                        <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
+                            <Zap className="w-6 h-6 flex-shrink-0" />
+                            Comrade
+                        </div>
+                    )}
+                    <button
+                        onClick={() => setIsCollapsed(prev => !prev)}
+                        className="p-1.5 text-secondary hover:text-primary hover:bg-secondary rounded-lg transition-colors"
+                        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+                    </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                <nav className={`flex-1 space-y-1 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-4'}`}>
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         return (
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${isActive(item.path)
-                                    ? 'bg-primary-50 text-primary-700'
-                                    : 'text-secondary hover:bg-secondary hover:text-primary'
+                                title={isCollapsed ? item.label : undefined}
+                                className={`flex items-center gap-3 text-sm font-medium rounded-lg transition-colors duration-150 ${isCollapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2'
+                                    } ${isActive(item.path)
+                                        ? 'bg-primary-50 text-primary-700'
+                                        : 'text-secondary hover:bg-secondary hover:text-primary'
                                     }`}
                             >
-                                <Icon className="w-5 h-5" />
-                                {item.label}
+                                <Icon className="w-5 h-5 flex-shrink-0" />
+                                {!isCollapsed && item.label}
                             </Link>
                         );
                     })}
@@ -84,12 +107,18 @@ const Sidebar = () => {
                 {/* Active Profile Indicator (if not personal) */}
                 {activeProfile && activeProfile.type !== 'personal' && (
                     <div className="px-4 py-2 border-t border-theme">
-                        <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg text-sm">
-                            {ProfileIcon && <ProfileIcon className="w-4 h-4 text-primary-600" />}
-                            <span className="text-primary-700 font-medium truncate">
-                                Posting as: {activeProfile.name}
-                            </span>
-                        </div>
+                        {isCollapsed ? (
+                            <div className="flex justify-center" title={`Posting as: ${activeProfile.name}`}>
+                                {ProfileIcon && <ProfileIcon className="w-5 h-5 text-primary-600" />}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg text-sm">
+                                {ProfileIcon && <ProfileIcon className="w-4 h-4 text-primary-600" />}
+                                <span className="text-primary-700 font-medium truncate">
+                                    Posting as: {activeProfile.name}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -97,9 +126,11 @@ const Sidebar = () => {
                 <div className="p-4 border-t border-theme">
                     <button
                         onClick={() => setShowAccountModal(true)}
-                        className="w-full flex items-center gap-3 hover:bg-secondary p-2 rounded-lg transition-colors"
+                        className={`w-full flex items-center gap-3 hover:bg-secondary p-2 rounded-lg transition-colors ${isCollapsed ? 'justify-center' : ''
+                            }`}
+                        title={isCollapsed ? (activeProfile?.name || user?.email || 'Switch account') : undefined}
                     >
-                        <div className="relative">
+                        <div className="relative flex-shrink-0">
                             {activeProfile?.avatar ? (
                                 <img
                                     src={activeProfile.avatar}
@@ -117,31 +148,35 @@ const Sidebar = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-primary truncate">
-                                {activeProfile?.name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email || 'User')}
-                            </p>
-                            <p className="text-xs text-secondary">
-                                {activeProfile?.type === 'personal' ? 'Personal Account' :
-                                    activeProfile?.type === 'organisation' ? 'Organization' :
-                                        activeProfile?.type === 'institution' ? 'Institution' : 'Switch Account'}
-                            </p>
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-secondary" />
+                        {!isCollapsed && (
+                            <div className="flex-1 text-left min-w-0">
+                                <p className="text-sm font-medium text-primary truncate">
+                                    {activeProfile?.name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email || 'User')}
+                                </p>
+                                <p className="text-xs text-secondary">
+                                    {activeProfile?.type === 'personal' ? 'Personal Account' :
+                                        activeProfile?.type === 'organisation' ? 'Organization' :
+                                            activeProfile?.type === 'institution' ? 'Institution' : 'Switch Account'}
+                                </p>
+                            </div>
+                        )}
+                        {!isCollapsed && <ChevronDown className="w-4 h-4 text-secondary flex-shrink-0" />}
                     </button>
 
                     {/* View Profile Link */}
-                    <Link
-                        to={activeProfile?.type === 'personal'
-                            ? (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')
-                            : activeProfile?.type === 'organisation' ? `/organizations/${activeProfile?.id}`
-                                : activeProfile?.type === 'institution' ? `/institutions/${activeProfile?.id}`
-                                    : (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')}
-                        className="flex items-center gap-2 mt-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-secondary rounded-lg transition-colors"
-                    >
-                        <User className="w-4 h-4" />
-                        View Profile
-                    </Link>
+                    {!isCollapsed && (
+                        <Link
+                            to={activeProfile?.type === 'personal'
+                                ? (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')
+                                : activeProfile?.type === 'organisation' ? `/organizations/${activeProfile?.id}`
+                                    : activeProfile?.type === 'institution' ? `/institutions/${activeProfile?.id}`
+                                        : (activeProfile?.id || user?.id ? `/profile/${activeProfile?.id || user?.id}` : '/profile')}
+                            className="flex items-center gap-2 mt-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-secondary rounded-lg transition-colors"
+                        >
+                            <User className="w-4 h-4" />
+                            View Profile
+                        </Link>
+                    )}
                 </div>
             </aside>
 
@@ -158,4 +193,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

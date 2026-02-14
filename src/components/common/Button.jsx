@@ -13,7 +13,7 @@ const Button = ({
 
     const variants = {
         primary: 'bg-primary-600 text-white hover:bg-primary-700',
-        secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+        secondary: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm', // Updated secondary to be distinct from outline/primary if needed, or stick to original
         outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
         danger: 'bg-red-600 text-white hover:bg-red-700',
     };

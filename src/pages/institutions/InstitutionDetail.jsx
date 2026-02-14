@@ -26,6 +26,8 @@ const InstitutionDetail = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [isAdmin, setIsAdmin] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followersCount, setFollowersCount] = useState(0);
 
     // Units state
     const [units, setUnits] = useState({});
@@ -53,9 +55,14 @@ const InstitutionDetail = () => {
             setInstitution(data);
 
             // Check if current user is admin/creator
+            // Check if current user is admin/creator/moderator/staff
             const isCreator = data.created_by === user?.id;
-            // Also check membership role if available
-            setIsAdmin(isCreator || user?.is_staff);
+            const userRole = data.current_user_role;
+            const hasEditPermission = isCreator || user?.is_staff || ['creator', 'admin', 'moderator'].includes(userRole);
+
+            setIsAdmin(hasEditPermission);
+            setIsFollowing(data.is_following);
+            setFollowersCount(data.followers_count || 0);
 
         } catch (err) {
             console.error('Error loading institution:', err);
@@ -126,10 +133,26 @@ const InstitutionDetail = () => {
         }
 
         try {
-            await institutionsService.update(id, formData);
+            await institutionsService.partialUpdate(id, formData);
             loadInstitution();
         } catch (error) {
             console.error('Error uploading image:', error);
+        }
+    };
+
+    const handleFollow = async () => {
+        try {
+            if (isFollowing) {
+                await institutionsService.unfollow(id);
+                setIsFollowing(false);
+                setFollowersCount(prev => Math.max(0, prev - 1));
+            } else {
+                await institutionsService.follow(id);
+                setIsFollowing(true);
+                setFollowersCount(prev => prev + 1);
+            }
+        } catch (error) {
+            console.error('Error toggling follow:', error);
         }
     };
 
@@ -260,8 +283,20 @@ const InstitutionDetail = () => {
                                 </Button>
                             </>
                         ) : (
-                            <Button variant="primary" size="sm">
-                                <Plus className="w-4 h-4 mr-1" /> Follow
+                            <Button
+                                variant={isFollowing ? "outline" : "primary"}
+                                size="sm"
+                                onClick={handleFollow}
+                            >
+                                {isFollowing ? (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 mr-1" /> Following
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-4 h-4 mr-1" /> Follow
+                                    </>
+                                )}
                             </Button>
                         )}
 

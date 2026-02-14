@@ -107,7 +107,7 @@ const Resources = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                            ? 'bg-primary text-white'
+                            ? 'bg-primary-600 text-white'
                             : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
                             }`}
                     >

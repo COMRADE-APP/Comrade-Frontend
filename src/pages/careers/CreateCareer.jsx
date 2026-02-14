@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Briefcase, MapPin, CheckCircle, ChevronRight, ChevronLeft, AlertCircle
+    Building2, MapPin, CheckCircle, ChevronRight, ChevronLeft, AlertCircle
 } from 'lucide-react';
-import { gigsService } from '../../services/careers.service';
+import { careersService } from '../../services/careers.service';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import './Careers.css';
 
 const STEPS = [
-    { number: 1, title: 'Gig Info' },
-    { number: 2, title: 'Payment & Location' },
-    { number: 3, title: 'Review' }
+    { number: 1, title: 'Basic Info' },
+    { number: 2, title: 'Details & Requirements' },
+    { number: 3, title: 'Salary & Location' },
+    { number: 4, title: 'Review' }
 ];
 
-const CreateGig = () => {
+const CreateCareer = () => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -23,14 +24,19 @@ const CreateGig = () => {
 
     const [formData, setFormData] = useState({
         title: '',
+        company_name: '',
+        job_type: 'full_time',
+        experience_level: 'mid',
+        industry: 'tech',
         description: '',
         requirements: '',
-        pay_amount: '',
-        pay_timing: 'after',
-        industry: 'tech',
-        deadline: '',
+        responsibilities: '',
+        salary_min: '',
+        salary_max: '',
+        salary_currency: 'USD',
+        is_remote: false,
         location: '',
-        is_remote: true
+        application_deadline: ''
     });
 
     const industries = [
@@ -39,17 +45,26 @@ const CreateGig = () => {
         { value: 'writing', label: 'Writing & Content' },
         { value: 'marketing', label: 'Marketing' },
         { value: 'finance', label: 'Finance & Accounting' },
-        { value: 'education', label: 'Education & Training' },
+        { value: 'education', label: 'Education' },
         { value: 'engineering', label: 'Engineering' },
         { value: 'healthcare', label: 'Healthcare' },
         { value: 'other', label: 'Other' },
     ];
 
-    const payTimings = [
-        { value: 'before', label: 'Payment Before Work' },
-        { value: 'after', label: 'Payment After Completion' },
-        { value: 'milestone', label: 'Milestone-based Payment' },
-        { value: 'negotiable', label: 'Negotiable' },
+    const jobTypes = [
+        { value: 'full_time', label: 'Full-time' },
+        { value: 'part_time', label: 'Part-time' },
+        { value: 'contract', label: 'Contract' },
+        { value: 'internship', label: 'Internship' },
+        { value: 'freelance', label: 'Freelance' },
+    ];
+
+    const experienceLevels = [
+        { value: 'entry', label: 'Entry Level' },
+        { value: 'mid', label: 'Mid Level' },
+        { value: 'senior', label: 'Senior Level' },
+        { value: 'lead', label: 'Lead/Manager' },
+        { value: 'executive', label: 'Executive' },
     ];
 
     const handleChange = (e) => {
@@ -79,18 +94,18 @@ const CreateGig = () => {
         try {
             const payload = {
                 ...formData,
-                pay_amount: parseFloat(formData.pay_amount),
-                deadline: formData.deadline || null
+                salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
+                salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
+                application_deadline: formData.application_deadline || null
             };
 
-            await gigsService.create(payload);
+            await careersService.create(payload);
             setSuccess(true);
-
             setTimeout(() => {
-                navigate('/gigs');
+                navigate('/careers');
             }, 2000);
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to create gig. Please try again.');
+            setError(err.response?.data?.detail || 'Failed to post job. Please try again.');
             console.error(err);
         } finally {
             setLoading(false);
@@ -104,8 +119,8 @@ const CreateGig = () => {
                     <div className="flex justify-center mb-4">
                         <CheckCircle size={64} className="text-green-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-primary mb-2">Gig Posted Successfully!</h2>
-                    <p className="text-secondary">Redirecting to your gigs...</p>
+                    <h2 className="text-2xl font-bold text-primary mb-2">Job Posted Successfully!</h2>
+                    <p className="text-secondary">Redirecting to careers...</p>
                 </Card>
             </div>
         );
@@ -116,8 +131,8 @@ const CreateGig = () => {
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold flex items-center gap-3 text-primary">
-                        <Briefcase className="text-primary" />
-                        Post a New Gig
+                        <Building2 className="text-primary" />
+                        Post a Career Opportunity
                     </h1>
                 </div>
 
@@ -148,33 +163,64 @@ const CreateGig = () => {
                         <div className="mt-8">
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <h3 className="text-xl font-semibold text-primary mb-4">Gig Information</h3>
+                                    <h3 className="text-xl font-semibold text-primary mb-4">Basic Information</h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-primary mb-1">Gig Title *</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Job Title *</label>
                                             <input
                                                 type="text"
                                                 name="title"
                                                 value={formData.title}
                                                 onChange={handleChange}
-                                                placeholder="e.g. Build a React Dashboard"
+                                                placeholder="e.g. Senior Frontend Engineer"
                                                 required
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-primary mb-1">Industry *</label>
-                                            <select
-                                                name="industry"
-                                                value={formData.industry}
+                                            <label className="block text-sm font-medium text-primary mb-1">Company Name *</label>
+                                            <input
+                                                type="text"
+                                                name="company_name"
+                                                value={formData.company_name}
                                                 onChange={handleChange}
+                                                placeholder="e.g. Acme Corp"
+                                                required
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
-                                            >
-                                                {industries.map(ind => (
-                                                    <option key={ind.value} value={ind.value}>{ind.label}</option>
-                                                ))}
-                                            </select>
+                                            />
                                         </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-1">Job Type</label>
+                                                <select
+                                                    name="job_type"
+                                                    value={formData.job_type}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
+                                                >
+                                                    {jobTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-1">Industry</label>
+                                                <select
+                                                    name="industry"
+                                                    value={formData.industry}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
+                                                >
+                                                    {industries.map(i => <option key={i.value} value={i.value}>{i.label}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentStep === 2 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    <h3 className="text-xl font-semibold text-primary mb-4">Details & Requirements</h3>
+                                    <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-primary mb-1">Description *</label>
                                             <textarea
@@ -182,7 +228,7 @@ const CreateGig = () => {
                                                 value={formData.description}
                                                 onChange={handleChange}
                                                 rows={5}
-                                                placeholder="Describe the work in detail..."
+                                                placeholder="Describe the role..."
                                                 required
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary resize-y"
                                             />
@@ -194,45 +240,63 @@ const CreateGig = () => {
                                                 value={formData.requirements}
                                                 onChange={handleChange}
                                                 rows={4}
-                                                placeholder="List skills needed..."
+                                                placeholder="List key skills and qualifications..."
                                                 required
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary resize-y"
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-primary mb-1">Responsibilities (Optional)</label>
+                                            <textarea
+                                                name="responsibilities"
+                                                value={formData.responsibilities}
+                                                onChange={handleChange}
+                                                rows={4}
+                                                placeholder="What will the candidate do day-to-day?"
+                                                className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary resize-y"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-primary mb-1">Experience Level</label>
+                                            <select
+                                                name="experience_level"
+                                                value={formData.experience_level}
+                                                onChange={handleChange}
+                                                className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
+                                            >
+                                                {experienceLevels.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            {currentStep === 2 && (
+                            {currentStep === 3 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <h3 className="text-xl font-semibold text-primary mb-4">Payment & Location</h3>
+                                    <h3 className="text-xl font-semibold text-primary mb-4">Salary & Location</h3>
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Payment Amount (USD) *</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Min Salary</label>
                                                 <input
                                                     type="number"
-                                                    name="pay_amount"
-                                                    value={formData.pay_amount}
+                                                    name="salary_min"
+                                                    value={formData.salary_min}
                                                     onChange={handleChange}
-                                                    placeholder="e.g. 500"
-                                                    min="1"
-                                                    required
+                                                    placeholder="e.g. 50000"
                                                     className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Payment Timing</label>
-                                                <select
-                                                    name="pay_timing"
-                                                    value={formData.pay_timing}
+                                                <label className="block text-sm font-medium text-primary mb-1">Max Salary</label>
+                                                <input
+                                                    type="number"
+                                                    name="salary_max"
+                                                    value={formData.salary_max}
                                                     onChange={handleChange}
+                                                    placeholder="e.g. 80000"
                                                     className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
-                                                >
-                                                    {payTimings.map(pt => (
-                                                        <option key={pt.value} value={pt.value}>{pt.label}</option>
-                                                    ))}
-                                                </select>
+                                                />
                                             </div>
                                         </div>
 
@@ -247,7 +311,7 @@ const CreateGig = () => {
                                                 />
                                                 <div className="flex items-center gap-2 text-primary font-medium">
                                                     <MapPin size={18} />
-                                                    This is a remote gig
+                                                    This is a remote position
                                                 </div>
                                             </label>
                                         </div>
@@ -265,13 +329,12 @@ const CreateGig = () => {
                                                 />
                                             </div>
                                         )}
-
                                         <div>
-                                            <label className="block text-sm font-medium text-primary mb-1">Deadline (Optional)</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Application Deadline (Optional)</label>
                                             <input
                                                 type="datetime-local"
-                                                name="deadline"
-                                                value={formData.deadline}
+                                                name="application_deadline"
+                                                value={formData.application_deadline}
                                                 onChange={handleChange}
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
                                             />
@@ -280,15 +343,17 @@ const CreateGig = () => {
                                 </div>
                             )}
 
-                            {currentStep === 3 && (
+                            {currentStep === 4 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <h3 className="text-xl font-semibold text-primary mb-4">Review & Post</h3>
                                     <div className="bg-background border border-theme rounded-xl p-6">
-                                        <h4 className="text-2xl font-bold text-primary mb-4">{formData.title}</h4>
+                                        <h4 className="text-2xl font-bold text-primary mb-1">{formData.title}</h4>
+                                        <p className="text-secondary mb-4">{formData.company_name}</p>
+
                                         <div className="flex flex-wrap gap-2 mb-6">
+                                            <span className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm">{formData.job_type}</span>
                                             <span className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm">{formData.industry}</span>
-                                            <span className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm">${formData.pay_amount}</span>
-                                            <span className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm">{formData.is_remote ? 'Remote' : formData.location}</span>
+                                            <span className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm">{formData.experience_level}</span>
                                         </div>
 
                                         <div className="space-y-4 mb-6">
@@ -304,22 +369,20 @@ const CreateGig = () => {
 
                                         <div className="flex flex-wrap gap-6 pt-6 border-t border-theme">
                                             <div>
-                                                <strong className="text-primary block">Payment</strong>
-                                                <span className="text-secondary">{payTimings.find(t => t.value === formData.pay_timing)?.label}</span>
+                                                <strong className="text-primary block">Salary</strong>
+                                                <span className="text-secondary">{formData.salary_min ? `${formData.salary_min} - ${formData.salary_max}` : 'Negotiable'}</span>
                                             </div>
-                                            {formData.deadline && (
-                                                <div>
-                                                    <strong className="text-primary block">Due</strong>
-                                                    <span className="text-secondary">{new Date(formData.deadline).toLocaleDateString()}</span>
-                                                </div>
-                                            )}
+                                            <div>
+                                                <strong className="text-primary block">Location</strong>
+                                                <span className="text-secondary">{formData.is_remote ? 'Remote' : formData.location}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
                             <div className="flex justify-between mt-8 pt-6 border-t border-theme">
-                                <Button variant="secondary" onClick={() => currentStep === 1 ? navigate('/gigs') : prevStep()}>
+                                <Button variant="secondary" onClick={() => currentStep === 1 ? navigate('/careers') : prevStep()}>
                                     <ChevronLeft size={18} className="mr-1" />
                                     {currentStep === 1 ? 'Cancel' : 'Previous'}
                                 </Button>
@@ -331,7 +394,7 @@ const CreateGig = () => {
                                         </Button>
                                     ) : (
                                         <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-                                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> : 'Post Gig'}
+                                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> : 'Post Opportunity'}
                                         </Button>
                                     )}
                                 </div>
@@ -344,4 +407,4 @@ const CreateGig = () => {
     );
 };
 
-export default CreateGig;
+export default CreateCareer;

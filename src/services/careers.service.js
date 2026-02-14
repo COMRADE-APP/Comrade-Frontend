@@ -55,6 +55,15 @@ export const gigsService = {
      * Get applications for a gig
      */
     getApplications: (gigId) => api.get(`${API_BASE}/gig-applications/`, { params: { gig_id: gigId } }),
+    /**
+     * Increment view count
+     */
+    incrementView: (id) => api.post(`${API_BASE}/gigs/${id}/increment_view/`),
+
+    /**
+     * Increment share count
+     */
+    incrementShare: (id) => api.post(`${API_BASE}/gigs/${id}/increment_share/`),
 };
 
 // ==============================================================================
@@ -96,6 +105,16 @@ export const careersService = {
      * Delete career opportunity
      */
     delete: (id) => api.delete(`${API_BASE}/careers/${id}/`),
+
+    /**
+     * Increment view count
+     */
+    incrementView: (id) => api.post(`${API_BASE}/careers/${id}/increment_view/`),
+
+    /**
+     * Increment share count
+     */
+    incrementShare: (id) => api.post(`${API_BASE}/careers/${id}/increment_share/`),
 
     /**
      * Apply to a career

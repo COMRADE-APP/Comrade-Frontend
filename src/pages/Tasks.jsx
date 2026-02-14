@@ -7,6 +7,7 @@ import Input from '../components/common/Input';
 import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2 } from 'lucide-react';
 import tasksService from '../services/tasks.service';
 import { formatDate } from '../utils/dateFormatter';
+import SearchFilterBar from '../components/common/SearchFilterBar';
 
 const Tasks = () => {
     const { user } = useAuth();
@@ -15,6 +16,8 @@ const Tasks = () => {
     const [myTasks, setMyTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState('due_asc');
     const [activeTab, setActiveTab] = useState('assigned'); // assigned or created
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -86,22 +89,44 @@ const Tasks = () => {
     const getCurrentTasks = () => {
         const taskList = activeTab === 'assigned' ? myTasks : tasks;
 
-        if (filter === 'all') return taskList;
+        // First apply search
+        let processedTasks = taskList.filter(task => {
+            const query = searchQuery.toLowerCase();
+            return task.heading?.toLowerCase().includes(query) ||
+                task.description?.toLowerCase().includes(query);
+        });
 
-        return taskList.filter(task => {
-            const dueDate = new Date(task.due_date);
-            const now = new Date();
-            const isOverdue = dueDate < now && task.status !== 'completed';
+        // Then apply status filter
+        if (filter !== 'all') {
+            processedTasks = processedTasks.filter(task => {
+                const dueDate = new Date(task.due_date);
+                const now = new Date();
+                const isOverdue = dueDate < now && task.status !== 'completed';
 
-            switch (filter) {
-                case 'pending':
-                    return task.status === 'pending' || task.state === 'pending';
-                case 'completed':
-                    return task.status === 'completed' || task.state === 'completed';
-                case 'overdue':
-                    return isOverdue;
+                switch (filter) {
+                    case 'pending':
+                        return (task.status === 'pending' || task.state === 'pending') && !isOverdue;
+                    case 'completed':
+                        return task.status === 'completed' || task.state === 'completed';
+                    case 'overdue':
+                        return isOverdue;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Then apply sorting
+        return processedTasks.sort((a, b) => {
+            switch (sortBy) {
+                case 'due_asc':
+                    return new Date(a.due_date) - new Date(b.due_date);
+                case 'due_desc':
+                    return new Date(b.due_date) - new Date(a.due_date);
+                case 'title':
+                    return a.heading.localeCompare(b.heading);
                 default:
-                    return true;
+                    return 0;
             }
         });
     };
@@ -171,21 +196,32 @@ const Tasks = () => {
                 </nav>
             </div>
 
-            {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-                {['all', 'pending', 'completed', 'overdue'].map((f) => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                            ? 'bg-primary text-white'
-                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
-                            }`}
-                    >
-                        {f.charAt(0).toUpperCase() + f.slice(1)}
-                    </button>
-                ))}
-            </div>
+            {/* Filters and Search */}
+            <SearchFilterBar
+                searchQuery={searchQuery}
+                onSearch={setSearchQuery}
+                placeholder="Search tasks by title or description..."
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'All Statuses',
+                        options: [
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'overdue', label: 'Overdue' }
+                        ]
+                    }
+                ]}
+                activeFilters={{ status: filter }}
+                onFilterChange={(key, value) => setFilter(value)}
+                sortOptions={[
+                    { value: 'due_asc', label: 'Due Date (Earliest First)' },
+                    { value: 'due_desc', label: 'Due Date (Latest First)' },
+                    { value: 'title', label: 'Title (A-Z)' },
+                ]}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+            />
 
             {/* Tasks List */}
             {loading ? (

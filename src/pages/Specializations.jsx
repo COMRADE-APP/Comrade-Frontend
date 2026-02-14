@@ -110,7 +110,7 @@ const Specializations = () => {
                 <button
                     onClick={() => setView('specializations')}
                     className={`px-6 py-2 rounded-lg font-medium transition-colors ${view === 'specializations'
-                        ? 'bg-primary text-white'
+                        ? 'bg-primary-600 text-white'
                         : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
                         }`}
                 >
@@ -120,7 +120,7 @@ const Specializations = () => {
                 <button
                     onClick={() => setView('stacks')}
                     className={`px-6 py-2 rounded-lg font-medium transition-colors ${view === 'stacks'
-                        ? 'bg-primary text-white'
+                        ? 'bg-primary-600 text-white'
                         : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
                         }`}
                 >

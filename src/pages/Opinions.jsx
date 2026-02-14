@@ -140,7 +140,25 @@ const Opinions = () => {
     const [loadingComments, setLoadingComments] = useState(false);
     const [postingComment, setPostingComment] = useState(false);
 
+    const [showReposters, setShowReposters] = useState(null);
+    const [reposters, setReposters] = useState([]);
+    const [loadingReposters, setLoadingReposters] = useState(false);
+
     const navigate = useNavigate();
+
+    const handleOpenReposters = async (opinionId) => {
+        setShowReposters(opinionId);
+        setLoadingReposters(true);
+        try {
+            const data = await opinionsService.getReposters(opinionId);
+            setReposters(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching reposters:', error);
+            setReposters([]);
+        } finally {
+            setLoadingReposters(false);
+        }
+    };
 
     const handleOpenComments = (opinionId) => {
         // Navigate to opinion detail with focus on comment input
@@ -341,7 +359,9 @@ const Opinions = () => {
                                 onReport={handleReport}
                                 onBlock={handleBlock}
                                 onOpenComments={handleOpenComments}
+                                onOpenReposters={handleOpenReposters}
                             />
+
                         ))
                     )}
                 </div>
@@ -440,11 +460,60 @@ const Opinions = () => {
                     </div>
                 )
             }
+
+            {/* Reposters Modal */}
+            {
+                showReposters && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-elevated rounded-2xl w-full max-w-sm max-h-[60vh] flex flex-col border border-theme">
+                            <div className="p-4 border-b border-theme flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-primary">Reposted By</h3>
+                                <button
+                                    onClick={() => { setShowReposters(null); setReposters([]); }}
+                                    className="p-2 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {loadingReposters ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                    </div>
+                                ) : reposters.length === 0 ? (
+                                    <div className="text-center py-8 text-secondary">
+                                        <p>No one you follow has reposted this yet.</p>
+                                    </div>
+                                ) : (
+                                    reposters.map((user) => (
+                                        <div key={user.id} className="flex items-center gap-3">
+                                            <Link to={`/profile/${user.id}`} className="shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                                                    {user.avatar_url ? (
+                                                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        user.first_name?.[0] || 'U'
+                                                    )}
+                                                </div>
+                                            </Link>
+                                            <Link to={`/profile/${user.id}`} className="font-bold text-primary hover:underline">
+                                                {user.first_name} {user.last_name}
+                                            </Link>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </>
     );
 };
 
-const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFollow, onShare, onHide, onReport, onBlock, onOpenComments }) => {
+export default Opinions;
+
+const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFollow, onShare, onHide, onReport, onBlock, onOpenComments, onOpenReposters }) => {
     const [showMenu, setShowMenu] = useState(false);
 
     const canFollow = opinion.user?.id !== currentUser?.id && opinion.user?.is_following === false && !opinion.is_anonymous;
@@ -468,28 +537,49 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
         return badges[userType] || badges.default;
     };
 
+    // Helper for rendering Repost content
+    const isRepost = opinion.is_repost;
+    const originalOpinion = opinion.original_opinion;
+
+    // If it's a repost, we display the repost header (gold container) and then the content
+    // The structure requested: Gold-shaped container surrounding it
+
     return (
         <>
-            <article className="bg-elevated hover:bg-secondary/50 transition-colors px-4 py-4">
-                {/* Enhanced Repost indicator with avatar */}
-                {opinion.is_repost && opinion.reposted_by_user && (
-                    <div className="flex items-center gap-2 text-secondary text-sm mb-3 ml-1">
-                        <Repeat2 size={14} className="text-green-500" />
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center overflow-hidden">
+            <article className={`bg-elevated hover:bg-secondary/50 transition-colors px-4 py-4 ${isRepost ? 'border-2 border-yellow-400/50 bg-yellow-50/5 relative rounded-xl mx-2 my-2' : ''}`}>
+                {isRepost && (
+                    <div className="absolute -top-3 left-4 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 border border-yellow-200 shadow-sm z-10">
+                        <Repeat2 size={10} />
+                        Repost
+                    </div>
+                )}
+
+                {/* Enhanced Repost indicator with avatar - Displayed for reposts */}
+                {isRepost && opinion.reposted_by_user && (
+                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-yellow-100/50">
+                        <button
+                            onClick={() => onOpenReposters && onOpenReposters(opinion.id)}
+                            className="flex items-center gap-2 group"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center overflow-hidden ring-2 ring-yellow-200">
                                 {opinion.reposted_by_user.avatar_url ? (
                                     <img src={opinion.reposted_by_user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-white text-[8px] font-bold">
+                                    <span className="text-white text-xs font-bold">
                                         {opinion.reposted_by_user.name?.[0] || 'U'}
                                     </span>
                                 )}
                             </div>
-                            <Link to={`/profile/${opinion.reposted_by_user.id}`} className="font-medium hover:underline">
-                                {opinion.reposted_by_user.name}
-                            </Link>
-                            <span>reposted</span>
-                        </div>
+                            <div className="flex flex-col items-start leading-tight">
+                                <span className="font-bold text-sm text-primary group-hover:underline">
+                                    {opinion.reposted_by_user.name}
+                                </span>
+                                <span className="text-xs text-secondary flex items-center gap-1">
+                                    <Repeat2 size={10} />
+                                    reposted this
+                                </span>
+                            </div>
+                        </button>
                     </div>
                 )}
 
@@ -710,10 +800,11 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             <button
                                 onClick={() => onOpenComments(opinion.id)}
                                 className="flex items-center gap-1.5 text-secondary hover:text-primary-500 group p-2 rounded-full hover:bg-secondary transition-colors"
+
                             >
                                 <MessageCircle className="w-5 h-5" />
                                 <span className="text-sm">{opinion.comments_count || ''}</span>
-                            </button>
+                            </button >
                             <button
                                 onClick={() => onRepost(opinion.id, opinion.is_reposted)}
                                 className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted
@@ -749,12 +840,10 @@ const OpinionCard = ({ opinion, currentUser, onLike, onRepost, onBookmark, onFol
                             >
                                 <Share2 className="w-5 h-5" />
                             </button>
-                        </div>
-                    </div>
-                </div>
-            </article>
+                        </div >
+                    </div >
+                </div >
+            </article >
         </>
     );
 };
-
-export default Opinions;

@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import {
     Building2, DollarSign, MapPin, Filter, Plus,
     ChevronRight, Loader2, AlertCircle, Sparkles,
-    Clock, Briefcase, GraduationCap
+    Clock, Briefcase, GraduationCap, BarChart2, User
 } from 'lucide-react';
 import { careersService } from '../../services/careers.service';
+import { useAuth } from '../../contexts/AuthContext';
+import Button from '../../components/common/Button';
 
 const CareersPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [careers, setCareers] = useState([]);
     const [recommendedCareers, setRecommendedCareers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -121,10 +124,20 @@ const CareersPage = () => {
             className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''}`}
             onClick={() => navigate(`/careers/${career.id}`)}
         >
-            {isRecommended && (
-                <div className="absolute top-4 right-4 flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                    <Sparkles size={14} />
-                    <span>Recommended</span>
+            {(isRecommended || career.posted_by === user?.id) && (
+                <div className="flex justify-end gap-2 mb-2">
+                    {isRecommended && (
+                        <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                            <Sparkles size={14} />
+                            <span>Recommended</span>
+                        </div>
+                    )}
+                    {career.posted_by === user?.id && (
+                        <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                            <User size={12} />
+                            <span>Created by You</span>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -173,7 +186,14 @@ const CareersPage = () => {
                 <span className="text-xs text-tertiary">
                     {career.applications_count || 0} applicants
                 </span>
-                <button className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm">
+                <button
+                    className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        careersService.incrementView(career.id);
+                        navigate(`/careers/${career.id}`);
+                    }}
+                >
                     Apply Now <ChevronRight size={16} />
                 </button>
             </div>
@@ -187,12 +207,19 @@ const CareersPage = () => {
                     <h1 className="text-3xl font-bold flex items-center gap-2 text-primary"><Building2 /> Career Opportunities</h1>
                     <p className="text-secondary mt-1">Find your next career move or recruit top talent</p>
                 </div>
-                <button
-                    className="px-4 py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:bg-primary-dark transition-colors"
-                    onClick={() => navigate('/careers/post')}
-                >
-                    <Plus size={20} />
+                <Button variant="primary" onClick={() => navigate('/careers/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
                     Post a Job
+                </Button>
+            </div>
+
+            <div className="flex justify-end mb-4">
+                <button
+                    onClick={() => navigate('/careers/tracking')}
+                    className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                >
+                    <BarChart2 size={16} />
+                    Track your postings
                 </button>
             </div>
 

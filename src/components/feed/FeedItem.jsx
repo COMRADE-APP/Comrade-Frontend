@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import {
     Heart, MessageCircle, Repeat2, Share, Bookmark,
     MoreHorizontal, UserPlus, Flag, EyeOff, HelpCircle,
-    Ban, ExternalLink, Image, FileText, Play
+    Ban, ExternalLink, Image, FileText, Play, X
 } from 'lucide-react';
+import opinionsService from '../../services/opinions.service';
 
 /**
  * FeedItem - Unified feed item component for opinions, research, articles, announcements, products
@@ -28,6 +29,23 @@ const FeedItem = ({
     const [likesCount, setLikesCount] = useState(item.likes_count || 0);
     const [commentsCount, setCommentsCount] = useState(item.comments_count || 0);
     const [repostsCount, setRepostsCount] = useState(item.reposts_count || 0);
+    const [showRepostersModal, setShowRepostersModal] = useState(false);
+    const [reposters, setReposters] = useState([]);
+    const [loadingReposters, setLoadingReposters] = useState(false);
+
+    const openRepostersModal = async () => {
+        setShowRepostersModal(true);
+        if (reposters.length === 0) {
+            setLoadingReposters(true);
+            try {
+                // Try to fetch reposters; fall back gracefully
+                const res = await opinionsService.getAll({ repost_of: item.id });
+                const results = Array.isArray(res) ? res : res?.results || [];
+                setReposters(results.map(r => r.user || r.reposted_by_user).filter(Boolean));
+            } catch { setReposters([]); }
+            finally { setLoadingReposters(false); }
+        }
+    };
 
     const handleLike = async () => {
         if (onLike) {
@@ -92,13 +110,23 @@ const FeedItem = ({
     const contentType = item.content_type || 'opinion';
     const categoryLabel = item.category_label || contentType.charAt(0).toUpperCase() + contentType.slice(1);
 
+    const isRepostItem = item.is_repost && item.reposted_by_user;
+
     return (
-        <div className="relative bg-elevated rounded-xl border border-theme p-4 hover:shadow-md transition-shadow">
-            {/* Repost indicator */}
-            {item.is_repost && item.reposted_by_user && (
-                <div className="flex items-center gap-2 text-secondary text-sm mb-2 -mt-1">
+        <div className={`relative rounded-xl transition-shadow hover:shadow-md ${isRepostItem
+                ? 'border-2 border-amber-400/60 bg-gradient-to-b from-amber-50/40 to-transparent dark:from-amber-900/10 dark:to-transparent'
+                : 'bg-elevated border border-theme'
+            } p-4`}>
+            {/* Repost header – gold accent */}
+            {isRepostItem && (
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm mb-3 -mt-1">
                     <Repeat2 size={14} />
-                    <span>{item.reposted_by_user.name} reposted</span>
+                    <Link to={`/profile/${item.reposted_by_user.id}`} className="flex items-center gap-1.5 hover:underline font-medium">
+                        {item.reposted_by_user.avatar_url && (
+                            <img src={item.reposted_by_user.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        )}
+                        {item.reposted_by_user.name || item.reposted_by_user.first_name || 'Someone'} reposted
+                    </Link>
                 </div>
             )}
 
@@ -294,7 +322,14 @@ const FeedItem = ({
                         className={`flex items-center gap-1.5 hover:text-green-500 transition-colors ${isReposted ? 'text-green-500' : ''}`}
                     >
                         <Repeat2 size={18} />
-                        <span className="text-sm">{repostsCount || ''}</span>
+                        {repostsCount > 0 ? (
+                            <span
+                                className="text-sm cursor-pointer hover:underline"
+                                onClick={(e) => { e.stopPropagation(); openRepostersModal(); }}
+                            >
+                                {repostsCount}
+                            </span>
+                        ) : null}
                     </button>
 
                     <button
@@ -324,6 +359,42 @@ const FeedItem = ({
                         <ExternalLink size={14} />
                     </Link>
                 </div>
+            )}
+            {/* Reposters Modal */}
+            {showRepostersModal && (
+                <>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setShowRepostersModal(false)} />
+                    <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto z-50 bg-elevated rounded-xl border border-theme shadow-xl overflow-hidden">
+                        <div className="p-4 border-b border-theme flex items-center justify-between">
+                            <h3 className="font-bold text-primary">Reposted by</h3>
+                            <button onClick={() => setShowRepostersModal(false)} className="p-1 hover:bg-secondary rounded-full text-secondary"><X size={18} /></button>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto p-2">
+                            {loadingReposters ? (
+                                <div className="p-6 text-center text-secondary text-sm">Loading...</div>
+                            ) : reposters.length === 0 ? (
+                                <div className="p-6 text-center text-secondary text-sm">No reposters found</div>
+                            ) : (
+                                reposters.map(u => (
+                                    <Link
+                                        key={u.id}
+                                        to={`/profile/${u.id}`}
+                                        onClick={() => setShowRepostersModal(false)}
+                                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors"
+                                    >
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                                            {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.first_name?.[0] || 'U').toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-primary truncate">{u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'User'}</p>
+                                            <p className="text-xs text-secondary truncate">@{u.username || u.email?.split('@')[0]}</p>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

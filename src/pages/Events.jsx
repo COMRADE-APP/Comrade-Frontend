@@ -16,12 +16,15 @@ import {
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import { formatDate, formatTime } from '../utils/dateFormatter';
+import SearchFilterBar from '../components/common/SearchFilterBar';
 
 const Events = () => {
     const { user } = useAuth();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState('date_asc');
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [showModal, setShowModal] = useState(null); // 'details', 'tickets', 'reminders'
     const navigate = useNavigate();
@@ -89,21 +92,32 @@ const Events = () => {
                 </Button>
             </div>
 
-            {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-                {['all', 'active', 'upcoming', 'interested'].map((f) => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${filter === f
-                            ? 'bg-primary text-white'
-                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
-                            }`}
-                    >
-                        {f.charAt(0).toUpperCase() + f.slice(1)}
-                    </button>
-                ))}
-            </div>
+            {/* Filters and Search */}
+            <SearchFilterBar
+                searchQuery={searchQuery}
+                onSearch={setSearchQuery}
+                placeholder="Search events by name, location..."
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'All Events',
+                        options: [
+                            { value: 'active', label: 'Active' },
+                            { value: 'upcoming', label: 'Upcoming' },
+                            { value: 'interested', label: 'Interested' }
+                        ]
+                    }
+                ]}
+                activeFilters={{ status: filter }}
+                onFilterChange={(key, value) => setFilter(value)}
+                sortOptions={[
+                    { value: 'date_asc', label: 'Date (Soonest First)' },
+                    { value: 'date_desc', label: 'Date (Latest First)' },
+                    { value: 'name', label: 'Name (A-Z)' },
+                ]}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+            />
 
             {/* Events Grid */}
             {loading ? (
@@ -119,16 +133,28 @@ const Events = () => {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {events.map((event) => (
-                        <EnhancedEventCard
-                            key={event.id}
-                            event={event}
-                            onOpenDetails={() => navigate(`/events/${event.id}`)}
-                            onOpenTickets={() => openModal(event, 'tickets')}
-                            onOpenReminders={() => openModal(event, 'reminders')}
-                            onUpdate={loadEvents}
-                        />
-                    ))}
+                    {events
+                        .filter(e =>
+                            e.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            e.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            e.location?.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .sort((a, b) => {
+                            if (sortBy === 'date_asc') return new Date(a.event_date) - new Date(b.event_date);
+                            if (sortBy === 'date_desc') return new Date(b.event_date) - new Date(a.event_date);
+                            if (sortBy === 'name') return a.name.localeCompare(b.name);
+                            return 0;
+                        })
+                        .map((event) => (
+                            <EnhancedEventCard
+                                key={event.id}
+                                event={event}
+                                onOpenDetails={() => navigate(`/events/${event.id}`)}
+                                onOpenTickets={() => openModal(event, 'tickets')}
+                                onOpenReminders={() => openModal(event, 'reminders')}
+                                onUpdate={loadEvents}
+                            />
+                        ))}
                 </div>
             )}
 

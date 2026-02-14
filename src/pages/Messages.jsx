@@ -551,7 +551,7 @@ const Messages = () => {
                                                 )}
                                             </div>
                                             {isOnline && (
-                                                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                                                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-elevated rounded-full"></span>
                                             )}
                                         </div>
                                         <div className="flex-1">
@@ -602,7 +602,7 @@ const Messages = () => {
                                         // Detailed styling from RoomDetail.jsx
                                         const bubbleClass = isOwn
                                             ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-br-sm ml-auto'
-                                            : 'bg-white dark:bg-gray-800 border border-theme text-primary rounded-bl-sm';
+                                            : 'bg-elevated border border-theme text-primary rounded-bl-sm';
 
                                         const timeClass = isOwn ? 'text-primary-100' : 'text-secondary';
 

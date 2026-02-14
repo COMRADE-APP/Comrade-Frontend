@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Card, { CardBody, CardHeader } from '../components/common/Card';
+import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { MessageSquare, Users, Lock, Plus, Search, Star, Sparkles, Settings, Trash2, Edit, Filter, X } from 'lucide-react';
 import roomsService from '../services/rooms.service';
 import { ROUTES } from '../constants/routes';
+import SearchFilterBar from '../components/common/SearchFilterBar';
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -20,12 +21,11 @@ const Rooms = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({
-        memberCount: 'any', // 'any', 'small', 'medium', 'large'
-        status: 'all',      // 'all', 'active', 'archived'
-        sortBy: 'newest',   // 'newest', 'oldest', 'name', 'members'
+        memberCount: 'any',
+        status: 'all',
     });
+    const [sortBy, setSortBy] = useState('newest');
     const [newRoom, setNewRoom] = useState({
         name: '',
         description: '',
@@ -160,7 +160,7 @@ const Rooms = () => {
 
         // Apply sorting
         roomsList = [...roomsList].sort((a, b) => {
-            switch (filters.sortBy) {
+            switch (sortBy) {
                 case 'oldest':
                     return new Date(a.created_at || 0) - new Date(b.created_at || 0);
                 case 'newest':
@@ -177,17 +177,6 @@ const Rooms = () => {
         return roomsList;
     };
 
-    const clearFilters = () => {
-        setFilters({
-            memberCount: 'any',
-            status: 'all',
-            sortBy: 'newest',
-        });
-        setSearchTerm('');
-    };
-
-    const hasActiveFilters = filters.memberCount !== 'any' || filters.status !== 'all' || searchTerm;
-
     const filteredRooms = getCurrentRooms();
 
     return (
@@ -197,78 +186,52 @@ const Rooms = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-primary">Rooms</h1>
                     <p className="text-secondary mt-1">Join rooms and collaborate with your peers</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button
-                        variant={showFilters ? 'primary' : 'outline'}
-                        onClick={() => setShowFilters(!showFilters)}
-                    >
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filters
-                        {hasActiveFilters && (
-                            <span className="ml-2 w-2 h-2 bg-red-500 rounded-full"></span>
-                        )}
-                    </Button>
-                    <Button variant="primary" onClick={() => navigate('/rooms/create')}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Room
-                    </Button>
-                </div>
+                {/* SearchFilterBar handles creating rooms via a button if we moved it there, 
+                    but SearchFilterBar doesn't have a custom action slot yet unless we add it. 
+                    So we keep the Create Button separate or add it above/below. 
+                    The design in Tasks/Announcements kept the button separate. 
+                */}
+                <Button variant="primary" onClick={() => navigate('/rooms/create')}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Room
+                </Button>
             </div>
 
-            {/* Filter Panel */}
-            {showFilters && (
-                <Card>
-                    <CardBody className="p-4">
-                        <div className="flex flex-wrap gap-4 items-end">
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-primary mb-1">Member Count</label>
-                                <select
-                                    value={filters.memberCount}
-                                    onChange={(e) => setFilters({ ...filters, memberCount: e.target.value })}
-                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                                >
-                                    <option value="any">Any Size</option>
-                                    <option value="small">Small (≤10)</option>
-                                    <option value="medium">Medium (11-50)</option>
-                                    <option value="large">Large (50+)</option>
-                                </select>
-                            </div>
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
-                                <select
-                                    value={filters.status}
-                                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="paused">Paused</option>
-                                    <option value="archived">Archived</option>
-                                </select>
-                            </div>
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-primary mb-1">Sort By</label>
-                                <select
-                                    value={filters.sortBy}
-                                    onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                                    className="w-full px-3 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                                >
-                                    <option value="newest">Newest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="name">Name (A-Z)</option>
-                                    <option value="members">Most Members</option>
-                                </select>
-                            </div>
-                            {hasActiveFilters && (
-                                <Button variant="outline" onClick={clearFilters} className="text-red-600 hover:bg-red-50">
-                                    <X className="w-4 h-4 mr-1" />
-                                    Clear
-                                </Button>
-                            )}
-                        </div>
-                    </CardBody>
-                </Card>
-            )}
+            <SearchFilterBar
+                searchQuery={searchTerm}
+                onSearch={setSearchTerm}
+                placeholder="Search rooms..."
+                filters={[
+                    {
+                        key: 'status',
+                        label: 'All Status',
+                        options: [
+                            { value: 'active', label: 'Active' },
+                            { value: 'paused', label: 'Paused' },
+                            { value: 'archived', label: 'Archived' }
+                        ]
+                    },
+                    {
+                        key: 'memberCount',
+                        label: 'Any Size',
+                        options: [
+                            { value: 'small', label: 'Small (≤10)' },
+                            { value: 'medium', label: 'Medium (11-50)' },
+                            { value: 'large', label: 'Large (50+)' }
+                        ]
+                    }
+                ]}
+                activeFilters={filters}
+                onFilterChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
+                sortOptions={[
+                    { value: 'newest', label: 'Newest First' },
+                    { value: 'oldest', label: 'Oldest First' },
+                    { value: 'members', label: 'Most Members' },
+                    { value: 'name', label: 'Name (A-Z)' },
+                ]}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+            />
 
             {/* Tabs */}
             <div className="border-b border-theme">
@@ -300,18 +263,6 @@ const Rooms = () => {
                         );
                     })}
                 </nav>
-            </div>
-
-            {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
-                <input
-                    type="text"
-                    placeholder="Search rooms..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-theme bg-elevated text-primary placeholder-tertiary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                />
             </div>
 
             {/* Rooms Grid */}

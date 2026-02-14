@@ -46,6 +46,16 @@ const institutionsService = {
         return response.data;
     },
 
+    // Partial update institution
+    partialUpdate: async (id, data) => {
+        const config = {};
+        if (data instanceof FormData) {
+            config.headers = { 'Content-Type': 'multipart/form-data' };
+        }
+        const response = await api.patch(`/api/institutions/institutions/${id}/`, data, config);
+        return response.data;
+    },
+
     // Delete institution
     delete: async (id) => {
         const response = await api.delete(`/api/institutions/institutions/${id}/`);
@@ -101,6 +111,18 @@ const institutionsService = {
     // Get user's institutions where they are a member (for account switching)
     getMyInstitutions: async () => {
         const response = await api.get('/api/institutions/institutions/my_institutions/');
+        return response.data;
+    },
+
+    // Follow institution
+    follow: async (id) => {
+        const response = await api.post(`/api/institutions/institutions/${id}/follow/`);
+        return response.data;
+    },
+
+    // Unfollow institution
+    unfollow: async (id) => {
+        const response = await api.post(`/api/institutions/institutions/${id}/unfollow/`);
         return response.data;
     },
 };

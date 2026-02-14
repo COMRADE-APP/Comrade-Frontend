@@ -89,6 +89,7 @@ import CreateTask from './pages/CreateTask';
 import CreateRoom from './pages/CreateRoom';
 import CreateResource from './pages/CreateResource';
 import CreateResearch from './pages/CreateResearch';
+import ResearchDetail from './pages/ResearchDetail';
 import CreateArticle from './pages/CreateArticle';
 import AdminDeletionReview from './pages/admin/AdminDeletionReview';
 import BecomePartner from './pages/partners/BecomePartner';
@@ -106,6 +107,12 @@ import OpportunitiesExplorer from './pages/funding/OpportunitiesExplorer';
 import GigsPage from './pages/careers/GigsPage';
 import CareersPage from './pages/careers/CareersPage';
 import CreateGig from './pages/careers/CreateGig';
+import CreateCareer from './pages/careers/CreateCareer';
+import TrackingPage from './pages/careers/TrackingPage';
+import CareerDetail from './pages/careers/CareerDetail';
+import ApplyCareer from './pages/careers/ApplyCareer';
+import GigDetail from './pages/careers/GigDetail';
+import ApplyGig from './pages/careers/ApplyGig';
 
 // New Portal Components
 import EntityCreationPortal from './components/entities/EntityCreationPortal';
@@ -262,6 +269,66 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreateGig />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/gigs/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GigDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/gigs/:id/apply"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ApplyGig />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/careers/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateCareer />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/careers/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CareerDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/careers/:id/apply"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ApplyCareer />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/careers/tracking"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TrackingPage />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -434,6 +501,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Research />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/research/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ResearchDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }

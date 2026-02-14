@@ -90,6 +90,7 @@ const Notifications = () => {
             announcement: '📢',
             research_update: '📚',
             product_update: '🛍️',
+            profile_view: '👀',
         };
         return icons[type] || '🔔';
     };

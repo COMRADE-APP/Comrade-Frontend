@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye, AtSign } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import roomsService from '../../services/rooms.service';
+import api from '../../services/api';
 
 /**
- * OpinionComposer - Create new opinions with media upload and room tagging
+ * OpinionComposer - Create new opinions with media upload, room tagging, and @-mentions
  * Supports entity authorship (post as personal, organisation, or institution)
  */
 const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
@@ -21,6 +22,17 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const fileInputRef = useRef(null);
+    const textareaRef = useRef(null);
+
+    // @-mention state
+    const [mentionQuery, setMentionQuery] = useState('');
+    const [mentionResults, setMentionResults] = useState([]);
+    const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+    const [mentionLoading, setMentionLoading] = useState(false);
+    const [mentionIndex, setMentionIndex] = useState(0);
+    const [mentionStartPos, setMentionStartPos] = useState(-1);
+    const [taggedUsers, setTaggedUsers] = useState([]);
+    const mentionDebounceRef = useRef(null);
 
     const characterLimit = isPremium ? 5000 : 500;
     const remainingChars = characterLimit - content.length;
@@ -33,7 +45,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
     };
     const ProfileIcon = getProfileIcon();
 
-    // Get avatar display (profile avatar or user initials)
+    // Get avatar display
     const getAvatarDisplay = () => {
         if (activeProfile?.avatar) {
             return <img src={activeProfile.avatar} alt="" className="w-full h-full object-cover" />;
@@ -53,7 +65,6 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
             setLoadingRooms(true);
             try {
                 const rooms = await roomsService.getMyRooms();
-                // Filter rooms that allow opinion tagging
                 setAvailableRooms(Array.isArray(rooms) ? rooms : rooms?.results || []);
             } catch (error) {
                 console.error('Failed to load rooms:', error);
@@ -64,10 +75,109 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
         loadRooms();
     }, []);
 
+    // @-mention search
+    const searchMentions = useCallback(async (query) => {
+        if (!query || query.length < 1) {
+            setMentionResults([]);
+            setShowMentionDropdown(false);
+            return;
+        }
+        setMentionLoading(true);
+        try {
+            const response = await api.get('/auth/users/search/', { params: { q: query } });
+            const results = Array.isArray(response.data) ? response.data : response.data?.results || [];
+            setMentionResults(results.slice(0, 8));
+            setShowMentionDropdown(results.length > 0);
+            setMentionIndex(0);
+        } catch (err) {
+            console.error('Mention search error:', err);
+            setMentionResults([]);
+        } finally {
+            setMentionLoading(false);
+        }
+    }, []);
+
+    // Detect @ trigger in the textarea
+    const handleContentChange = (e) => {
+        const value = e.target.value;
+        setContent(value);
+
+        const cursorPos = e.target.selectionStart;
+        // Look backwards from cursor for an @ that starts a mention
+        const textBeforeCursor = value.substring(0, cursorPos);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex >= 0) {
+            const charBeforeAt = lastAtIndex > 0 ? textBeforeCursor[lastAtIndex - 1] : ' ';
+            // @ must be at start or preceded by whitespace
+            if (lastAtIndex === 0 || /\s/.test(charBeforeAt)) {
+                const query = textBeforeCursor.substring(lastAtIndex + 1);
+                // Only trigger if query has no spaces (single word)
+                if (query.length >= 1 && !/\s/.test(query)) {
+                    setMentionStartPos(lastAtIndex);
+                    setMentionQuery(query);
+                    // Debounce the API call
+                    if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current);
+                    mentionDebounceRef.current = setTimeout(() => searchMentions(query), 250);
+                    return;
+                }
+            }
+        }
+
+        // No active mention
+        setShowMentionDropdown(false);
+        setMentionQuery('');
+        setMentionStartPos(-1);
+    };
+
+    // Insert mention into content
+    const insertMention = (mentionUser) => {
+        const displayName = mentionUser.username || mentionUser.first_name || mentionUser.email?.split('@')[0] || 'user';
+        const before = content.substring(0, mentionStartPos);
+        const after = content.substring(mentionStartPos + 1 + mentionQuery.length);
+        const newContent = `${before}@${displayName} ${after}`;
+        setContent(newContent);
+
+        // Track tagged user
+        if (!taggedUsers.find(u => u.id === mentionUser.id)) {
+            setTaggedUsers(prev => [...prev, { id: mentionUser.id, username: displayName, name: `${mentionUser.first_name || ''} ${mentionUser.last_name || ''}`.trim() }]);
+        }
+
+        setShowMentionDropdown(false);
+        setMentionQuery('');
+        setMentionStartPos(-1);
+
+        // Re-focus textarea
+        setTimeout(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                const newPos = mentionStartPos + displayName.length + 2; // +@ and space
+                textareaRef.current.setSelectionRange(newPos, newPos);
+            }
+        }, 0);
+    };
+
+    // Keyboard nav for mention dropdown
+    const handleTextareaKeyDown = (e) => {
+        if (showMentionDropdown && mentionResults.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setMentionIndex(prev => (prev + 1) % mentionResults.length);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setMentionIndex(prev => (prev - 1 + mentionResults.length) % mentionResults.length);
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                insertMention(mentionResults[mentionIndex]);
+            } else if (e.key === 'Escape') {
+                setShowMentionDropdown(false);
+            }
+        }
+    };
+
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        const newFiles = files.slice(0, 4 - mediaFiles.length); // Max 4 files
-
+        const newFiles = files.slice(0, 4 - mediaFiles.length);
         newFiles.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -84,10 +194,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                 reader.readAsDataURL(file);
             } else {
                 setMediaFiles(prev => [...prev, {
-                    file,
-                    preview: null,
-                    type: 'file',
-                    name: file.name
+                    file, preview: null, type: 'file', name: file.name
                 }]);
             }
         });
@@ -109,6 +216,10 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
         setTaggedRooms(prev => prev.filter(r => r.id !== roomId));
     };
 
+    const removeTaggedUser = (userId) => {
+        setTaggedUsers(prev => prev.filter(u => u.id !== userId));
+    };
+
     const filteredRooms = roomSearchQuery
         ? availableRooms.filter(room =>
             room.name.toLowerCase().includes(roomSearchQuery.toLowerCase())
@@ -123,7 +234,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
             const formData = new FormData();
             formData.append('content', content);
             formData.append('visibility', visibility);
-            mediaFiles.forEach((media, i) => {
+            mediaFiles.forEach((media) => {
                 formData.append('media', media.file);
             });
 
@@ -134,6 +245,13 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                 });
             }
 
+            // Add tagged user IDs (for @-mentions / notifications)
+            if (taggedUsers.length > 0) {
+                taggedUsers.forEach(u => {
+                    formData.append('mentioned_users', u.id);
+                });
+            }
+
             // Add entity authorship based on active profile
             if (activeProfile?.type === 'organisation') {
                 formData.append('organisation', activeProfile.id);
@@ -141,7 +259,6 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                 formData.append('institution', activeProfile.id);
             }
 
-            // Add anonymous flag
             if (isAnonymous) {
                 formData.append('is_anonymous', 'true');
             }
@@ -150,6 +267,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
             setContent('');
             setMediaFiles([]);
             setTaggedRooms([]);
+            setTaggedUsers([]);
             setIsAnonymous(false);
         } catch (error) {
             console.error('Failed to post:', error);
@@ -168,7 +286,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
 
     return (
         <div className="bg-elevated rounded-xl border border-theme p-4">
-            {/* Posting as indicator - show when not personal */}
+            {/* Posting as indicator */}
             {activeProfile && activeProfile.type !== 'personal' && (
                 <div className="mb-3 px-3 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex items-center gap-2 text-sm">
                     <ProfileIcon className="w-4 h-4 text-primary-600" />
@@ -187,16 +305,52 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     {getAvatarDisplay()}
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 relative">
                     <textarea
+                        ref={textareaRef}
                         value={content}
-                        onChange={(e) => setContent(e.target.value)}
+                        onChange={handleContentChange}
+                        onKeyDown={handleTextareaKeyDown}
                         placeholder={activeProfile?.type !== 'personal'
                             ? `What does ${activeProfile?.name} want to share?`
-                            : "What's on your mind?"}
+                            : "What's on your mind? Use @ to mention people"}
                         className="w-full resize-none border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent"
                         rows={3}
                     />
+
+                    {/* @-mention dropdown */}
+                    {showMentionDropdown && (
+                        <div className="absolute left-0 right-0 z-30 bg-elevated rounded-lg shadow-lg border border-theme max-h-60 overflow-y-auto">
+                            {mentionLoading ? (
+                                <div className="p-3 text-center text-secondary text-sm">Searching...</div>
+                            ) : (
+                                mentionResults.map((u, idx) => (
+                                    <button
+                                        key={u.id}
+                                        onClick={() => insertMention(u)}
+                                        className={`w-full px-3 py-2 text-left flex items-center gap-3 hover:bg-secondary transition-colors ${idx === mentionIndex ? 'bg-secondary' : ''
+                                            }`}
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                                            {u.avatar_url ? (
+                                                <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                (u.first_name?.[0] || 'U').toUpperCase()
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-primary truncate">
+                                                {u.first_name} {u.last_name}
+                                            </p>
+                                            <p className="text-xs text-secondary truncate">
+                                                @{u.username || u.email?.split('@')[0]}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    )}
 
                     {/* Tagged Rooms */}
                     {taggedRooms.length > 0 && (
@@ -208,10 +362,25 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                                 >
                                     <MessageSquare size={14} />
                                     {room.name}
-                                    <button
-                                        onClick={() => removeRoomTag(room.id)}
-                                        className="ml-1 hover:text-primary-900"
-                                    >
+                                    <button onClick={() => removeRoomTag(room.id)} className="ml-1 hover:text-primary-900">
+                                        <X size={14} />
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Tagged Users (mentions) */}
+                    {taggedUsers.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {taggedUsers.map(u => (
+                                <span
+                                    key={u.id}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-full text-sm"
+                                >
+                                    <AtSign size={14} />
+                                    {u.username}
+                                    <button onClick={() => removeTaggedUser(u.id)} className="ml-1 hover:text-blue-900">
                                         <X size={14} />
                                     </button>
                                 </span>
@@ -356,7 +525,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                                             <opt.icon size={16} />
                                             <div>
                                                 <div className="font-medium">{opt.label}</div>
-                                                <div className="text-xs text-gray-400">{opt.desc}</div>
+                                                <div className="text-xs text-secondary">{opt.desc}</div>
                                             </div>
                                         </button>
                                     ))}
@@ -369,8 +538,8 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     <button
                         onClick={() => setIsAnonymous(!isAnonymous)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${isAnonymous
-                                ? 'bg-gray-700 text-white'
-                                : 'text-secondary hover:bg-secondary'
+                            ? 'bg-gray-700 text-white'
+                            : 'text-secondary hover:bg-secondary'
                             }`}
                         title={isAnonymous ? 'Posting anonymously' : 'Post with your identity'}
                     >

@@ -173,9 +173,9 @@ const UserCard = ({ user, onFollow, currentUserId }) => {
         <div className="flex items-center gap-4 p-4 hover:bg-secondary/5 transition-colors">
             {/* Avatar */}
             <Link to={`/profile/${user.id}`} className="shrink-0 relative">
-                {user.avatar || user.profile_picture ? (
+                {user.avatar_url || user.avatar || user.profile_picture ? (
                     <img
-                        src={user.avatar || user.profile_picture}
+                        src={user.avatar_url || user.avatar || user.profile_picture}
                         alt={user.first_name || 'User'}
                         className="w-14 h-14 rounded-full object-cover border-2 border-primary"
                     />
