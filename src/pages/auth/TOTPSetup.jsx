@@ -51,7 +51,7 @@ const TOTPSetup = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'comrade-backup-codes.txt';
+        a.download = 'qomrade-backup-codes.txt';
         a.click();
     };
 

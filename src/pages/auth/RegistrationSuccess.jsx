@@ -33,7 +33,7 @@ const RegistrationSuccess = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Email Verified!</h2>
                 <p className="text-gray-600 mb-8">
                     Your email has been verified successfully.<br />
-                    Welcome to <span className="font-semibold text-primary-600">Comrade</span>!
+                    Welcome to <span className="font-semibold text-primary-600">Qomrade</span>!
                 </p>
 
                 {email && (

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
 import { useTheme } from '../contexts/ThemeContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import ThemeSwitcher from '../components/common/ThemeSwitcher';
 import authService from '../services/auth.service';
+import activityLogService from '../services/activityLog.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
-    UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail
+    UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail,
+    Activity, Download, FileText, Calendar
 } from 'lucide-react';
 
 const USER_TYPE_OPTIONS = [
@@ -66,6 +70,46 @@ const Settings = () => {
         theme: 'light',
         fontSize: 'medium',
     });
+
+    // Activity state
+    const [activities, setActivities] = useState([]);
+    const [activityStats, setActivityStats] = useState(null);
+    const [activityLoading, setActivityLoading] = useState(false);
+    const [exportFormat, setExportFormat] = useState('json');
+    const [exportStartDate, setExportStartDate] = useState('');
+    const [exportEndDate, setExportEndDate] = useState('');
+
+    // Load activity data when activity tab is active
+    useEffect(() => {
+        if (activeTab === 'activity') {
+            loadActivityData();
+        }
+    }, [activeTab]);
+
+    const loadActivityData = async () => {
+        setActivityLoading(true);
+        try {
+            const [activitiesData, statsData] = await Promise.all([
+                activityLogService.getActivities().catch(() => []),
+                activityLogService.getActivityStats().catch(() => null),
+            ]);
+            setActivities(Array.isArray(activitiesData?.results) ? activitiesData.results : Array.isArray(activitiesData) ? activitiesData : []);
+            setActivityStats(statsData);
+        } catch (error) {
+            console.error('Error loading activities:', error);
+        } finally {
+            setActivityLoading(false);
+        }
+    };
+
+    const handleExportActivity = async () => {
+        try {
+            await activityLogService.exportActivityLog(exportFormat, exportStartDate || null, exportEndDate || null);
+            showMessage('success', `Activity log exported as ${exportFormat.toUpperCase()}`);
+        } catch (error) {
+            showMessage('error', 'Failed to export activity log');
+        }
+    };
 
     const showMessage = (type, text) => {
         setMessage({ type, text });
@@ -143,6 +187,7 @@ const Settings = () => {
         { id: 'notifications', label: 'Notifications', icon: Bell },
         { id: 'appearance', label: 'Appearance', icon: Palette },
         { id: 'privacy', label: 'Privacy', icon: Lock },
+        { id: 'activity', label: 'Activity', icon: Activity },
     ];
 
     return (
@@ -221,6 +266,79 @@ const Settings = () => {
                             </div>
                         </CardBody>
                     </Card>
+
+                    {/* Your Portal Quick Access */}
+                    {(() => {
+                        const portalMap = {
+                            staff: { path: ROUTES.STAFF_PORTAL, label: 'Staff Portal', icon: '🔧', desc: 'User assistance, activity feed, and platform overview tools', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+                            author: { path: ROUTES.AUTHOR_PORTAL, label: 'Author Portal', icon: '✍️', desc: 'Content creation hub with drafts, analytics, and publishing', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+                            editor: { path: ROUTES.AUTHOR_PORTAL, label: 'Editor Portal', icon: '✍️', desc: 'Content management, editorial tools, and publishing', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+                            creator: { path: ROUTES.AUTHOR_PORTAL, label: 'Creator Portal', icon: '🎨', desc: 'Create and manage your content, rooms, and resources', gradient: 'linear-gradient(135deg, #f97316, #fb923c)' },
+                            moderator: { path: ROUTES.MODERATOR_PORTAL, label: 'Moderator Portal', icon: '🛡️', desc: 'Content review, community health, and moderation tools', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+                            lecturer: { path: ROUTES.LECTURER_PORTAL, label: 'Lecturer Portal', icon: '🎓', desc: 'Teaching tools, room management, and academic resources', gradient: 'linear-gradient(135deg, #10b981, #34d399)' },
+                            student: { path: '/dashboard', label: 'Student Dashboard', icon: '📚', desc: 'Your courses, assignments, and academic progress', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+                            student_admin: { path: '/dashboard', label: 'Student Admin Dashboard', icon: '📋', desc: 'Student governance tools and administrative features', gradient: 'linear-gradient(135deg, #14b8a6, #2dd4bf)' },
+                            normal_user: { path: '/dashboard', label: 'My Dashboard', icon: '🏠', desc: 'Your activity, bookmarks, and personalized feed', gradient: 'linear-gradient(135deg, #64748b, #94a3b8)' },
+                            institutional_admin: { path: ROUTES.INSTITUTION_PORTAL, label: 'Institution Portal', icon: '🏛️', desc: 'Manage your institution, members, and verifications', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+                            institutional_staff: { path: ROUTES.INSTITUTION_PORTAL, label: 'Institution Portal', icon: '🏛️', desc: 'Institution tools and member management', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+                            organisational_admin: { path: ROUTES.INSTITUTION_PORTAL, label: 'Organisation Portal', icon: '🏢', desc: 'Manage your organisation and members', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+                            organisational_staff: { path: ROUTES.INSTITUTION_PORTAL, label: 'Organisation Portal', icon: '🏢', desc: 'Organisation tools and management', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+                            partner: { path: ROUTES.INSTITUTION_PORTAL, label: 'Partner Portal', icon: '🤝', desc: 'Product management, sales, and business tools', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+                        };
+                        const portal = portalMap[user?.user_type];
+                        const isAdmin = user?.is_admin || user?.is_superuser;
+                        if (!portal && !isAdmin) return null;
+                        return (
+                            <Card>
+                                <CardBody>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{
+                                            width: 56, height: 56, borderRadius: '0.875rem',
+                                            background: portal?.gradient || 'linear-gradient(135deg, #6366f1, #818cf8)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '1.6rem', flexShrink: 0,
+                                        }}>
+                                            {portal?.icon || '🛡️'}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <h3 className="font-semibold text-primary" style={{ margin: 0 }}>
+                                                {portal?.label || 'Admin Portal'}
+                                            </h3>
+                                            <p className="text-secondary" style={{ fontSize: '0.83rem', margin: '0.15rem 0 0' }}>
+                                                {portal?.desc || 'Full platform administration'}
+                                            </p>
+                                        </div>
+                                        <Link
+                                            to={portal?.path || ROUTES.ADMIN_PORTAL}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                                                padding: '0.5rem 1.15rem', borderRadius: '0.6rem',
+                                                background: portal?.gradient || 'linear-gradient(135deg, #6366f1, #818cf8)',
+                                                color: 'white', fontWeight: 600, fontSize: '0.83rem',
+                                                textDecoration: 'none', whiteSpace: 'nowrap',
+                                                transition: 'transform 0.15s, box-shadow 0.15s',
+                                            }}
+                                            onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)'; }}
+                                            onMouseLeave={(e) => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
+                                        >
+                                            Open Portal →
+                                        </Link>
+                                    </div>
+                                    {isAdmin && portal && (
+                                        <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
+                                            <Link
+                                                to={ROUTES.ADMIN_PORTAL}
+                                                className="text-secondary"
+                                                style={{ fontSize: '0.78rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                            >
+                                                🛡️ You also have access to the <strong style={{ marginLeft: '0.15rem' }}>Admin Portal</strong> →
+                                            </Link>
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+                        );
+                    })()}
 
                     {/* Role Change Request */}
                     <Card>
@@ -603,6 +721,122 @@ const Settings = () => {
                                 </div>
                                 <Button variant="danger" onClick={handleDeleteAccount}>
                                     Delete My Account
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
+            {/* Activity Tab */}
+            {activeTab === 'activity' && (
+                <div className="space-y-6">
+                    {/* Activity Stats */}
+                    {activityStats && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Total Actions', value: activityStats.total_actions || 0, color: 'blue' },
+                                { label: 'This Week', value: activityStats.this_week || 0, color: 'green' },
+                                { label: 'Sessions', value: activityStats.total_sessions || 0, color: 'purple' },
+                                { label: 'Today', value: activityStats.today || 0, color: 'amber' },
+                            ].map((stat, idx) => (
+                                <Card key={idx}>
+                                    <CardBody className="p-4 text-center">
+                                        <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                                        <p className="text-xs text-secondary mt-1">{stat.label}</p>
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Recent Activity */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Activity className="w-5 h-5" />
+                                Recent Activity
+                            </h3>
+                            <Link
+                                to="/activity"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary/5 rounded-lg transition"
+                            >
+                                View All Activity →
+                            </Link>
+                        </CardHeader>
+                        <CardBody className="p-0">
+                            {activityLoading ? (
+                                <div className="p-8 text-center text-secondary">Loading activity...</div>
+                            ) : activities.length === 0 ? (
+                                <div className="p-8 text-center text-secondary">No activity recorded yet.</div>
+                            ) : (
+                                <div className="divide-y divide-theme max-h-96 overflow-y-auto">
+                                    {activities.slice(0, 20).map((activity, idx) => (
+                                        <div key={idx} className="p-4 flex items-center justify-between hover:bg-secondary/5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <Activity className="w-4 h-4 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-primary">
+                                                        {activity.description || activity.activity_type || 'Action'}
+                                                    </p>
+                                                    <p className="text-xs text-secondary">
+                                                        {activity.created_at ? new Date(activity.created_at).toLocaleString() : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardBody>
+                    </Card>
+
+                    {/* Export */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Download className="w-5 h-5" />
+                                Export Activity Log
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Format</label>
+                                        <select
+                                            value={exportFormat}
+                                            onChange={(e) => setExportFormat(e.target.value)}
+                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                        >
+                                            <option value="json">JSON</option>
+                                            <option value="csv">CSV</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={exportStartDate}
+                                            onChange={(e) => setExportStartDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={exportEndDate}
+                                            onChange={(e) => setExportEndDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <Button variant="primary" onClick={handleExportActivity}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export as {exportFormat.toUpperCase()}
                                 </Button>
                             </div>
                         </CardBody>

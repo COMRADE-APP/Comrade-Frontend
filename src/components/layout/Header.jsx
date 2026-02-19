@@ -12,7 +12,7 @@ const Header = ({ onMenuToggle }) => {
             >
                 <Menu className="w-6 h-6" />
             </button>
-            <div className="font-bold text-lg text-primary-600">Comrade</div>
+            <div className="font-bold text-lg text-primary-600">Qomrade</div>
             <NotificationBell />
         </header>
     );

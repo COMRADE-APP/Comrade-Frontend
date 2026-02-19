@@ -62,6 +62,7 @@ import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
 import PaymentGroups from './pages/payments/PaymentGroups';
 import PaymentGroupDetail from './pages/payments/PaymentGroupDetail';
 import VerifyAccount from './pages/payments/VerifyAccount';
+// import PaymentMethods from './pages/PaymentMethods';
 import BusinessRegistration from './pages/payments/BusinessRegistration';
 import RegisterAgent from './pages/payments/RegisterAgent';
 import RegisterSupplier from './pages/payments/RegisterSupplier';
@@ -92,6 +93,21 @@ import CreateResearch from './pages/CreateResearch';
 import ResearchDetail from './pages/ResearchDetail';
 import CreateArticle from './pages/CreateArticle';
 import AdminDeletionReview from './pages/admin/AdminDeletionReview';
+import AdminPortal from './pages/admin/AdminPortal';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminContent from './pages/admin/AdminContent';
+import AdminRoleRequests from './pages/admin/AdminRoleRequests';
+import AdminVerifications from './pages/admin/AdminVerifications';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminSettings from './pages/admin/AdminSettings';
+
+// Role-Specific Portals
+import StaffPortal from './pages/portals/StaffPortal';
+import AuthorPortal from './pages/portals/AuthorPortal';
+import ModeratorPortal from './pages/portals/ModeratorPortal';
+import LecturerPortal from './pages/portals/LecturerPortal';
+import InstitutionPortal from './pages/portals/InstitutionPortal';
+
 import BecomePartner from './pages/partners/BecomePartner';
 import CreateProduct from './pages/products/CreateProduct';
 import QomAI from './pages/QomAI';
@@ -546,6 +562,129 @@ function App() {
                 }
             />
             <Route
+                path={ROUTES.ADMIN_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_USERS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminUsers />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_CONTENT}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminContent />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_ROLE_REQUESTS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminRoleRequests />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_VERIFICATIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminVerifications />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_ANALYTICS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminAnalytics />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ADMIN_SETTINGS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AdminSettings />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Role-Specific Portals */}
+            <Route
+                path={ROUTES.STAFF_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <StaffPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.AUTHOR_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AuthorPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.MODERATOR_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ModeratorPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.LECTURER_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <LecturerPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.INSTITUTION_PORTAL}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InstitutionPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
                 path={ROUTES.INSTITUTIONS}
                 element={
                     <ProtectedRoute>
@@ -888,7 +1027,26 @@ function App() {
                     </ProtectedRoute>
                 }
             />
-
+            <Route
+                path="/payment-methods"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PaymentMethods />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/activity"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionHistory />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
             {/* TOTP Setup Route */}
             <Route
                 path="/setup-totp"

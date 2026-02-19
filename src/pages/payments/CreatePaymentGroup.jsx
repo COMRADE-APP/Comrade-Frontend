@@ -15,6 +15,7 @@ const CreatePaymentGroup = () => {
     const [inviteError, setInviteError] = useState('');
     const [createdGroup, setCreatedGroup] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [formError, setFormError] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -27,6 +28,7 @@ const CreatePaymentGroup = () => {
         is_public: true,
         requires_approval: true,
         max_capacity: 10,
+        allow_anonymous: false,
     });
 
     const addMember = () => {
@@ -60,6 +62,7 @@ const CreatePaymentGroup = () => {
         }
 
         setLoading(true);
+        setFormError('');
         try {
             const payload = {
                 ...formData,
@@ -89,7 +92,24 @@ const CreatePaymentGroup = () => {
             setShowSuccessModal(true);
         } catch (error) {
             console.error('Failed to create payment group:', error);
-            alert('Failed to create payment group. Please try again.');
+            // Extract descriptive error message from backend
+            const data = error.response?.data;
+            let msg = 'Failed to create payment group. Please try again.';
+            if (typeof data === 'string') {
+                msg = data;
+            } else if (Array.isArray(data)) {
+                msg = data.join(' ');
+            } else if (data?.detail) {
+                msg = data.detail;
+            } else if (data && typeof data === 'object') {
+                // Handle DRF ValidationError → { field: [errors] }
+                const parts = Object.entries(data).map(([key, val]) => {
+                    const errText = Array.isArray(val) ? val.join(', ') : String(val);
+                    return key === 'non_field_errors' ? errText : `${key}: ${errText}`;
+                });
+                if (parts.length) msg = parts.join(' | ');
+            }
+            setFormError(msg);
         } finally {
             setLoading(false);
         }
@@ -122,6 +142,29 @@ const CreatePaymentGroup = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Inline Error Banner */}
+            {formError && (
+                <div style={{
+                    background: 'var(--color-error-bg, #fef2f2)',
+                    border: '1px solid var(--color-error, #ef4444)',
+                    borderRadius: '0.75rem',
+                    padding: '1rem 1.25rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                    color: 'var(--color-error, #dc2626)',
+                    fontSize: '0.9rem',
+                    lineHeight: '1.4',
+                }}>
+                    <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>⚠️</span>
+                    <span style={{ flex: 1 }}>{formError}</span>
+                    <button
+                        onClick={() => setFormError('')}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: '1.25rem', padding: 0, lineHeight: 1 }}
+                    >×</button>
+                </div>
+            )}
 
             {/* Progress Steps */}
             <div className="flex items-center gap-2">
@@ -289,6 +332,18 @@ const CreatePaymentGroup = () => {
                                         />
                                         <label htmlFor="requires_approval" className="text-sm text-secondary">
                                             Require admin approval for new members
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="allow_anonymous"
+                                            checked={formData.allow_anonymous}
+                                            onChange={(e) => setFormData({ ...formData, allow_anonymous: e.target.checked })}
+                                            className="w-4 h-4 text-primary border-theme rounded focus:ring-primary"
+                                        />
+                                        <label htmlFor="allow_anonymous" className="text-sm text-secondary">
+                                            Allow anonymous membership (members can join without revealing identity)
                                         </label>
                                     </div>
                                 </div>

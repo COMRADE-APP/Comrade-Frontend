@@ -160,6 +160,13 @@ export const API_ENDPOINTS = {
     PAYMENT_GROUP_DETAIL: (id) => `${API_BASE_URL}/api/payments/groups/${id}/`,
     CONTRIBUTE_TO_GROUP: (id) => `${API_BASE_URL}/api/payments/groups/${id}/contribute/`,
 
+    // Group Invitations
+    GROUP_INVITATIONS: `${API_BASE_URL}/api/payments/invitations/`,
+    GROUP_INVITATION_DETAIL: (id) => `${API_BASE_URL}/api/payments/invitations/${id}/`,
+    INVITATION_ACCEPT: (id) => `${API_BASE_URL}/api/payments/invitations/${id}/accept/`,
+    INVITATION_REJECT: (id) => `${API_BASE_URL}/api/payments/invitations/${id}/reject/`,
+    INVITATION_PENDING: `${API_BASE_URL}/api/payments/invitations/pending/`,
+
     // Specializations & Stacks
     SPECIALIZATIONS: `${API_BASE_URL}/api/specializations/`,
     SPECIALIZATION_DETAIL: (id) => `${API_BASE_URL}/api/specializations/${id}/`,
@@ -285,6 +292,22 @@ export const API_ENDPOINTS = {
     ORDER_UPDATE_STATUS: (id) => `${API_BASE_URL}/api/payments/orders/${id}/update_status/`,
     MY_ORDERS: `${API_BASE_URL}/api/payments/orders/my_orders/`,
     REVIEWS: `${API_BASE_URL}/api/payments/reviews/`,
+
+    // Activity Tracking & Privacy
+    TRACKING: {
+        ACTIVITIES: `${API_BASE_URL}/api/activity/activities/`,
+        ACTIVITY_STATS: `${API_BASE_URL}/api/activity/activities/stats/`,
+        ACTIVITY_LOG: `${API_BASE_URL}/api/activity/activities/log/`,
+        ACTIONS: `${API_BASE_URL}/api/activity/actions/`,
+        SESSIONS: `${API_BASE_URL}/api/activity/sessions/`,
+        CONSENTS: `${API_BASE_URL}/api/activity/consents/`,
+        CONSENT_UPDATE: `${API_BASE_URL}/api/activity/consents/update_consent/`,
+        CONSENT_ALL: `${API_BASE_URL}/api/activity/consents/all_permissions/`,
+        CONNECTIONS: `${API_BASE_URL}/api/activity/connections/`,
+        CONNECTION_CURRENT: `${API_BASE_URL}/api/activity/connections/current/`,
+        SEARCHES: `${API_BASE_URL}/api/activity/searches/`,
+        EXPORT: `${API_BASE_URL}/api/activity/export/`,
+    },
 }
 
 export default API_ENDPOINTS;

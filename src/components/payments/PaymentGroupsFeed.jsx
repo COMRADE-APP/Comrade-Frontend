@@ -145,7 +145,7 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
                 {groups.length > 0 && (
                     <div className="p-3 border-t border-theme">
                         <button
-                            onClick={() => navigate('/savings-goals')}
+                            onClick={() => navigate('/payments/groups')}
                             className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"
                         >
                             View All Groups →

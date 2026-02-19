@@ -1,6 +1,6 @@
 /**
- * Payment Processing Service Extension
- * Additional payment features for Stripe, PayPal, M-Pesa integration
+ * Payment Processing Service
+ * Frontend API integration for payments, saved methods, and method detection.
  */
 import api from './api';
 
@@ -10,11 +10,12 @@ export const paymentProcessingService = {
     /**
      * Process a payment
      * @param {Object} paymentData
-     * @param {number} paymentData.amount - Amount to charge
-     * @param {string} paymentData.currency - Currency code (USD, KES, etc.)
-     * @param {string} paymentData.payment_method - Payment method (stripe, paypal, mpesa)
-     * @param {string} paymentData.payment_method_id - Payment method ID (for Stripe)
-     * @param {string} paymentData.description - Payment description
+     * @param {number} paymentData.amount
+     * @param {string} paymentData.currency - e.g. 'USD', 'KES'
+     * @param {string} paymentData.payment_method - 'stripe' | 'mpesa' | 'paypal'
+     * @param {string} [paymentData.payment_method_id] - Stripe PM id
+     * @param {string} [paymentData.saved_method_id] - Saved method UUID
+     * @param {string} [paymentData.description]
      * @returns {Promise}
      */
     async processPayment(paymentData) {
@@ -24,10 +25,6 @@ export const paymentProcessingService = {
 
     /**
      * Request refund for a transaction
-     * @param {string} transactionId - Transaction ID to refund
-     * @param {number} amount - Amount to refund (optional, full refund if not provided)
-     * @param {string} reason - Reason for refund
-     * @returns {Promise}
      */
     async refundPayment(transactionId, amount = null, reason = '') {
         const response = await api.post(`${PAYMENT_BASE_URL}/refund/`, {
@@ -38,39 +35,63 @@ export const paymentProcessingService = {
         return response.data;
     },
 
-    /**
-     * Get payment methods for current user
-     * @returns {Promise}
-     */
-    async getPaymentMethods() {
+    // ── Saved Payment Methods ─────────────────────────────────
+
+    /** List all saved payment methods for the current user */
+    async getSavedMethods() {
         const response = await api.get(`${PAYMENT_BASE_URL}/methods/`);
         return response.data;
     },
 
-    /**
-     * Add new payment method
-     * @param {Object} methodData
-     * @returns {Promise}
-     */
-    async addPaymentMethod(methodData) {
+    /** Save a new payment method */
+    async savePaymentMethod(methodData) {
         const response = await api.post(`${PAYMENT_BASE_URL}/methods/`, methodData);
         return response.data;
     },
 
-    /**
-     * Delete payment method
-     * @param {string} methodId
-     * @returns {Promise}
-     */
+    /** Delete a saved payment method */
     async deletePaymentMethod(methodId) {
-        const response = await api.delete(`${PAYMENT_BASE_URL}/methods/${methodId}/`);
+        await api.delete(`${PAYMENT_BASE_URL}/methods/${methodId}/`);
+    },
+
+    /** Update a saved payment method (nickname, phone, email, etc.) */
+    async updatePaymentMethod(methodId, data) {
+        const response = await api.patch(`${PAYMENT_BASE_URL}/methods/${methodId}/`, data);
         return response.data;
     },
 
+    /** Set a saved payment method as default */
+    async setDefaultMethod(methodId) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/methods/${methodId}/set_default/`);
+        return response.data;
+    },
+
+    // ── Auto-Detection ────────────────────────────────────────
+
     /**
-     * Get transaction history
-     * @returns {Promise}
+     * Detect payment method type from a raw input value
+     * (card number, phone number, or email).
+     * @param {string} value
+     * @returns {Promise<{method_type, brand, icon, is_valid, display}>}
      */
+    async detectPaymentMethod(value) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/detect-method/`, { value });
+        return response.data;
+    },
+
+    // ── Legacy Aliases ────────────────────────────────────────
+
+    /** @deprecated Use getSavedMethods */
+    async getPaymentMethods() {
+        return this.getSavedMethods();
+    },
+
+    /** @deprecated Use savePaymentMethod */
+    async addPaymentMethod(methodData) {
+        return this.savePaymentMethod(methodData);
+    },
+
+    /** Get transaction history */
     async getTransactions() {
         const response = await api.get(`${PAYMENT_BASE_URL}/transactions/`);
         return response.data;

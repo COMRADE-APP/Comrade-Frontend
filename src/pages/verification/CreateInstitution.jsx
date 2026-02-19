@@ -600,7 +600,7 @@ const CreateInstitution = () => {
 
                     <div className="submission-notice">
                         <p>
-                            By submitting this verification request, you confirm that all information provided is accurate and that you have the authority to represent this institution on the Comrade platform.
+                            By submitting this verification request, you confirm that all information provided is accurate and that you have the authority to represent this institution on the Qomrade platform.
                         </p>
                         <p>
                             Our team will review your submission within 3-5 business days. You will be notified via email once the review is complete.

@@ -77,7 +77,7 @@ const RegisterShop = () => {
 
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-primary">Open Your Shop</h1>
-                    <p className="text-secondary">Start selling to the Comrade community today</p>
+                    <p className="text-secondary">Start selling to the Qomrade community today</p>
                 </div>
 
                 <Card>

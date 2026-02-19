@@ -26,7 +26,7 @@ const CATEGORY_CONFIG = {
 const adaptCharity = (biz) => ({
     id: biz.id,
     name: biz.name,
-    provider: biz.founder_details?.name || 'Comrade Foundation',
+    provider: biz.founder_details?.name || 'Qomrade Foundation',
     goal: parseFloat(biz.charity_goal || 0),
     raised: parseFloat(biz.charity_raised || 0),
     category: biz.industry || 'General',

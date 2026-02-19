@@ -100,7 +100,7 @@ const ProfileSetup = () => {
 
             // Redirect to dashboard
             navigate(ROUTES.DASHBOARD, {
-                state: { message: 'Profile setup complete! Welcome to Comrade.' },
+                state: { message: 'Profile setup complete! Welcome to Qomrade.' },
                 replace: true
             });
         } catch (error) {

@@ -62,7 +62,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                 <div className="p-4 flex items-center justify-between border-b border-theme">
                     <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
                         <Zap className="w-6 h-6" />
-                        Comrade
+                        Qomrade
                     </div>
                     <button
                         onClick={onClose}
@@ -109,8 +109,8 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                                 to={item.path}
                                 onClick={onClose}
                                 className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${isActive(item.path)
-                                        ? 'bg-primary-50 text-primary-700'
-                                        : 'text-secondary hover:bg-secondary hover:text-primary'
+                                    ? 'bg-primary-50 text-primary-700'
+                                    : 'text-secondary hover:bg-secondary hover:text-primary'
                                     }`}
                             >
                                 <Icon className="w-5 h-5 flex-shrink-0" />

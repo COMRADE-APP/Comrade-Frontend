@@ -104,7 +104,7 @@ const Register = () => {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h2>
-                    <p className="text-gray-600">Join Comrade and start collaborating</p>
+                    <p className="text-gray-600">Join Qomrade and start collaborating</p>
                 </div>
 
                 {generalError && (

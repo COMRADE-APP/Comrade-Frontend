@@ -127,7 +127,7 @@ const InvestModal = ({ business, onClose }) => {
                                     </div>
                                 </div>
                                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                                    <p><strong>Regulatory Notice:</strong> This platform facilitates introductions between investors and businesses. Comrade does not provide financial advice. Please consult a licensed financial advisor before making investment decisions.</p>
+                                    <p><strong>Regulatory Notice:</strong> This platform facilitates introductions between investors and businesses. Qomrade does not provide financial advice. Please consult a licensed financial advisor before making investment decisions.</p>
                                 </div>
                                 <label className="flex items-start gap-3 p-3 bg-secondary/5 rounded-xl cursor-pointer border border-theme">
                                     <input
@@ -286,8 +286,8 @@ const BusinessDetail = () => {
                                             <p className="text-sm text-secondary">{req.equity_offered}% equity • {req.status}</p>
                                         </div>
                                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${req.status === 'funded' ? 'bg-green-100 text-green-700' :
-                                                req.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-gray-100 text-gray-700'
+                                            req.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-gray-100 text-gray-700'
                                             }`}>
                                             {req.status}
                                         </span>

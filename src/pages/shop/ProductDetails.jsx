@@ -124,7 +124,7 @@ const ProductDetails = () => {
                         </Button>
                         <p className="text-center text-sm text-secondary flex items-center justify-center gap-2">
                             <Shield className="w-4 h-4" />
-                            Secure payment via Comrade Balance
+                            Secure payment via Qomrade Balance
                         </p>
                     </div>
 

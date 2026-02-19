@@ -96,8 +96,19 @@ export const paymentsService = {
         return response.data;
     },
 
-    async contributeToGroup(groupId, amount, notes = '') {
-        const response = await api.post(API_ENDPOINTS.CONTRIBUTE_TO_GROUP(groupId), { amount, notes });
+    async joinGroupAnonymously(groupId) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}join/`, {
+            is_anonymous: true,
+        });
+        return response.data;
+    },
+
+    async contributeToGroup(groupId, amount, notes = '', paymentMethod = 'wallet', phoneNumber = '') {
+        const data = { amount, notes, payment_method: paymentMethod };
+        if (paymentMethod === 'mpesa' && phoneNumber) {
+            data.phone_number = phoneNumber;
+        }
+        const response = await api.post(API_ENDPOINTS.CONTRIBUTE_TO_GROUP(groupId), data);
         return response.data;
     },
 
@@ -116,6 +127,40 @@ export const paymentsService = {
             email,
             force_external: forceExternal
         });
+        return response.data;
+    },
+
+    // ========== Group Lifecycle (Deadline / Termination) ==========
+    async extendGroupDeadline(groupId, newDeadline) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}extend_deadline/`, {
+            new_deadline: newDeadline
+        });
+        return response.data;
+    },
+
+    async requestGroupTermination(groupId) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}request_termination/`);
+        return response.data;
+    },
+
+    async getGroupStatus(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}group_status/`);
+        return response.data;
+    },
+
+    // ========== Group Invitations ==========
+    async getInvitations() {
+        const response = await api.get(API_ENDPOINTS.INVITATION_PENDING);
+        return response.data;
+    },
+
+    async acceptInvitation(invitationId) {
+        const response = await api.post(API_ENDPOINTS.INVITATION_ACCEPT(invitationId));
+        return response.data;
+    },
+
+    async rejectInvitation(invitationId) {
+        const response = await api.post(API_ENDPOINTS.INVITATION_REJECT(invitationId));
         return response.data;
     },
 

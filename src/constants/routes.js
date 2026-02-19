@@ -19,6 +19,13 @@ export const ROUTES = {
     TASKS: '/tasks',
     PROFILE: '/profile',
     PROFILE_DETAIL: '/profile/:id',
+    ADMIN_PORTAL: '/admin',
+    ADMIN_USERS: '/admin/users',
+    ADMIN_CONTENT: '/admin/content',
+    ADMIN_ROLE_REQUESTS: '/admin/role-requests',
+    ADMIN_VERIFICATIONS: '/admin/verifications',
+    ADMIN_ANALYTICS: '/admin/analytics',
+    ADMIN_SETTINGS: '/admin/settings',
     ADMIN_DELETION_REVIEW: '/admin/deletion-review',
     COMMUNITY: '/community',
     ROOMS: '/rooms',
@@ -93,4 +100,11 @@ export const ROUTES = {
     ADMIN_REVIEW_INSTITUTIONS: '/admin/review/institutions',
     ADMIN_REVIEW_ORGANIZATIONS: '/admin/review/organizations',
     PORTAL_EXAMPLE: '/portal/example',
+
+    // Role-Specific Portals
+    STAFF_PORTAL: '/portal/staff',
+    AUTHOR_PORTAL: '/portal/author',
+    MODERATOR_PORTAL: '/portal/moderator',
+    LECTURER_PORTAL: '/portal/lecturer',
+    INSTITUTION_PORTAL: '/portal/institution',
 }

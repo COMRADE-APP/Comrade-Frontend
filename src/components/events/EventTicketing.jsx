@@ -18,7 +18,7 @@ const EventTicketing = ({ event, tickets = [] }) => {
         { value: 'stripe', label: 'Credit/Debit Card (Stripe)', icon: CreditCard },
         { value: 'paypal', label: 'PayPal', icon: CreditCard },
         { value: 'mpesa', label: 'M-Pesa', icon: CreditCard },
-        { value: 'comrade_balance', label: 'Comrade Balance', icon: CreditCard },
+        { value: 'comrade_balance', label: 'Qomrade Balance', icon: CreditCard },
     ];
 
     const handlePurchase = async () => {
@@ -65,8 +65,8 @@ const EventTicketing = ({ event, tickets = [] }) => {
                             key={ticket.id}
                             onClick={() => setSelectedTicket(ticket)}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedTicket?.id === ticket.id
-                                    ? 'border-primary-600 bg-primary-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-primary-600 bg-primary-50'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <div className="flex justify-between items-start">

@@ -86,7 +86,7 @@ const VisibilitySelector = ({ onChange, initialValue = 'public' }) => {
                     />
                     <div className="ml-3">
                         <span className="block font-medium text-primary">Public</span>
-                        <span className="block text-xs text-secondary">Visible to everyone on Comrade</span>
+                        <span className="block text-xs text-secondary">Visible to everyone on Qomrade</span>
                     </div>
                 </label>
 

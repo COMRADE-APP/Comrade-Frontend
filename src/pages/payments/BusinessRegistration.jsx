@@ -42,7 +42,7 @@ const BusinessRegistration = () => {
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-extrabold text-primary sm:text-5xl">
-                        Grow with <span className="text-primary">Comrade</span>
+                        Grow with <span className="text-primary">Qomrade</span>
                     </h1>
                     <p className="mt-4 text-xl text-secondary">
                         Choose how you want to do business with us.

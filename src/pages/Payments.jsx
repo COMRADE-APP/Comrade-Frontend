@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { CreditCard, DollarSign, TrendingUp, Download, Filter, X, AlertCircle, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, PiggyBank, CheckCircle, XCircle } from 'lucide-react';
+import { CreditCard, DollarSign, TrendingUp, Download, Filter, X, AlertCircle, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, PiggyBank, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import paymentsService from '../services/payments.service';
+import { paymentProcessingService } from '../services/paymentProcessing.service';
 import { formatDate } from '../utils/dateFormatter';
 import { ROUTES } from '../constants/routes';
 
@@ -17,6 +18,7 @@ const Payments = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
+    const [savedMethods, setSavedMethods] = useState(null); // null = not loaded yet
 
     // Modal states
     const [showSendModal, setShowSendModal] = useState(false);
@@ -66,6 +68,15 @@ const Payments = () => {
             console.error('Error loading payment data:', error);
         } finally {
             setLoading(false);
+        }
+
+        // Also load saved payment methods to check if user has any
+        try {
+            const methods = await paymentProcessingService.getSavedMethods();
+            const list = Array.isArray(methods) ? methods : methods?.results || [];
+            setSavedMethods(list);
+        } catch {
+            setSavedMethods([]);
         }
     };
 
@@ -216,7 +227,7 @@ const Payments = () => {
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-primary-100 text-sm mb-2">Comrade Balance</p>
+                            <p className="text-primary-100 text-sm mb-2">Qomrade Balance</p>
                             <h2 className="text-4xl font-bold">
                                 ${paymentProfile?.comrade_balance || '0.00'}
                             </h2>
@@ -239,6 +250,28 @@ const Payments = () => {
                     </div>
                 </CardBody>
             </Card>
+
+            {/* Saved Payment Method Prompt */}
+            {savedMethods !== null && savedMethods.length === 0 && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl p-4 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="font-semibold text-amber-900 dark:text-amber-200">No payment methods saved</h4>
+                        <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
+                            Add a card, M-Pesa number, or PayPal account so your payment details are saved for faster checkout and autofill.
+                        </p>
+                        <button
+                            onClick={() => navigate('/payment-methods')}
+                            className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Payment Method
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -364,7 +397,7 @@ const Payments = () => {
                                         onChange={(e) => setSendData({ ...sendData, payment_option: e.target.value })}
                                         className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                     >
-                                        <option value="comrade_balance">Comrade Balance</option>
+                                        <option value="comrade_balance">Qomrade Balance</option>
                                         <option value="mpesa">M-Pesa</option>
                                         <option value="paypal">PayPal</option>
                                         <option value="stripe">Stripe</option>
@@ -451,7 +484,7 @@ const Payments = () => {
                                     </div>
                                     <h3 className="text-lg font-semibold text-primary">Confirm Deposit</h3>
                                     <p className="text-secondary">
-                                        You are about to deposit <span className="font-bold text-primary">${depositData.amount}</span> to your Comrade Balance.
+                                        You are about to deposit <span className="font-bold text-primary">${depositData.amount}</span> to your Qomrade Balance.
                                     </p>
                                     <div className="flex gap-2 justify-center pt-4">
                                         <Button variant="outline" onClick={() => setConfirmationStep('form')}>Back</Button>
