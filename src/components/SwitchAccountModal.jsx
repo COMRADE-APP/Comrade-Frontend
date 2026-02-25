@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, GraduationCap, User, ChevronRight, X } from 'lucide-react';
+import { Building2, GraduationCap, User, ChevronRight, X, Lock } from 'lucide-react';
 
 /**
  * SwitchAccountModal - Allows users to switch between personal and organization/institution accounts
@@ -7,7 +7,7 @@ import { Building2, GraduationCap, User, ChevronRight, X } from 'lucide-react';
  * Props:
  * - isOpen: boolean - Controls visibility
  * - onClose: function - Called when modal is closed
- * - accounts: array - List of accounts: [{ id, name, type: 'personal'|'organisation'|'institution', avatar }]
+ * - accounts: array - List of accounts: [{ id, name, type: 'personal'|'organisation'|'institution', avatar, has_portal_password }]
  * - activeAccountId: string - Currently active account ID
  * - onSwitch: function(account) - Called when user selects an account
  */
@@ -76,8 +76,8 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                     onClose();
                                 }}
                                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeAccountId === account.id
-                                        ? 'bg-purple-50 border-2 border-purple-500'
-                                        : 'hover:bg-gray-50 border-2 border-transparent'
+                                    ? 'bg-purple-50 border-2 border-purple-500'
+                                    : 'hover:bg-gray-50 border-2 border-transparent'
                                     }`}
                             >
                                 {/* Avatar */}
@@ -90,8 +90,8 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                         />
                                     ) : (
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${account.type === 'organisation' ? 'bg-blue-100 text-blue-600' :
-                                                account.type === 'institution' ? 'bg-purple-100 text-purple-600' :
-                                                    'bg-gray-100 text-gray-600'
+                                            account.type === 'institution' ? 'bg-purple-100 text-purple-600' :
+                                                'bg-gray-100 text-gray-600'
                                             }`}>
                                             {getIcon(account.type)}
                                         </div>
@@ -103,7 +103,12 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
 
                                 {/* Account Info */}
                                 <div className="flex-1 text-left">
-                                    <p className="font-medium text-gray-900">{account.name}</p>
+                                    <p className="font-medium text-gray-900 flex items-center gap-1.5">
+                                        {account.name}
+                                        {account.has_portal_password && account.type !== 'personal' && (
+                                            <Lock className="w-3.5 h-3.5 text-amber-500" />
+                                        )}
+                                    </p>
                                     <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getTypeBadgeColor(account.type)}`}>
                                         {getTypeLabel(account.type)}
                                     </span>
@@ -123,7 +128,7 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                     </p>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

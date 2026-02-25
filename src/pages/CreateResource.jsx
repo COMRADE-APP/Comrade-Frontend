@@ -179,7 +179,7 @@ const CreateResource = () => {
                 submitData.append('linked_' + linkType, linkedContentId);
             }
 
-            const response = await api.post('/api/resources/', submitData, {
+            const response = await api.post('/api/resources/resource/', submitData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -233,19 +233,19 @@ const CreateResource = () => {
                             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-0 -translate-y-1/2"></div>
                             {/* Active Progress Line */}
                             <div
-                                className="absolute top-1/2 left-0 h-0.5 bg-primary -z-0 -translate-y-1/2 transition-all duration-300"
+                                className="absolute top-1/2 left-0 h-0.5 bg-green-600 -z-0 -translate-y-1/2 transition-all duration-300"
                                 style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}% ` }}
                             ></div>
 
                             {STEPS.map((step, index) => (
                                 <div key={step.number} className="flex flex-col items-center relative z-10 px-2 group cursor-pointer" onClick={() => step.number < currentStep && setCurrentStep(step.number)}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2 ${currentStep >= step.number
-                                        ? 'bg-primary text-white border-primary'
-                                        : 'bg-elevated text-secondary border-theme group-hover:border-primary/50'
+                                        ? 'bg-green-600 text-white border-green-600'
+                                        : 'bg-elevated text-secondary border-theme group-hover:border-green-300'
                                         }`}>
                                         {currentStep > step.number ? <CheckCircle size={16} /> : step.number}
                                     </div>
-                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-primary' : 'text-secondary'
+                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-green-600' : 'text-secondary'
                                         }`}>{step.title}</span>
                                 </div>
                             ))}

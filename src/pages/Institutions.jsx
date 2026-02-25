@@ -7,12 +7,22 @@ import Button from '../components/common/Button';
 import { Building2, Search, Plus, Users, MapPin, Globe, Edit, Trash2, X, Eye } from 'lucide-react';
 import institutionsService from '../services/institutions.service';
 
+const FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'university', label: 'Universities' },
+    { value: 'college', label: 'Colleges' },
+    { value: 'school', label: 'Schools' },
+    { value: 'institute', label: 'Institutes' },
+    { value: 'other', label: 'Other' },
+];
+
 const Institutions = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [institutions, setInstitutions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filter, setFilter] = useState('all');
 
     // All authenticated users can create institutions
     const canManageInstitutions = true;
@@ -34,8 +44,6 @@ const Institutions = () => {
         }
     };
 
-
-
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this institution?')) return;
         try {
@@ -51,10 +59,15 @@ const Institutions = () => {
         navigate(`/institutions/${institution.id}`);
     };
 
-    const filteredInstitutions = institutions.filter(inst =>
-        (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (inst.location || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredInstitutions = institutions
+        .filter(inst =>
+            (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (inst.location || '').toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .filter(inst => {
+            if (filter === 'all') return true;
+            return (inst.institution_type || inst.type || '').toLowerCase() === filter;
+        });
 
     return (
         <div className="space-y-6">
@@ -83,6 +96,22 @@ const Institutions = () => {
                 />
             </div>
 
+            {/* Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+                {FILTERS.map(f => (
+                    <button
+                        key={f.value}
+                        onClick={() => setFilter(f.value)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f.value
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
+
             {/* Institutions Grid */}
             {loading ? (
                 <div className="text-center py-12">
@@ -93,7 +122,7 @@ const Institutions = () => {
                     <CardBody className="text-center py-12">
                         <Building2 className="w-12 h-12 text-tertiary mx-auto mb-4" />
                         <p className="text-secondary">
-                            {searchTerm ? 'No institutions found matching your search.' : 'No institutions available yet.'}
+                            {searchTerm || filter !== 'all' ? 'No institutions found matching your criteria.' : 'No institutions available yet.'}
                         </p>
                     </CardBody>
                 </Card>

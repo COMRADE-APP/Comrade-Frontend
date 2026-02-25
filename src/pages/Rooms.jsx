@@ -7,7 +7,14 @@ import Input from '../components/common/Input';
 import { MessageSquare, Users, Lock, Plus, Search, Star, Sparkles, Settings, Trash2, Edit, Filter, X } from 'lucide-react';
 import roomsService from '../services/rooms.service';
 import { ROUTES } from '../constants/routes';
-import SearchFilterBar from '../components/common/SearchFilterBar';
+
+const ROOM_FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'paused', label: 'Paused' },
+    { value: 'archived', label: 'Archived' },
+];
+
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -25,7 +32,7 @@ const Rooms = () => {
         memberCount: 'any',
         status: 'all',
     });
-    const [sortBy, setSortBy] = useState('newest');
+    const [sortBy, setSortBy] = useState('latest_activity');
     const [newRoom, setNewRoom] = useState({
         name: '',
         description: '',
@@ -161,6 +168,8 @@ const Rooms = () => {
         // Apply sorting
         roomsList = [...roomsList].sort((a, b) => {
             switch (sortBy) {
+                case 'latest_activity':
+                    return new Date(b.last_activity || b.updated_at || b.created_at || 0) - new Date(a.last_activity || a.updated_at || a.created_at || 0);
                 case 'oldest':
                     return new Date(a.created_at || 0) - new Date(b.created_at || 0);
                 case 'newest':
@@ -197,41 +206,33 @@ const Rooms = () => {
                 </Button>
             </div>
 
-            <SearchFilterBar
-                searchQuery={searchTerm}
-                onSearch={setSearchTerm}
-                placeholder="Search rooms..."
-                filters={[
-                    {
-                        key: 'status',
-                        label: 'All Status',
-                        options: [
-                            { value: 'active', label: 'Active' },
-                            { value: 'paused', label: 'Paused' },
-                            { value: 'archived', label: 'Archived' }
-                        ]
-                    },
-                    {
-                        key: 'memberCount',
-                        label: 'Any Size',
-                        options: [
-                            { value: 'small', label: 'Small (≤10)' },
-                            { value: 'medium', label: 'Medium (11-50)' },
-                            { value: 'large', label: 'Large (50+)' }
-                        ]
-                    }
-                ]}
-                activeFilters={filters}
-                onFilterChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
-                sortOptions={[
-                    { value: 'newest', label: 'Newest First' },
-                    { value: 'oldest', label: 'Oldest First' },
-                    { value: 'members', label: 'Most Members' },
-                    { value: 'name', label: 'Name (A-Z)' },
-                ]}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-            />
+            {/* Search Bar */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
+                <input
+                    type="text"
+                    placeholder="Search rooms..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                />
+            </div>
+
+            {/* Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+                {ROOM_FILTERS.map(f => (
+                    <button
+                        key={f.value}
+                        onClick={() => setFilters(prev => ({ ...prev, status: f.value }))}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.status === f.value
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Tabs */}
             <div className="border-b border-theme">
@@ -433,7 +434,14 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-lg text-primary line-clamp-1">{room.name}</h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg text-primary line-clamp-1">{room.name}</h3>
+                        {(room.unread_count > 0) && (
+                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                                {room.unread_count > 99 ? '99+' : room.unread_count}
+                            </span>
+                        )}
+                    </div>
                     <p className="text-sm text-secondary mt-1 line-clamp-2">
                         {room.description || 'No description available'}
                     </p>

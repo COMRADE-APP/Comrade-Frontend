@@ -5,6 +5,7 @@ import { ROUTES } from '../../constants/routes';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { validateEmail, validatePassword, validateRequired, getErrorMessage } from '../../utils/validators';
+import { getBrowserLocale } from '../../utils/currency';
 
 const Register = () => {
     const { register } = useAuth();
@@ -17,6 +18,7 @@ const Register = () => {
         password: '',
         confirmPassword: '',
         userType: 'student',
+        dateOfBirth: '',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
@@ -63,6 +65,14 @@ const Register = () => {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
+        // Validate birthday if provided (optional field)
+        if (formData.dateOfBirth) {
+            const dob = new Date(formData.dateOfBirth);
+            if (dob > new Date()) {
+                newErrors.dateOfBirth = 'Date of birth cannot be in the future';
+            }
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -75,7 +85,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            const response = await register({
+            const payload = {
                 first_name: formData.firstName,
                 last_name: formData.lastName,
                 email: formData.email,
@@ -83,7 +93,15 @@ const Register = () => {
                 password: formData.password,
                 confirm_password: formData.confirmPassword,
                 user_type: formData.userType,
-            });
+                browser_locale: getBrowserLocale(),
+            };
+
+            // Only include date_of_birth if the user provided one
+            if (formData.dateOfBirth) {
+                payload.date_of_birth = formData.dateOfBirth;
+            }
+
+            const response = await register(payload);
 
             // Navigate to OTP verification page
             navigate(ROUTES.VERIFY_REGISTRATION, {
@@ -159,6 +177,24 @@ const Register = () => {
                         error={errors.phoneNumber}
                         required
                     />
+
+                    <div>
+                        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
+                            Date of Birth <span className="text-gray-400 text-xs">(Optional)</span>
+                        </label>
+                        <input
+                            type="date"
+                            id="dateOfBirth"
+                            name="dateOfBirth"
+                            value={formData.dateOfBirth}
+                            onChange={handleChange}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                        />
+                        {errors.dateOfBirth && (
+                            <p className="mt-1 text-xs text-red-500">{errors.dateOfBirth}</p>
+                        )}
+                    </div>
 
                     <div>
                         <label htmlFor="userType" className="block text-sm font-medium text-gray-700 mb-1">

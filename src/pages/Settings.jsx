@@ -7,6 +7,7 @@ import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import ThemeSwitcher from '../components/common/ThemeSwitcher';
+import ResizeControl from '../components/common/ResizeControl';
 import authService from '../services/auth.service';
 import activityLogService from '../services/activityLog.service';
 import {
@@ -602,6 +603,9 @@ const Settings = () => {
                         </CardBody>
                     </Card>
 
+                    {/* Display Size */}
+                    <ResizeControl />
+
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
                             <h3 className="font-semibold text-primary flex items-center gap-2">
@@ -623,227 +627,232 @@ const Settings = () => {
                         </CardBody>
                     </Card>
                 </div>
-            )}
+            )
+            }
 
             {/* Privacy Tab */}
-            {activeTab === 'privacy' && (
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader className="p-4 border-b border-theme">
-                            <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <User className="w-5 h-5" />
-                                Profile Visibility
-                            </h3>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                {/* Activity Status */}
-                                <div className="flex items-center justify-between py-3 border-b border-theme">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Show Activity Status</h4>
-                                        <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
+            {
+                activeTab === 'privacy' && (
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader className="p-4 border-b border-theme">
+                                <h3 className="font-semibold text-primary flex items-center gap-2">
+                                    <User className="w-5 h-5" />
+                                    Profile Visibility
+                                </h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="space-y-4">
+                                    {/* Activity Status */}
+                                    <div className="flex items-center justify-between py-3 border-b border-theme">
+                                        <div>
+                                            <h4 className="font-medium text-primary">Show Activity Status</h4>
+                                            <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const newStatus = !user?.user_profile?.show_activity_status;
+                                                    // Optimistic update (if user object is structured this way, else fetch profile)
+                                                    // Better to just call API and reload
+                                                    await authService.updateProfile({ show_activity_status: newStatus });
+                                                    // Ideally we should reload user context or profile here. 
+                                                    // For now, assuming authService.getCurrentUser() will be called or page reload
+                                                    showMessage('success', 'Privacy setting updated');
+                                                    // Trigger a reload of user data if possible, or just let the user know
+                                                    setTimeout(() => window.location.reload(), 500); // Simple reload to refresh context
+                                                } catch (error) {
+                                                    showMessage('error', 'Failed to update setting');
+                                                }
+                                            }}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
+                                                }`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const newStatus = !user?.user_profile?.show_activity_status;
-                                                // Optimistic update (if user object is structured this way, else fetch profile)
-                                                // Better to just call API and reload
-                                                await authService.updateProfile({ show_activity_status: newStatus });
-                                                // Ideally we should reload user context or profile here. 
-                                                // For now, assuming authService.getCurrentUser() will be called or page reload
-                                                showMessage('success', 'Privacy setting updated');
-                                                // Trigger a reload of user data if possible, or just let the user know
-                                                setTimeout(() => window.location.reload(), 500); // Simple reload to refresh context
-                                            } catch (error) {
-                                                showMessage('error', 'Failed to update setting');
-                                            }
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
-                                            }`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
 
-                                {/* Read Receipts */}
-                                <div className="flex items-center justify-between py-3 border-b border-theme">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Read Receipts</h4>
-                                        <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
+                                    {/* Read Receipts */}
+                                    <div className="flex items-center justify-between py-3 border-b border-theme">
+                                        <div>
+                                            <h4 className="font-medium text-primary">Read Receipts</h4>
+                                            <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const newStatus = !user?.user_profile?.show_read_receipts;
+                                                    await authService.updateProfile({ show_read_receipts: newStatus });
+                                                    showMessage('success', 'Privacy setting updated');
+                                                    setTimeout(() => window.location.reload(), 500);
+                                                } catch (error) {
+                                                    showMessage('error', 'Failed to update setting');
+                                                }
+                                            }}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
+                                                }`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const newStatus = !user?.user_profile?.show_read_receipts;
-                                                await authService.updateProfile({ show_read_receipts: newStatus });
-                                                showMessage('success', 'Privacy setting updated');
-                                                setTimeout(() => window.location.reload(), 500);
-                                            } catch (error) {
-                                                showMessage('error', 'Failed to update setting');
-                                            }
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
-                                            }`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
 
-                                <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Public Profile</h4>
-                                        <p className="text-sm text-secondary">Allow others to view your profile</p>
+                                    <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
+                                        <div>
+                                            <h4 className="font-medium text-primary">Public Profile</h4>
+                                            <p className="text-sm text-secondary">Allow others to view your profile</p>
+                                        </div>
+                                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
+                                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
+                                        </button>
                                     </div>
-                                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
-                                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
-                                    </button>
                                 </div>
-                            </div>
-                        </CardBody>
-                    </Card>
+                            </CardBody>
+                        </Card>
 
-                    {/* Danger Zone */}
-                    <Card className="border-red-200 dark:border-red-900/50">
-                        <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
-                            <h3 className="font-semibold text-red-900 dark:text-red-200 flex items-center gap-2">
-                                <AlertTriangle className="w-5 h-5" />
-                                Danger Zone
-                            </h3>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                <div>
-                                    <h4 className="font-medium text-primary">Delete Account</h4>
-                                    <p className="text-sm text-secondary mt-1">
-                                        Once you delete your account, there is no going back. Please be certain.
-                                    </p>
+                        {/* Danger Zone */}
+                        <Card className="border-red-200 dark:border-red-900/50">
+                            <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
+                                <h3 className="font-semibold text-red-900 dark:text-red-200 flex items-center gap-2">
+                                    <AlertTriangle className="w-5 h-5" />
+                                    Danger Zone
+                                </h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Delete Account</h4>
+                                        <p className="text-sm text-secondary mt-1">
+                                            Once you delete your account, there is no going back. Please be certain.
+                                        </p>
+                                    </div>
+                                    <Button variant="danger" onClick={handleDeleteAccount}>
+                                        Delete My Account
+                                    </Button>
                                 </div>
-                                <Button variant="danger" onClick={handleDeleteAccount}>
-                                    Delete My Account
-                                </Button>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-            )}
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
 
             {/* Activity Tab */}
-            {activeTab === 'activity' && (
-                <div className="space-y-6">
-                    {/* Activity Stats */}
-                    {activityStats && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                                { label: 'Total Actions', value: activityStats.total_actions || 0, color: 'blue' },
-                                { label: 'This Week', value: activityStats.this_week || 0, color: 'green' },
-                                { label: 'Sessions', value: activityStats.total_sessions || 0, color: 'purple' },
-                                { label: 'Today', value: activityStats.today || 0, color: 'amber' },
-                            ].map((stat, idx) => (
-                                <Card key={idx}>
-                                    <CardBody className="p-4 text-center">
-                                        <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                                        <p className="text-xs text-secondary mt-1">{stat.label}</p>
-                                    </CardBody>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
+            {
+                activeTab === 'activity' && (
+                    <div className="space-y-6">
+                        {/* Activity Stats */}
+                        {activityStats && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Total Actions', value: activityStats.total_actions || 0, color: 'blue' },
+                                    { label: 'This Week', value: activityStats.this_week || 0, color: 'green' },
+                                    { label: 'Sessions', value: activityStats.total_sessions || 0, color: 'purple' },
+                                    { label: 'Today', value: activityStats.today || 0, color: 'amber' },
+                                ].map((stat, idx) => (
+                                    <Card key={idx}>
+                                        <CardBody className="p-4 text-center">
+                                            <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                                            <p className="text-xs text-secondary mt-1">{stat.label}</p>
+                                        </CardBody>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
 
-                    {/* Recent Activity */}
-                    <Card>
-                        <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
-                            <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <Activity className="w-5 h-5" />
-                                Recent Activity
-                            </h3>
-                            <Link
-                                to="/activity"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary/5 rounded-lg transition"
-                            >
-                                View All Activity →
-                            </Link>
-                        </CardHeader>
-                        <CardBody className="p-0">
-                            {activityLoading ? (
-                                <div className="p-8 text-center text-secondary">Loading activity...</div>
-                            ) : activities.length === 0 ? (
-                                <div className="p-8 text-center text-secondary">No activity recorded yet.</div>
-                            ) : (
-                                <div className="divide-y divide-theme max-h-96 overflow-y-auto">
-                                    {activities.slice(0, 20).map((activity, idx) => (
-                                        <div key={idx} className="p-4 flex items-center justify-between hover:bg-secondary/5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                    <Activity className="w-4 h-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-primary">
-                                                        {activity.description || activity.activity_type || 'Action'}
-                                                    </p>
-                                                    <p className="text-xs text-secondary">
-                                                        {activity.created_at ? new Date(activity.created_at).toLocaleString() : ''}
-                                                    </p>
+                        {/* Recent Activity */}
+                        <Card>
+                            <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                                <h3 className="font-semibold text-primary flex items-center gap-2">
+                                    <Activity className="w-5 h-5" />
+                                    Recent Activity
+                                </h3>
+                                <Link
+                                    to="/activity"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary/5 rounded-lg transition"
+                                >
+                                    View All Activity →
+                                </Link>
+                            </CardHeader>
+                            <CardBody className="p-0">
+                                {activityLoading ? (
+                                    <div className="p-8 text-center text-secondary">Loading activity...</div>
+                                ) : activities.length === 0 ? (
+                                    <div className="p-8 text-center text-secondary">No activity recorded yet.</div>
+                                ) : (
+                                    <div className="divide-y divide-theme max-h-96 overflow-y-auto">
+                                        {activities.slice(0, 20).map((activity, idx) => (
+                                            <div key={idx} className="p-4 flex items-center justify-between hover:bg-secondary/5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                        <Activity className="w-4 h-4 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-primary">
+                                                            {activity.description || activity.activity_type || 'Action'}
+                                                        </p>
+                                                        <p className="text-xs text-secondary">
+                                                            {activity.created_at ? new Date(activity.created_at).toLocaleString() : ''}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardBody>
-                    </Card>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
 
-                    {/* Export */}
-                    <Card>
-                        <CardHeader className="p-4 border-b border-theme">
-                            <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <Download className="w-5 h-5" />
-                                Export Activity Log
-                            </h3>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Format</label>
-                                        <select
-                                            value={exportFormat}
-                                            onChange={(e) => setExportFormat(e.target.value)}
-                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                        >
-                                            <option value="json">JSON</option>
-                                            <option value="csv">CSV</option>
-                                        </select>
+                        {/* Export */}
+                        <Card>
+                            <CardHeader className="p-4 border-b border-theme">
+                                <h3 className="font-semibold text-primary flex items-center gap-2">
+                                    <Download className="w-5 h-5" />
+                                    Export Activity Log
+                                </h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Format</label>
+                                            <select
+                                                value={exportFormat}
+                                                onChange={(e) => setExportFormat(e.target.value)}
+                                                className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                            >
+                                                <option value="json">JSON</option>
+                                                <option value="csv">CSV</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Start Date</label>
+                                            <input
+                                                type="date"
+                                                value={exportStartDate}
+                                                onChange={(e) => setExportStartDate(e.target.value)}
+                                                className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                value={exportEndDate}
+                                                onChange={(e) => setExportEndDate(e.target.value)}
+                                                className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Start Date</label>
-                                        <input
-                                            type="date"
-                                            value={exportStartDate}
-                                            onChange={(e) => setExportStartDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">End Date</label>
-                                        <input
-                                            type="date"
-                                            value={exportEndDate}
-                                            onChange={(e) => setExportEndDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                        />
-                                    </div>
+                                    <Button variant="primary" onClick={handleExportActivity}>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Export as {exportFormat.toUpperCase()}
+                                    </Button>
                                 </div>
-                                <Button variant="primary" onClick={handleExportActivity}>
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Export as {exportFormat.toUpperCase()}
-                                </Button>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-            )}
-        </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 

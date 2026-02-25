@@ -4,12 +4,14 @@ import API_ENDPOINTS from '../constants/apiEndpoints';
 export const tasksService = {
     async getAll() {
         const response = await api.get(API_ENDPOINTS.TASKS);
-        return response.data;
+        const data = response.data;
+        return Array.isArray(data) ? data : (data.results || []);
     },
 
     async getMyTasks() {
         const response = await api.get(API_ENDPOINTS.TASKS_MY);
-        return response.data;
+        const data = response.data;
+        return Array.isArray(data) ? data : (data.results || []);
     },
 
     async getById(id) {
@@ -44,6 +46,34 @@ export const tasksService = {
 
     async getQuestions(taskId) {
         const response = await api.get(API_ENDPOINTS.TASK_QUESTIONS(taskId));
+        return response.data;
+    },
+
+    async getSubmissions(taskId) {
+        const response = await api.get(`${API_ENDPOINTS.TASK_DETAIL(taskId)}submissions/`);
+        return response.data;
+    },
+
+    // Comments
+    async getComments(taskId) {
+        const response = await api.get(`${API_ENDPOINTS.TASK_DETAIL(taskId)}comments/`);
+        return response.data;
+    },
+
+    async addComment(taskId, commentData) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}comments/`, commentData);
+        return response.data;
+    },
+
+    // Reactions
+    async addReaction(taskId, reactionType) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}react/`, { reaction_type: reactionType });
+        return response.data;
+    },
+
+    // Sharing
+    async share(taskId, shareData) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}share/`, shareData);
         return response.data;
     },
 };

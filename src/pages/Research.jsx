@@ -2,9 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { BookOpen, Download, ExternalLink, Calendar, User, Plus } from 'lucide-react';
+import { BookOpen, Download, ExternalLink, Calendar, User, Plus, Search } from 'lucide-react';
 import researchService from '../services/research.service';
-import SearchFilterBar from '../components/common/SearchFilterBar';
+
+const FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'published', label: 'Published' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'seeking_participants', label: 'Seeking Participants' },
+    { value: 'completed', label: 'Completed' },
+];
 
 const Research = () => {
     const navigate = useNavigate();
@@ -12,7 +19,6 @@ const Research = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filter, setFilter] = useState('all');
-    const [sortBy, setSortBy] = useState('newest');
 
     useEffect(() => {
         loadProjects();
@@ -25,7 +31,6 @@ const Research = () => {
             if (filter !== 'all') params.status = filter;
 
             const data = await researchService.getAllProjects(params);
-            // Handle paginated response
             setResearch(data.results || data);
         } catch (error) {
             console.error('Error loading research projects:', error);
@@ -40,20 +45,7 @@ const Research = () => {
                 item.abstract?.toLowerCase().includes(searchQuery.toLowerCase());
             return matchesSearch;
         })
-        .sort((a, b) => {
-            switch (sortBy) {
-                case 'newest':
-                    return new Date(b.created_at) - new Date(a.created_at);
-                case 'oldest':
-                    return new Date(a.created_at) - new Date(b.created_at);
-                case 'views':
-                    return (b.views || 0) - (a.views || 0);
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                default:
-                    return 0;
-            }
-        });
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     return (
         <div className="space-y-6">
@@ -69,34 +61,33 @@ const Research = () => {
                 </Button>
             </div>
 
-            {/* Search and Filters */}
-            <SearchFilterBar
-                searchQuery={searchQuery}
-                onSearch={setSearchQuery}
-                placeholder="Search research papers, abstracts..."
-                filters={[
-                    {
-                        key: 'status',
-                        label: 'All Statuses',
-                        options: [
-                            { value: 'published', label: 'Published' },
-                            { value: 'seeking_participants', label: 'Seeking Participants' },
-                            { value: 'in_progress', label: 'In Progress' },
-                            { value: 'completed', label: 'Completed' }
-                        ]
-                    }
-                ]}
-                activeFilters={{ status: filter }}
-                onFilterChange={(key, value) => setFilter(value)}
-                sortOptions={[
-                    { value: 'newest', label: 'Newest First' },
-                    { value: 'oldest', label: 'Oldest First' },
-                    { value: 'views', label: 'Most Viewed' },
-                    { value: 'title', label: 'Title (A-Z)' },
-                ]}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-            />
+            {/* Search Bar */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
+                <input
+                    type="text"
+                    placeholder="Search research papers, abstracts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                />
+            </div>
+
+            {/* Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+                {FILTERS.map(f => (
+                    <button
+                        key={f.value}
+                        onClick={() => setFilter(f.value)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f.value
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Research List */}
             {loading ? (
@@ -166,7 +157,6 @@ const Research = () => {
                                                 className="flex-1 md:flex-none z-10"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    // TODO: Implement actual purchase flow
                                                     if (Number(item.publication.fee) > 0) {
                                                         navigate(`/research/${item.id}?tab=publication`);
                                                     } else {

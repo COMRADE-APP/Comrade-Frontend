@@ -235,3 +235,93 @@
 *::after {
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* ==============================================================================
+   USER SCALE – Manual resizing via ResizeControl component
+   ============================================================================== */
+
+:root {
+  --user-scale: 1;
+}
+
+/* Apply user scale to content area only (not navigation/chrome) */
+.scalable-content {
+  font-size: calc(1rem * var(--user-scale));
+}
+
+/* Cards inherit scale */
+.scalable-content .card {
+  transform: scale(var(--user-scale));
+  transform-origin: top left;
+}
+
+/* ==============================================================================
+   RESPONSIVE – Small-screen card grids & layout
+   ============================================================================== */
+
+/* Responsive card grid utility */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Responsive product/shop card adjustments */
+@media (max-width: 640px) {
+
+  .card img,
+  .card video {
+    max-height: 180px;
+  }
+
+  .card h3,
+  .card h4 {
+    font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+  }
+
+  .card p {
+    font-size: clamp(0.75rem, 2vw, 0.9rem);
+  }
+}
+
+/* Fix horizontal overflow on small screens */
+@media (max-width: 480px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Compact padding for detail pages */
+  .max-w-2xl,
+  .max-w-3xl,
+  .max-w-4xl {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Tab bars scroll horizontally */
+  [role="tablist"],
+  .tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  [role="tablist"]::-webkit-scrollbar,
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+}

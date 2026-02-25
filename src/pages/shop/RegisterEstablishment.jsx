@@ -66,7 +66,7 @@ export default function RegisterEstablishment() {
                     </div>
                     <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Business Registered!</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Your establishment has been created. You can now add menu items, rooms, or services.</p>
-                    <button className="shop-action-btn primary" onClick={() => navigate('/shop')}>Go to Shop</button>
+                    <button className="btn-primary py-3 px-6" onClick={() => navigate('/shop')}>Go to Shop</button>
                 </div>
             </div>
         );
@@ -112,7 +112,7 @@ export default function RegisterEstablishment() {
                                 </div>
                             ))}
                         </div>
-                        <button type="button" className="shop-action-btn primary" onClick={() => form.establishment_type && setStep(2)} disabled={!form.establishment_type} style={{ width: '100%' }}>Continue</button>
+                        <button type="button" className="btn-primary w-full py-3" onClick={() => form.establishment_type && setStep(2)} disabled={!form.establishment_type}>Continue</button>
                     </>
                 )}
 
@@ -162,8 +162,8 @@ export default function RegisterEstablishment() {
                         <input style={inputStyle} value={form.opening_hours} onChange={e => updateForm('opening_hours', e.target.value)} placeholder="e.g. Mon-Fri 8am-10pm" />
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                            <button type="button" className="shop-action-btn" onClick={() => setStep(1)} style={{ flex: 1 }}>Back</button>
-                            <button type="button" className="shop-action-btn primary" onClick={() => form.name && setStep(3)} disabled={!form.name} style={{ flex: 2 }}>Continue</button>
+                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(1)}>Back</button>
+                            <button type="button" className="btn-primary flex-[2] py-3" onClick={() => form.name && setStep(3)} disabled={!form.name}>Continue</button>
                         </div>
                     </>
                 )}
@@ -217,8 +217,8 @@ export default function RegisterEstablishment() {
                         ))}
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button type="button" className="shop-action-btn" onClick={() => setStep(2)} style={{ flex: 1 }}>Back</button>
-                            <button type="submit" className="shop-action-btn primary" disabled={loading} style={{ flex: 2 }}>
+                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(2)}>Back</button>
+                            <button type="submit" className="btn-primary flex-[2] py-3" disabled={loading}>
                                 {loading ? 'Registering...' : 'Register Business'}
                             </button>
                         </div>

@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import { GraduationCap, BookOpen, CheckCircle, Award, Users, Search, Plus, X } from 'lucide-react';
 import specializationsService from '../services/specializations.service';
+import { ROUTES } from '../constants/routes';
 
 const Specializations = () => {
+    const navigate = useNavigate();
     const [specializations, setSpecializations] = useState([]);
     const [stacks, setStacks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [view, setView] = useState('specializations'); // specializations or stacks
     const [searchTerm, setSearchTerm] = useState('');
-    const [showCreateSpecModal, setShowCreateSpecModal] = useState(false);
-    const [showCreateStackModal, setShowCreateStackModal] = useState(false);
-    const [specFormData, setSpecFormData] = useState({ name: '', description: '' });
-    const [stackFormData, setStackFormData] = useState({ name: '', description: '', specialization: '' });
 
     useEffect(() => {
         loadData();
@@ -33,32 +31,6 @@ const Specializations = () => {
             console.error('Error loading data:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleCreateSpec = async (e) => {
-        e.preventDefault();
-        try {
-            await specializationsService.create(specFormData);
-            setShowCreateSpecModal(false);
-            setSpecFormData({ name: '', description: '' });
-            loadData();
-        } catch (error) {
-            console.error('Failed to create specialization:', error);
-            alert('Failed to create specialization');
-        }
-    };
-
-    const handleCreateStack = async (e) => {
-        e.preventDefault();
-        try {
-            await specializationsService.createStack(stackFormData);
-            setShowCreateStackModal(false);
-            setStackFormData({ name: '', description: '', specialization: '' });
-            loadData();
-        } catch (error) {
-            console.error('Failed to create stack:', error);
-            alert('Failed to create stack');
         }
     };
 
@@ -94,11 +66,11 @@ const Specializations = () => {
                     <p className="text-secondary mt-1">Explore specializations and learning stacks</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="primary" onClick={() => setShowCreateSpecModal(true)}>
+                    <Button variant="primary" onClick={() => navigate(ROUTES.CREATE_SPECIALIZATION)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Create Specialization
                     </Button>
-                    <Button variant="outline" onClick={() => setShowCreateStackModal(true)}>
+                    <Button variant="outline" onClick={() => navigate(ROUTES.CREATE_STACK)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Create Stack
                     </Button>
@@ -171,105 +143,6 @@ const Specializations = () => {
                         : filteredItems.map((stack) => (
                             <StackCard key={stack.id} stack={stack} onComplete={handleCompleteStack} />
                         ))}
-                </div>
-            )}
-
-            {/* Create Specialization Modal */}
-            {showCreateSpecModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <Card className="w-full max-w-md bg-elevated border-theme">
-                        <CardBody>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-primary">Create Specialization</h2>
-                                <button onClick={() => setShowCreateSpecModal(false)} className="text-secondary hover:text-primary">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleCreateSpec} className="space-y-4">
-                                <Input
-                                    label="Specialization Name *"
-                                    value={specFormData.name}
-                                    onChange={(e) => setSpecFormData({ ...specFormData, name: e.target.value })}
-                                    required
-                                    placeholder="e.g., Data Science"
-                                />
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">Description</label>
-                                    <textarea
-                                        value={specFormData.description}
-                                        onChange={(e) => setSpecFormData({ ...specFormData, description: e.target.value })}
-                                        rows={3}
-                                        placeholder="Describe this specialization..."
-                                        className="w-full px-4 py-2 border border-theme bg-background text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
-                                    />
-                                </div>
-                                <div className="flex gap-2 justify-end pt-4">
-                                    <Button variant="outline" type="button" onClick={() => setShowCreateSpecModal(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button variant="primary" type="submit">
-                                        Create Specialization
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardBody>
-                    </Card>
-                </div>
-            )}
-
-            {/* Create Stack Modal */}
-            {showCreateStackModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <Card className="w-full max-w-md bg-elevated border-theme">
-                        <CardBody>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-primary">Create Stack</h2>
-                                <button onClick={() => setShowCreateStackModal(false)} className="text-secondary hover:text-primary">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleCreateStack} className="space-y-4">
-                                <Input
-                                    label="Stack Name *"
-                                    value={stackFormData.name}
-                                    onChange={(e) => setStackFormData({ ...stackFormData, name: e.target.value })}
-                                    required
-                                    placeholder="e.g., Python for Data Science"
-                                />
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">Specialization</label>
-                                    <select
-                                        value={stackFormData.specialization}
-                                        onChange={(e) => setStackFormData({ ...stackFormData, specialization: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme bg-background text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                    >
-                                        <option value="">Select a specialization (optional)</option>
-                                        {specializations.map((spec) => (
-                                            <option key={spec.id} value={spec.id}>{spec.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">Description</label>
-                                    <textarea
-                                        value={stackFormData.description}
-                                        onChange={(e) => setStackFormData({ ...stackFormData, description: e.target.value })}
-                                        rows={3}
-                                        placeholder="Describe this stack..."
-                                        className="w-full px-4 py-2 border border-theme bg-background text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
-                                    />
-                                </div>
-                                <div className="flex gap-2 justify-end pt-4">
-                                    <Button variant="outline" type="button" onClick={() => setShowCreateStackModal(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button variant="primary" type="submit">
-                                        Create Stack
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardBody>
-                    </Card>
                 </div>
             )}
         </div>

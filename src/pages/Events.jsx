@@ -1,5 +1,5 @@
 /**
- * Enhanced Events page with all new components integrated
+ * Enhanced Events page with pill filters
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,16 +7,30 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
-import EventComments from '../components/events/EventComments';
-import EventTicketing from '../components/events/EventTicketing';
-import EventReminders from '../components/events/EventReminders';
 import {
-    Calendar, MapPin, Users, Clock, Ticket, Bell, MessageSquare,
-    X, ChevronRight, Plus
+    Calendar, MapPin, Users, Clock, Ticket, Bell,
+    X, ChevronRight, Plus, Search
 } from 'lucide-react';
 import eventsService from '../services/events.service';
-import { formatDate, formatTime } from '../utils/dateFormatter';
-import SearchFilterBar from '../components/common/SearchFilterBar';
+import { formatDate } from '../utils/dateFormatter';
+
+// Safe time display — handles both ISO dates and bare time strings like "09:00"
+const displayTime = (val) => {
+    if (!val) return '';
+    // If it's a bare time string like "09:00" or "09:00:00"
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(val)) return val.slice(0, 5);
+    try {
+        return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch { return val; }
+};
+
+const FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'active', label: 'Active' },
+    { value: 'past', label: 'Past' },
+    { value: 'interested', label: 'Interested' },
+];
 
 const Events = () => {
     const { user } = useAuth();
@@ -24,13 +38,7 @@ const Events = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('date_asc');
-    const [selectedEvent, setSelectedEvent] = useState(null);
-    const [showModal, setShowModal] = useState(null); // 'details', 'tickets', 'reminders'
     const navigate = useNavigate();
-
-    // All authenticated users can create events
-    const canCreateEvents = true;
 
     useEffect(() => {
         loadEvents();
@@ -47,7 +55,6 @@ const Events = () => {
             }
 
             const response = await eventsService.getAllEvents(params);
-            // Handle various response formats more explicitly
             let data = [];
             if (response?.data?.results) {
                 data = response.data.results;
@@ -67,16 +74,13 @@ const Events = () => {
         }
     };
 
-    const openModal = (event, modalType) => {
-        setSelectedEvent(event);
-        setShowModal(modalType);
-    };
-
-    const closeModal = () => {
-        setShowModal(null);
-        setSelectedEvent(null);
-        loadEvents(); // Refresh to get updated data
-    };
+    const filteredEvents = events
+        .filter(e =>
+            e.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            e.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            e.location?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => new Date(a.event_date || 0) - new Date(b.event_date || 0));
 
     return (
         <div className="space-y-6">
@@ -92,39 +96,40 @@ const Events = () => {
                 </Button>
             </div>
 
-            {/* Filters and Search */}
-            <SearchFilterBar
-                searchQuery={searchQuery}
-                onSearch={setSearchQuery}
-                placeholder="Search events by name, location..."
-                filters={[
-                    {
-                        key: 'status',
-                        label: 'All Events',
-                        options: [
-                            { value: 'active', label: 'Active' },
-                            { value: 'upcoming', label: 'Upcoming' },
-                            { value: 'interested', label: 'Interested' }
-                        ]
-                    }
-                ]}
-                activeFilters={{ status: filter }}
-                onFilterChange={(key, value) => setFilter(value)}
-                sortOptions={[
-                    { value: 'date_asc', label: 'Date (Soonest First)' },
-                    { value: 'date_desc', label: 'Date (Latest First)' },
-                    { value: 'name', label: 'Name (A-Z)' },
-                ]}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-            />
+            {/* Search Bar */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
+                <input
+                    type="text"
+                    placeholder="Search events by name, location..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                />
+            </div>
+
+            {/* Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+                {FILTERS.map(f => (
+                    <button
+                        key={f.value}
+                        onClick={() => setFilter(f.value)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f.value
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Events Grid */}
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
                 </div>
-            ) : events.length === 0 ? (
+            ) : filteredEvents.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
                         <Calendar className="w-12 h-12 text-tertiary mx-auto mb-4" />
@@ -133,50 +138,21 @@ const Events = () => {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {events
-                        .filter(e =>
-                            e.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            e.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            e.location?.toLowerCase().includes(searchQuery.toLowerCase())
-                        )
-                        .sort((a, b) => {
-                            if (sortBy === 'date_asc') return new Date(a.event_date) - new Date(b.event_date);
-                            if (sortBy === 'date_desc') return new Date(b.event_date) - new Date(a.event_date);
-                            if (sortBy === 'name') return a.name.localeCompare(b.name);
-                            return 0;
-                        })
-                        .map((event) => (
-                            <EnhancedEventCard
-                                key={event.id}
-                                event={event}
-                                onOpenDetails={() => navigate(`/events/${event.id}`)}
-                                onOpenTickets={() => openModal(event, 'tickets')}
-                                onOpenReminders={() => openModal(event, 'reminders')}
-                                onUpdate={loadEvents}
-                            />
-                        ))}
+                    {filteredEvents.map((event) => (
+                        <EventCard
+                            key={event.id}
+                            event={event}
+                            onOpenDetails={() => navigate(`/events/${event.id}`)}
+                            onUpdate={loadEvents}
+                        />
+                    ))}
                 </div>
-            )}
-
-            {/* Modals */}
-            {showModal && selectedEvent && (
-                <Modal onClose={closeModal} size={showModal === 'details' ? 'large' : 'medium'}>
-                    {showModal === 'details' && (
-                        <EventDetailsModal event={selectedEvent} onClose={closeModal} />
-                    )}
-                    {showModal === 'tickets' && (
-                        <EventTicketing event={selectedEvent} tickets={selectedEvent.tickets || []} />
-                    )}
-                    {showModal === 'reminders' && (
-                        <EventReminders event={selectedEvent} onClose={closeModal} />
-                    )}
-                </Modal>
             )}
         </div>
     );
 };
 
-const EnhancedEventCard = ({ event, onOpenDetails, onOpenTickets, onOpenReminders, onUpdate }) => (
+const EventCard = ({ event, onOpenDetails, onUpdate }) => (
     <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden">
         {/* Event Image */}
         <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center relative">
@@ -189,154 +165,50 @@ const EnhancedEventCard = ({ event, onOpenDetails, onOpenTickets, onOpenReminder
         </div>
 
         <CardBody>
-            {/* Event Info */}
             <div className="space-y-3 mb-4">
                 <div>
-                    <h3 className="font-semibold text-lg text-primary line-clamp-2 hover:text-primary cursor-pointer" onClick={onOpenDetails}>
+                    <h3 className="font-semibold text-lg text-primary line-clamp-2 hover:text-primary-600 cursor-pointer" onClick={onOpenDetails}>
                         {event.name}
                     </h3>
                     <p className="text-sm text-secondary mt-1 line-clamp-2">{event.description}</p>
                 </div>
 
                 <div className="space-y-2 text-sm text-secondary">
-                    <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span>{formatDate(event.event_date)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span>{formatTime(event.start_time)} - {formatTime(event.end_time)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                        <span className="line-clamp-1">{event.location}</span>
-                    </div>
+                    {event.event_date && (
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 flex-shrink-0" />
+                            <span>{formatDate(event.event_date)}</span>
+                        </div>
+                    )}
+                    {(event.start_time || event.end_time) && (
+                        <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 flex-shrink-0" />
+                            <span>{displayTime(event.start_time)} - {displayTime(event.end_time)}</span>
+                        </div>
+                    )}
+                    {event.location && (
+                        <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 flex-shrink-0" />
+                            <span className="line-clamp-1">{event.location}</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 flex-shrink-0" />
-                        <span>{event.capacity - (event.attendees?.length || 0)} spots remaining</span>
+                        <span>{(event.capacity || 0) - (event.attendees?.length || 0)} spots remaining</span>
                     </div>
                 </div>
             </div>
 
-            {/* Actions Component */}
+            {/* Actions */}
             <EventActions event={event} onUpdate={onUpdate} />
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-3 gap-2 mt-4">
-                <Button variant="outline" size="sm" onClick={onOpenTickets}>
-                    <Ticket className="w-4 h-4 mr-1" />
-                    Tickets
-                </Button>
-                <Button variant="outline" size="sm" onClick={onOpenReminders}>
-                    <Bell className="w-4 h-4 mr-1" />
-                    Remind
-                </Button>
-                <Button variant="primary" size="sm" onClick={onOpenDetails}>
-                    Details
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-            </div>
+            {/* View Details */}
+            <Button variant="primary" className="w-full mt-4" size="sm" onClick={onOpenDetails}>
+                View Details
+                <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
         </CardBody>
     </Card>
 );
-
-const EventDetailsModal = ({ event, onClose }) => (
-    <div className="space-y-6">
-        {/* Header */}
-        <div>
-            <h2 className="text-2xl font-bold text-primary">{event.name}</h2>
-            <p className="text-secondary mt-2">{event.description}</p>
-        </div>
-
-        {/* Event Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-y border-theme">
-            <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-secondary" />
-                <div>
-                    <p className="text-sm text-secondary">Date</p>
-                    <p className="font-medium">{formatDate(event.event_date)}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-secondary" />
-                <div>
-                    <p className="text-sm text-secondary">Time</p>
-                    <p className="font-medium">{formatTime(event.start_time)} - {formatTime(event.end_time)}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-secondary" />
-                <div>
-                    <p className="text-sm text-secondary">Location</p>
-                    <p className="font-medium">{event.location}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-secondary" />
-                <div>
-                    <p className="text-sm text-secondary">Capacity</p>
-                    <p className="font-medium">{event.capacity} attendees</p>
-                </div>
-            </div>
-        </div>
-
-        {/* Stats */}
-        {(event.reactions_count > 0 || event.comments_count > 0 || event.interested_count > 0) && (
-            <div className="flex gap-6 text-sm">
-                {event.reactions_count > 0 && (
-                    <div>
-                        <span className="text-secondary">Reactions: </span>
-                        <span className="font-semibold">{event.reactions_count}</span>
-                    </div>
-                )}
-                {event.comments_count > 0 && (
-                    <div>
-                        <span className="text-secondary">Comments: </span>
-                        <span className="font-semibold">{event.comments_count}</span>
-                    </div>
-                )}
-                {event.interested_count > 0 && (
-                    <div>
-                        <span className="text-secondary">Interested: </span>
-                        <span className="font-semibold">{event.interested_count}</span>
-                    </div>
-                )}
-            </div>
-        )}
-
-        {/* Comments Section */}
-        <div className="border-t border-theme pt-6">
-            <EventComments eventId={event.id} />
-        </div>
-    </div>
-);
-
-const Modal = ({ children, onClose, size = 'medium' }) => {
-    const sizes = {
-        medium: 'max-w-2xl',
-        large: 'max-w-4xl',
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-            <div
-                className={`bg-elevated rounded-xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-y-auto`}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="sticky top-0 bg-elevated border-b border-theme px-6 py-4 flex items-center justify-between">
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-secondary rounded-lg transition-colors ml-auto"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-                <div className="p-6">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export default Events;

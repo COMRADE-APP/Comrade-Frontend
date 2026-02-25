@@ -76,7 +76,7 @@ const CreateTask = () => {
                 subtasks: subtasks.map(s => s.text),
             };
 
-            const response = await api.post('/api/announcements/tasks/', submitData);
+            const response = await api.post('/api/tasks/tasks/', submitData);
 
             if (action === 'announcement') {
                 await api.post('/api/announcements/requests/', {
@@ -102,21 +102,20 @@ const CreateTask = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+        <div className="min-h-screen bg-background p-6 md:p-8">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                    <Button
-                        variant="ghost"
+                    <button
                         onClick={() => navigate('/tasks')}
-                        className="mb-4 text-gray-500 hover:text-gray-900"
+                        className="flex items-center text-secondary hover:text-primary mb-4 transition-colors"
                     >
                         <ChevronLeft size={20} className="mr-2" /> Back to Tasks
-                    </Button>
-                    <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
+                    </button>
+                    <h1 className="text-3xl font-bold flex items-center gap-3 text-primary">
                         <CheckCircle className="text-green-600" />
                         Create Task
                     </h1>
-                    <p className="text-gray-500 mt-2">Assign, track, and manage your work efficiently.</p>
+                    <p className="text-secondary mt-2">Assign, track, and manage your work efficiently.</p>
                 </div>
 
                 <Card>
@@ -136,19 +135,19 @@ const CreateTask = () => {
                                     onClick={() => step.number < currentStep && setCurrentStep(step.number)}
                                 >
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2 ${currentStep >= step.number
-                                            ? 'bg-green-600 text-white border-green-600'
-                                            : 'bg-white text-gray-400 border-gray-300 group-hover:border-green-300'
+                                        ? 'bg-green-600 text-white border-green-600'
+                                        : 'bg-elevated text-secondary border-theme group-hover:border-green-300'
                                         }`}>
                                         {currentStep > step.number ? <Check size={16} /> : step.number}
                                     </div>
-                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-green-600' : 'text-gray-500'
+                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-green-600' : 'text-secondary'
                                         }`}>{step.title}</span>
                                 </div>
                             ))}
                         </div>
 
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 flex items-center gap-2 animate-fade-in">
+                            <div className="mb-6 p-4 bg-red-50/10 border border-red-500/20 rounded-lg text-red-500 flex items-center gap-2 animate-fade-in">
                                 <AlertCircle size={20} />
                                 {error}
                             </div>
@@ -159,14 +158,14 @@ const CreateTask = () => {
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Title *</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Task Title *</label>
                                         <div className="relative">
-                                            <FileText className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <FileText className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                             <input
                                                 type="text"
                                                 value={formData.heading}
                                                 onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
-                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+                                                className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                 placeholder="Enter task title"
                                                 autoFocus
                                             />
@@ -174,18 +173,18 @@ const CreateTask = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Description</label>
                                         <textarea
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             rows={5}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none resize-y"
+                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-y text-primary"
                                             placeholder="Describe the task..."
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Priority</label>
                                         <div className="flex gap-4">
                                             {['low', 'medium', 'high', 'urgent'].map(priority => (
                                                 <button
@@ -193,8 +192,8 @@ const CreateTask = () => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, priority })}
                                                     className={`flex-1 py-2 px-4 rounded-lg border capitalize transition-all ${formData.priority === priority
-                                                            ? 'bg-green-50 border-green-500 text-green-700 font-medium'
-                                                            : 'border-gray-200 hover:border-green-300 text-gray-600'
+                                                        ? 'bg-primary/10 border-primary text-primary font-medium'
+                                                        : 'border-theme hover:border-primary/50 text-secondary'
                                                         }`}
                                                 >
                                                     {priority}
@@ -210,40 +209,40 @@ const CreateTask = () => {
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Due Date</label>
                                             <div className="relative">
-                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="date"
                                                     value={formData.due_date}
                                                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                 />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Due Time</label>
                                             <div className="relative">
-                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="time"
                                                     value={formData.due_time}
                                                     onChange={(e) => setFormData({ ...formData, due_time: e.target.value })}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Visibility</label>
                                         <div className="relative">
-                                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                             <select
                                                 value={formData.visibility}
                                                 onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none bg-white"
+                                                className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             >
                                                 <option value="public">Public</option>
                                                 <option value="private">Private</option>
@@ -258,7 +257,7 @@ const CreateTask = () => {
                             {/* STEP 3: Subtasks */}
                             {currentStep === 3 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Break it down</h3>
+                                    <h3 className="text-lg font-semibold text-primary mb-4">Break it down</h3>
 
                                     <div className="flex gap-2">
                                         <input
@@ -266,7 +265,7 @@ const CreateTask = () => {
                                             value={newSubtask}
                                             onChange={(e) => setNewSubtask(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && addSubtask()}
-                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+                                            className="flex-1 px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             placeholder="Add a subtask..."
                                             autoFocus
                                         />
@@ -278,21 +277,21 @@ const CreateTask = () => {
                                         </button>
                                     </div>
 
-                                    <div className="bg-gray-50 rounded-xl p-4 min-h-[200px] border border-gray-200">
+                                    <div className="bg-secondary/5 rounded-xl p-4 min-h-[200px] border border-theme">
                                         {subtasks.length === 0 ? (
-                                            <div className="text-center text-gray-400 py-8">
+                                            <div className="text-center text-secondary py-8">
                                                 <CheckCircle size={48} className="mx-auto mb-3 opacity-20" />
                                                 <p>No subtasks yet. Add one above!</p>
                                             </div>
                                         ) : (
                                             <ul className="space-y-2">
                                                 {subtasks.map((subtask, idx) => (
-                                                    <li key={idx} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm group">
-                                                        <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
-                                                        <span className="flex-1 text-gray-700">{subtask.text}</span>
+                                                    <li key={idx} className="flex items-center gap-3 p-3 bg-elevated rounded-lg border border-theme shadow-sm group">
+                                                        <div className="w-5 h-5 rounded-full border-2 border-theme"></div>
+                                                        <span className="flex-1 text-primary">{subtask.text}</span>
                                                         <button
                                                             onClick={() => removeSubtask(idx)}
-                                                            className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            className="text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                                         >
                                                             <X size={18} />
                                                         </button>
@@ -307,9 +306,11 @@ const CreateTask = () => {
                             {/* STEP 4: Review */}
                             {currentStep === 4 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-primary mb-4">Review & Post</h3>
+
+                                    <div className="bg-secondary/5 border border-theme rounded-xl p-6 shadow-sm">
                                         <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-xl font-bold text-gray-900">{formData.heading}</h3>
+                                            <h3 className="text-xl font-bold text-primary">{formData.heading}</h3>
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase
                                                 ${formData.priority === 'urgent' ? 'bg-red-100 text-red-800' :
                                                     formData.priority === 'high' ? 'bg-orange-100 text-orange-800' :
@@ -320,7 +321,7 @@ const CreateTask = () => {
                                             </span>
                                         </div>
 
-                                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100">
+                                        <div className="flex flex-wrap gap-4 text-sm text-secondary mb-6 pb-4 border-b border-theme">
                                             {formData.due_date && (
                                                 <span className="flex items-center gap-1 text-orange-600">
                                                     <Calendar size={14} /> Due: {new Date(formData.due_date).toLocaleDateString()} {formData.due_time}
@@ -331,19 +332,19 @@ const CreateTask = () => {
                                             </span>
                                         </div>
 
-                                        <p className="text-gray-700 whitespace-pre-wrap mb-6">
-                                            {formData.description || <span className="text-gray-400 italic">No description provided.</span>}
+                                        <p className="text-primary whitespace-pre-wrap mb-6">
+                                            {formData.description || <span className="text-secondary italic">No description provided.</span>}
                                         </p>
 
                                         {subtasks.length > 0 && (
                                             <div>
-                                                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                                                    <CheckCircle size={16} className="text-gray-400" /> Subtasks ({subtasks.length})
+                                                <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                                                    <CheckCircle size={16} className="text-secondary" /> Subtasks ({subtasks.length})
                                                 </h4>
                                                 <ul className="space-y-2">
                                                     {subtasks.map((subtask, idx) => (
-                                                        <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                                                        <li key={idx} className="flex items-center gap-2 text-sm text-secondary">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
                                                             {subtask.text}
                                                         </li>
                                                     ))}
@@ -356,7 +357,7 @@ const CreateTask = () => {
                         </div>
 
                         {/* Navigation Footer */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                        <div className="flex justify-between mt-8 pt-6 border-t border-theme">
                             <Button
                                 variant="secondary"
                                 onClick={prevStep}
@@ -368,18 +369,18 @@ const CreateTask = () => {
 
                             <div className="ml-auto flex gap-3">
                                 {currentStep < STEPS.length ? (
-                                    <Button variant="primary" onClick={nextStep} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
+                                    <Button variant="primary" onClick={nextStep}>
                                         Next <ChevronRight size={18} className="ml-1" />
                                     </Button>
                                 ) : (
                                     <>
-                                        <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={loading} className="border-gray-300 text-gray-700">
+                                        <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={loading} className="border-theme text-secondary">
                                             <Save size={18} className="mr-2" /> Draft
                                         </Button>
-                                        <Button variant="secondary" onClick={() => handleSubmit('announcement')} disabled={loading} className="text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200">
+                                        <Button variant="secondary" onClick={() => handleSubmit('announcement')} disabled={loading}>
                                             <Megaphone size={18} className="mr-2" /> Announce
                                         </Button>
-                                        <Button variant="primary" onClick={() => handleSubmit('publish')} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
+                                        <Button variant="primary" onClick={() => handleSubmit('publish')} disabled={loading}>
                                             <Send size={18} className="mr-2" /> Create Task
                                         </Button>
                                     </>

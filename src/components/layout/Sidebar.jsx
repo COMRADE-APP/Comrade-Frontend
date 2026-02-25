@@ -9,10 +9,16 @@ import {
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
 import SwitchAccountModal from '../SwitchAccountModal';
+import PortalPasswordModal from '../PortalPasswordModal';
+import api from '../../services/api';
 
 const Sidebar = () => {
     const location = useLocation();
-    const { user, activeProfile, availableAccounts, switchAccount } = useAuth();
+    const {
+        user, activeProfile, availableAccounts,
+        requestAccountSwitch, pendingAccount,
+        showPortalPassword, onPortalPasswordVerified, closePortalModal
+    } = useAuth();
     const [showAccountModal, setShowAccountModal] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(() => {
         try {
@@ -20,9 +26,64 @@ const Sidebar = () => {
         } catch { return false; }
     });
 
+    // Track which pages have unseen updates (dot badge)
+    const [hasUpdates, setHasUpdates] = useState({});
+    // Track which pages have been visited this session
+    const [visitedPages, setVisitedPages] = useState({});
+
     useEffect(() => {
         try { localStorage.setItem('sidebar_collapsed', String(isCollapsed)); } catch { }
     }, [isCollapsed]);
+
+    // Clear badge when user visits a page
+    useEffect(() => {
+        const currentPath = location.pathname;
+        // Match the nav path (e.g. /announcements matches ROUTES.ANNOUNCEMENTS)
+        const badgedPaths = [ROUTES.ANNOUNCEMENTS, ROUTES.EVENTS, ROUTES.TASKS, ROUTES.RESOURCES];
+        const matchedPath = badgedPaths.find(p => currentPath.startsWith(p));
+        if (matchedPath) {
+            setVisitedPages(prev => ({ ...prev, [matchedPath]: true }));
+            setHasUpdates(prev => {
+                const next = { ...prev };
+                delete next[matchedPath];
+                return next;
+            });
+        }
+    }, [location.pathname]);
+
+    // Fetch whether there are updates (just check count > 0) on mount and periodically
+    useEffect(() => {
+        const fetchUpdates = async () => {
+            try {
+                const endpoints = [
+                    { key: ROUTES.ANNOUNCEMENTS, url: '/api/announcements/' },
+                    { key: ROUTES.EVENTS, url: '/api/events/events/' },
+                    { key: ROUTES.TASKS, url: '/api/tasks/tasks/' },
+                    { key: ROUTES.RESOURCES, url: '/api/resources/resource/' },
+                ];
+                const results = await Promise.allSettled(
+                    endpoints.map(ep => api.get(ep.url))
+                );
+                const updates = {};
+                results.forEach((result, i) => {
+                    if (result.status === 'fulfilled') {
+                        const data = result.value.data;
+                        const count = Array.isArray(data) ? data.length : (data.count || 0);
+                        // Only show dot if there are items AND user hasn't visited this page yet
+                        if (count > 0 && !visitedPages[endpoints[i].key]) {
+                            updates[endpoints[i].key] = true;
+                        }
+                    }
+                });
+                setHasUpdates(updates);
+            } catch (err) {
+                // Silently ignore
+            }
+        };
+        fetchUpdates();
+        const interval = setInterval(fetchUpdates, 60000);
+        return () => clearInterval(interval);
+    }, [visitedPages]);
 
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
@@ -106,6 +167,7 @@ const Sidebar = () => {
                 <nav className={`flex-1 space-y-1 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-4'}`}>
                     {navItems.map((item) => {
                         const Icon = item.icon;
+                        const showDot = hasUpdates[item.path];
                         return (
                             <Link
                                 key={item.path}
@@ -117,8 +179,18 @@ const Sidebar = () => {
                                         : 'text-secondary hover:bg-secondary hover:text-primary'
                                     }`}
                             >
-                                <Icon className="w-5 h-5 flex-shrink-0" />
-                                {!isCollapsed && item.label}
+                                <div className="relative flex-shrink-0">
+                                    <Icon className="w-5 h-5" />
+                                    {showDot && (
+                                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-[var(--bg-primary)]" />
+                                    )}
+                                </div>
+                                {!isCollapsed && (
+                                    <span className="flex-1">{item.label}</span>
+                                )}
+                                {!isCollapsed && showDot && (
+                                    <span className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0" />
+                                )}
                             </Link>
                         );
                     })}
@@ -206,7 +278,16 @@ const Sidebar = () => {
                 onClose={() => setShowAccountModal(false)}
                 accounts={availableAccounts}
                 activeAccountId={activeProfile?.id}
-                onSwitch={switchAccount}
+                onSwitch={requestAccountSwitch}
+            />
+
+            {/* Portal Password Verification Modal */}
+            <PortalPasswordModal
+                isOpen={showPortalPassword}
+                onClose={closePortalModal}
+                account={pendingAccount}
+                onVerified={onPortalPasswordVerified}
+                mode="verify"
             />
         </>
     );

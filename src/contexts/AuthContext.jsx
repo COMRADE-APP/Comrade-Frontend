@@ -39,6 +39,10 @@ export const AuthProvider = ({ children }) => {
     const [showAccountSelection, setShowAccountSelection] = useState(false);
     // Flag to indicate fresh login (vs page refresh)
     const [justLoggedIn, setJustLoggedIn] = useState(false);
+    // Portal password verification state
+    const [pendingAccount, setPendingAccount] = useState(null);
+    const [showPortalPassword, setShowPortalPassword] = useState(false);
+    const [showPortalSetup, setShowPortalSetup] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -290,16 +294,69 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Switch active profile (personal, organisation, or institution)
+    // Direct switch (after password is verified or for personal account)
     const switchAccount = (account) => {
         setActiveProfile(account);
         localStorage.setItem('activeProfile', JSON.stringify(account));
         setShowAccountSelection(false);
+        setPendingAccount(null);
+        setShowPortalPassword(false);
+        setShowPortalSetup(false);
+    };
+
+    // Request account switch — checks if password verification is needed
+    const requestAccountSwitch = (account) => {
+        // Personal account never needs password
+        if (account.type === 'personal') {
+            switchAccount(account);
+            return;
+        }
+
+        // If entity has a portal password, prompt verification
+        if (account.has_portal_password) {
+            setPendingAccount(account);
+            setShowPortalPassword(true);
+            return;
+        }
+
+        // No portal password set — switch directly
+        switchAccount(account);
+    };
+
+    // Called when portal password is verified successfully
+    const onPortalPasswordVerified = (account) => {
+        switchAccount(account);
+    };
+
+    // Setup portal password for a new entity
+    const requestPortalSetup = (account) => {
+        setPendingAccount(account);
+        setShowPortalSetup(true);
+    };
+
+    // Called when portal password setup is complete
+    const onPortalSetupComplete = (account) => {
+        // Update the account in availableAccounts to reflect has_portal_password = true
+        setAvailableAccounts(prev =>
+            prev.map(a => a.id === account.id && a.type === account.type
+                ? { ...a, has_portal_password: true }
+                : a
+            )
+        );
+        setShowPortalSetup(false);
+        setPendingAccount(null);
+    };
+
+    // Close portal modals
+    const closePortalModal = () => {
+        setPendingAccount(null);
+        setShowPortalPassword(false);
+        setShowPortalSetup(false);
     };
 
     // Handle account selection from modal (after login)
     const handleAccountSelected = (account) => {
-        switchAccount(account);
+        requestAccountSwitch(account);
         setShowAccountSelection(false);
         setJustLoggedIn(false);
     };
@@ -329,7 +386,16 @@ export const AuthProvider = ({ children }) => {
         activeProfile,
         availableAccounts,
         switchAccount,
+        requestAccountSwitch,
         updateAvailableAccounts,
+        // Portal password
+        pendingAccount,
+        showPortalPassword,
+        showPortalSetup,
+        onPortalPasswordVerified,
+        requestPortalSetup,
+        onPortalSetupComplete,
+        closePortalModal,
         // Post-login account selection
         showAccountSelection,
         handleAccountSelected,
@@ -340,3 +406,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
+

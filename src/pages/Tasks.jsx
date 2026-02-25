@@ -4,10 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2 } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2, Search } from 'lucide-react';
 import tasksService from '../services/tasks.service';
 import { formatDate } from '../utils/dateFormatter';
-import SearchFilterBar from '../components/common/SearchFilterBar';
 
 const Tasks = () => {
     const { user } = useAuth();
@@ -17,7 +16,6 @@ const Tasks = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('due_asc');
     const [activeTab, setActiveTab] = useState('assigned'); // assigned or created
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -99,35 +97,30 @@ const Tasks = () => {
         // Then apply status filter
         if (filter !== 'all') {
             processedTasks = processedTasks.filter(task => {
+                const state = task.state || 'active';
+                const status = task.status || 'pending';
                 const dueDate = new Date(task.due_date);
                 const now = new Date();
-                const isOverdue = dueDate < now && task.status !== 'completed';
+                const isOverdue = dueDate < now && status !== 'completed';
 
                 switch (filter) {
+                    case 'active':
+                        return state === 'active' && !isOverdue;
+                    case 'expired':
+                        return state === 'expired' || isOverdue;
                     case 'pending':
-                        return (task.status === 'pending' || task.state === 'pending') && !isOverdue;
+                        return status === 'pending';
                     case 'completed':
-                        return task.status === 'completed' || task.state === 'completed';
-                    case 'overdue':
-                        return isOverdue;
+                        return status === 'completed' || state === 'completed';
                     default:
                         return true;
                 }
             });
         }
 
-        // Then apply sorting
+        // Sort newest first (by due date descending)
         return processedTasks.sort((a, b) => {
-            switch (sortBy) {
-                case 'due_asc':
-                    return new Date(a.due_date) - new Date(b.due_date);
-                case 'due_desc':
-                    return new Date(b.due_date) - new Date(a.due_date);
-                case 'title':
-                    return a.heading.localeCompare(b.heading);
-                default:
-                    return 0;
-            }
+            return new Date(b.time_stamp || b.due_date) - new Date(a.time_stamp || a.due_date);
         });
     };
 
@@ -142,6 +135,8 @@ const Tasks = () => {
         if (isOverdue) return <AlertCircle className="w-5 h-5 text-red-600" />;
         return <Clock className="w-5 h-5 text-orange-600" />;
     };
+
+    const FILTERS = ['all', 'active', 'expired', 'pending', 'completed'];
 
     return (
         <div className="space-y-6">
@@ -196,32 +191,33 @@ const Tasks = () => {
                 </nav>
             </div>
 
-            {/* Filters and Search */}
-            <SearchFilterBar
-                searchQuery={searchQuery}
-                onSearch={setSearchQuery}
-                placeholder="Search tasks by title or description..."
-                filters={[
-                    {
-                        key: 'status',
-                        label: 'All Statuses',
-                        options: [
-                            { value: 'pending', label: 'Pending' },
-                            { value: 'completed', label: 'Completed' },
-                            { value: 'overdue', label: 'Overdue' }
-                        ]
-                    }
-                ]}
-                activeFilters={{ status: filter }}
-                onFilterChange={(key, value) => setFilter(value)}
-                sortOptions={[
-                    { value: 'due_asc', label: 'Due Date (Earliest First)' },
-                    { value: 'due_desc', label: 'Due Date (Latest First)' },
-                    { value: 'title', label: 'Title (A-Z)' },
-                ]}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-            />
+            {/* Search */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tertiary w-5 h-5" />
+                <input
+                    type="text"
+                    placeholder="Search tasks by title or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+            </div>
+
+            {/* Filters — Resource-style pills */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+                {FILTERS.map((f) => (
+                    <button
+                        key={f}
+                        onClick={() => setFilter(f)}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary'
+                            }`}
+                    >
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                    </button>
+                ))}
+            </div>
 
             {/* Tasks List */}
             {loading ? (

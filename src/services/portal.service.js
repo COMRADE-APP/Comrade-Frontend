@@ -25,6 +25,24 @@ const portalService = {
 
     // Partner Portal
     getPartnerDashboard: () => api.get(`${BASE}/partner/dashboard/`),
+
+    // ---- Entity Portal Password Management ----
+
+    // Organisation portal password
+    setOrgPortalPassword: (orgId, data) =>
+        api.post(`/api/organizations/organisation/${orgId}/set_portal_password/`, data),
+    verifyOrgPortalPassword: (orgId, data) =>
+        api.post(`/api/organizations/organisation/${orgId}/verify_portal_password/`, data),
+    getMyOrganizations: () =>
+        api.get('/api/organizations/organisation/my_organizations/'),
+
+    // Institution portal password
+    setInstPortalPassword: (instId, data) =>
+        api.post(`/api/institutions/institutions/${instId}/set_portal_password/`, data),
+    verifyInstPortalPassword: (instId, data) =>
+        api.post(`/api/institutions/institutions/${instId}/verify_portal_password/`, data),
+    getMyInstitutions: () =>
+        api.get('/api/institutions/institutions/my_institutions/'),
 };
 
 export default portalService;

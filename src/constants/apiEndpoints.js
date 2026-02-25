@@ -110,11 +110,17 @@ export const API_ENDPOINTS = {
     // Institutions
     INSTITUTIONS: `${API_BASE_URL}/api/institutions/institutions/`,
     INSTITUTION_DETAIL: (id) => `${API_BASE_URL}/api/institutions/institutions/${id}/`,
+    INST_SET_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/institutions/institutions/${id}/set_portal_password/`,
+    INST_VERIFY_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/institutions/institutions/${id}/verify_portal_password/`,
+    MY_INSTITUTIONS: `${API_BASE_URL}/api/institutions/institutions/my_institutions/`,
 
     // Organizations
     ORGANIZATIONS: `${API_BASE_URL}/api/organizations/organisation/`,
     ORGANIZATION_DETAIL: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/`,
     ORGANISATION_MEMBERS: `${API_BASE_URL}/api/organizations/organisation_members/`,
+    ORG_SET_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/set_portal_password/`,
+    ORG_VERIFY_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/verify_portal_password/`,
+    MY_ORGANIZATIONS: `${API_BASE_URL}/api/organizations/organisation/my_organizations/`,
 
     // Payment
     PAYMENT_PROFILE: `${API_BASE_URL}/api/payments/profiles/my_profile/`,

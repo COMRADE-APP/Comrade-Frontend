@@ -215,6 +215,42 @@ const OpinionDetail = () => {
                     onFollow={handleFollow}
                 />
 
+                {/* Quoted Opinion */}
+                {opinion.quoted_opinion && (
+                    <Link
+                        to={`/opinions/${opinion.quoted_opinion.id}`}
+                        className="block p-4 bg-elevated rounded-xl border border-theme hover:bg-secondary/30 transition-colors"
+                    >
+                        <div className="text-xs font-semibold text-primary-500 mb-2 flex items-center gap-1">
+                            <MessageCircle size={12} />
+                            Quoted Opinion
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                                {opinion.quoted_opinion.user?.avatar_url ? (
+                                    <img src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    opinion.quoted_opinion.user?.first_name?.[0] || 'U'
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-sm text-primary">
+                                        {opinion.quoted_opinion.user?.full_name || opinion.quoted_opinion.user?.first_name}
+                                    </span>
+                                    <span className="text-tertiary text-xs">·</span>
+                                    <span className="text-secondary text-xs">
+                                        {opinion.quoted_opinion.time_ago || formatTimeAgo(opinion.quoted_opinion.created_at)}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-secondary mt-1">
+                                    {opinion.quoted_opinion.content}
+                                </p>
+                            </div>
+                        </div>
+                    </Link>
+                )}
+
                 {/* Comments Section */}
                 <div className="bg-elevated rounded-xl border border-theme overflow-hidden">
                     <div className="p-4 border-b border-theme">

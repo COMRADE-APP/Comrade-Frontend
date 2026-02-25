@@ -3,8 +3,9 @@ import API_ENDPOINTS from '../constants/apiEndpoints';
 
 export const resourcesService = {
     async getAll() {
-        const response = await api.get(API_ENDPOINTS.RESOURCES);
-        return response.data;
+        const response = await api.get('/api/resources/resource/');
+        const data = response.data;
+        return Array.isArray(data) ? data : (data.results || []);
     },
 
     async getById(id) {
@@ -43,6 +44,29 @@ export const resourcesService = {
         const response = await api.get(API_ENDPOINTS.RESOURCE_DETAIL(id), {
             responseType: 'blob',
         });
+        return response.data;
+    },
+
+    // Comments
+    async getComments(resourceId) {
+        const response = await api.get(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}comments/`);
+        return response.data;
+    },
+
+    async addComment(resourceId, commentData) {
+        const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}comments/`, commentData);
+        return response.data;
+    },
+
+    // Reactions
+    async addReaction(resourceId, reactionType) {
+        const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}react/`, { reaction_type: reactionType });
+        return response.data;
+    },
+
+    // Sharing
+    async share(resourceId, shareData) {
+        const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}share/`, shareData);
         return response.data;
     },
 };

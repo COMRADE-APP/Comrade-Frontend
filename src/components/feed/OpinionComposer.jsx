@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye, AtSign } from 'lucide-react';
+import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye, AtSign, Quote } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import roomsService from '../../services/rooms.service';
 import api from '../../services/api';
@@ -8,7 +8,7 @@ import api from '../../services/api';
  * OpinionComposer - Create new opinions with media upload, room tagging, and @-mentions
  * Supports entity authorship (post as personal, organisation, or institution)
  */
-const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
+const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOpinion = null, onClearQuote = null }) => {
     const { user, activeProfile } = useAuth();
     const [content, setContent] = useState('');
     const [mediaFiles, setMediaFiles] = useState([]);
@@ -263,6 +263,11 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                 formData.append('is_anonymous', 'true');
             }
 
+            // Add quoted opinion
+            if (quotedOpinion) {
+                formData.append('quoted_opinion', quotedOpinion.id);
+            }
+
             await onSubmit(formData);
             setContent('');
             setMediaFiles([]);
@@ -415,6 +420,41 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false }) => {
                     )}
                 </div>
             </div>
+
+            {/* Quoted Opinion Preview */}
+            {quotedOpinion && (
+                <div className="mt-3 border border-theme rounded-xl p-3 bg-secondary/30 relative">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Quote size={14} className="text-primary-500" />
+                        <span className="text-xs font-semibold text-primary-500">Quoting</span>
+                        {onClearQuote && (
+                            <button
+                                onClick={onClearQuote}
+                                className="ml-auto p-1 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                            {quotedOpinion.user?.avatar_url ? (
+                                <img src={quotedOpinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                quotedOpinion.user?.first_name?.[0] || 'U'
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-primary">
+                                {quotedOpinion.user?.first_name} {quotedOpinion.user?.last_name}
+                            </p>
+                            <p className="text-xs text-secondary line-clamp-2 mt-0.5">
+                                {quotedOpinion.content}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Actions row */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-theme">

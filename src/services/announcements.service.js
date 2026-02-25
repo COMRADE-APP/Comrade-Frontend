@@ -1,10 +1,18 @@
 import api from './api';
 
 const announcementService = {
-    // Get all announcements
+    // Get all announcements (with pagination handling)
+    getAll: async () => {
+        const response = await api.get('/api/announcements/');
+        const data = response.data;
+        return Array.isArray(data) ? data : (data.results || []);
+    },
+
+    // Alias
     getAnnouncements: async () => {
         const response = await api.get('/api/announcements/');
-        return response.data;
+        const data = response.data;
+        return Array.isArray(data) ? data : (data.results || []);
     },
 
     // Get single announcement
@@ -75,6 +83,25 @@ const announcementService = {
         const response = await api.get('/api/announcements/notifications/pending/');
         return response.data;
     },
+
+    // Comments
+    getComments: async (announcementId) => {
+        const response = await api.get(`/api/announcements/${announcementId}/comments/`);
+        return response.data;
+    },
+
+    addComment: async (announcementId, commentData) => {
+        const response = await api.post(`/api/announcements/${announcementId}/comments/`, commentData);
+        return response.data;
+    },
+
+    // Reactions
+    addReaction: async (announcementId, reactionType) => {
+        const response = await api.post(`/api/announcements/${announcementId}/react/`, { reaction_type: reactionType });
+        return response.data;
+    },
 };
 
+// Named export alias for consistency
+export const announcementsService = announcementService;
 export default announcementService;

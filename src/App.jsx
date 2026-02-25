@@ -62,6 +62,8 @@ import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
 import PaymentGroups from './pages/payments/PaymentGroups';
 import PaymentGroupDetail from './pages/payments/PaymentGroupDetail';
 import VerifyAccount from './pages/payments/VerifyAccount';
+import TransactionPage from './pages/payments/TransactionPage';
+import TransactionConfirmation from './pages/payments/TransactionConfirmation';
 // import PaymentMethods from './pages/PaymentMethods';
 import BusinessRegistration from './pages/payments/BusinessRegistration';
 import RegisterAgent from './pages/payments/RegisterAgent';
@@ -86,12 +88,17 @@ import TransactionHistory from './pages/TransactionHistory';
 import CreateAnnouncement from './pages/CreateAnnouncement';
 import CreateEvent from './pages/CreateEvent';
 import EventDetail from './pages/EventDetail';
+import TaskDetail from './pages/TaskDetail';
+import ResourceDetail from './pages/ResourceDetail';
+import AnnouncementDetail from './pages/AnnouncementDetail';
 import CreateTask from './pages/CreateTask';
 import CreateRoom from './pages/CreateRoom';
 import CreateResource from './pages/CreateResource';
 import CreateResearch from './pages/CreateResearch';
 import ResearchDetail from './pages/ResearchDetail';
 import CreateArticle from './pages/CreateArticle';
+import CreateSpecialization from './pages/CreateSpecialization';
+import CreateStack from './pages/CreateStack';
 import AdminDeletionReview from './pages/admin/AdminDeletionReview';
 import AdminPortal from './pages/admin/AdminPortal';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -371,6 +378,16 @@ function App() {
                 }
             />
             <Route
+                path="/announcements/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <AnnouncementDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.EVENTS}
                 element={
                     <ProtectedRoute>
@@ -396,6 +413,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Tasks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TaskDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -507,6 +534,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Resources />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/resources/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ResourceDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -791,6 +828,26 @@ function App() {
                 }
             />
             <Route
+                path={ROUTES.CREATE_SPECIALIZATION}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateSpecialization />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.CREATE_STACK}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateStack />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.SETTINGS}
                 element={
                     <ProtectedRoute>
@@ -981,6 +1038,58 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <VerifyAccount />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Transaction Pages */}
+            <Route
+                path="/payments/deposit"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionPage />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/withdraw"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionPage />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/send"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionPage />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/checkout"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionPage />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/payments/confirm"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TransactionConfirmation />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1255,23 +1364,8 @@ function App() {
                 }
             />
 
-            {/* Payment Processing Route */}
-            <Route
-                path="/payments/checkout"
-                element={
-                    <ProtectedRoute>
-                        <MainLayout>
-                            <PaymentForm
-                                amount={100}
-                                currency="USD"
-                                description="Payment"
-                                onSuccess={() => window.location.href = '/payments'}
-                                onCancel={() => window.location.href = '/payments'}
-                            />
-                        </MainLayout>
-                    </ProtectedRoute>
-                }
-            />
+
+
 
             {/* Payment Groups */}
             <Route

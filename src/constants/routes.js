@@ -88,6 +88,8 @@ export const ROUTES = {
     CREATE_RESOURCE: '/resources/create',
     CREATE_RESEARCH: '/research/create',
     CREATE_ANNOUNCEMENT: '/announcements/create',
+    CREATE_SPECIALIZATION: '/specializations/create',
+    CREATE_STACK: '/specializations/stacks/create',
 
     // New Portal Features
     CREATE_INSTITUTION: '/institutions/portal/create',

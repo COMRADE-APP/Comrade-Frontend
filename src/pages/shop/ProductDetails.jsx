@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import shopService from '../../services/shop.service';
-import paymentsService from '../../services/payments.service';
 import Button from '../../components/common/Button';
 import { ShoppingBag, ArrowLeft, Check, Shield, Clock, Info } from 'lucide-react';
 
@@ -10,7 +9,7 @@ const ProductDetails = () => {
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [purchasing, setPurchasing] = useState(false);
+
 
     useEffect(() => {
         loadProduct();
@@ -27,23 +26,19 @@ const ProductDetails = () => {
         }
     };
 
-    const handlePurchase = async () => {
-        setPurchasing(true);
-        try {
-            await paymentsService.createTransaction({
-                recipient_email: 'system', // or handle backend logic to fetch based on internal shop
-                amount: product.price,
-                transaction_type: 'purchase',
-                payment_option: 'comrade_balance',
-                notes: `Purchase of ${product.name}`
-            });
-            alert('Purchase successful!');
-            navigate('/shop');
-        } catch (error) {
-            alert('Purchase failed. Check balance.');
-        } finally {
-            setPurchasing(false);
-        }
+    const handlePurchase = () => {
+        navigate('/payments/checkout', {
+            state: {
+                product: {
+                    id: product.id,
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                    image_url: product.image_url,
+                    product_type: product.product_type,
+                }
+            }
+        });
     };
 
     if (loading) return (
@@ -118,9 +113,8 @@ const ProductDetails = () => {
                             variant="primary"
                             className="w-full py-4 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20"
                             onClick={handlePurchase}
-                            disabled={purchasing}
                         >
-                            {purchasing ? 'Processing...' : (product.product_type === 'subscription' ? 'Subscribe Now' : 'Buy Now')}
+                            {product.product_type === 'subscription' ? 'Subscribe Now' : 'Buy Now'}
                         </Button>
                         <p className="text-center text-sm text-secondary flex items-center justify-center gap-2">
                             <Shield className="w-4 h-4" />

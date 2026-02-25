@@ -81,13 +81,13 @@ const Dashboard = () => {
 
             if (activeTab === 'all' || activeTab === 'opinions') {
                 const response = await api.get('/api/opinions/feed/', {
-                    params: { type: activeTab, limit: 30 }
+                    params: { type: 'opinions', limit: 30 }
                 });
                 const opinions = response.data.results || response.data || [];
                 data = data.concat(opinions.map(o => ({ ...o, content_type: 'opinion' })));
             }
 
-            if (activeTab === 'all' || activeTab === 'research') {
+            if (activeTab === 'research') {
                 const researchData = await researchService.getAllProjects({ page_size: activeTab === 'all' ? 10 : 30 }).catch(() => ({ results: [] }));
                 const projects = researchData?.results || researchData || [];
                 data = data.concat(projects.map(r => ({
@@ -98,7 +98,7 @@ const Dashboard = () => {
                 })));
             }
 
-            if (activeTab === 'all' || activeTab === 'announcements') {
+            if (activeTab === 'announcements') {
                 const announcementsData = await announcementsService.getAll({ page_size: activeTab === 'all' ? 10 : 30 }).catch(() => []);
                 const announcements = Array.isArray(announcementsData) ? announcementsData : announcementsData?.results || [];
                 data = data.concat(announcements.map(a => ({
@@ -108,7 +108,7 @@ const Dashboard = () => {
                 })));
             }
 
-            if (activeTab === 'all' || activeTab === 'products') {
+            if (activeTab === 'products') {
                 const productsData = await shopService.getProducts().catch(() => ({ results: [] }));
                 const products = productsData?.results || productsData || [];
                 data = data.concat(products.map(p => ({

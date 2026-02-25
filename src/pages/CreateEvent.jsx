@@ -93,7 +93,9 @@ const CreateEvent = () => {
         setError(null);
 
         try {
-            const eventDateTime = new Date(`${formData.event_date}T${formData.start_time}`);
+            const eventDateTime = (formData.event_date && formData.start_time)
+                ? new Date(`${formData.event_date}T${formData.start_time}`)
+                : null;
             const bookingDeadline = formData.booking_deadline
                 ? new Date(`${formData.booking_deadline}T23:59:59`)
                 : eventDateTime;
@@ -101,9 +103,9 @@ const CreateEvent = () => {
             const submitData = {
                 ...formData,
                 location: formData.location || 'Virtual',
-                event_date: eventDateTime.toISOString(),
-                booking_deadline: bookingDeadline.toISOString(),
-                scheduled_time: eventDateTime.toISOString(),
+                event_date: eventDateTime ? eventDateTime.toISOString() : null,
+                booking_deadline: bookingDeadline ? bookingDeadline.toISOString() : null,
+                scheduled_time: eventDateTime ? eventDateTime.toISOString() : null,
                 capacity: parseInt(formData.capacity),
                 status: action === 'draft' ? 'draft' : 'active',
             };
@@ -113,10 +115,6 @@ const CreateEvent = () => {
             else if (activeProfile?.type === 'institution') submitData.institution = activeProfile.id;
 
             // Note: coverImage upload handling would normally go here (FormData driven service)
-            // Assuming the verified service handles JSON, but if image upload is needed, backend likely expects multipart.
-            // But for now, sticking to the existing service pattern. If I need to upload image, I'd need to change service.
-            // The existing `eventsService.createEvent` likely expects JSON or FormData. 
-            // `CreateEvent.jsx` showed `setCoverImage` but didn't seem to append it to `submitData` in the original code?
             // Wait, original code `const response = await eventsService.createEvent(submitData);`
             // `submitData` was an object, not FormData. And `coverImage` was `useState(null)`.
             // It seems the original code **forgot** to send the image! 
@@ -127,7 +125,7 @@ const CreateEvent = () => {
 
             if (action === 'announcement') {
                 try {
-                    await api.post('/api/announcements/announcements/', {
+                    await api.post('/api/announcements/', {
                         text: `📅 Event: ${formData.name}\n\n${formData.description?.substring(0, 500)}`,
                     });
                 } catch (e) {
@@ -149,21 +147,20 @@ const CreateEvent = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+        <div className="min-h-screen bg-background p-6 md:p-8">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                    <Button
-                        variant="ghost"
+                    <button
                         onClick={() => navigate('/events')}
-                        className="mb-4 text-gray-500 hover:text-gray-900"
+                        className="flex items-center text-secondary hover:text-primary mb-4 transition-colors"
                     >
                         <ChevronLeft size={20} className="mr-2" /> Back to Events
-                    </Button>
-                    <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
-                        <Calendar className="text-purple-600" />
+                    </button>
+                    <h1 className="text-3xl font-bold flex items-center gap-3 text-primary">
+                        <Calendar className="text-green-600" />
                         Create Event
                     </h1>
-                    <p className="text-gray-500 mt-2">Plan and organize events for your community.</p>
+                    <p className="text-secondary mt-2">Plan and organize events for your community.</p>
                 </div>
 
                 <Card>
@@ -172,7 +169,7 @@ const CreateEvent = () => {
                         <div className="flex justify-between mb-8 relative">
                             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-0 -translate-y-1/2"></div>
                             <div
-                                className="absolute top-1/2 left-0 h-0.5 bg-purple-600 -z-0 -translate-y-1/2 transition-all duration-300"
+                                className="absolute top-1/2 left-0 h-0.5 bg-green-600 -z-0 -translate-y-1/2 transition-all duration-300"
                                 style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
                             ></div>
 
@@ -183,19 +180,19 @@ const CreateEvent = () => {
                                     onClick={() => step.number < currentStep && setCurrentStep(step.number)}
                                 >
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 transition-all duration-300 border-2 ${currentStep >= step.number
-                                            ? 'bg-purple-600 text-white border-purple-600'
-                                            : 'bg-white text-gray-400 border-gray-300 group-hover:border-purple-300'
+                                        ? 'bg-green-600 text-white border-green-600'
+                                        : 'bg-elevated text-secondary border-theme group-hover:border-green-300'
                                         }`}>
                                         {currentStep > step.number ? <CheckCircle size={16} /> : step.number}
                                     </div>
-                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-purple-600' : 'text-gray-500'
+                                    <span className={`text-sm font-medium transition-colors ${currentStep >= step.number ? 'text-green-600' : 'text-secondary'
                                         }`}>{step.title}</span>
                                 </div>
                             ))}
                         </div>
 
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 flex items-center gap-2 animate-fade-in">
+                            <div className="mb-6 p-4 bg-red-50/10 border border-red-500/20 rounded-lg text-red-500 flex items-center gap-2 animate-fade-in">
                                 <AlertCircle size={20} />
                                 {error}
                             </div>
@@ -206,39 +203,39 @@ const CreateEvent = () => {
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
                                     {activeProfile && activeProfile.type !== 'personal' && (
-                                        <div className="px-4 py-3 bg-purple-50 rounded-lg flex items-center gap-3 border border-purple-100">
-                                            <ProfileIcon className="w-5 h-5 text-purple-600" />
-                                            <span className="text-purple-900">
+                                        <div className="px-4 py-3 bg-secondary/5 rounded-lg flex items-center gap-3 border border-theme">
+                                            <ProfileIcon className="w-5 h-5 text-primary" />
+                                            <span className="text-primary">
                                                 Creating event as <strong>{activeProfile.name}</strong>
                                             </span>
                                         </div>
                                     )}
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Event Name *</label>
                                         <input
                                             type="text"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             placeholder="Enter event name"
                                             autoFocus
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Description *</label>
                                         <textarea
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             rows={5}
-                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none resize-y"
+                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-y text-primary"
                                             placeholder="Describe your event..."
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Event Format</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Event Format</label>
                                         <div className="flex gap-4">
                                             {[
                                                 { value: 'physical', label: 'Physical', icon: MapPin },
@@ -246,8 +243,8 @@ const CreateEvent = () => {
                                                 { value: 'hybrid', label: 'Hybrid', icon: Users }
                                             ].map(({ value, label, icon: Icon }) => (
                                                 <label key={value} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border rounded-lg cursor-pointer transition-all ${formData.event_location === value
-                                                        ? 'border-purple-600 bg-purple-50 text-purple-700 ring-1 ring-purple-600'
-                                                        : 'border-gray-200 hover:border-purple-300 text-gray-600'
+                                                    ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
+                                                    : 'border-theme hover:border-primary/50 text-secondary'
                                                     }`}>
                                                     <input
                                                         type="radio"
@@ -271,60 +268,60 @@ const CreateEvent = () => {
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Date *</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Event Date *</label>
                                             <div className="relative">
-                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="date"
                                                     value={formData.event_date}
                                                     onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
                                                     min={new Date().toISOString().split('T')[0]}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                 />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Booking Deadline</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Booking Deadline</label>
                                             <input
                                                 type="date"
                                                 value={formData.booking_deadline}
                                                 onChange={(e) => setFormData({ ...formData, booking_deadline: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Start Time *</label>
                                             <input
                                                 type="time"
                                                 value={formData.start_time}
                                                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">End Time *</label>
                                             <input
                                                 type="time"
                                                 value={formData.end_time}
                                                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             />
                                         </div>
                                     </div>
 
                                     {formData.event_location !== 'online' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Physical Location *</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Physical Location *</label>
                                             <div className="relative">
-                                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="text"
                                                     value={formData.location}
                                                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                     placeholder="Event venue address"
                                                 />
                                             </div>
@@ -333,14 +330,14 @@ const CreateEvent = () => {
 
                                     {formData.event_location !== 'physical' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Virtual Link *</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Virtual Link *</label>
                                             <div className="relative">
-                                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="url"
                                                     value={formData.event_url}
                                                     onChange={(e) => setFormData({ ...formData, event_url: e.target.value })}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                     placeholder="https://zoom.us/j/..."
                                                 />
                                             </div>
@@ -354,25 +351,25 @@ const CreateEvent = () => {
                                 <div className="space-y-6 animate-fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Capacity</label>
                                             <div className="relative">
-                                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={18} />
                                                 <input
                                                     type="number"
                                                     value={formData.capacity}
                                                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                                                     min="1"
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                    className="w-full pl-10 pr-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                                 />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Event Type</label>
                                             <select
                                                 value={formData.event_type}
                                                 onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none bg-white"
+                                                className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
                                             >
                                                 <option value="public">Public (Open to all)</option>
                                                 <option value="private">Private (Invite only)</option>
@@ -382,7 +379,7 @@ const CreateEvent = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Scale / Complexity</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Scale / Complexity</label>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             {[
                                                 { value: 'small', label: 'Small', desc: 'Simple gathering' },
@@ -394,19 +391,19 @@ const CreateEvent = () => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, complexity_level: opt.value })}
                                                     className={`p-4 border rounded-lg text-left transition-all ${formData.complexity_level === opt.value
-                                                            ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500'
-                                                            : 'border-gray-200 hover:border-purple-300'
+                                                        ? 'border-primary bg-primary/10 ring-1 ring-primary'
+                                                        : 'border-theme hover:border-primary/50'
                                                         }`}
                                                 >
-                                                    <div className={`font-medium ${formData.complexity_level === opt.value ? 'text-purple-700' : 'text-gray-900'}`}>{opt.label}</div>
-                                                    <div className="text-xs text-gray-500 mt-1">{opt.desc}</div>
+                                                    <div className={`font-medium ${formData.complexity_level === opt.value ? 'text-primary' : 'text-primary'}`}>{opt.label}</div>
+                                                    <div className="text-xs text-secondary mt-1">{opt.desc}</div>
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Duration (hours)</label>
+                                        <label className="block text-sm font-medium text-primary mb-2">Duration (hours)</label>
                                         <input
                                             type="range"
                                             min="1"
@@ -414,9 +411,9 @@ const CreateEvent = () => {
                                             step="0.5"
                                             value={parseInt(formData.duration)}
                                             onChange={(e) => setFormData({ ...formData, duration: formatDuration(parseFloat(e.target.value)) })}
-                                            className="w-full accent-purple-600"
+                                            className="w-full accent-green-600"
                                         />
-                                        <div className="text-right text-sm text-gray-500 mt-1">{parseInt(formData.duration)} hours</div>
+                                        <div className="text-right text-sm text-secondary mt-1">{parseInt(formData.duration)} hours</div>
                                     </div>
                                 </div>
                             )}
@@ -424,17 +421,19 @@ const CreateEvent = () => {
                             {/* STEP 4: Review */}
                             {currentStep === 4 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-primary mb-4">Review & Post</h3>
+
+                                    <div className="bg-secondary/5 border border-theme rounded-xl p-6 shadow-sm">
                                         <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-xl font-bold text-gray-900">{formData.name}</h3>
-                                            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium uppercase">
+                                            <h3 className="text-xl font-bold text-primary">{formData.name}</h3>
+                                            <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium uppercase">
                                                 {formData.event_type}
                                             </span>
                                         </div>
 
-                                        <div className="flex flex-col gap-2 text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100">
+                                        <div className="flex flex-col gap-2 text-sm text-secondary mb-6 pb-4 border-b border-theme">
                                             <div className="flex items-center gap-2">
-                                                <Calendar size={16} className="text-purple-600" />
+                                                <Calendar size={16} className="text-green-600" />
                                                 <span>{new Date(formData.event_date).toLocaleDateString()} • {formData.start_time} - {formData.end_time}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -442,13 +441,13 @@ const CreateEvent = () => {
                                                 <span>{formData.event_location === 'online' ? 'Online Event' : formData.location}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Users size={16} className="text-gray-400" />
+                                                <Users size={16} className="text-secondary" />
                                                 <span>Max {formData.capacity} attendees</span>
                                             </div>
                                         </div>
 
-                                        <p className="text-gray-700 whitespace-pre-wrap">
-                                            {formData.description || <span className="text-gray-400 italic">No description provided.</span>}
+                                        <p className="text-primary whitespace-pre-wrap">
+                                            {formData.description || <span className="text-secondary italic">No description provided.</span>}
                                         </p>
                                     </div>
                                 </div>
@@ -456,7 +455,7 @@ const CreateEvent = () => {
                         </div>
 
                         {/* Navigation Footer */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                        <div className="flex justify-between mt-8 pt-6 border-t border-theme">
                             <Button
                                 variant="secondary"
                                 onClick={prevStep}
@@ -468,18 +467,18 @@ const CreateEvent = () => {
 
                             <div className="ml-auto flex gap-3">
                                 {currentStep < STEPS.length ? (
-                                    <Button variant="primary" onClick={nextStep} className="bg-purple-600 hover:bg-purple-700 text-white border-transparent">
+                                    <Button variant="primary" onClick={nextStep}>
                                         Next <ChevronRight size={18} className="ml-1" />
                                     </Button>
                                 ) : (
                                     <>
-                                        <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={loading} className="border-gray-300 text-gray-700">
+                                        <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={loading} className="border-theme text-secondary">
                                             <Save size={18} className="mr-2" /> Draft
                                         </Button>
-                                        <Button variant="secondary" onClick={() => handleSubmit('announcement')} disabled={loading} className="text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200">
+                                        <Button variant="secondary" onClick={() => handleSubmit('announcement')} disabled={loading}>
                                             <Megaphone size={18} className="mr-2" /> Announce
                                         </Button>
-                                        <Button variant="primary" onClick={() => handleSubmit('publish')} disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white border-transparent">
+                                        <Button variant="primary" onClick={() => handleSubmit('publish')} disabled={loading}>
                                             <Send size={18} className="mr-2" /> Create Event
                                         </Button>
                                     </>

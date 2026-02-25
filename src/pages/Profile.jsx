@@ -4,14 +4,17 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import OpinionCard from '../components/feed/OpinionCard';
 import {
     Camera, MapPin, Briefcase, Mail, Phone, Globe, LogOut,
     Edit2, MoreHorizontal, UserPlus, UserMinus, MessageCircle,
     Shield, Settings, Share2, Flag, Ban, X, Check, Loader2,
-    Heart, MessageSquare, Repeat2, Bookmark, Users
+    Heart, MessageSquare, Repeat2, Bookmark, Users,
+    FileText, Layers, PenLine, Calendar, ClipboardList
 } from 'lucide-react';
 import profileService from '../services/profile.service';
 import opinionsService from '../services/opinions.service';
+import api from '../services/api';
 
 const Profile = () => {
     const { id: urlUserId } = useParams();
@@ -24,10 +27,15 @@ const Profile = () => {
     const [saving, setSaving] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showPrivacySettings, setShowPrivacySettings] = useState(false);
-    const [activeTab, setActiveTab] = useState('posts');
+    const [activeTab, setActiveTab] = useState('opinions');
     const [userPosts, setUserPosts] = useState([]);
+    const [userReposts, setUserReposts] = useState([]);
+    const [userLiked, setUserLiked] = useState([]);
+    const [userCreated, setUserCreated] = useState([]);
+    const [userDrafts, setUserDrafts] = useState([]);
     const [followSuggestions, setFollowSuggestions] = useState([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
+    const [loadingTabData, setLoadingTabData] = useState(false);
 
     const avatarInputRef = useRef(null);
     const coverInputRef = useRef(null);
@@ -105,6 +113,144 @@ const Profile = () => {
             setLoadingPosts(false);
         }
     };
+
+    const loadTabData = async (tab) => {
+        if (!profile?.user_id) return;
+        setLoadingTabData(true);
+        try {
+            switch (tab) {
+                case 'reposts': {
+                    const data = await api.get('/api/opinions/opinions/', { params: { user_id: profile.user_id, is_repost: true } });
+                    const list = Array.isArray(data.data) ? data.data : data.data?.results || [];
+                    setUserReposts(list);
+                    break;
+                }
+                case 'likes': {
+                    if (isOwner) {
+                        const data = await opinionsService.getBookmarks();
+                        setUserLiked(Array.isArray(data) ? data : data?.results || []);
+                    } else {
+                        setUserLiked([]);
+                    }
+                    break;
+                }
+                case 'created': {
+                    const results = [];
+                    try {
+                        const [eventsRes, tasksRes, roomsRes] = await Promise.allSettled([
+                            api.get('/api/events/events/', { params: { created_by: profile.user_id } }),
+                            api.get('/api/tasks/tasks/', { params: { created_by: profile.user_id } }),
+                            api.get('/api/rooms/rooms/', { params: { created_by: profile.user_id } }),
+                        ]);
+                        if (eventsRes.status === 'fulfilled') {
+                            const events = Array.isArray(eventsRes.value.data) ? eventsRes.value.data : eventsRes.value.data?.results || [];
+                            results.push(...events.map(e => ({ ...e, _type: 'event' })));
+                        }
+                        if (tasksRes.status === 'fulfilled') {
+                            const tasks = Array.isArray(tasksRes.value.data) ? tasksRes.value.data : tasksRes.value.data?.results || [];
+                            results.push(...tasks.map(t => ({ ...t, _type: 'task' })));
+                        }
+                        if (roomsRes.status === 'fulfilled') {
+                            const rooms = Array.isArray(roomsRes.value.data) ? roomsRes.value.data : roomsRes.value.data?.results || [];
+                            results.push(...rooms.map(r => ({ ...r, _type: 'room' })));
+                        }
+                    } catch (err) { /* partial results are fine */ }
+                    setUserCreated(results);
+                    break;
+                }
+                case 'drafts': {
+                    if (isOwner) {
+                        try {
+                            const data = await api.get('/api/opinions/opinions/', { params: { status: 'draft' } });
+                            setUserDrafts(Array.isArray(data.data) ? data.data : data.data?.results || []);
+                        } catch (err) { setUserDrafts([]); }
+                    }
+                    break;
+                }
+                default: break;
+            }
+        } catch (error) {
+            console.error(`Error loading ${tab} data:`, error);
+        } finally {
+            setLoadingTabData(false);
+        }
+    };
+
+    useEffect(() => {
+        if (profile && activeTab !== 'opinions') {
+            loadTabData(activeTab);
+        }
+    }, [activeTab, profile]);
+
+    // Interaction handlers for OpinionCard on profile
+    const handleRepost = async (opinionId, isCurrentlyReposted) => {
+        if (isCurrentlyReposted) {
+            if (!window.confirm('Undo repost?')) return;
+        }
+        try {
+            const response = await opinionsService.toggleRepost(opinionId);
+            const updateList = (list) => list.map(op => op.id === opinionId ? { ...op, is_reposted: response.reposted, reposts_count: response.reposts_count } : op);
+            setUserPosts(updateList);
+            setUserReposts(updateList);
+            setUserLiked(updateList);
+        } catch (error) { console.error('Error reposting:', error); }
+    };
+
+    const handleBookmark = async (opinionId) => {
+        try {
+            const response = await opinionsService.toggleBookmark(opinionId);
+            const updateList = (list) => list.map(op => op.id === opinionId ? { ...op, is_bookmarked: response.bookmarked } : op);
+            setUserPosts(updateList);
+            setUserReposts(updateList);
+            setUserLiked(updateList);
+        } catch (error) { console.error('Error bookmarking:', error); }
+    };
+
+    const handleFollowUser = async (userId) => {
+        try {
+            await api.post('/api/opinions/follow/toggle/', { user_id: userId });
+            const updateList = (list) => list.map(op => op.user?.id === userId ? { ...op, user: { ...op.user, is_following: !op.user.is_following } } : op);
+            setUserPosts(updateList);
+            setUserReposts(updateList);
+            setUserLiked(updateList);
+        } catch (error) { console.error('Error following:', error); }
+    };
+
+    const handleShare = async (opinion) => {
+        const url = `${window.location.origin}/opinions/${opinion.id}`;
+        if (navigator.share) {
+            try { await navigator.share({ title: 'Check this out', text: opinion.content?.substring(0, 100), url }); } catch (err) { }
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('Link copied!');
+        }
+    };
+
+    const handleHide = async (opinionId) => {
+        try {
+            await api.post(`/api/opinions/opinions/${opinionId}/hide/`);
+            setUserPosts(prev => prev.filter(op => op.id !== opinionId));
+            setUserReposts(prev => prev.filter(op => op.id !== opinionId));
+            setUserLiked(prev => prev.filter(op => op.id !== opinionId));
+        } catch (error) { console.error('Error hiding:', error); }
+    };
+
+    const handleReport = async (opinionId) => {
+        const reason = prompt('Why are you reporting this?');
+        if (reason) {
+            try { await api.post(`/api/opinions/opinions/${opinionId}/report/`, { reason: 'other', description: reason }); alert('Reported. Thank you.'); } catch (err) { }
+        }
+    };
+
+    const handleBlock = async (userId) => {
+        if (!confirm('Block this user?')) return;
+        try {
+            await api.post('/api/opinions/block/toggle/', { user_id: userId });
+            setUserPosts(prev => prev.filter(op => op.user?.id !== userId));
+        } catch (error) { console.error('Error blocking:', error); }
+    };
+
+    const handleOpenComments = (opinionId) => navigate(`/opinions/${opinionId}?focus=comment`);
 
     const loadFollowSuggestions = async () => {
         try {
@@ -229,10 +375,11 @@ const Profile = () => {
     }
 
     const TABS = [
-        { id: 'posts', label: 'Posts', count: userPosts.length },
-        { id: 'replies', label: 'Replies' },
-        { id: 'likes', label: 'Likes' },
-        { id: 'media', label: 'Media' },
+        { id: 'opinions', label: 'Opinions', icon: PenLine, description: 'Thoughts & takes' },
+        { id: 'reposts', label: 'Reposts', icon: Repeat2, description: 'Shared content' },
+        { id: 'likes', label: 'Likes', icon: Heart, description: 'Liked posts' },
+        { id: 'created', label: 'Created', icon: Layers, description: 'Events, tasks & more' },
+        { id: 'drafts', label: 'Drafts', icon: FileText, description: 'Unpublished work' },
     ];
 
     return (
@@ -528,28 +675,29 @@ const Profile = () => {
             {/* Content Tabs */}
             <Card>
                 <div className="border-b border-theme">
-                    <div className="flex">
-                        {TABS.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 py-4 px-4 text-sm font-medium text-center transition-colors ${activeTab === tab.id
-                                    ? 'text-primary-600 border-b-2 border-primary-600'
-                                    : 'text-tertiary hover:text-primary'
-                                    }`}
-                            >
-                                {tab.label}
-                                {tab.count !== undefined && (
-                                    <span className="ml-1 text-xs text-tertiary">({tab.count})</span>
-                                )}
-                            </button>
-                        ))}
+                    <div className="flex overflow-x-auto">
+                        {TABS.map((tab) => {
+                            const TabIcon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 py-3 px-3 text-center transition-colors min-w-0 ${activeTab === tab.id
+                                        ? 'text-primary-600 border-b-2 border-primary-600'
+                                        : 'text-tertiary hover:text-primary'
+                                        }`}
+                                >
+                                    <TabIcon className="w-4 h-4 mx-auto mb-1" />
+                                    <span className="text-xs font-medium block">{tab.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
                 <CardBody className="p-0">
-                    {/* Posts Tab */}
-                    {activeTab === 'posts' && (
+                    {/* Opinions Tab */}
+                    {activeTab === 'opinions' && (
                         <div className="divide-y divide-theme">
                             {loadingPosts ? (
                                 <div className="flex justify-center py-8">
@@ -557,55 +705,151 @@ const Profile = () => {
                                 </div>
                             ) : userPosts.length === 0 ? (
                                 <div className="text-center py-12 text-secondary">
-                                    <MessageSquare className="w-12 h-12 mx-auto mb-3 text-tertiary" />
-                                    <p className="font-medium">No posts yet</p>
+                                    <PenLine className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">No opinions yet</p>
                                     <p className="text-sm">
                                         {isOwner ? "Share your first opinion!" : "This user hasn't posted anything yet."}
                                     </p>
                                 </div>
                             ) : (
                                 userPosts.map((post) => (
-                                    <div key={post.id} className="p-4 hover:bg-secondary/50 transition-colors">
+                                    <OpinionCard
+                                        key={post.id}
+                                        opinion={post}
+                                        currentUser={currentUser}
+                                        onLike={handleLikePost}
+                                        onRepost={handleRepost}
+                                        onBookmark={handleBookmark}
+                                        onFollow={handleFollowUser}
+                                        onShare={handleShare}
+                                        onHide={handleHide}
+                                        onReport={handleReport}
+                                        onBlock={handleBlock}
+                                        onOpenComments={handleOpenComments}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    {/* Reposts Tab */}
+                    {activeTab === 'reposts' && (
+                        <div className="divide-y divide-theme">
+                            {loadingTabData ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : userReposts.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Repeat2 className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">No reposts yet</p>
+                                    <p className="text-sm">Content shared by {isOwner ? 'you' : 'this user'}</p>
+                                </div>
+                            ) : (
+                                userReposts.map((post) => (
+                                    <OpinionCard
+                                        key={post.id}
+                                        opinion={post}
+                                        currentUser={currentUser}
+                                        onLike={handleLikePost}
+                                        onRepost={handleRepost}
+                                        onBookmark={handleBookmark}
+                                        onFollow={handleFollowUser}
+                                        onShare={handleShare}
+                                        onHide={handleHide}
+                                        onReport={handleReport}
+                                        onBlock={handleBlock}
+                                        onOpenComments={handleOpenComments}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    {/* Likes Tab */}
+                    {activeTab === 'likes' && (
+                        <div className="divide-y divide-theme">
+                            {!isOwner ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Heart className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">Likes are private</p>
+                                    <p className="text-sm">Only the owner can see their liked posts</p>
+                                </div>
+                            ) : loadingTabData ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : userLiked.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Heart className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">No liked posts</p>
+                                    <p className="text-sm">Posts you've liked will appear here</p>
+                                </div>
+                            ) : (
+                                userLiked.map((item) => {
+                                    const post = item.opinion || item;
+                                    return (
+                                        <OpinionCard
+                                            key={post.id}
+                                            opinion={post}
+                                            currentUser={currentUser}
+                                            onLike={handleLikePost}
+                                            onRepost={handleRepost}
+                                            onBookmark={handleBookmark}
+                                            onFollow={handleFollowUser}
+                                            onShare={handleShare}
+                                            onHide={handleHide}
+                                            onReport={handleReport}
+                                            onBlock={handleBlock}
+                                            onOpenComments={handleOpenComments}
+                                        />
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
+
+                    {/* Created Tab */}
+                    {activeTab === 'created' && (
+                        <div className="divide-y divide-theme">
+                            {loadingTabData ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : userCreated.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Layers className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">Nothing created yet</p>
+                                    <p className="text-sm">Events, tasks, rooms created by {isOwner ? 'you' : 'this user'} will appear here</p>
+                                </div>
+                            ) : (
+                                userCreated.map((item) => (
+                                    <div key={`${item._type}-${item.id}`} className="p-4 hover:bg-secondary/50 transition-colors">
                                         <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-                                                {profile.first_name?.[0]}{profile.last_name?.[0]}
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold ${item._type === 'event' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' :
+                                                    item._type === 'task' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
+                                                        'bg-gradient-to-br from-purple-500 to-violet-600'
+                                                }`}>
+                                                {item._type === 'event' ? <Calendar size={18} /> :
+                                                    item._type === 'task' ? <ClipboardList size={18} /> :
+                                                        <MessageSquare size={18} />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold text-primary">{profile.full_name}</span>
-                                                    <span className="text-tertiary text-sm">·</span>
-                                                    <span className="text-secondary text-sm">
-                                                        {new Date(post.created_at).toLocaleDateString()}
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item._type === 'event' ? 'bg-blue-100 text-blue-700' :
+                                                            item._type === 'task' ? 'bg-green-100 text-green-700' :
+                                                                'bg-purple-100 text-purple-700'
+                                                        }`}>
+                                                        {item._type.charAt(0).toUpperCase() + item._type.slice(1)}
+                                                    </span>
+                                                    <span className="text-secondary text-xs">
+                                                        {new Date(item.created_at || item.date).toLocaleDateString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-primary mt-1">{post.content}</p>
-                                                {post.media_url && (
-                                                    <img
-                                                        src={post.media_url}
-                                                        alt="Post media"
-                                                        className="mt-3 rounded-xl max-h-80 object-cover"
-                                                    />
+                                                <p className="font-semibold text-primary mt-1">{item.title || item.name}</p>
+                                                {item.description && (
+                                                    <p className="text-secondary text-sm mt-0.5 line-clamp-2">{item.description}</p>
                                                 )}
-                                                <div className="flex items-center gap-6 mt-3 text-secondary">
-                                                    <button
-                                                        onClick={() => handleLikePost(post.id)}
-                                                        className={`flex items-center gap-1 hover:text-red-500 transition-colors ${post.is_liked ? 'text-red-500' : ''}`}
-                                                    >
-                                                        <Heart className={`w-4 h-4 ${post.is_liked ? 'fill-current' : ''}`} />
-                                                        <span className="text-sm">{post.likes_count || 0}</span>
-                                                    </button>
-                                                    <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
-                                                        <MessageSquare className="w-4 h-4" />
-                                                        <span className="text-sm">{post.comments_count || 0}</span>
-                                                    </button>
-                                                    <button className="flex items-center gap-1 hover:text-green-500 transition-colors">
-                                                        <Repeat2 className="w-4 h-4" />
-                                                        <span className="text-sm">{post.reposts_count || 0}</span>
-                                                    </button>
-                                                    <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
-                                                        <Bookmark className="w-4 h-4" />
-                                                    </button>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -614,10 +858,34 @@ const Profile = () => {
                         </div>
                     )}
 
-                    {/* Placeholder for other tabs */}
-                    {activeTab !== 'posts' && (
-                        <div className="text-center py-12 text-secondary">
-                            <p>Coming soon</p>
+                    {/* Drafts Tab */}
+                    {activeTab === 'drafts' && (
+                        <div className="divide-y divide-theme">
+                            {!isOwner ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <FileText className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">Drafts are private</p>
+                                </div>
+                            ) : loadingTabData ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : userDrafts.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <FileText className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p className="font-medium">No drafts</p>
+                                    <p className="text-sm">Your unpublished opinions will appear here</p>
+                                </div>
+                            ) : (
+                                userDrafts.map((draft) => (
+                                    <div key={draft.id} className="p-4 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => navigate(`/opinions/${draft.id}/edit`)}>
+                                        <p className="text-primary font-medium line-clamp-2">{draft.content || 'Untitled draft'}</p>
+                                        <p className="text-secondary text-xs mt-1">
+                                            Last edited {new Date(draft.updated_at || draft.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     )}
                 </CardBody>

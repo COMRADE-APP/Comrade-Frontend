@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardFooter, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-import { Megaphone, ThumbsUp, MessageSquare, Share2, Plus, X } from 'lucide-react';
+import { Megaphone, ThumbsUp, MessageSquare, Share2, Plus, Search } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
-import SearchFilterBar from '../components/common/SearchFilterBar';
+
+const FILTERS = [
+    { value: 'all', label: 'All' },
+    { value: 'newest', label: 'Newest' },
+    { value: 'oldest', label: 'Oldest' },
+];
 
 const Announcements = () => {
     const { user } = useAuth();
@@ -16,9 +20,6 @@ const Announcements = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('newest');
-
-    // All authenticated users can create announcements
-    const canCreate = true;
 
     useEffect(() => {
         loadAnnouncements();
@@ -37,6 +38,16 @@ const Announcements = () => {
         }
     };
 
+    const filteredAnnouncements = announcements
+        .filter(a =>
+            a.heading?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            a.content?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+            if (sortBy === 'oldest') return new Date(a.time_stamp) - new Date(b.time_stamp);
+            return new Date(b.time_stamp) - new Date(a.time_stamp); // newest default
+        });
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -50,23 +61,39 @@ const Announcements = () => {
                 </Button>
             </div>
 
-            <SearchFilterBar
-                searchQuery={searchQuery}
-                onSearch={setSearchQuery}
-                placeholder="Search announcements..."
-                sortOptions={[
-                    { value: 'newest', label: 'Newest First' },
-                    { value: 'oldest', label: 'Oldest First' },
-                ]}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-            />
+            {/* Search Bar */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
+                <input
+                    type="text"
+                    placeholder="Search announcements..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                />
+            </div>
+
+            {/* Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+                {FILTERS.map(f => (
+                    <button
+                        key={f.value}
+                        onClick={() => setSortBy(f.value === 'all' ? 'newest' : f.value)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${(f.value === 'all' && sortBy === 'newest') || sortBy === f.value
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
 
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
                 </div>
-            ) : announcements.length === 0 ? (
+            ) : filteredAnnouncements.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
                         <Megaphone className="w-12 h-12 text-tertiary mx-auto mb-4" />
@@ -75,19 +102,9 @@ const Announcements = () => {
                 </Card>
             ) : (
                 <div className="space-y-6">
-                    {announcements
-                        .filter(a =>
-                            a.heading?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            a.content?.toLowerCase().includes(searchQuery.toLowerCase())
-                        )
-                        .sort((a, b) => {
-                            if (sortBy === 'newest') return new Date(b.time_stamp) - new Date(a.time_stamp);
-                            if (sortBy === 'oldest') return new Date(a.time_stamp) - new Date(b.time_stamp);
-                            return 0;
-                        })
-                        .map((announcement) => (
-                            <AnnouncementCard key={announcement.id} announcement={announcement} />
-                        ))}
+                    {filteredAnnouncements.map((announcement) => (
+                        <AnnouncementCard key={announcement.id} announcement={announcement} />
+                    ))}
                 </div>
             )}
         </div>

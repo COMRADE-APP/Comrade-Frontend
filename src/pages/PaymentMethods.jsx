@@ -119,13 +119,57 @@ const PaymentMethods = () => {
         setSaving(true);
         setError('');
         try {
-            await paymentProcessingService.savePaymentMethod(newMethod);
+            // Only send fields relevant to the selected payment type
+            const payload = {
+                method_type: newMethod.method_type,
+                nickname: newMethod.nickname || undefined,
+                is_default: newMethod.is_default,
+            };
+
+            switch (newMethod.method_type) {
+                case 'card':
+                    payload.card_number = newMethod.card_number;
+                    payload.expiry_month = newMethod.expiry_month ? parseInt(newMethod.expiry_month) : undefined;
+                    payload.expiry_year = newMethod.expiry_year ? parseInt(newMethod.expiry_year) : undefined;
+                    payload.cvc = newMethod.cvc;
+                    if (newMethod.billing_zip) payload.billing_zip = newMethod.billing_zip;
+                    break;
+                case 'mpesa':
+                    payload.phone_number = newMethod.phone_number;
+                    break;
+                case 'paypal':
+                    payload.paypal_email = newMethod.paypal_email;
+                    break;
+                case 'bank_transfer':
+                case 'equity':
+                    payload.account_number = newMethod.account_number;
+                    if (newMethod.bank_name) payload.bank_name = newMethod.bank_name;
+                    break;
+            }
+
+            // Remove undefined values
+            Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
+            await paymentProcessingService.savePaymentMethod(payload);
             setSuccessMsg('Payment method added!');
             setShowAddModal(false);
             setNewMethod({ method_type: 'card', nickname: '', card_number: '', expiry_month: '', expiry_year: '', cvc: '', billing_zip: '', phone_number: '', paypal_email: '', account_number: '', bank_name: '', is_default: false });
             fetchPaymentMethods();
         } catch (err) {
-            const msg = err?.response?.data?.detail || err?.response?.data?.error || JSON.stringify(err?.response?.data) || 'Failed to add payment method.';
+            const errData = err?.response?.data;
+            let msg = 'Failed to add payment method.';
+            if (errData) {
+                if (typeof errData === 'string') msg = errData;
+                else if (errData.detail) msg = errData.detail;
+                else if (errData.error) msg = errData.error;
+                else {
+                    // Format field-level errors nicely
+                    const fieldErrors = Object.entries(errData)
+                        .map(([field, errors]) => `${field.replace(/_/g, ' ')}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+                        .join('\n');
+                    msg = fieldErrors || JSON.stringify(errData);
+                }
+            }
             setError(msg);
         } finally {
             setSaving(false);

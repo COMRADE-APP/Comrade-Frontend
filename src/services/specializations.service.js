@@ -36,6 +36,16 @@ export const specializationsService = {
         const response = await api.get(API_ENDPOINTS.CERTIFICATES);
         return response.data;
     },
+
+    async create(data) {
+        const response = await api.post(API_ENDPOINTS.SPECIALIZATIONS, data);
+        return response.data;
+    },
+
+    async createStack(data) {
+        const response = await api.post(API_ENDPOINTS.STACKS, data);
+        return response.data;
+    },
 };
 
 export default specializationsService;

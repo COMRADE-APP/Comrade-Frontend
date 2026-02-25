@@ -13,8 +13,7 @@ const eventsService = {
      * Get all events (with optional filters)
      */
     getAllEvents: (params = {}) => {
-        // const response = api.get(`${BASE_URL}/`, { params })
-        return api.get(`${BASE_URL}/`, { params });
+        return api.get(`${BASE_URL}/events/`, { params });
     },
 
     /**
