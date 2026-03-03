@@ -492,6 +492,11 @@ const OrganizationDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Opinions from {organization.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/opinions')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Post Opinion
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <MessageCircle className="w-12 h-12 mx-auto mb-3 text-tertiary" />
@@ -506,6 +511,11 @@ const OrganizationDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Articles from {organization.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/articles/create')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Write Article
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-tertiary" />
@@ -520,6 +530,11 @@ const OrganizationDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Events from {organization.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/events/create')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Create Event
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <Calendar className="w-12 h-12 mx-auto mb-3 text-tertiary" />

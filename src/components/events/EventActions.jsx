@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import {
-    Heart, ThumbsUp, Star, Calendar, Share2, Pin, MoreVertical,
+    Heart, Star, Bell, Share2, Pin, MoreVertical,
     AlertCircle, Flag, Copy, Facebook, Twitter, Linkedin, Mail
 } from 'lucide-react';
 import eventsService from '../../services/events.service';
@@ -17,10 +17,9 @@ const EventActions = ({ event, onUpdate }) => {
     const [isInterested, setIsInterested] = useState(false);
 
     const reactions = [
-        { type: 'like', icon: ThumbsUp, label: 'Like', color: 'text-blue-600' },
-        { type: 'love', icon: Heart, label: 'Love', color: 'text-red-600' },
-        { type: 'excited', icon: Star, label: 'Excited', color: 'text-yellow-600' },
-        { type: 'attending', icon: Calendar, label: 'Attending', color: 'text-green-600' },
+        { type: 'love', icon: Heart, label: 'Love', color: 'text-red-500', activeBg: 'bg-red-500/10' },
+        { type: 'excited', icon: Star, label: 'Excited', color: 'text-yellow-500', activeBg: 'bg-yellow-500/10' },
+        { type: 'remind_me', icon: Bell, label: 'Remind Me', color: 'text-blue-500', activeBg: 'bg-blue-500/10' },
     ];
 
     const handleReaction = async (reactionType) => {
@@ -120,20 +119,20 @@ const EventActions = ({ event, onUpdate }) => {
     };
 
     return (
-        <div className="flex items-center justify-between py-3 border-t border-b border-gray-200">
+        <div className="flex items-center justify-between py-3 border-t border-b border-theme/30">
             {/* Reactions */}
             <div className="flex items-center gap-2">
-                {reactions.map(({ type, icon: Icon, label, color }) => (
+                {reactions.map(({ type, icon: Icon, label, color, activeBg }) => (
                     <button
                         key={type}
                         onClick={() => handleReaction(type)}
                         className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all ${userReaction === type
-                                ? `${color} bg-opacity-10`
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? `${color} ${activeBg}`
+                            : 'text-secondary hover:bg-secondary/50'
                             }`}
                         title={label}
                     >
-                        <Icon className="w-4 h-4" />
+                        <Icon className={`w-4 h-4 ${userReaction === type ? 'fill-current' : ''}`} />
                         <span className="text-sm font-medium hidden sm:inline">{label}</span>
                     </button>
                 ))}
@@ -145,8 +144,8 @@ const EventActions = ({ event, onUpdate }) => {
                 <button
                     onClick={handleInterested}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${isInterested
-                            ? 'bg-primary-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-primary-600 text-white'
+                        : 'text-secondary hover:bg-secondary/50'
                         }`}
                 >
                     <Star className={`w-4 h-4 inline mr-1 ${isInterested ? 'fill-current' : ''}`} />
@@ -156,7 +155,7 @@ const EventActions = ({ event, onUpdate }) => {
                 {/* Pin */}
                 <button
                     onClick={handlePin}
-                    className={`p-2 rounded-lg transition-all ${isPinned ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:bg-gray-100'
+                    className={`p-2 rounded-lg transition-all ${isPinned ? 'text-primary-600 bg-primary-500/10' : 'text-secondary hover:bg-secondary/50'
                         }`}
                     title="Pin to dashboard"
                 >
@@ -167,14 +166,14 @@ const EventActions = ({ event, onUpdate }) => {
                 <div className="relative">
                     <button
                         onClick={() => setShowShareMenu(!showShareMenu)}
-                        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
+                        className="p-2 rounded-lg text-secondary hover:bg-secondary/50 transition-all"
                         title="Share event"
                     >
                         <Share2 className="w-4 h-4" />
                     </button>
 
                     {showShareMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-10">
                             <button
                                 onClick={() => handleShare('facebook')}
                                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
@@ -184,21 +183,21 @@ const EventActions = ({ event, onUpdate }) => {
                             </button>
                             <button
                                 onClick={() => handleShare('twitter')}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
                                 <Twitter className="w-4 h-4 text-sky-500" />
                                 <span>Twitter</span>
                             </button>
                             <button
                                 onClick={() => handleShare('linkedin')}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
                                 <Linkedin className="w-4 h-4 text-blue-700" />
                                 <span>LinkedIn</span>
                             </button>
                             <button
                                 onClick={() => handleShare('link')}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
                                 <Copy className="w-4 h-4 text-gray-600" />
                                 <span>Copy Link</span>
@@ -211,7 +210,7 @@ const EventActions = ({ event, onUpdate }) => {
                 <div className="relative">
                     <button
                         onClick={() => setShowMoreMenu(!showMoreMenu)}
-                        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
+                        className="p-2 rounded-lg text-secondary hover:bg-secondary/50 transition-all"
                     >
                         <MoreVertical className="w-4 h-4" />
                     </button>
@@ -220,14 +219,14 @@ const EventActions = ({ event, onUpdate }) => {
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                             <button
                                 onClick={handleReport}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-orange-600"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2 text-orange-500"
                             >
                                 <Flag className="w-4 h-4" />
                                 <span>Report Event</span>
                             </button>
                             <button
                                 onClick={handleBlock}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2 text-red-500"
                             >
                                 <AlertCircle className="w-4 h-4" />
                                 <span>Block Event</span>

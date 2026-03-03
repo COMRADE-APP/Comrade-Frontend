@@ -111,8 +111,8 @@ const OpinionComment = ({
                                 </div>
                             )}
 
-                            {/* Action bar — X-style icons row */}
-                            <div className="mt-3 flex items-center justify-between max-w-xs">
+                            {/* Action bar — Reply + Like only */}
+                            <div className="mt-3 flex items-center gap-6">
                                 {/* Reply */}
                                 {canReply && (
                                     <button
@@ -128,13 +128,6 @@ const OpinionComment = ({
                                     </button>
                                 )}
 
-                                {/* Repost */}
-                                <button className="flex items-center gap-1.5 text-secondary hover:text-green-500 transition-colors group">
-                                    <div className="p-1.5 rounded-full group-hover:bg-green-500/10 transition-colors">
-                                        <Repeat2 size={16} />
-                                    </div>
-                                </button>
-
                                 {/* Like */}
                                 <button
                                     onClick={handleLike}
@@ -144,13 +137,6 @@ const OpinionComment = ({
                                         <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
                                     </div>
                                     {likesCount > 0 && <span className="text-xs">{likesCount}</span>}
-                                </button>
-
-                                {/* Share */}
-                                <button className="flex items-center gap-1.5 text-secondary hover:text-primary-500 transition-colors group">
-                                    <div className="p-1.5 rounded-full group-hover:bg-primary-500/10 transition-colors">
-                                        <Share size={16} />
-                                    </div>
                                 </button>
                             </div>
 

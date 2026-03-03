@@ -470,6 +470,11 @@ const InstitutionDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Opinions from {institution.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/opinions')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Post Opinion
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <MessageCircle className="w-12 h-12 mx-auto mb-3 text-tertiary" />
@@ -484,6 +489,11 @@ const InstitutionDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Articles from {institution.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/articles/create')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Write Article
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-tertiary" />
@@ -498,6 +508,11 @@ const InstitutionDetail = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Events from {institution.name}</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate('/events/create')} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Create Event
+                                    </Button>
+                                )}
                             </div>
                             <div className="text-center py-12 text-secondary">
                                 <Calendar className="w-12 h-12 mx-auto mb-3 text-tertiary" />
@@ -564,9 +579,19 @@ const InstitutionDetail = () => {
 
                     {/* Members Tab */}
                     {activeTab === 'members' && (
-                        <div className="text-center py-12 text-secondary">
-                            <Users className="w-12 h-12 mx-auto mb-3 text-tertiary" />
-                            <p>Members management view coming soon.</p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-primary">Members</h3>
+                                {isAdmin && (
+                                    <Button onClick={() => navigate(`/institutions/${id}/settings`)} size="sm">
+                                        <Plus className="w-4 h-4 mr-2" /> Invite Member
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="text-center py-12 text-secondary">
+                                <Users className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                <p>Members management view coming soon.</p>
+                            </div>
                         </div>
                     )}
 

@@ -134,6 +134,33 @@ const shopService = {
         const response = await api.post(API_ENDPOINTS.REVIEWS, data);
         return response.data;
     },
+
+    // Product Reviews
+    getProductReviews: async (productId) => {
+        const response = await api.get(`/api/products/${productId}/reviews/`);
+        return response.data;
+    },
+    createProductReview: async (productId, reviewData) => {
+        const response = await api.post(`/api/products/${productId}/reviews/`, reviewData);
+        return response.data;
+    },
+
+    // Service-specific methods used by ServiceDetail
+    getServiceById: async (id) => {
+        return api.get(`/api/shop/services/${id}/`);
+    },
+    getServiceReviews: async (serviceId) => {
+        return api.get(`/api/shop/services/${serviceId}/reviews/`);
+    },
+    createServiceReview: async (serviceId, data) => {
+        return api.post(`/api/shop/services/${serviceId}/reviews/`, data);
+    },
+    getTimeSlots: async (serviceId, params = {}) => {
+        return api.get(`/api/shop/services/${serviceId}/time_slots/`, { params });
+    },
+    updateService: async (id, data) => {
+        return api.patch(`/api/shop/services/${id}/`, data);
+    },
 };
 
 export default shopService;

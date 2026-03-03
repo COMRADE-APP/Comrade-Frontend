@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2, Search } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2, Search, Heart, Flag, ShieldAlert } from 'lucide-react';
 import tasksService from '../services/tasks.service';
 import { formatDate } from '../utils/dateFormatter';
 
@@ -389,20 +389,58 @@ const Tasks = () => {
 };
 
 const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
+    const [liked, setLiked] = useState(false);
     const status = task.status || task.state || 'pending';
     const dueDate = new Date(task.due_date);
     const isOverdue = dueDate < new Date() && status !== 'completed';
 
     const getStatusStyle = () => {
         if (status === 'completed') return 'bg-green-500/10 text-green-600';
+        if (status === 'draft') return 'bg-gray-500/10 text-gray-600';
         if (isOverdue) return 'bg-red-500/10 text-red-600';
         return 'bg-orange-500/10 text-orange-600';
     };
 
     const getStatusText = () => {
         if (status === 'completed') return 'Completed';
+        if (status === 'draft') return 'Draft';
         if (isOverdue) return 'Overdue';
         return 'Pending';
+    };
+
+    const creatorName = task.organisation?.name || task.institution?.name || task.user?.first_name || 'Creator';
+    const creatorInitial = creatorName.charAt(0).toUpperCase();
+
+    const handleReaction = async (e) => {
+        e.stopPropagation();
+        try {
+            await tasksService.addReaction(task.id, 'like');
+            setLiked(!liked);
+        } catch (error) {
+            console.error('Failed to react:', error);
+        }
+    };
+
+    const handleReport = async (e) => {
+        e.stopPropagation();
+        try {
+            await tasksService.report(task.id);
+            alert('Task reported successfully.');
+        } catch (error) {
+            console.error('Error reporting task:', error);
+        }
+    };
+
+    const handleBlock = async (e) => {
+        e.stopPropagation();
+        if (window.confirm("Mark as Not Interested? You will see fewer tasks like this.")) {
+            try {
+                await tasksService.block(task.id);
+                alert('Task preference recorded.');
+            } catch (error) {
+                console.error('Error blocking task:', error);
+            }
+        }
     };
 
     return (
@@ -414,8 +452,28 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
                             {statusIcon}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-primary truncate">{task.heading}</h3>
-                            <p className="text-sm text-secondary mt-1 flex items-center gap-2">
+                            <div className="flex gap-2 mb-1">
+                                {task.category && (
+                                    <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary-100 text-primary-700 capitalize">
+                                        {task.category}
+                                    </span>
+                                )}
+                                {task.difficulty && task.difficulty !== 'none' && (
+                                    <span className="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700 capitalize">
+                                        {task.difficulty}
+                                    </span>
+                                )}
+                            </div>
+                            <h3 className="text-lg font-semibold text-primary truncate hover:text-primary-600 cursor-pointer" onClick={onViewDetails}>
+                                {task.heading}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary-600">
+                                    {creatorInitial}
+                                </div>
+                                <p className="text-xs font-medium text-primary-600">By {creatorName}</p>
+                            </div>
+                            <p className="text-sm text-secondary mt-2 flex items-center gap-2">
                                 <Calendar className="w-4 h-4" />
                                 Due: {formatDate(task.due_date)}
                             </p>
@@ -429,14 +487,14 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-start gap-2 ml-4">
+                    <div className="flex items-start gap-2 ml-4 flex-col items-end">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyle()}`}>
                             {getStatusText()}
                         </span>
                         {canDelete && (
                             <button
                                 onClick={onDelete}
-                                className="p-1 text-tertiary hover:text-red-600 transition-colors"
+                                className="p-1 mt-2 text-tertiary hover:text-red-600 transition-colors"
                                 title="Delete task"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -445,11 +503,28 @@ const TaskCard = ({ task, statusIcon, onViewDetails, onDelete, canDelete }) => {
                     </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-end gap-2">
-                    <Button variant="outline" onClick={onViewDetails}>View Details</Button>
-                    {status !== 'completed' && (
-                        <Button variant="primary">Submit Work</Button>
-                    )}
+                <div className="mt-4 flex items-center justify-between border-t border-theme pt-4">
+                    <div className="flex gap-2">
+                        <button onClick={handleReaction} className={`p-1.5 flex items-center gap-1 rounded hover:bg-secondary ${liked ? 'text-red-500' : 'text-tertiary hover:text-red-500'}`}>
+                            <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+                            <span className="text-xs">Like</span>
+                        </button>
+                        <button onClick={handleReport} className="p-1.5 flex items-center gap-1 rounded hover:bg-secondary text-tertiary hover:text-orange-500">
+                            <Flag className="w-4 h-4" />
+                            <span className="text-xs">Report</span>
+                        </button>
+                        <button onClick={handleBlock} className="p-1.5 flex items-center gap-1 rounded hover:bg-secondary text-tertiary hover:text-primary-500">
+                            <ShieldAlert className="w-4 h-4" />
+                            <span className="text-xs">Not Interested</span>
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={onViewDetails}>View Details</Button>
+                        {status !== 'completed' && status !== 'draft' && (
+                            <Button variant="primary" onClick={onViewDetails}>Submit Work</Button>
+                        )}
+                    </div>
                 </div>
             </CardBody>
         </Card>

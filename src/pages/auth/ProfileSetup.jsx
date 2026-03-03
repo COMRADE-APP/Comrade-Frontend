@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import authService from '../../services/auth.service';
-import { User, MapPin, Briefcase, Heart, Camera, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { User, MapPin, Briefcase, Heart, Camera, Check, ArrowRight, ArrowLeft, Lock } from 'lucide-react';
 
 const STEPS = [
     { id: 1, title: 'Basic Info', icon: User },
@@ -23,14 +23,27 @@ const INTEREST_OPTIONS = [
 const ProfileSetup = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const { user } = useAuth();
 
     const email = location.state?.email || user?.email;
     const userType = location.state?.userType || user?.user_type || 'student';
 
-    const [step, setStep] = useState(1);
+    // Detect social login: check query params or location state
+    const fromSocial = searchParams.get('fromSocial') === 'true' || location.state?.fromSocial;
+    const hasPassword = searchParams.get('hasPassword') === 'true' || location.state?.hasPassword || user?.has_password;
+    const needsPassword = fromSocial && !hasPassword;
+
+    // Dynamic steps — insert password step for social users without a password
+    const DYNAMIC_STEPS = needsPassword
+        ? [{ id: 0, title: 'Set Password', icon: Lock }, ...STEPS]
+        : STEPS;
+
+    const [step, setStep] = useState(needsPassword ? 0 : 1);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
+        password: '',
+        confirmPassword: '',
         bio: '',
         location: '',
         occupation: '',
@@ -66,11 +79,13 @@ const ProfileSetup = () => {
     };
 
     const handleNext = () => {
-        if (step < 4) setStep(step + 1);
+        const maxStep = DYNAMIC_STEPS[DYNAMIC_STEPS.length - 1].id;
+        if (step < maxStep) setStep(step + 1);
     };
 
     const handlePrev = () => {
-        if (step > 1) setStep(step - 1);
+        const minStep = DYNAMIC_STEPS[0].id;
+        if (step > minStep) setStep(step - 1);
     };
 
     const handleSkip = () => {
@@ -88,6 +103,11 @@ const ProfileSetup = () => {
                 interests: formData.interests,
                 avatar: formData.profilePicture, // The actual file
             };
+
+            // If a password was set during setup (social login users), include it
+            if (formData.password) {
+                profileData.password = formData.password;
+            }
 
             // Call API to save profile
             const response = await authService.setupProfile(profileData);
@@ -113,6 +133,8 @@ const ProfileSetup = () => {
 
     const canProceed = () => {
         switch (step) {
+            case 0: // Password step (social login)
+                return formData.password.length >= 8 && formData.password === formData.confirmPassword;
             case 1:
                 return formData.bio.length >= 10;
             case 2:
@@ -135,7 +157,7 @@ const ProfileSetup = () => {
 
                     {/* Step Indicators */}
                     <div className="flex items-center justify-between">
-                        {STEPS.map((s, index) => (
+                        {DYNAMIC_STEPS.map((s, index) => (
                             <React.Fragment key={s.id}>
                                 <div className="flex flex-col items-center">
                                     <div
@@ -154,7 +176,7 @@ const ProfileSetup = () => {
                                     </div>
                                     <span className="text-xs mt-1 opacity-80">{s.title}</span>
                                 </div>
-                                {index < STEPS.length - 1 && (
+                                {index < DYNAMIC_STEPS.length - 1 && (
                                     <div className={`flex-1 h-0.5 mx-2 ${step > s.id ? 'bg-green-400' : 'bg-white/30'}`} />
                                 )}
                             </React.Fragment>
@@ -170,6 +192,38 @@ const ProfileSetup = () => {
                             {userType.replace('_', ' ')}
                         </span>
                     </div>
+
+                    {/* Step 0: Set Password (social login users only) */}
+                    {step === 0 && (
+                        <div className="space-y-4 animate-fadeIn">
+                            <h3 className="text-lg font-semibold text-gray-900">Set your password</h3>
+                            <p className="text-sm text-gray-600">Create a password so you can also sign in with your email.</p>
+                            <Input
+                                label="Password"
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="At least 8 characters"
+                                required
+                            />
+                            <Input
+                                label="Confirm Password"
+                                type="password"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="Re-enter your password"
+                                required
+                            />
+                            {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                                <p className="text-xs text-red-500">Passwords do not match</p>
+                            )}
+                            {formData.password && formData.password.length < 8 && (
+                                <p className="text-xs text-amber-500">Password must be at least 8 characters</p>
+                            )}
+                        </div>
+                    )}
 
                     {/* Step 1: Basic Info */}
                     {step === 1 && (
@@ -296,7 +350,7 @@ const ProfileSetup = () => {
                 {/* Actions */}
                 <div className="px-6 pb-6 space-y-3">
                     <div className="flex gap-3">
-                        {step > 1 && (
+                        {step > (needsPassword ? 0 : 1) && (
                             <Button variant="outline" onClick={handlePrev} className="flex-1">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back

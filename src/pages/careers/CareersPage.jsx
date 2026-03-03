@@ -119,86 +119,111 @@ const CareersPage = () => {
         return labels[level] || level;
     };
 
-    const CareerCard = ({ career, isRecommended = false }) => (
-        <div
-            className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''}`}
-            onClick={() => navigate(`/careers/${career.id}`)}
-        >
-            {(isRecommended || career.posted_by === user?.id) && (
-                <div className="flex justify-end gap-2 mb-2">
-                    {isRecommended && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                            <Sparkles size={14} />
-                            <span>Recommended</span>
-                        </div>
-                    )}
-                    {career.posted_by === user?.id && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
-                            <User size={12} />
-                            <span>Created by You</span>
-                        </div>
-                    )}
-                </div>
-            )}
+    const CareerCard = ({ career, isRecommended = false }) => {
+        const isExpired = career.deadline && new Date(career.deadline) < new Date();
 
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center text-primary">
-                        <Building2 size={24} />
+        return (
+            <div
+                className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''} ${isExpired ? 'opacity-75' : ''}`}
+                onClick={() => navigate(`/careers/${career.id}`)}
+            >
+                {(isRecommended || career.posted_by === user?.id) && (
+                    <div className="flex justify-end gap-2 mb-2">
+                        {isRecommended && (
+                            <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                                <Sparkles size={14} />
+                                <span>Recommended</span>
+                            </div>
+                        )}
+                        {career.posted_by === user?.id && (
+                            <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                                <User size={12} />
+                                <span>Created by You</span>
+                            </div>
+                        )}
                     </div>
-                    <div>
-                        <h3 className="font-bold text-lg text-primary">{career.title}</h3>
-                        <p className="text-sm text-secondary">{career.company_name}</p>
-                    </div>
-                </div>
-                {!isRecommended && (
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
-                        {getJobTypeLabel(career.job_type)}
-                    </span>
                 )}
-            </div>
 
-            <p className="text-secondary text-sm mb-4 line-clamp-2">
-                {career.description.substring(0, 120)}...
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-4 text-sm text-secondary">
-                <div className="flex items-center gap-1">
-                    <DollarSign size={16} className="text-tertiary" />
-                    <span>{formatSalary(career)}</span>
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center text-primary">
+                            <Building2 size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-primary">{career.title}</h3>
+                            <p className="text-sm text-secondary">{career.company_name}</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                        {isExpired ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 border border-red-500/20">
+                                Expired
+                            </span>
+                        ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-600 border border-green-500/20">
+                                Active
+                            </span>
+                        )}
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                            {getJobTypeLabel(career.job_type)}
+                        </span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1">
-                    <MapPin size={16} className="text-tertiary" />
-                    <span>{career.is_remote ? 'Remote' : career.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <GraduationCap size={16} className="text-tertiary" />
-                    <span>{getExperienceLabel(career.experience_level)}</span>
-                </div>
-            </div>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-md">{career.industry}</span>
-                {career.is_remote && <span className="px-2 py-1 bg-green-500/10 text-green-600 text-xs rounded-md">Remote</span>}
-            </div>
+                <p className="text-secondary text-sm mb-4 line-clamp-2">
+                    {career.description?.substring(0, 120)}...
+                </p>
 
-            <div className="flex justify-between items-center pt-4 border-t border-theme">
-                <span className="text-xs text-tertiary">
-                    {career.applications_count || 0} applicants
-                </span>
-                <button
-                    className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        careersService.incrementView(career.id);
-                        navigate(`/careers/${career.id}`);
-                    }}
-                >
-                    Apply Now <ChevronRight size={16} />
-                </button>
+                <div className="flex flex-wrap gap-4 mb-4 text-sm text-secondary">
+                    <div className="flex items-center gap-1">
+                        <DollarSign size={16} className="text-tertiary" />
+                        <span>{formatSalary(career)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <MapPin size={16} className="text-tertiary" />
+                        <span>{career.is_remote ? 'Remote' : career.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <GraduationCap size={16} className="text-tertiary" />
+                        <span>{getExperienceLabel(career.experience_level)}</span>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-md">{career.industry}</span>
+                    {career.is_remote && <span className="px-2 py-1 bg-green-500/10 text-green-600 text-xs rounded-md">Remote</span>}
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-theme">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-tertiary">
+                            {career.applications_count || 0} applicants
+                        </span>
+                        <span className={`text-xs mt-0.5 flex items-center gap-1 ${isExpired ? 'text-red-500 font-medium' : 'text-tertiary'}`}>
+                            <Clock size={12} />
+                            {career.deadline
+                                ? (isExpired ? 'Deadline passed' : `Deadline: ${new Date(career.deadline).toLocaleDateString()}`)
+                                : 'Open — No deadline'
+                            }
+                        </span>
+                    </div>
+                    <button
+                        className={`flex items-center gap-1 font-medium text-sm ${isExpired ? 'text-secondary cursor-not-allowed' : 'text-primary hover:text-primary-light'}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isExpired) {
+                                careersService.incrementView(career.id);
+                                navigate(`/careers/${career.id}`);
+                            }
+                        }}
+                        disabled={isExpired}
+                    >
+                        {isExpired ? 'Closed' : 'Apply Now'} <ChevronRight size={16} />
+                    </button>
+                </div>
             </div>
-        </div>
-    );
+        )
+    };
 
     return (
         <div className="min-h-screen bg-background p-8">

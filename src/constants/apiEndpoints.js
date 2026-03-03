@@ -1,5 +1,4 @@
-// const API_BASE_URL = 'https://qomrade.onrender.com';
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const API_ENDPOINTS = {
     // Authentication
@@ -103,9 +102,9 @@ export const API_ENDPOINTS = {
     CONVERSATION: (userId) => `${API_BASE_URL}/api/messages/conversation/${userId}/`,
 
     // Resources
-    RESOURCES: `${API_BASE_URL}/api/resources/`,
-    RESOURCE_DETAIL: (id) => `${API_BASE_URL}/api/resources/${id}/`,
-    RESOURCE_UPLOAD: `${API_BASE_URL}/api/resources/upload/`,
+    RESOURCES: `${API_BASE_URL}/api/resources/resource/`,
+    RESOURCE_DETAIL: (id) => `${API_BASE_URL}/api/resources/resource/${id}/`,
+    RESOURCE_UPLOAD: `${API_BASE_URL}/api/resources/resource/`,
 
     // Institutions
     INSTITUTIONS: `${API_BASE_URL}/api/institutions/institutions/`,
@@ -121,6 +120,11 @@ export const API_ENDPOINTS = {
     ORG_SET_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/set_portal_password/`,
     ORG_VERIFY_PORTAL_PASSWORD: (id) => `${API_BASE_URL}/api/organizations/organisation/${id}/verify_portal_password/`,
     MY_ORGANIZATIONS: `${API_BASE_URL}/api/organizations/organisation/my_organizations/`,
+
+    // Orders (Shop)
+    ORDERS: `${API_BASE_URL}/api/orders/`,
+    MY_ORDERS: `${API_BASE_URL}/api/orders/my_orders/`,
+    ORDER_UPDATE_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/update_status/`,
 
     // Payment
     PAYMENT_PROFILE: `${API_BASE_URL}/api/payments/profiles/my_profile/`,

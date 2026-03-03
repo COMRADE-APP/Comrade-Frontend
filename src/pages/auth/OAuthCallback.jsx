@@ -26,27 +26,31 @@ const OAuthCallback = ({ provider }) => {
             }
 
             if (accessToken && refreshToken) {
-                // Store tokens separately for API interceptor
-                localStorage.setItem('access_token', accessToken);
-                localStorage.setItem('refresh_token', refreshToken);
+                // Determine storage — social logins default to persistent
+                const storage = localStorage;
+                storage.setItem('access_token', accessToken);
+                storage.setItem('refresh_token', refreshToken);
+                localStorage.setItem('remember_me', 'true');
 
                 // Store user data for AuthContext
                 const isProfileComplete = profileCompleted === 'true';
+                const hasPassword = searchParams.get('has_password') === 'true';
                 const userData = {
                     id: userId,
                     email: email || '',
                     first_name: firstName || '',
                     user_type: userType || '',
                     profile_completed: isProfileComplete,
+                    has_password: hasPassword,
                     access_token: accessToken,
                     refresh_token: refreshToken,
                 };
-                localStorage.setItem('user', JSON.stringify(userData));
+                storage.setItem('user', JSON.stringify(userData));
 
-                // Redirect based on profile completion
-                if (!isProfileComplete) {
-                    // Redirect to profile setup
-                    window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup';
+                // Redirect based on profile completion and password status
+                if (!isProfileComplete || !hasPassword) {
+                    // Redirect to profile setup with social flag
+                    window.location.href = `${ROUTES.PROFILE_SETUP || '/profile-setup'}?fromSocial=true&hasPassword=${hasPassword}`;
                 } else {
                     // Navigate to dashboard
                     window.location.href = ROUTES.DASHBOARD || '/dashboard';

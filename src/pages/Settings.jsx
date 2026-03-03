@@ -13,7 +13,7 @@ import activityLogService from '../services/activityLog.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
     UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail,
-    Activity, Download, FileText, Calendar
+    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil
 } from 'lucide-react';
 
 const USER_TYPE_OPTIONS = [
@@ -40,12 +40,23 @@ const XLogo = ({ className }) => (
 );
 
 const Settings = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
     const { theme, setTheme: changeTheme, isDark } = useTheme();
     const [activeTab, setActiveTab] = useState('account');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    // Profile fetch state
+    const [profileData, setProfileData] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+    const [editingProfile, setEditingProfile] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        first_name: '',
+        last_name: '',
+        phone_number: '',
+    });
+    const [savingProfile, setSavingProfile] = useState(false);
 
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
@@ -61,6 +72,7 @@ const Settings = () => {
         taskReminders: true,
         eventUpdates: true,
     });
+    const [savingNotifications, setSavingNotifications] = useState(false);
 
     const [roleChangeRequest, setRoleChangeRequest] = useState({
         requestedRole: '',
@@ -79,6 +91,69 @@ const Settings = () => {
     const [exportFormat, setExportFormat] = useState('json');
     const [exportStartDate, setExportStartDate] = useState('');
     const [exportEndDate, setExportEndDate] = useState('');
+
+    // Fetch profile on mount
+    useEffect(() => {
+        const fetchProfile = async () => {
+            setProfileLoading(true);
+            try {
+                const data = await authService.getProfile();
+                setProfileData(data);
+                setProfileForm({
+                    first_name: data?.user?.first_name || data?.first_name || user?.first_name || '',
+                    last_name: data?.user?.last_name || data?.last_name || user?.last_name || '',
+                    phone_number: data?.user?.phone_number || data?.phone_number || user?.phone_number || '',
+                });
+                // Load notification settings from profile
+                if (data?.notification_preferences || data?.user_profile) {
+                    const prefs = data.notification_preferences || data.user_profile || {};
+                    setNotificationSettings(prev => ({
+                        emailNotifications: prefs.email_notifications ?? prev.emailNotifications,
+                        pushNotifications: prefs.push_notifications ?? prev.pushNotifications,
+                        taskReminders: prefs.task_reminders ?? prev.taskReminders,
+                        eventUpdates: prefs.event_updates ?? prev.eventUpdates,
+                    }));
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                // Fallback to auth context user data
+                setProfileForm({
+                    first_name: user?.first_name || '',
+                    last_name: user?.last_name || '',
+                    phone_number: user?.phone_number || '',
+                });
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+        fetchProfile();
+    }, []);
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        try {
+            await authService.updateProfile(profileForm);
+            updateUser(profileForm);
+            setEditingProfile(false);
+            showMessage('success', 'Profile updated successfully');
+        } catch (error) {
+            showMessage('error', error.response?.data?.detail || 'Failed to update profile');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    const handleNotificationToggle = async (key, backendKey) => {
+        const newValue = !notificationSettings[key];
+        setNotificationSettings(prev => ({ ...prev, [key]: newValue }));
+        try {
+            await authService.updateProfile({ [backendKey]: newValue });
+        } catch (error) {
+            // Revert on failure
+            setNotificationSettings(prev => ({ ...prev, [key]: !newValue }));
+            showMessage('error', 'Failed to update notification setting');
+        }
+    };
 
     // Load activity data when activity tab is active
     useEffect(() => {
@@ -182,6 +257,22 @@ const Settings = () => {
         }
     };
 
+    const portalLinks = [
+        { label: 'Staff Portal', path: ROUTES.PORTALS?.STAFF_PORTAL || '/portal/staff', roles: ['staff'], icon: '🏢' },
+        { label: 'Author Portal', path: ROUTES.PORTALS?.AUTHOR_PORTAL || '/portal/author', roles: ['author', 'staff'], icon: '✍️' },
+        { label: 'Editor Portal', path: ROUTES.PORTALS?.EDITOR_PORTAL || '/portal/editor', roles: ['editor', 'staff'], icon: '📝' },
+        { label: 'Moderator Portal', path: ROUTES.PORTALS?.MODERATOR_PORTAL || '/portal/moderator', roles: ['moderator', 'staff'], icon: '🛡️' },
+        { label: 'Lecturer Portal', path: ROUTES.PORTALS?.LECTURER_PORTAL || '/portal/lecturer', roles: ['lecturer', 'staff'], icon: '🎓' },
+        { label: 'Institution Admin', path: ROUTES.PORTALS?.INSTITUTION_PORTAL || '/portal/institution', roles: ['institution_admin', 'staff'], icon: '🏛️' },
+        { label: 'Organization Admin', path: ROUTES.PORTALS?.ORG_PORTAL || '/portal/organization', roles: ['org_admin', 'staff'], icon: '🏗️' },
+        { label: 'Partner Portal', path: ROUTES.PORTALS?.PARTNER_PORTAL || '/portal/partner', roles: ['partner', 'staff'], icon: '🤝' },
+        { label: 'Admin Dashboard', path: ROUTES.ADMIN_PORTAL || '/admin', roles: ['staff'], icon: '⚙️' },
+    ];
+
+    const userPortals = user?.is_staff
+        ? portalLinks
+        : portalLinks.filter(p => p.roles.some(r => user?.user_type === r || user?.roles?.includes(r)));
+
     const tabs = [
         { id: 'account', label: 'Account', icon: UserCog },
         { id: 'security', label: 'Security', icon: Shield },
@@ -189,6 +280,7 @@ const Settings = () => {
         { id: 'appearance', label: 'Appearance', icon: Palette },
         { id: 'privacy', label: 'Privacy', icon: Lock },
         { id: 'activity', label: 'Activity', icon: Activity },
+        { id: 'portals', label: 'Other Portals', icon: ExternalLink },
     ];
 
     return (
@@ -237,34 +329,86 @@ const Settings = () => {
                     {/* User Info Card */}
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
-                            <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <User className="w-5 h-5" />
-                                Account Information
-                            </h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-primary flex items-center gap-2">
+                                    <User className="w-5 h-5" />
+                                    Account Information
+                                </h3>
+                                {!editingProfile ? (
+                                    <Button variant="ghost" size="sm" onClick={() => setEditingProfile(true)}>
+                                        <Pencil className="w-4 h-4 mr-1" /> Edit
+                                    </Button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <Button variant="ghost" size="sm" onClick={() => { setEditingProfile(false); setProfileForm({ first_name: profileData?.user?.first_name || user?.first_name || '', last_name: profileData?.user?.last_name || user?.last_name || '', phone_number: profileData?.user?.phone_number || user?.phone_number || '' }); }}>
+                                            Cancel
+                                        </Button>
+                                        <Button variant="primary" size="sm" onClick={handleSaveProfile} disabled={savingProfile}>
+                                            <Save className="w-4 h-4 mr-1" /> {savingProfile ? 'Saving...' : 'Save'}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardBody>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Name</label>
-                                        <p className="text-primary">{user?.first_name} {user?.last_name}</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Email</label>
-                                        <p className="text-primary">{user?.email}</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">User Type</label>
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 capitalize">
-                                            {user?.user_type?.replace('_', ' ') || 'Student'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Phone</label>
-                                        <p className="text-primary">{user?.phone_number || 'Not set'}</p>
+                            {profileLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                                    <span className="text-secondary text-sm">Loading profile...</span>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">First Name</label>
+                                            {editingProfile ? (
+                                                <input
+                                                    className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
+                                                    value={profileForm.first_name}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                                                />
+                                            ) : (
+                                                <p className="text-primary">{profileData?.user?.first_name || user?.first_name || '—'}</p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Last Name</label>
+                                            {editingProfile ? (
+                                                <input
+                                                    className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
+                                                    value={profileForm.last_name}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                                                />
+                                            ) : (
+                                                <p className="text-primary">{profileData?.user?.last_name || user?.last_name || '—'}</p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Email</label>
+                                            <p className="text-primary">{profileData?.user?.email || user?.email}</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">User Type</label>
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 capitalize">
+                                                {(profileData?.user?.user_type || user?.user_type || 'student').replace(/_/g, ' ')}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Phone</label>
+                                            {editingProfile ? (
+                                                <input
+                                                    className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
+                                                    value={profileForm.phone_number}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, phone_number: e.target.value })}
+                                                    placeholder="Enter phone number"
+                                                />
+                                            ) : (
+                                                <p className="text-primary">{profileData?.user?.phone_number || user?.phone_number || 'Not set'}</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </CardBody>
                     </Card>
 
@@ -553,10 +697,10 @@ const Settings = () => {
                         <CardBody>
                             <div className="space-y-4">
                                 {[
-                                    { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive email updates' },
-                                    { key: 'pushNotifications', label: 'Push Notifications', description: 'Receive browser notifications' },
-                                    { key: 'taskReminders', label: 'Task Reminders', description: 'Get reminded about pending tasks' },
-                                    { key: 'eventUpdates', label: 'Event Updates', description: 'Receive updates about events' },
+                                    { key: 'emailNotifications', backendKey: 'email_notifications', label: 'Email Notifications', description: 'Receive email updates' },
+                                    { key: 'pushNotifications', backendKey: 'push_notifications', label: 'Push Notifications', description: 'Receive browser notifications' },
+                                    { key: 'taskReminders', backendKey: 'task_reminders', label: 'Task Reminders', description: 'Get reminded about pending tasks' },
+                                    { key: 'eventUpdates', backendKey: 'event_updates', label: 'Event Updates', description: 'Receive updates about events' },
                                 ].map((setting) => (
                                     <div key={setting.key} className="flex items-center justify-between py-3 border-b border-theme last:border-0">
                                         <div>
@@ -564,12 +708,7 @@ const Settings = () => {
                                             <p className="text-sm text-secondary">{setting.description}</p>
                                         </div>
                                         <button
-                                            onClick={() =>
-                                                setNotificationSettings({
-                                                    ...notificationSettings,
-                                                    [setting.key]: !notificationSettings[setting.key],
-                                                })
-                                            }
+                                            onClick={() => handleNotificationToggle(setting.key, setting.backendKey)}
                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationSettings[setting.key] ? 'bg-primary-600' : 'bg-secondary'
                                                 }`}
                                         >
@@ -653,14 +792,14 @@ const Settings = () => {
                                             onClick={async () => {
                                                 try {
                                                     const newStatus = !user?.user_profile?.show_activity_status;
-                                                    // Optimistic update (if user object is structured this way, else fetch profile)
-                                                    // Better to just call API and reload
                                                     await authService.updateProfile({ show_activity_status: newStatus });
-                                                    // Ideally we should reload user context or profile here. 
-                                                    // For now, assuming authService.getCurrentUser() will be called or page reload
+                                                    updateUser({
+                                                        user_profile: {
+                                                            ...user?.user_profile,
+                                                            show_activity_status: newStatus,
+                                                        }
+                                                    });
                                                     showMessage('success', 'Privacy setting updated');
-                                                    // Trigger a reload of user data if possible, or just let the user know
-                                                    setTimeout(() => window.location.reload(), 500); // Simple reload to refresh context
                                                 } catch (error) {
                                                     showMessage('error', 'Failed to update setting');
                                                 }
@@ -683,8 +822,13 @@ const Settings = () => {
                                                 try {
                                                     const newStatus = !user?.user_profile?.show_read_receipts;
                                                     await authService.updateProfile({ show_read_receipts: newStatus });
+                                                    updateUser({
+                                                        user_profile: {
+                                                            ...user?.user_profile,
+                                                            show_read_receipts: newStatus,
+                                                        }
+                                                    });
                                                     showMessage('success', 'Privacy setting updated');
-                                                    setTimeout(() => window.location.reload(), 500);
                                                 } catch (error) {
                                                     showMessage('error', 'Failed to update setting');
                                                 }
@@ -852,6 +996,49 @@ const Settings = () => {
                     </div>
                 )
             }
+
+            {/* Other Portals Tab */}
+            {activeTab === 'portals' && (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <ExternalLink className="w-5 h-5" />
+                                Other Portals
+                            </h3>
+                            <p className="text-sm text-secondary mt-1">Quick links to your available portals based on your role</p>
+                        </CardHeader>
+                        <CardBody>
+                            {userPortals.length > 0 ? (
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    {userPortals.map((portal, i) => (
+                                        <Link
+                                            key={i}
+                                            to={portal.path}
+                                            className="flex items-center gap-3 p-4 bg-secondary/20 hover:bg-secondary/40 rounded-xl border border-transparent hover:border-theme transition-all group"
+                                        >
+                                            <span className="text-2xl">{portal.icon}</span>
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-primary group-hover:text-primary-400 transition-colors">{portal.label}</p>
+                                                <p className="text-xs text-tertiary">{portal.path}</p>
+                                            </div>
+                                            <ExternalLink size={16} className="text-tertiary group-hover:text-primary transition-colors" />
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center mb-4">
+                                        <ExternalLink size={24} className="text-tertiary opacity-50" />
+                                    </div>
+                                    <h4 className="font-medium text-primary mb-1">No additional portals available</h4>
+                                    <p className="text-sm text-secondary max-w-sm">Portals will appear here based on your role. Request a role change from the Account tab if needed.</p>
+                                </div>
+                            )}
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
         </div >
     );
 };

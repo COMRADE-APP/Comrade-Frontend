@@ -10,7 +10,8 @@ import Button from '../components/common/Button';
 import {
     ArrowLeft, Share2, Bookmark, FileText, Download, Eye,
     Clock, Users, MessageSquare, Send, Smile, File,
-    Image, Film, Music, Archive, Globe, Lock
+    Image, Film, Music, Archive, Globe, Lock,
+    Star, Heart, Tag, Flag, DollarSign
 } from 'lucide-react';
 import { resourcesService } from '../services/resources.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
@@ -46,6 +47,11 @@ const ResourceDetail = () => {
     // Reactions state
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [userReaction, setUserReaction] = useState(null);
+
+    // Reviews state
+    const [reviews, setReviews] = useState([]);
+    const [newReview, setNewReview] = useState({ rating: 0, content: '' });
+    const [hoverRating, setHoverRating] = useState(0);
 
     useEffect(() => {
         loadResource();
@@ -145,6 +151,7 @@ const ResourceDetail = () => {
     const tabs = [
         { id: 'overview', label: 'Overview', icon: FileText },
         { id: 'discussion', label: 'Discussion', icon: MessageSquare, count: comments.length },
+        { id: 'reviews', label: 'Reviews', icon: Star, count: reviews.length },
     ];
 
     if (loading) {
@@ -268,8 +275,8 @@ const ResourceDetail = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-secondary hover:text-primary hover:border-theme'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -295,6 +302,24 @@ const ResourceDetail = () => {
                                     <p className="text-secondary whitespace-pre-wrap">{resource.description || 'No description provided.'}</p>
                                 </CardBody>
                             </Card>
+
+                            {/* Tags */}
+                            {resource.tags && resource.tags.length > 0 && (
+                                <Card>
+                                    <CardBody>
+                                        <h3 className="font-semibold mb-3 text-primary flex items-center gap-2">
+                                            <Tag size={16} /> Tags
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(Array.isArray(resource.tags) ? resource.tags : resource.tags.split(',')).map((tag, i) => (
+                                                <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                                                    #{typeof tag === 'string' ? tag.trim() : tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            )}
                         </div>
 
                         <div className="space-y-6">
@@ -336,6 +361,33 @@ const ResourceDetail = () => {
                                     </div>
                                 </CardBody>
                             </Card>
+
+                            {/* Support Creator */}
+                            {resource.support_enabled && (
+                                <Card className="bg-gradient-to-br from-yellow-500/5 to-amber-500/10 border-amber-500/20">
+                                    <CardBody className="text-center space-y-3">
+                                        <DollarSign className="w-8 h-8 text-amber-500 mx-auto" />
+                                        <h3 className="font-semibold text-primary">Support the Creator</h3>
+                                        <p className="text-sm text-secondary">Show appreciation for this resource</p>
+                                        <Button
+                                            variant="primary"
+                                            className="w-full bg-amber-500 hover:bg-amber-600"
+                                            onClick={() => navigate(`/payments/send?to=${resource.user || resource.uploaded_by}&reason=resource_support&ref=${id}`)}
+                                        >
+                                            <Heart size={16} className="mr-2" /> Support
+                                        </Button>
+                                    </CardBody>
+                                </Card>
+                            )}
+
+                            {/* Report */}
+                            <button
+                                onClick={() => navigate(`/report?type=resource&id=${id}&title=${encodeURIComponent(resource.title || resource.name || '')}`)}
+                                className="w-full flex items-center gap-2 p-3 text-sm text-secondary hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors"
+                            >
+                                <Flag size={16} />
+                                Report this resource
+                            </button>
                         </div>
                     </div>
                 )}
@@ -396,6 +448,79 @@ const ResourceDetail = () => {
                                 </div>
                             ) : (
                                 <p className="text-secondary text-center py-8">No comments yet. Start the discussion!</p>
+                            )}
+                        </CardBody>
+                    </Card>
+                )}
+
+                {activeTab === 'reviews' && (
+                    <Card>
+                        <CardBody className="space-y-6">
+                            <h3 className="font-semibold text-lg text-primary">Reviews ({reviews.length})</h3>
+
+                            {/* Review Form */}
+                            <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
+                                <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setNewReview(p => ({ ...p, rating: s }))}
+                                            onMouseEnter={() => setHoverRating(s)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            className="transition-colors"
+                                        >
+                                            <Star
+                                                size={24}
+                                                className={s <= (hoverRating || newReview.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-secondary'}
+                                            />
+                                        </button>
+                                    ))}
+                                    <span className="ml-2 text-sm text-secondary">{newReview.rating > 0 ? `${newReview.rating}/5` : 'Rate this resource'}</span>
+                                </div>
+                                <textarea
+                                    value={newReview.content}
+                                    onChange={(e) => setNewReview(p => ({ ...p, content: e.target.value }))}
+                                    placeholder="Write your review..."
+                                    rows={3}
+                                    className="w-full bg-secondary border border-theme rounded-lg px-4 py-2 text-sm text-primary placeholder-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+                                />
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    disabled={!newReview.rating || !newReview.content.trim()}
+                                    onClick={async () => {
+                                        try {
+                                            await resourcesService.addReview?.(id, newReview);
+                                            setNewReview({ rating: 0, content: '' });
+                                        } catch (e) { console.error(e); }
+                                    }}
+                                >
+                                    <Send size={14} className="mr-1" /> Submit Review
+                                </Button>
+                            </div>
+
+                            {/* Reviews List */}
+                            {reviews.length > 0 ? (
+                                <div className="space-y-4">
+                                    {reviews.map((review, idx) => (
+                                        <div key={review.id || idx} className="border border-theme/30 rounded-xl p-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <span className="text-sm font-bold text-primary">{(review.user_name || 'U')[0]}</span>
+                                                </div>
+                                                <span className="font-medium text-sm text-primary">{review.user_name || 'User'}</span>
+                                                <div className="flex gap-0.5 ml-auto">
+                                                    {[1, 2, 3, 4, 5].map(s => (
+                                                        <Star key={s} size={14} className={s <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-secondary'} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="text-secondary text-sm">{review.content}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-secondary text-center py-8">No reviews yet. Be the first to review!</p>
                             )}
                         </CardBody>
                     </Card>

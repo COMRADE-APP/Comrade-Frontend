@@ -1,0 +1,182 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+    ArrowLeft, Package, Truck, Clock, CheckCircle, XCircle, Bell,
+    ChevronRight, Loader2, Calendar, MapPin, AlertCircle, RefreshCw
+} from 'lucide-react';
+import shopService from '../../services/shop.service';
+import Card, { CardBody } from '../../components/common/Card';
+import Button from '../../components/common/Button';
+
+const STATUS_CONFIG = {
+    pending: { label: 'Pending', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Clock },
+    confirmed: { label: 'Confirmed', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: CheckCircle },
+    in_progress: { label: 'In Progress', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20', icon: RefreshCw },
+    completed: { label: 'Completed', color: 'bg-green-500/10 text-green-600 border-green-500/20', icon: CheckCircle },
+    cancelled: { label: 'Cancelled', color: 'bg-red-500/10 text-red-600 border-red-500/20', icon: XCircle },
+    ready_for_pickup: { label: 'Ready for Pickup', color: 'bg-teal-500/10 text-teal-600 border-teal-500/20', icon: Package },
+    delivered: { label: 'Delivered', color: 'bg-green-500/10 text-green-700 border-green-500/20', icon: Truck },
+};
+
+const Orders = () => {
+    const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('all');
+
+    const tabs = [
+        { id: 'all', label: 'All Orders', icon: Package },
+        { id: 'reminders', label: 'Reminders', icon: Bell },
+        { id: 'pickup', label: 'Pickup', icon: MapPin },
+        { id: 'delivery', label: 'Delivery', icon: Truck },
+    ];
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const response = await shopService.getOrders();
+            const data = response.data;
+            setOrders(Array.isArray(data) ? data : data.results || []);
+        } catch (err) {
+            console.error('Failed to load orders:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getFilteredOrders = () => {
+        switch (activeTab) {
+            case 'reminders':
+                return orders.filter(o => o.reminder_set || o.has_reminder);
+            case 'pickup':
+                return orders.filter(o => o.status === 'ready_for_pickup' || o.delivery_method === 'pickup');
+            case 'delivery':
+                return orders.filter(o => o.status === 'delivered' || o.status === 'in_transit' || o.delivery_method === 'delivery');
+            default:
+                return orders;
+        }
+    };
+
+    const filtered = getFilteredOrders();
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+    };
+
+    return (
+        <div className="min-h-screen bg-background p-6 md:p-8">
+            <div className="max-w-5xl mx-auto">
+                <button onClick={() => navigate('/shop')} className="flex items-center gap-2 text-secondary hover:text-primary mb-6">
+                    <ArrowLeft size={18} /> Back to Shop
+                </button>
+
+                <h1 className="text-3xl font-bold text-primary flex items-center gap-3 mb-8">
+                    <Package /> My Orders
+                </h1>
+
+                {/* Tabs */}
+                <div className="flex gap-2 mb-8 bg-elevated p-1 rounded-xl border border-theme overflow-x-auto">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap flex-1 justify-center ${activeTab === tab.id
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'text-secondary hover:text-primary hover:bg-secondary/10'
+                                    }`}
+                            >
+                                <Icon size={16} />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Orders List */}
+                {loading ? (
+                    <div className="text-center py-20">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+                        <p className="text-secondary">Loading orders...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="text-center py-20">
+                        <Package className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-primary mb-2">No orders found</h3>
+                        <p className="text-secondary mb-4">
+                            {activeTab === 'all' ? 'You haven\'t placed any orders yet' : `No ${activeTab} orders`}
+                        </p>
+                        <Button variant="primary" onClick={() => navigate('/shop')}>Browse Services</Button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {filtered.map(order => {
+                            const statusCfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                            const StatusIcon = statusCfg.icon;
+
+                            return (
+                                <Card key={order.id} className="hover:shadow-md transition-shadow">
+                                    <CardBody>
+                                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h4 className="font-bold text-primary">{order.service_name || order.items?.[0]?.service_name || 'Order'}</h4>
+                                                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusCfg.color}`}>
+                                                        <StatusIcon size={12} />
+                                                        {statusCfg.label}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-4 text-sm text-secondary">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="w-4 h-4" />
+                                                        {formatDate(order.created_at || order.date)}
+                                                    </span>
+                                                    {order.booking_date && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Clock className="w-4 h-4" />
+                                                            Booked: {formatDate(order.booking_date)}
+                                                        </span>
+                                                    )}
+                                                    {order.total_amount && (
+                                                        <span className="font-bold text-green-600">
+                                                            ${parseFloat(order.total_amount).toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                {order.status === 'completed' && !order.reviewed && (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => navigate(`/shop/service/${order.service_id || order.service}`)}
+                                                        className="text-sm"
+                                                    >
+                                                        Leave Review
+                                                    </Button>
+                                                )}
+                                                <button className="p-2 text-secondary hover:text-primary">
+                                                    <ChevronRight size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default Orders;

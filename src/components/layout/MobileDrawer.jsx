@@ -40,6 +40,27 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
         { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
+        // Admin Portal - only visible for admin/staff users
+        ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
+            { path: ROUTES.ADMIN_PORTAL, label: 'Admin Portal', icon: Shield },
+            { path: ROUTES.ML_DASHBOARD, label: 'ML Operations', icon: Brain },
+        ] : []),
+        // Role-Specific Portals
+        ...(user?.is_staff || user?.user_type === 'staff' ? [
+            { path: ROUTES.STAFF_PORTAL, label: 'Staff Portal', icon: Zap },
+        ] : []),
+        ...(['author', 'editor'].includes(user?.user_type) ? [
+            { path: ROUTES.AUTHOR_PORTAL, label: 'Author Portal', icon: FileText },
+        ] : []),
+        ...(user?.user_type === 'moderator' ? [
+            { path: ROUTES.MODERATOR_PORTAL, label: 'Moderator Portal', icon: Shield },
+        ] : []),
+        ...(user?.user_type === 'lecturer' ? [
+            { path: ROUTES.LECTURER_PORTAL, label: 'Lecturer Portal', icon: GraduationCap },
+        ] : []),
+        ...(['institutional_admin', 'institutional_staff', 'organisational_admin', 'organisational_staff', 'partner'].includes(user?.user_type) ? [
+            { path: ROUTES.INSTITUTION_PORTAL, label: 'My Portal', icon: Building2 },
+        ] : []),
     ];
 
     const isActive = (path) => location.pathname === path;

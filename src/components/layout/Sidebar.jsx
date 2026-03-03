@@ -110,6 +110,7 @@ const Sidebar = () => {
         // Admin Portal - only visible for admin/staff users
         ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
             { path: ROUTES.ADMIN_PORTAL, label: 'Admin Portal', icon: Shield },
+            { path: ROUTES.ML_DASHBOARD, label: 'ML Operations', icon: Brain },
         ] : []),
         // Role-Specific Portals
         ...(user?.is_staff || user?.user_type === 'staff' ? [
@@ -145,6 +146,8 @@ const Sidebar = () => {
             <aside
                 className={`hidden md:flex flex-col bg-primary border-r border-theme h-screen sticky top-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
                     }`}
+                role="navigation"
+                aria-label="Main Navigation"
             >
                 {/* Logo + Collapse Toggle */}
                 <div className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>

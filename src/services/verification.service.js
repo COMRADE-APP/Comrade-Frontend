@@ -99,7 +99,43 @@ const verificationService = {
 
     rejectOrganization: async (id, reason, notes) => {
         return api.post(`/api/verification/organizations/${id}/reject/`, { reason, notes });
-    }
+    },
+
+    // User/Personal Verification
+    submitUserVerification: async (data) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value instanceof File) {
+                formData.append(key, value);
+            } else if (value !== null && value !== undefined) {
+                formData.append(key, value);
+            }
+        });
+        return api.post('/api/verification/users/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
+    getUserVerificationStatus: async () => {
+        return api.get('/api/verification/users/status/');
+    },
+
+    uploadVerificationDocument: async (file, documentType) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('document_type', documentType);
+        return api.post('/api/verification/users/upload_document/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
+    getVerificationSteps: async () => {
+        return api.get('/api/verification/users/steps/');
+    },
+
+    completeVerificationStep: async (stepId, data = {}) => {
+        return api.post(`/api/verification/users/steps/${stepId}/complete/`, data);
+    },
 };
 
 export default verificationService;

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Calendar, User, Users, FileText, CheckCircle, Clock,
-    MessageSquare, Share2, Award, BookOpen, AlertCircle, Plus
+    MessageSquare, Share2, Award, BookOpen, AlertCircle, Plus,
+    Flag, Heart, DollarSign, Percent, Shield, Download
 } from 'lucide-react';
 import researchService from '../services/research.service';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,6 +18,10 @@ const ResearchDetail = () => {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+
+    // Personas state
+    const [personas, setPersonas] = useState([]);
+    const [newPersona, setNewPersona] = useState({ name: '', description: '', percentage: '' });
 
     useEffect(() => {
         loadProject();
@@ -117,6 +122,165 @@ const ResearchDetail = () => {
                     </CardBody>
                 </Card>
             </div>
+        </div>
+    );
+
+    const needsParticipants = project.status === 'seeking_participants' ||
+        (project.positions?.some(p => !p.is_full));
+
+    const isPaidParticipation = project.positions?.some(p => p.compensation_type !== 'none');
+
+    const renderPersonas = () => (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-primary">Research Personas</h3>
+                {isPI && (
+                    <Button variant="primary" size="sm" onClick={() => {
+                        if (newPersona.name && newPersona.percentage) {
+                            setPersonas(prev => [...prev, { ...newPersona, id: Date.now(), percentage: Number(newPersona.percentage) }]);
+                            setNewPersona({ name: '', description: '', percentage: '' });
+                        }
+                    }}>
+                        <Plus className="w-4 h-4 mr-1" /> Add Persona
+                    </Button>
+                )}
+            </div>
+
+            {isPI && (
+                <Card>
+                    <CardBody className="space-y-3">
+                        <h4 className="font-medium text-primary text-sm">Create Persona</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input
+                                type="text"
+                                value={newPersona.name}
+                                onChange={e => setNewPersona(p => ({ ...p, name: e.target.value }))}
+                                placeholder="Persona name (e.g., Students)"
+                                className="bg-secondary border border-theme rounded-lg px-3 py-2 text-sm text-primary placeholder-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                            <input
+                                type="text"
+                                value={newPersona.description}
+                                onChange={e => setNewPersona(p => ({ ...p, description: e.target.value }))}
+                                placeholder="Description"
+                                className="bg-secondary border border-theme rounded-lg px-3 py-2 text-sm text-primary placeholder-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    min="0" max="100"
+                                    value={newPersona.percentage}
+                                    onChange={e => setNewPersona(p => ({ ...p, percentage: e.target.value }))}
+                                    placeholder="% needed"
+                                    className="w-full bg-secondary border border-theme rounded-lg px-3 py-2 pr-8 text-sm text-primary placeholder-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
+
+            {/* Allocation Bar */}
+            {personas.length > 0 && (
+                <Card>
+                    <CardBody>
+                        <h4 className="font-medium text-primary mb-3">Allocation Overview</h4>
+                        <div className="w-full h-6 bg-secondary rounded-full overflow-hidden flex">
+                            {personas.map((p, i) => {
+                                const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'];
+                                return (
+                                    <div
+                                        key={p.id}
+                                        className={`${colors[i % colors.length]} h-full flex items-center justify-center text-white text-xs font-bold`}
+                                        style={{ width: `${p.percentage}%` }}
+                                        title={`${p.name}: ${p.percentage}%`}
+                                    >
+                                        {p.percentage >= 10 && `${p.percentage}%`}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex flex-wrap gap-3 mt-3">
+                            {personas.map((p, i) => {
+                                const colors = ['text-blue-500', 'text-green-500', 'text-purple-500', 'text-orange-500', 'text-pink-500', 'text-teal-500'];
+                                return (
+                                    <span key={p.id} className={`text-xs font-medium ${colors[i % colors.length]}`}>
+                                        ● {p.name} ({p.percentage}%)
+                                    </span>
+                                );
+                            })}
+                            <span className="text-xs text-secondary ml-auto">
+                                Total: {personas.reduce((acc, p) => acc + (p.percentage || 0), 0)}%
+                            </span>
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
+
+            {/* Persona Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {personas.map(persona => (
+                    <Card key={persona.id} className="hover:border-primary/50 transition-colors">
+                        <CardBody>
+                            <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-primary">{persona.name}</h4>
+                                <Badge variant="info">{persona.percentage}%</Badge>
+                            </div>
+                            <p className="text-sm text-secondary">{persona.description || 'No description provided.'}</p>
+                        </CardBody>
+                    </Card>
+                ))}
+            </div>
+
+            {personas.length === 0 && (
+                <div className="text-center py-12 bg-elevated rounded-xl border border-theme">
+                    <Users className="w-12 h-12 mx-auto text-tertiary mb-3" />
+                    <p className="text-secondary">No personas defined yet.</p>
+                    {isPI && <p className="text-xs text-tertiary mt-1">Add representative participant profiles above.</p>}
+                </div>
+            )}
+        </div>
+    );
+
+    const renderGuidelines = () => (
+        <div className="space-y-6">
+            <Card>
+                <CardBody className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <Shield className="w-6 h-6 text-primary-500" />
+                        <h3 className="text-xl font-semibold text-primary">Participant Guidelines</h3>
+                    </div>
+                    <div className="bg-secondary/30 rounded-xl p-6 space-y-4">
+                        <div>
+                            <h4 className="font-medium text-primary mb-2">Eligibility</h4>
+                            <div className="text-sm text-secondary space-y-1">
+                                <p>• Age Range: {project.requirements?.[0]?.min_age || '18'} - {project.requirements?.[0]?.max_age || 'Any'}</p>
+                                <p>• Gender: {project.requirements?.[0]?.gender || 'Any'}</p>
+                                <p>• Education: {project.requirements?.[0]?.min_education_level?.replace('_', ' ') || 'Any'}</p>
+                                <p>• Skills: {project.requirements?.[0]?.required_skills?.join(', ') || 'None specified'}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-primary mb-2">Compensation</h4>
+                            <p className="text-sm text-secondary">
+                                {isPaidParticipation ? 'This research provides compensation to participants.' : 'This research is unpaid / voluntary.'}
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-primary mb-2">Duration</h4>
+                            <p className="text-sm text-secondary">
+                                Estimated {project.positions?.[0]?.estimated_duration_weeks || 'N/A'} weeks
+                            </p>
+                        </div>
+                    </div>
+                    {needsParticipants && (
+                        <Button variant="primary" className="w-full">
+                            <Plus className="w-4 h-4 mr-2" /> Join as Participant
+                        </Button>
+                    )}
+                </CardBody>
+            </Card>
         </div>
     );
 
@@ -361,6 +525,20 @@ const ResearchDetail = () => {
                             <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
                                 {project.is_published ? 'Published' : 'Unpublished'}
                             </span>
+                            {needsParticipants && (
+                                <span className="px-3 py-1 bg-green-500/30 text-green-200 rounded-full text-xs font-bold backdrop-blur-sm animate-pulse">
+                                    Seeking Participants
+                                </span>
+                            )}
+                            {isPaidParticipation ? (
+                                <span className="px-3 py-1 bg-amber-500/30 text-amber-200 rounded-full text-xs font-medium backdrop-blur-sm">
+                                    💰 Paid Participation
+                                </span>
+                            ) : (
+                                <span className="px-3 py-1 bg-blue-500/30 text-blue-200 rounded-full text-xs font-medium backdrop-blur-sm">
+                                    Free Participation
+                                </span>
+                            )}
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
                         <div className="flex flex-wrap gap-6 text-sm text-primary-100">
@@ -395,7 +573,7 @@ const ResearchDetail = () => {
 
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-theme overflow-x-auto pb-1">
-                {['overview', 'participants', 'team', 'reviews', 'publication'].map((tab) => (
+                {['overview', 'personas', 'participants', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -412,7 +590,9 @@ const ResearchDetail = () => {
             {/* Tab Content */}
             <div className="min-h-[400px]">
                 {activeTab === 'overview' && renderOverview()}
+                {activeTab === 'personas' && renderPersonas()}
                 {activeTab === 'participants' && renderPositions()}
+                {activeTab === 'guidelines' && renderGuidelines()}
                 {activeTab === 'team' && renderTeam()}
                 {activeTab === 'reviews' && (
                     <div className="text-center py-12 text-secondary">
@@ -422,6 +602,35 @@ const ResearchDetail = () => {
                     </div>
                 )}
                 {activeTab === 'publication' && renderPublication()}
+            </div>
+
+            {/* Support Creator + Report */}
+            <div className="flex flex-col md:flex-row gap-4 pb-8">
+                {project.support_enabled && (
+                    <Card className="flex-1 bg-gradient-to-br from-amber-500/5 to-yellow-500/10 border-amber-500/20">
+                        <CardBody className="flex items-center gap-4">
+                            <DollarSign className="w-10 h-10 text-amber-500" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-primary">Support this Research</h3>
+                                <p className="text-sm text-secondary">Fund the researcher's work</p>
+                            </div>
+                            <Button
+                                variant="primary"
+                                className="bg-amber-500 hover:bg-amber-600"
+                                onClick={() => navigate(`/payments/send?to=${project.principal_investigator?.id}&reason=research_support&ref=${id}`)}
+                            >
+                                <Heart size={16} className="mr-2" /> Support
+                            </Button>
+                        </CardBody>
+                    </Card>
+                )}
+                <button
+                    onClick={() => navigate(`/report?type=research&id=${id}&title=${encodeURIComponent(project.title || '')}`)}
+                    className="flex items-center gap-2 p-3 text-sm text-secondary hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors"
+                >
+                    <Flag size={16} />
+                    Report this research
+                </button>
             </div>
         </div>
     );

@@ -95,75 +95,85 @@ const GigsPage = () => {
         return labels[timing] || timing;
     };
 
-    const GigCard = ({ gig, isRecommended = false }) => (
-        <div
-            className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''}`}
-            onClick={() => navigate(`/gigs/${gig.id}`)}
-        >
-            {(isRecommended || gig.creator === user?.id) && (
-                <div className="flex justify-end gap-2 mb-2">
-                    {isRecommended && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                            <Sparkles size={14} />
-                            <span>Recommended</span>
-                        </div>
+    const GigCard = ({ gig, isRecommended = false }) => {
+        const isExpired = gig.deadline && new Date(gig.deadline) < new Date();
+
+        return (
+            <div
+                className={`bg-elevated border border-theme rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer relative ${isRecommended ? 'ring-2 ring-primary/20' : ''} ${isExpired ? 'opacity-75' : ''}`}
+                onClick={() => navigate(`/gigs/${gig.id}`)}
+            >
+                {(isRecommended || gig.creator === user?.id) && (
+                    <div className="flex justify-end gap-2 mb-2">
+                        {isRecommended && (
+                            <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                                <Sparkles size={14} />
+                                <span>Recommended</span>
+                            </div>
+                        )}
+                        {gig.creator === user?.id && (
+                            <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                                <User size={12} />
+                                <span>Created by You</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-bold text-lg text-primary">{gig.title}</h3>
+                    {isExpired ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 border border-red-500/20">
+                            Expired
+                        </span>
+                    ) : (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${gig.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-secondary/10 text-secondary'
+                            }`}>
+                            {gig.status}
+                        </span>
                     )}
-                    {gig.creator === user?.id && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
-                            <User size={12} />
-                            <span>Created by You</span>
-                        </div>
-                    )}
                 </div>
-            )}
 
-            <div className="flex justify-between items-start mb-4">
-                <h3 className="font-bold text-lg text-primary">{gig.title}</h3>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${gig.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-secondary/10 text-secondary'
-                    }`}>
-                    {gig.status}
-                </span>
-            </div>
+                <p className="text-secondary text-sm mb-4 line-clamp-3">{gig.description.substring(0, 150)}...</p>
 
-            <p className="text-secondary text-sm mb-4 line-clamp-3">{gig.description.substring(0, 150)}...</p>
-
-            <div className="flex flex-wrap gap-4 mb-4 text-sm text-secondary">
-                <div className="flex items-center gap-1">
-                    <DollarSign size={16} className="text-tertiary" />
-                    <span>{formatCurrency(gig.pay_amount)}</span>
+                <div className="flex flex-wrap gap-4 mb-4 text-sm text-secondary">
+                    <div className="flex items-center gap-1">
+                        <DollarSign size={16} className="text-tertiary" />
+                        <span>{formatCurrency(gig.pay_amount)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Clock size={16} className="text-tertiary" />
+                        <span>{getPayTimingLabel(gig.pay_timing)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <MapPin size={16} className="text-tertiary" />
+                        <span>{gig.is_remote ? 'Remote' : gig.location}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1">
-                    <Clock size={16} className="text-tertiary" />
-                    <span>{getPayTimingLabel(gig.pay_timing)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <MapPin size={16} className="text-tertiary" />
-                    <span>{gig.is_remote ? 'Remote' : gig.location}</span>
-                </div>
-            </div>
 
-            <div className="flex justify-between items-center mb-4 text-xs text-secondary">
-                <span className="bg-secondary/10 px-2 py-1 rounded">{gig.industry}</span>
-                <span className="text-tertiary">Due: {formatDate(gig.deadline)}</span>
-            </div>
+                <div className="flex justify-between items-center mb-4 text-xs text-secondary">
+                    <span className="bg-secondary/10 px-2 py-1 rounded">{gig.industry}</span>
+                    <span className="text-tertiary">Due: {formatDate(gig.deadline)}</span>
+                </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-theme">
-                <span className="text-xs text-tertiary">
-                    {gig.applications_count || 0} applications
-                </span>
-                <button
-                    className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        gigsService.incrementView(gig.id);
-                        navigate(`/gigs/${gig.id}`);
-                    }}
-                >
-                    View Details <ChevronRight size={16} />
-                </button>
+                <div className="flex justify-between items-center pt-4 border-t border-theme">
+                    <span className="text-xs text-tertiary">
+                        {gig.applications_count || 0} applications
+                    </span>
+                    <button
+                        className="flex items-center gap-1 text-primary hover:text-primary-light font-medium text-sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            gigsService.incrementView(gig.id);
+                            navigate(`/gigs/${gig.id}`);
+                        }}
+                    >
+                        View Details <ChevronRight size={16} />
+                    </button>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="min-h-screen bg-background p-8">

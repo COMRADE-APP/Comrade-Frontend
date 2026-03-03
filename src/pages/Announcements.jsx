@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardFooter, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { Megaphone, ThumbsUp, MessageSquare, Share2, Plus, Search } from 'lucide-react';
+import { Megaphone, ThumbsUp, Heart, MessageSquare, Share2, Plus, Search, Eye, MoreHorizontal, Flag, EyeOff } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
 
@@ -80,8 +80,8 @@ const Announcements = () => {
                         key={f.value}
                         onClick={() => setSortBy(f.value === 'all' ? 'newest' : f.value)}
                         className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${(f.value === 'all' && sortBy === 'newest') || sortBy === f.value
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
                             }`}
                     >
                         {f.label}
@@ -111,47 +111,155 @@ const Announcements = () => {
     );
 };
 
-const AnnouncementCard = ({ announcement }) => (
-    <Card>
-        <CardBody>
-            <div className="flex items-start justify-between">
-                <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <Megaphone className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-primary">{announcement.heading}</h3>
-                        <div className="flex items-center gap-2 text-sm text-tertiary">
-                            <span>{announcement.user?.first_name || 'Admin'}</span>
-                            <span>•</span>
-                            <span>{formatTimeAgo(announcement.time_stamp)}</span>
+const AnnouncementCard = ({ announcement }) => {
+    const navigate = useNavigate();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [likes, setLikes] = useState(0); // Optional: if tracking count
+    const [hasLiked, setHasLiked] = useState(false);
+    const [views, setViews] = useState(announcement.views || 0);
+    const [showOptions, setShowOptions] = useState(false);
+
+    const handleCardClick = () => {
+        // Record view then navigate
+        announcementsService.recordView(announcement.id).catch(console.error);
+        navigate(`/announcements/${announcement.id}`);
+    };
+
+    const handleLike = async (e) => {
+        e.stopPropagation();
+        try {
+            await announcementsService.addReaction(announcement.id, 'like');
+            setHasLiked(!hasLiked);
+            setLikes(prev => hasLiked ? prev - 1 : prev + 1);
+        } catch (error) {
+            console.error('Error liking announcement:', error);
+        }
+    };
+
+    const handleCommentClick = (e) => {
+        e.stopPropagation();
+        navigate(`/announcements/${announcement.id}?tab=discussion`);
+    };
+
+    const handleShare = async (e) => {
+        e.stopPropagation();
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: announcement.heading,
+                    text: announcement.content?.substring(0, 100),
+                    url: `${window.location.origin}/announcements/${announcement.id}`,
+                });
+            } else {
+                await navigator.clipboard.writeText(`${window.location.origin}/announcements/${announcement.id}`);
+                alert('Link copied to clipboard!');
+            }
+        } catch (err) {
+            console.error('Share failed:', err);
+        }
+    };
+
+    const toggleOptions = (e) => {
+        e.stopPropagation();
+        setShowOptions(!showOptions);
+    };
+
+    const content = announcement.content || '';
+    const isLong = content.length > 200;
+    const displayText = isExpanded ? content : (isLong ? content.substring(0, 200) + '...' : content);
+
+    return (
+        <Card className="cursor-pointer hover:border-primary-500 transition-colors" onClick={handleCardClick}>
+            <CardBody>
+                <div className="flex items-start justify-between">
+                    <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Megaphone className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-primary">{announcement.heading}</h3>
+                            <div className="flex items-center gap-2 text-sm text-tertiary">
+                                <span>{announcement.user?.first_name || announcement.user?.username || 'Admin'}</span>
+                                <span>•</span>
+                                <span>{formatTimeAgo(announcement.time_stamp)}</span>
+                            </div>
                         </div>
                     </div>
+
+                    <div className="relative">
+                        <button onClick={toggleOptions} className="p-2 text-tertiary hover:text-primary hover:bg-secondary rounded-full transition-colors">
+                            <MoreHorizontal className="w-5 h-5" />
+                        </button>
+                        {showOptions && (
+                            <div className="absolute right-0 mt-2 w-48 bg-elevated border border-theme rounded-xl shadow-lg z-10 py-1" onClick={e => e.stopPropagation()}>
+                                <button className="w-full text-left px-4 py-2 text-sm text-secondary hover:bg-secondary flex items-center gap-2">
+                                    <EyeOff className="w-4 h-4" /> Not Interested
+                                </button>
+                                <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2">
+                                    <Flag className="w-4 h-4" /> Report
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <p className="mt-4 text-secondary">{announcement.content}</p>
-        </CardBody>
-        <CardFooter className="flex items-center justify-between">
-            <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-tertiary border-2 border-elevated"></div>
-                <div className="w-8 h-8 rounded-full bg-secondary border-2 border-elevated"></div>
-                <div className="h-8 w-8 rounded-full border-2 border-elevated bg-secondary flex items-center justify-center text-xs text-secondary font-medium">
-                    +5
+
+                <div className="mt-4 text-secondary whitespace-pre-wrap">
+                    {displayText}
+                    {isLong && !isExpanded && (
+                        <span
+                            className="text-primary-600 font-medium ml-1 hover:underline cursor-pointer"
+                            onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }}
+                        >
+                            Read more
+                        </span>
+                    )}
+                    {isLong && isExpanded && (
+                        <span
+                            className="text-primary-600 font-medium ml-1 hover:underline cursor-pointer block mt-1"
+                            onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+                        >
+                            Show less
+                        </span>
+                    )}
                 </div>
-            </div>
-            <div className="flex gap-3">
-                <button className="text-secondary hover:text-primary transition-colors">
-                    <ThumbsUp className="w-5 h-5" />
-                </button>
-                <button className="text-secondary hover:text-primary transition-colors">
-                    <MessageSquare className="w-5 h-5" />
-                </button>
-                <button className="text-secondary hover:text-primary transition-colors">
-                    <Share2 className="w-5 h-5" />
-                </button>
-            </div>
-        </CardFooter>
-    </Card>
-);
+            </CardBody>
+
+            <CardFooter className="flex items-center justify-between border-t border-theme pt-3">
+                <div className="flex items-center gap-4 text-sm text-tertiary">
+                    <div className="flex items-center gap-1">
+                        <Heart className="w-4 h-4" /> {likes}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4" /> {(announcement.comments || []).length || 0}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" /> {views}
+                    </div>
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleLike}
+                        className={`p-2 rounded-full transition-colors flex items-center gap-1 ${hasLiked ? 'text-red-500 bg-red-500/10' : 'text-secondary hover:bg-secondary hover:text-red-500'}`}
+                    >
+                        <Heart className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                        onClick={handleCommentClick}
+                        className="p-2 text-secondary hover:bg-secondary hover:text-primary rounded-full transition-colors"
+                    >
+                        <MessageSquare className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={handleShare}
+                        className="p-2 text-secondary hover:bg-secondary hover:text-primary rounded-full transition-colors"
+                    >
+                        <Share2 className="w-5 h-5" />
+                    </button>
+                </div>
+            </CardFooter>
+        </Card>
+    );
+};
 
 export default Announcements;

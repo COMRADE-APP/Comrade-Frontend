@@ -67,6 +67,9 @@ const CreateAnnouncement = () => {
             // Remove non-model fields that DRF would reject
             delete submitData.notification_enabled;
             delete submitData.offline_notification;
+            // Remove empty DateTimeField values — DRF rejects empty strings for DateTimeField
+            if (!submitData.schedule_time) delete submitData.schedule_time;
+            if (!submitData.expiry_time) delete submitData.expiry_time;
             if (roomId) {
                 submitData.room = roomId;
             }
@@ -74,7 +77,14 @@ const CreateAnnouncement = () => {
             navigate(roomId ? `/rooms/${roomId}` : '/announcements');
         } catch (error) {
             console.error('Failed to create announcement:', error);
-            setError(error.response?.data?.detail || 'Failed to create announcement');
+            // Handle DRF field-level errors (e.g. {field: ["error msg"]})
+            const data = error.response?.data;
+            if (data && typeof data === 'object' && !data.detail) {
+                const msgs = Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+                setError(msgs.join(' | '));
+            } else {
+                setError(data?.detail || 'Failed to create announcement');
+            }
             setLoading(false);
         }
     };

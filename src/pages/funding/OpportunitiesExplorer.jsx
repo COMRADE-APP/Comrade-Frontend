@@ -240,7 +240,7 @@ const CARD_RENDERERS = {
 
 // ==================== DETAIL / DONATION MODAL ====================
 
-const DetailModal = ({ item, category, onClose }) => {
+const DetailModal = ({ item, category, onClose, navigate }) => {
     const [donationAmount, setDonationAmount] = useState('');
     const [donating, setDonating] = useState(false);
     const [donated, setDonated] = useState(false);
@@ -363,7 +363,7 @@ const DetailModal = ({ item, category, onClose }) => {
                                 <span>AUM: KES {item.aum}</span>
                                 <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">Low Risk</span>
                             </div>
-                            <button className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Start Investing</button>
+                            <button onClick={() => navigate(`/funding/invest/${item.id}`)} className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Start Investing</button>
                         </div>
                     )}
 
@@ -381,7 +381,7 @@ const DetailModal = ({ item, category, onClose }) => {
                             </div>
                             <p className="text-3xl font-bold text-primary">KES {item.price?.toFixed(2)}</p>
                             <div className="text-sm text-secondary">Sector: {item.sector} • P/E: {item.pe_ratio}</div>
-                            <button className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Trade Now</button>
+                            <button onClick={() => navigate(`/funding/invest/${item.id}`)} className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Trade Now</button>
                         </div>
                     )}
 
@@ -403,7 +403,7 @@ const DetailModal = ({ item, category, onClose }) => {
                                 </div>
                             </div>
                             <div className="text-sm text-secondary">Min: KES {item.min_investment?.toLocaleString()} {item.currency && `• ${item.currency}`}</div>
-                            <button className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Invest in Bond</button>
+                            <button onClick={() => navigate(`/funding/invest/${item.id}`)} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Invest in Bond</button>
                         </div>
                     )}
 
@@ -426,7 +426,7 @@ const DetailModal = ({ item, category, onClose }) => {
                                     <span className="font-bold text-primary">{item.rating}</span>
                                 </div>
                             </div>
-                            <button className="w-full py-3 bg-gradient-to-r from-slate-600 to-gray-700 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Contact Agency</button>
+                            <button onClick={() => navigate(`/funding/invest/${item.id}`)} className="w-full py-3 bg-gradient-to-r from-slate-600 to-gray-700 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Contact Agency</button>
                         </div>
                     )}
                 </div>
@@ -606,6 +606,7 @@ const OpportunitiesExplorer = () => {
                     item={selectedItem}
                     category={category}
                     onClose={() => setSelectedItem(null)}
+                    navigate={navigate}
                 />
             )}
         </div>

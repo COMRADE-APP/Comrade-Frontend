@@ -9,8 +9,9 @@ import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import {
     ArrowLeft, Share2, Bookmark, FileText, Bell, BellOff,
-    Clock, Users, MessageSquare, Send, Smile, Calendar,
-    CheckCircle, AlertTriangle, Megaphone, Eye
+    Clock, Users, MessageSquare, Send, Smile, Calendar, Heart,
+    CheckCircle, AlertTriangle, Megaphone, Eye, Paperclip, Pin, Star,
+    MoreHorizontal
 } from 'lucide-react';
 import { announcementsService } from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
@@ -87,11 +88,21 @@ const AnnouncementDetail = () => {
 
     const handleReaction = async (emoji) => {
         try {
-            await announcementsService.addReaction(id, emoji);
+            await announcementsService.addReaction(id, emoji === '❤️' ? 'like' : emoji);
             setUserReaction(emoji);
             setShowEmojiPicker(false);
         } catch (err) {
             console.error('Failed to add reaction:', err);
+        }
+    };
+
+    const handleHighlightSelect = async (commentId, order) => {
+        try {
+            await announcementsService.highlightComment(commentId, order);
+            loadComments(); // Refresh to see updated orders
+        } catch (err) {
+            console.error('Failed to highlight comment:', err);
+            alert(err.response?.data?.error || 'Failed to highlight comment');
         }
     };
 
@@ -245,36 +256,21 @@ const AnnouncementDetail = () => {
                 </div>
 
                 {/* Reaction Bar */}
-                <CardBody className="flex items-center gap-4 border-t border-theme py-3">
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors ${userReaction ? 'bg-primary/10 text-primary' : 'hover:bg-secondary text-secondary'
-                                }`}
-                        >
-                            {userReaction || <Smile size={18} />}
-                            <span className="ml-1">React</span>
-                        </button>
-                        {showEmojiPicker && (
-                            <div className="absolute top-full left-0 mt-2 p-3 bg-elevated rounded-xl shadow-lg border border-theme z-50 grid grid-cols-8 gap-1.5 w-72">
-                                {COMMON_EMOJIS.map(emoji => (
-                                    <button
-                                        key={emoji}
-                                        onClick={() => handleReaction(emoji)}
-                                        className="text-xl hover:bg-secondary rounded-lg p-1.5 transition-colors"
-                                    >
-                                        {emoji}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                <CardBody className="flex items-center gap-6 border-t border-theme py-3">
+                    <button
+                        onClick={() => handleReaction('❤️')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors ${userReaction ? 'bg-red-500/10 text-red-500' : 'hover:bg-red-500/10 text-secondary hover:text-red-500'
+                            }`}
+                    >
+                        <Heart size={18} fill={userReaction ? 'currentColor' : 'none'} />
+                        <span>{announcement.likes_count || announcement.reactions_count || ''}</span>
+                    </button>
                     <button
                         onClick={() => { setActiveTab('discussion'); commentInputRef.current?.focus(); }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-secondary hover:bg-secondary transition-colors"
                     >
                         <MessageSquare size={18} />
-                        Comment
+                        <span>{comments.length || ''}</span>
                     </button>
                     <button
                         onClick={handleShare}
@@ -294,8 +290,8 @@ const AnnouncementDetail = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-secondary hover:text-primary hover:border-theme'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -321,6 +317,34 @@ const AnnouncementDetail = () => {
                                     <div className="text-secondary whitespace-pre-wrap leading-relaxed">
                                         {announcement.content || announcement.message || 'No content provided.'}
                                     </div>
+
+                                    {/* Render attached files if they exist */}
+                                    {(announcement.files && announcement.files.length > 0) && (
+                                        <div className="mt-6 pt-4 border-t border-theme">
+                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                                                <Paperclip className="w-4 h-4" /> Attached Files
+                                            </h4>
+                                            <div className="flex flex-col gap-2">
+                                                {announcement.files.map((file, idx) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={file.url || file.file}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 p-3 rounded-lg border border-theme hover:bg-secondary transition-colors group"
+                                                    >
+                                                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                                            <FileText className="w-5 h-5" />
+                                                        </div>
+                                                        <div className="flex-1 truncate">
+                                                            <p className="text-sm font-medium text-primary truncate">{file.name || `Attachment ${idx + 1}`}</p>
+                                                            <p className="text-xs text-tertiary">Document</p>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardBody>
                             </Card>
                         </div>
@@ -413,21 +437,112 @@ const AnnouncementDetail = () => {
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                                 </div>
                             ) : comments.length > 0 ? (
-                                <div className="space-y-4">
-                                    {comments.map((comment, idx) => (
-                                        <div key={comment.id || idx} className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                                <Users className="w-4 h-4 text-primary" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-medium text-sm text-primary">{comment.user_name || comment.user?.username || 'User'}</span>
-                                                    <span className="text-xs text-tertiary">{comment.created_at ? formatTimeAgo(comment.created_at) : ''}</span>
-                                                </div>
-                                                <p className="text-secondary text-sm">{comment.content || comment.text}</p>
-                                            </div>
+                                <div className="space-y-6">
+                                    {/* Highlighted Comments Section */}
+                                    {comments.filter(c => c.highlight_order).length > 0 && (
+                                        <div className="mb-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-4">
+                                            <h4 className="text-sm font-semibold text-amber-600 flex items-center gap-2">
+                                                <Star className="w-4 h-4 fill-current" /> Highlighted Responses
+                                            </h4>
+                                            {comments.filter(c => c.highlight_order)
+                                                .sort((a, b) => a.highlight_order - b.highlight_order)
+                                                .map(comment => (
+                                                    <div key={`high-${comment.id}`} className="flex gap-3 bg-elevated p-3 rounded-lg shadow-sm border border-theme">
+                                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                            <Users className="w-4 h-4 text-primary" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-medium text-sm text-primary">{comment.user_name || comment.user?.username || 'User'}</span>
+                                                                <span className="text-xs text-amber-600 font-medium">#{comment.highlight_order}</span>
+                                                            </div>
+                                                            <p className="text-secondary text-sm">{comment.content || comment.text}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                         </div>
-                                    ))}
+                                    )}
+
+                                    {/* All Comments */}
+                                    <div className="space-y-3">
+                                        {comments.map((comment, idx) => {
+                                            const isCreator = user?.id === announcement?.user;
+                                            return (
+                                                <div key={comment.id || idx} className="border border-theme/40 rounded-xl p-4 bg-elevated hover:border-theme transition-colors group relative">
+                                                    <div className="flex gap-3">
+                                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                            {comment.user_avatar ? (
+                                                                <img src={comment.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                                            ) : (
+                                                                <Users className="w-4 h-4 text-primary" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-semibold text-sm text-primary">{comment.user_name || comment.user?.username || 'User'}</span>
+                                                                <span className="text-xs text-tertiary">{comment.created_at ? formatTimeAgo(comment.created_at) : ''}</span>
+                                                                {comment.highlight_order && (
+                                                                    <span className="text-xs px-2 py-0.5 bg-amber-500/10 text-amber-600 rounded-full font-medium flex items-center gap-1">
+                                                                        <Star className="w-3 h-3 fill-current" /> #{comment.highlight_order}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-secondary text-sm leading-relaxed">{comment.content || comment.text}</p>
+                                                        </div>
+
+                                                        {/* Three-dot menu for creators */}
+                                                        {isCreator && (
+                                                            <div className="relative">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const menu = document.getElementById(`comment-menu-${comment.id}`);
+                                                                        if (menu) menu.classList.toggle('hidden');
+                                                                    }}
+                                                                    className="p-1.5 text-tertiary hover:text-primary hover:bg-secondary rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                                                >
+                                                                    <MoreHorizontal className="w-4 h-4" />
+                                                                </button>
+                                                                <div id={`comment-menu-${comment.id}`} className="hidden absolute right-0 top-8 z-20 bg-elevated rounded-xl shadow-lg border border-theme py-1 w-48">
+                                                                    {[1, 2, 3, 4, 5, 6].map(num => (
+                                                                        <button
+                                                                            key={num}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleHighlightSelect(comment.id, comment.highlight_order === num ? null : num);
+                                                                                document.getElementById(`comment-menu-${comment.id}`)?.classList.add('hidden');
+                                                                            }}
+                                                                            className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-secondary transition-colors ${comment.highlight_order === num ? 'text-amber-600 font-medium' : 'text-primary'
+                                                                                }`}
+                                                                        >
+                                                                            <Pin className="w-4 h-4" />
+                                                                            {comment.highlight_order === num ? `Unpin #${num}` : `Pin as #${num}`}
+                                                                        </button>
+                                                                    ))}
+                                                                    {comment.highlight_order && (
+                                                                        <>
+                                                                            <hr className="my-1 border-theme" />
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleHighlightSelect(comment.id, null);
+                                                                                    document.getElementById(`comment-menu-${comment.id}`)?.classList.add('hidden');
+                                                                                }}
+                                                                                className="w-full px-4 py-2 text-left text-sm text-red-500 flex items-center gap-2 hover:bg-secondary transition-colors"
+                                                                            >
+                                                                                <Star className="w-4 h-4" />
+                                                                                Remove Highlight
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             ) : (
                                 <p className="text-secondary text-center py-8">No comments yet. Start the discussion!</p>

@@ -167,6 +167,23 @@ const OpinionDetail = () => {
         }
     };
 
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Opinion by ${opinion.user?.full_name || opinion.user?.first_name || 'User'}`,
+                    text: opinion.content?.substring(0, 100),
+                    url: window.location.href,
+                });
+            } catch (error) {
+                console.log('Share cancelled');
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -214,6 +231,36 @@ const OpinionDetail = () => {
                     onBookmark={handleBookmark}
                     onFollow={handleFollow}
                 />
+
+                {/* Share & Bookmark Bar */}
+                <div className="flex items-center gap-4 px-2 py-3 border-b border-theme">
+                    <button
+                        onClick={() => handleLike(opinion.id)}
+                        className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_liked ? 'text-red-500 hover:bg-red-500/10' : 'text-secondary hover:text-red-500 hover:bg-red-500/10'}`}
+                    >
+                        <Heart className={`w-5 h-5 ${opinion.is_liked ? 'fill-current' : ''}`} />
+                        <span className="text-sm">{opinion.likes_count || ''}</span>
+                    </button>
+                    <button
+                        onClick={() => handleRepost(opinion.id)}
+                        className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted ? 'text-green-500 hover:bg-green-500/10' : 'text-secondary hover:text-green-500 hover:bg-green-500/10'}`}
+                    >
+                        <Repeat2 className="w-5 h-5" />
+                        <span className="text-sm">{opinion.reposts_count || ''}</span>
+                    </button>
+                    <button
+                        onClick={() => handleBookmark(opinion.id)}
+                        className={`p-2 rounded-full transition-colors ${opinion.is_bookmarked ? 'text-primary-500 hover:bg-primary-500/10' : 'text-secondary hover:text-primary-500 hover:bg-primary-500/10'}`}
+                    >
+                        <Bookmark className={`w-5 h-5 ${opinion.is_bookmarked ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                        onClick={handleShare}
+                        className="p-2 text-secondary hover:text-primary-500 hover:bg-secondary rounded-full transition-colors ml-auto"
+                    >
+                        <Share2 className="w-5 h-5" />
+                    </button>
+                </div>
 
                 {/* Quoted Opinion */}
                 {opinion.quoted_opinion && (

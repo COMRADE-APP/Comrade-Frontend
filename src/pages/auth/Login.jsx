@@ -64,7 +64,7 @@ const Login = () => {
 
         setLoading(true);
         try {
-            const response = await login(formData.email, formData.password, formData.otpMethod);
+            const response = await login(formData.email, formData.password, formData.otpMethod, formData.rememberMe);
 
             // Check if verification is required
             if (response.verification_required) {
@@ -192,7 +192,7 @@ const Login = () => {
                                     onChange={handleChange}
                                     className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                 />
-                                <span className="text-sm text-gray-700">Remember me</span>
+                                <span className="text-sm text-gray-700">Keep me signed in</span>
                             </label>
                             <Link to={ROUTES.FORGOT_PASSWORD} className="text-sm text-primary-600 hover:text-primary-700">
                                 Forgot password?

@@ -17,11 +17,12 @@ export default function AdminVerifications() {
     const [reviewingId, setReviewingId] = useState(null);
     const [reviewNotes, setReviewNotes] = useState('');
 
+    const isAdmin = user?.is_admin || user?.is_staff || user?.is_superuser || user?.user_type === 'admin';
     useEffect(() => {
-        if (user && !user.is_admin && !user.is_staff && !user.is_superuser) {
-            navigate(ROUTES.DASHBOARD, { replace: true });
+        if (user && !isAdmin) {
+            navigate(ROUTES.DASHBOARD, { replace: true, state: { error: 'Admin access required' } });
         }
-    }, [user, navigate]);
+    }, [user, isAdmin, navigate]);
 
     const load = useCallback(async () => {
         try {
@@ -35,13 +36,19 @@ export default function AdminVerifications() {
             const data = Array.isArray(res.data) ? res.data : res.data.results || [];
             setItems(data);
         } catch (err) {
+            if (err.response?.status === 403) {
+                navigate(ROUTES.DASHBOARD, { replace: true, state: { error: 'Admin access required' } });
+                return;
+            }
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }, [activeTab]);
+    }, [activeTab, navigate]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        if (isAdmin) load();
+    }, [isAdmin, load]);
 
     const handleReview = async (id, action) => {
         setActionLoading(`${action}-${id}`);

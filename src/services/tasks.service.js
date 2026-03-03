@@ -3,15 +3,31 @@ import API_ENDPOINTS from '../constants/apiEndpoints';
 
 export const tasksService = {
     async getAll() {
-        const response = await api.get(API_ENDPOINTS.TASKS);
-        const data = response.data;
-        return Array.isArray(data) ? data : (data.results || []);
+        try {
+            const response = await api.get(API_ENDPOINTS.TASKS);
+            const data = response.data;
+            if (Array.isArray(data)) return data;
+            if (data?.results) return data.results;
+            if (data && typeof data === 'object') return Object.values(data).flat().filter(Boolean);
+            return [];
+        } catch (error) {
+            console.error('Tasks getAll error:', error?.response?.status, error?.message);
+            return [];
+        }
     },
 
     async getMyTasks() {
-        const response = await api.get(API_ENDPOINTS.TASKS_MY);
-        const data = response.data;
-        return Array.isArray(data) ? data : (data.results || []);
+        try {
+            const response = await api.get(API_ENDPOINTS.TASKS_MY);
+            const data = response.data;
+            if (Array.isArray(data)) return data;
+            if (data?.results) return data.results;
+            if (data && typeof data === 'object') return Object.values(data).flat().filter(Boolean);
+            return [];
+        } catch (error) {
+            console.error('Tasks getMyTasks error:', error?.response?.status, error?.message);
+            return [];
+        }
     },
 
     async getById(id) {
@@ -65,9 +81,24 @@ export const tasksService = {
         return response.data;
     },
 
-    // Reactions
+    // Reactions & Interactions
     async addReaction(taskId, reactionType) {
         const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}react/`, { reaction_type: reactionType });
+        return response.data;
+    },
+
+    async recordView(taskId) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}view/`);
+        return response.data;
+    },
+
+    async report(taskId) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}report/`);
+        return response.data;
+    },
+
+    async block(taskId) {
+        const response = await api.post(`${API_ENDPOINTS.TASK_DETAIL(taskId)}block/`);
         return response.data;
     },
 

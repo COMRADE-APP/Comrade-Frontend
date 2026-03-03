@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Building2, MapPin, CheckCircle, ChevronRight, ChevronLeft, AlertCircle
+    Building2, MapPin, CheckCircle, ChevronRight, ChevronLeft, AlertCircle,
+    Plus, Trash2, HelpCircle
 } from 'lucide-react';
 import { careersService } from '../../services/careers.service';
 import Card, { CardBody } from '../../components/common/Card';
@@ -12,7 +13,18 @@ const STEPS = [
     { number: 1, title: 'Basic Info' },
     { number: 2, title: 'Details & Requirements' },
     { number: 3, title: 'Salary & Location' },
-    { number: 4, title: 'Review' }
+    { number: 4, title: 'Custom Questions' },
+    { number: 5, title: 'Review' }
+];
+
+const RESPONSE_TYPES = [
+    { value: 'text', label: 'Short Text' },
+    { value: 'textarea', label: 'Long Text' },
+    { value: 'number', label: 'Number' },
+    { value: 'date', label: 'Date' },
+    { value: 'select', label: 'Multiple Choice' },
+    { value: 'checkbox', label: 'Checkbox (Yes/No)' },
+    { value: 'file', label: 'File Upload' },
 ];
 
 const CreateCareer = () => {
@@ -36,8 +48,34 @@ const CreateCareer = () => {
         salary_currency: 'USD',
         is_remote: false,
         location: '',
-        application_deadline: ''
+        application_deadline: '',
+        custom_questions: []
     });
+
+    const addQuestion = () => {
+        setFormData(prev => ({
+            ...prev,
+            custom_questions: [
+                ...prev.custom_questions,
+                { label: '', response_type: 'text', required: false, options: '' }
+            ]
+        }));
+    };
+
+    const updateQuestion = (index, field, value) => {
+        setFormData(prev => {
+            const q = [...prev.custom_questions];
+            q[index] = { ...q[index], [field]: value };
+            return { ...prev, custom_questions: q };
+        });
+    };
+
+    const removeQuestion = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            custom_questions: prev.custom_questions.filter((_, i) => i !== index)
+        }));
+    };
 
     const industries = [
         { value: 'tech', label: 'Technology' },
@@ -96,7 +134,11 @@ const CreateCareer = () => {
                 ...formData,
                 salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
                 salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
-                application_deadline: formData.application_deadline || null
+                application_deadline: formData.application_deadline || null,
+                custom_questions: formData.custom_questions.filter(q => q.label.trim()).map(q => ({
+                    ...q,
+                    options: q.response_type === 'select' ? q.options.split(',').map(o => o.trim()).filter(Boolean) : undefined
+                }))
             };
 
             await careersService.create(payload);
@@ -345,6 +387,85 @@ const CreateCareer = () => {
 
                             {currentStep === 4 && (
                                 <div className="space-y-6 animate-fade-in">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h3 className="text-xl font-semibold text-primary">Custom Application Questions</h3>
+                                            <p className="text-sm text-secondary mt-1">Add screening questions for applicants (optional)</p>
+                                        </div>
+                                        <Button variant="outline" onClick={addQuestion} className="flex items-center gap-1">
+                                            <Plus size={16} /> Add Question
+                                        </Button>
+                                    </div>
+
+                                    {formData.custom_questions.length === 0 ? (
+                                        <div className="text-center py-12 bg-background border-2 border-dashed border-theme rounded-xl">
+                                            <HelpCircle className="w-12 h-12 text-tertiary mx-auto mb-3" />
+                                            <p className="text-secondary font-medium">No custom questions yet</p>
+                                            <p className="text-sm text-tertiary mt-1">Add questions to screen applicants</p>
+                                            <Button variant="primary" onClick={addQuestion} className="mt-4">
+                                                <Plus size={16} className="mr-1" /> Add First Question
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {formData.custom_questions.map((q, idx) => (
+                                                <div key={idx} className="bg-background border border-theme rounded-xl p-5 relative group">
+                                                    <div className="flex items-start justify-between gap-3 mb-4">
+                                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">Q{idx + 1}</span>
+                                                        <button
+                                                            onClick={() => removeQuestion(idx)}
+                                                            className="p-1.5 text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <input
+                                                            type="text"
+                                                            value={q.label}
+                                                            onChange={(e) => updateQuestion(idx, 'label', e.target.value)}
+                                                            placeholder="Enter your question..."
+                                                            className="w-full px-4 py-2 bg-elevated border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
+                                                        />
+                                                        <div className="flex items-center gap-4">
+                                                            <select
+                                                                value={q.response_type}
+                                                                onChange={(e) => updateQuestion(idx, 'response_type', e.target.value)}
+                                                                className="flex-1 px-3 py-2 bg-elevated border border-theme rounded-lg text-sm text-primary outline-none"
+                                                            >
+                                                                {RESPONSE_TYPES.map(rt => (
+                                                                    <option key={rt.value} value={rt.value}>{rt.label}</option>
+                                                                ))}
+                                                            </select>
+                                                            <label className="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={q.required}
+                                                                    onChange={(e) => updateQuestion(idx, 'required', e.target.checked)}
+                                                                    className="rounded border-theme text-primary focus:ring-primary"
+                                                                />
+                                                                Required
+                                                            </label>
+                                                        </div>
+                                                        {q.response_type === 'select' && (
+                                                            <input
+                                                                type="text"
+                                                                value={q.options}
+                                                                onChange={(e) => updateQuestion(idx, 'options', e.target.value)}
+                                                                placeholder="Options separated by commas (e.g. Option A, Option B, Option C)"
+                                                                className="w-full px-4 py-2 bg-elevated border border-theme rounded-lg text-sm text-primary outline-none"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {currentStep === 5 && (
+                                <div className="space-y-6 animate-fade-in">
                                     <h3 className="text-xl font-semibold text-primary mb-4">Review & Post</h3>
                                     <div className="bg-background border border-theme rounded-xl p-6">
                                         <h4 className="text-2xl font-bold text-primary mb-1">{formData.title}</h4>
@@ -367,6 +488,22 @@ const CreateCareer = () => {
                                             </div>
                                         </div>
 
+                                        {formData.custom_questions.length > 0 && (
+                                            <div className="pt-4 border-t border-theme mb-6">
+                                                <h5 className="text-sm font-medium text-secondary uppercase tracking-wider mb-3">Custom Questions ({formData.custom_questions.length})</h5>
+                                                <div className="space-y-2">
+                                                    {formData.custom_questions.filter(q => q.label.trim()).map((q, i) => (
+                                                        <div key={i} className="flex items-center gap-2 text-sm">
+                                                            <span className="text-primary font-medium">Q{i + 1}:</span>
+                                                            <span className="text-primary">{q.label}</span>
+                                                            <span className="text-xs px-2 py-0.5 bg-secondary/10 text-secondary rounded">{q.response_type}</span>
+                                                            {q.required && <span className="text-xs text-red-500">Required</span>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="flex flex-wrap gap-6 pt-6 border-t border-theme">
                                             <div>
                                                 <strong className="text-primary block">Salary</strong>
@@ -376,6 +513,12 @@ const CreateCareer = () => {
                                                 <strong className="text-primary block">Location</strong>
                                                 <span className="text-secondary">{formData.is_remote ? 'Remote' : formData.location}</span>
                                             </div>
+                                            {formData.application_deadline && (
+                                                <div>
+                                                    <strong className="text-primary block">Deadline</strong>
+                                                    <span className="text-secondary">{new Date(formData.application_deadline).toLocaleDateString()}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

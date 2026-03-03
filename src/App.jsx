@@ -51,6 +51,10 @@ import Shop from './pages/shop/Shop';
 import ProductDetails from './pages/shop/ProductDetails';
 import EstablishmentDetail from './pages/shop/EstablishmentDetail';
 import RegisterEstablishment from './pages/shop/RegisterEstablishment';
+import CreateService from './pages/shop/CreateService';
+import ServiceDetail from './pages/shop/ServiceDetail';
+import ShopCart from './pages/shop/Cart';
+import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
 
 // Payment System Components
@@ -91,13 +95,21 @@ import EventDetail from './pages/EventDetail';
 import TaskDetail from './pages/TaskDetail';
 import ResourceDetail from './pages/ResourceDetail';
 import AnnouncementDetail from './pages/AnnouncementDetail';
-import CreateTask from './pages/CreateTask';
+import TaskCreation from './pages/TaskCreation';
 import CreateRoom from './pages/CreateRoom';
 import CreateResource from './pages/CreateResource';
 import CreateResearch from './pages/CreateResearch';
 import ResearchDetail from './pages/ResearchDetail';
 import CreateArticle from './pages/CreateArticle';
 import CreateSpecialization from './pages/CreateSpecialization';
+import Report from './pages/Report';
+
+// ML Operations
+import MLDashboard from './pages/MLDashboard';
+import PricingDashboard from './pages/ml/PricingDashboard';
+import RecommendationDashboard from './pages/ml/RecommendationDashboard';
+import DistributionDashboard from './pages/ml/DistributionDashboard';
+import ScrapingDashboard from './pages/ml/ScrapingDashboard';
 import CreateStack from './pages/CreateStack';
 import AdminDeletionReview from './pages/admin/AdminDeletionReview';
 import AdminPortal from './pages/admin/AdminPortal';
@@ -107,6 +119,9 @@ import AdminRoleRequests from './pages/admin/AdminRoleRequests';
 import AdminVerifications from './pages/admin/AdminVerifications';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminSettings from './pages/admin/AdminSettings';
+
+// Voice Assistant
+import VoiceSettings from './pages/settings/VoiceSettings';
 
 // Role-Specific Portals
 import StaffPortal from './pages/portals/StaffPortal';
@@ -125,6 +140,8 @@ import FundingOrgDashboard from './pages/funding/FundingOrgDashboard';
 import RequestFunding from './pages/funding/RequestFunding';
 import BusinessDetail from './pages/funding/BusinessDetail';
 import OpportunitiesExplorer from './pages/funding/OpportunitiesExplorer';
+import CreateEnterprise from './pages/funding/CreateEnterprise';
+import InvestmentProcess from './pages/funding/InvestmentProcess';
 
 // Careers & Gigs
 import GigsPage from './pages/careers/GigsPage';
@@ -241,6 +258,26 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <FundingOrgDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/enterprise/create'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateEnterprise />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/invest/:ventureId'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InvestmentProcess />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -418,6 +455,16 @@ function App() {
                 }
             />
             <Route
+                path="/tasks/create"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <TaskCreation />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/tasks/:id"
                 element={
                     <ProtectedRoute>
@@ -584,6 +631,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <ArticleDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/report"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Report />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -948,6 +1005,48 @@ function App() {
                 }
             />
 
+            {/* Shop Service Routes */}
+            <Route
+                path="/shop/create-service"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateService />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/shop/cart"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ShopCart />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/shop/orders"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ShopOrders />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/shop/service/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ServiceDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
             {/* Payment System Routes */}
             <Route
                 path="/products"
@@ -1228,16 +1327,6 @@ function App() {
                 }
             />
             <Route
-                path="/tasks/create"
-                element={
-                    <ProtectedRoute>
-                        <MainLayout>
-                            <CreateTask />
-                        </MainLayout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route
                 path="/rooms/create"
                 element={
                     <ProtectedRoute>
@@ -1413,6 +1502,78 @@ function App() {
                                 onComplete={() => window.location.href = '/settings'}
                                 onCancel={() => window.location.href = '/settings'}
                             />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* ML Dashboard */}
+            <Route
+                path="/admin/ml-dashboard"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <MLDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* ML Pricing Dashboard */}
+            <Route
+                path="/admin/ml/pricing"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PricingDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* ML Recommendation Dashboard */}
+            <Route
+                path="/admin/ml/recommendation"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RecommendationDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* ML Distribution Dashboard */}
+            <Route
+                path="/admin/ml/distribution"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <DistributionDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* ML Scraping Dashboard */}
+            <Route
+                path="/admin/ml/scraping"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ScrapingDashboard />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Voice Assistant Settings */}
+            <Route
+                path={ROUTES.VOICE_SETTINGS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <VoiceSettings />
                         </MainLayout>
                     </ProtectedRoute>
                 }

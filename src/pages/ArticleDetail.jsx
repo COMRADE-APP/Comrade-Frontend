@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Calendar, User, Heart, MessageCircle, Bookmark, Share, Send } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, User, Heart, MessageCircle, Bookmark, Share, Send, Flag, DollarSign, Shield, Crown, Lock } from 'lucide-react';
 import Button from '../components/common/Button';
 import articlesService from '../services/articles.service';
 import toast from 'react-hot-toast';
@@ -119,13 +119,13 @@ const ArticleDetail = () => {
     if (loading) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
-                <div className="h-64 bg-gray-200 rounded-xl mb-8"></div>
+                <div className="h-8 bg-secondary rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-secondary rounded w-1/4 mb-8"></div>
+                <div className="h-64 bg-secondary rounded-xl mb-8"></div>
                 <div className="space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    <div className="h-4 bg-secondary rounded w-full"></div>
+                    <div className="h-4 bg-secondary rounded w-full"></div>
+                    <div className="h-4 bg-secondary rounded w-5/6"></div>
                 </div>
             </div>
         );
@@ -133,8 +133,18 @@ const ArticleDetail = () => {
 
     if (!article) return null;
 
+    const tierConfig = {
+        free: { label: 'Free', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: null },
+        standard: { label: 'Standard', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: Shield },
+        premium: { label: 'Premium', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', icon: Crown },
+        gold: { label: 'Gold', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Crown },
+    };
+    const accessTier = article.access_tier || 'free';
+    const tier = tierConfig[accessTier] || tierConfig.free;
+    const TierIcon = tier.icon;
+
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="min-h-screen bg-background pb-12">
             {/* Navigation Header */}
             <div className="bg-elevated border-b border-theme sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -170,6 +180,11 @@ const ArticleDetail = () => {
                     <div className="flex flex-wrap gap-2 mb-4">
                         <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
                             {article.category}
+                        </span>
+                        {/* Access Tier Badge */}
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center gap-1 ${tier.color}`}>
+                            {TierIcon && <TierIcon size={14} />}
+                            {tier.label}
                         </span>
                         {article.tags?.map((tag, i) => (
                             <span key={i} className="px-3 py-1 bg-secondary text-secondary rounded-full text-sm">
@@ -328,6 +343,33 @@ const ArticleDetail = () => {
                         )}
                     </div>
                 </section>
+
+                {/* Support Creator + Report */}
+                <div className="mt-8 flex flex-col md:flex-row gap-4">
+                    {article.support_enabled && (
+                        <div className="flex-1 bg-gradient-to-br from-amber-500/5 to-yellow-500/10 border border-amber-500/20 rounded-2xl p-6 flex items-center gap-4">
+                            <DollarSign className="w-10 h-10 text-amber-500" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-primary">Support the Author</h3>
+                                <p className="text-sm text-secondary">Show appreciation for this article</p>
+                            </div>
+                            <Button
+                                variant="primary"
+                                className="bg-amber-500 hover:bg-amber-600"
+                                onClick={() => navigate(`/payments/send?to=${article.author}&reason=article_support&ref=${id}`)}
+                            >
+                                <Heart size={16} className="mr-2" /> Support
+                            </Button>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => navigate(`/report?type=article&id=${id}&title=${encodeURIComponent(article.title || '')}`)}
+                        className="flex items-center gap-2 p-3 text-sm text-secondary hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors"
+                    >
+                        <Flag size={16} />
+                        Report this article
+                    </button>
+                </div>
             </article>
         </div>
     );

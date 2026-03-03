@@ -2,7 +2,12 @@ import React from 'react';
 
 const Card = ({ children, className = '', ...props }) => {
     return (
-        <div className={`bg-elevated rounded-2xl border border-theme shadow-sm overflow-hidden ${className}`} {...props}>
+        <div
+            className={`bg-elevated rounded-2xl border border-theme shadow-sm overflow-hidden ${className}`}
+            role="region"
+            aria-label="Content Card"
+            {...props}
+        >
             {children}
         </div>
     );

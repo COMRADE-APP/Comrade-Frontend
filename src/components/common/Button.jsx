@@ -25,6 +25,7 @@ const Button = ({
             type={type}
             onClick={onClick}
             disabled={disabled}
+            aria-disabled={disabled}
             className={classes}
             {...props}
         >

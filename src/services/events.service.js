@@ -20,7 +20,7 @@ const eventsService = {
      * Get event by ID
      */
     getEvent: (id) => {
-        return api.get(`${BASE_URL}/${id}/`);
+        return api.get(`${BASE_URL}/events/${id}/`);
     },
 
     /**
@@ -51,6 +51,13 @@ const eventsService = {
      */
     purchaseTicket: (eventId, ticketData) => {
         return api.post(`${BASE_URL}/${eventId}/purchase_ticket/`, ticketData);
+    },
+
+    /**
+     * Get available tickets for event
+     */
+    getEventTickets: (eventId) => {
+        return api.get(`${BASE_URL}/${eventId}/tickets/`);
     },
 
     /**
@@ -176,6 +183,21 @@ const eventsService = {
      */
     unblockEvent: (eventId) => {
         return api.delete(`${BASE_URL}/${eventId}/unblock/`);
+    },
+
+    /**
+     * Submit event feedback / review
+     */
+    submitFeedback: (feedbackData) => {
+        // feedbackData should have { event: eventId, rating, feedback_text }
+        return api.post('/api/event_feedback/', feedbackData);
+    },
+
+    /**
+     * Get event feedback / reviews
+     */
+    getEventFeedback: (eventId) => {
+        return api.get(`/api/event_feedback/?event=${eventId}`);
     },
 
     // ===== REMINDERS =====

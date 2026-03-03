@@ -42,23 +42,29 @@ export default function AdminPortal() {
     const [error, setError] = useState('');
 
     // Guard: redirect non-admin users
+    const isAdmin = user?.is_admin || user?.is_staff || user?.is_superuser || user?.user_type === 'admin';
     useEffect(() => {
-        if (user && !user.is_admin && !user.is_staff && !user.is_superuser) {
-            navigate(ROUTES.DASHBOARD, { replace: true });
+        if (user && !isAdmin) {
+            navigate(ROUTES.DASHBOARD, { replace: true, state: { error: 'Admin access required' } });
         }
-    }, [user, navigate]);
+    }, [user, isAdmin, navigate]);
 
     useEffect(() => {
-        loadStats();
-    }, []);
+        if (isAdmin) loadStats();
+    }, [isAdmin]);
 
     const loadStats = async () => {
         try {
             setLoading(true);
+            setError('');
             const res = await adminService.getDashboardStats();
             setStats(res.data);
         } catch (err) {
-            setError('Failed to load dashboard data');
+            if (err.response?.status === 403) {
+                navigate(ROUTES.DASHBOARD, { replace: true, state: { error: 'Admin access required' } });
+                return;
+            }
+            setError('Failed to load dashboard data. Please try again.');
             console.error(err);
         } finally {
             setLoading(false);

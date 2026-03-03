@@ -206,17 +206,43 @@ export const AuthProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [user]);
 
-    const login = async (email, password) => {
+    const login = async (email, password, otpMethod, rememberMe = false) => {
         try {
-            const data = await authService.login(email, password);
+            const data = await authService.login(email, password, otpMethod);
 
             if (data.verification_required) {
                 navigate(ROUTES.VERIFY_EMAIL_OTP, { state: { email: data.email } });
                 return data;
             }
 
+            // Choose storage: persistent (localStorage) or session-only (sessionStorage)
+            const storage = rememberMe ? localStorage : sessionStorage;
+            localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+
+            // If authService stored tokens in localStorage, move them to the correct storage
+            const accessToken = localStorage.getItem('access_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (!rememberMe && accessToken) {
+                sessionStorage.setItem('access_token', accessToken);
+                sessionStorage.setItem('refresh_token', refreshToken);
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+            }
+
             const userData = data.user || authService.getStoredUser();
             setUser(userData);
+
+            // Store user data in the chosen storage
+            storage.setItem('user', JSON.stringify(userData));
+
+            // NOTE: Initialize SpeechSynthesis in the context of the user's click event
+            // This bypasses browser auto-play policies that block the greeting on the next page
+            if (window.speechSynthesis) {
+                const initUtterance = new SpeechSynthesisUtterance('');
+                initUtterance.volume = 0;
+                window.speechSynthesis.speak(initUtterance);
+            }
+
             setJustLoggedIn(true);
 
             const isProfileComplete = userData?.profile_completed !== false;
@@ -400,6 +426,8 @@ export const AuthProvider = ({ children }) => {
         showAccountSelection,
         handleAccountSelected,
         dismissAccountSelection,
+        // Voice assistant needs this
+        justLoggedIn,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

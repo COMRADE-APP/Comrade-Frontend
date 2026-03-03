@@ -96,8 +96,18 @@ const announcementService = {
     },
 
     // Reactions
-    addReaction: async (announcementId, reactionType) => {
+    addReaction: async (announcementId, reactionType = 'like') => {
         const response = await api.post(`/api/announcements/${announcementId}/react/`, { reaction_type: reactionType });
+        return response.data;
+    },
+
+    recordView: async (announcementId) => {
+        const response = await api.post(`/api/announcements/${announcementId}/view/`);
+        return response.data;
+    },
+
+    highlightComment: async (commentId, highlightOrder) => {
+        const response = await api.post(`/api/comments/${commentId}/highlight/`, { highlight_order: highlightOrder });
         return response.data;
     },
 };

@@ -15,7 +15,7 @@ import LogisticsSection from '../components/events/EventLogistics';
 import {
     Calendar, MapPin, Users, Clock, Ticket, Bell, MessageSquare,
     ArrowLeft, Share2, Heart, Bookmark, MoreVertical, Globe, Building,
-    FileText, DollarSign, Settings, ChevronRight
+    FileText, DollarSign, Settings, ChevronRight, Star
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import { formatDate, formatTime } from '../utils/dateFormatter';
@@ -28,9 +28,18 @@ const EventDetail = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [error, setError] = useState(null);
+    const [tickets, setTickets] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [newReview, setNewReview] = useState({ rating: 5, feedback_text: '' });
 
     useEffect(() => {
         loadEvent();
+
+        // Check URL for action parameter
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('action') === 'book') {
+            setActiveTab('tickets');
+        }
     }, [id]);
 
     const loadEvent = async () => {
@@ -38,7 +47,25 @@ const EventDetail = () => {
         setError(null);
         try {
             const response = await eventsService.getEvent(id);
-            setEvent(response.data);
+            // Handle both direct data and {data: ...} response shapes
+            const eventData = response?.data || response;
+            if (!eventData || (typeof eventData === 'object' && !eventData.id && !eventData.name)) {
+                setError('Event not found');
+                return;
+            }
+            setEvent(eventData);
+
+            try {
+                const [ticketsRes, reviewsRes] = await Promise.all([
+                    eventsService.getEventTickets(id).catch(() => ({ data: [] })),
+                    eventsService.getEventFeedback(id).catch(() => ({ data: [] }))
+                ]);
+                setTickets(Array.isArray(ticketsRes?.data) ? ticketsRes.data : []);
+                const reviewData = reviewsRes?.data;
+                setReviews(Array.isArray(reviewData?.results) ? reviewData.results : Array.isArray(reviewData) ? reviewData : []);
+            } catch (err) {
+                console.error('Failed to load aux data:', err);
+            }
         } catch (err) {
             console.error('Failed to load event:', err);
             setError('Failed to load event details');
@@ -54,6 +81,7 @@ const EventDetail = () => {
         { id: 'tickets', label: 'Tickets', icon: Ticket },
         { id: 'attendees', label: 'Attendees', icon: Users },
         { id: 'room', label: 'Discussion', icon: MessageSquare },
+        { id: 'reviews', label: 'Reviews', icon: Star },
         ...(isOrganizer ? [{ id: 'logistics', label: 'Logistics', icon: Settings }] : []),
     ];
 
@@ -104,6 +132,20 @@ const EventDetail = () => {
                 <div className="aspect-video md:aspect-[3/1] bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center relative">
                     <Calendar className="w-20 h-20 text-primary" />
                     <div className="absolute top-4 right-4 flex gap-2">
+                        {(() => {
+                            const locType = event.event_location?.toLowerCase();
+                            const locText = event.location?.toLowerCase() || '';
+                            let badge = 'Physical';
+                            let badgeClass = 'bg-blue-500/20 text-blue-400';
+                            if (locType === 'online' || locText.includes('virtual') || locText.includes('online') || locText.includes('zoom') || locText.includes('meet')) {
+                                badge = 'Virtual';
+                                badgeClass = 'bg-green-500/20 text-green-400';
+                            } else if (locType === 'hybrid' || locText.includes('hybrid')) {
+                                badge = 'Hybrid';
+                                badgeClass = 'bg-purple-500/20 text-purple-400';
+                            }
+                            return <span className={`px-3 py-1 rounded-full text-sm font-medium ${badgeClass}`}>{badge}</span>;
+                        })()}
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${event.status === 'active' ? 'bg-green-500/10 text-green-600' :
                             event.status === 'draft' ? 'bg-secondary text-secondary' :
                                 event.status === 'cancelled' ? 'bg-red-500/10 text-red-600' :
@@ -234,14 +276,21 @@ const EventDetail = () => {
                                 <CardBody>
                                     <h3 className="font-semibold mb-3 text-primary">Organized by</h3>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <Users className="w-6 h-6 text-primary" />
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg">
+                                            {(event.created_by_name || event.organisation?.name || event.institution?.name || 'O')[0].toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="font-medium text-primary">{event.created_by_name || 'Event Organizer'}</p>
-                                            <p className="text-sm text-secondary">Organizer</p>
+                                            <p className="font-medium text-primary">{event.created_by_name || event.organisation?.name || event.institution?.name || 'Event Organizer'}</p>
+                                            <p className="text-sm text-secondary">
+                                                {event.organisation ? 'Organisation' : event.institution ? 'Institution' : 'Independent Organizer'}
+                                            </p>
                                         </div>
                                     </div>
+                                    {event.event_url && (
+                                        <a href={event.event_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-primary-500 hover:underline">
+                                            <Globe size={14} /> Event Link
+                                        </a>
+                                    )}
                                 </CardBody>
                             </Card>
 
@@ -280,7 +329,7 @@ const EventDetail = () => {
                 {activeTab === 'tickets' && (
                     <Card>
                         <CardBody>
-                            <EventTicketing event={event} tickets={[]} isOrganizer={isOrganizer} />
+                            <EventTicketing event={event} tickets={tickets} isOrganizer={isOrganizer} />
                         </CardBody>
                     </Card>
                 )}
@@ -327,6 +376,85 @@ const EventDetail = () => {
                                     Discussion room will be available when the event starts.
                                 </p>
                             )}
+                        </CardBody>
+                    </Card>
+                )}
+
+                {activeTab === 'reviews' && (
+                    <Card>
+                        <CardBody>
+                            <h3 className="font-semibold text-lg mb-4 text-primary">Event Reviews</h3>
+
+                            {/* Submit Review Form */}
+                            {!isOrganizer && (
+                                <div className="mb-8 bg-secondary/30 p-4 rounded-lg border border-theme/50">
+                                    <h4 className="font-medium text-primary mb-3">Leave a Review</h4>
+                                    <div className="flex gap-2 mb-3">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button
+                                                key={star}
+                                                onClick={() => setNewReview({ ...newReview, rating: star })}
+                                                className={`p-1 rounded-full transition-colors ${newReview.rating >= star ? 'text-yellow-500' : 'text-tertiary hover:text-yellow-500/50'}`}
+                                            >
+                                                <Star className={newReview.rating >= star ? "fill-current" : ""} size={24} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <textarea
+                                        value={newReview.feedback_text}
+                                        onChange={(e) => setNewReview({ ...newReview, feedback_text: e.target.value })}
+                                        placeholder="Share your experience..."
+                                        className="w-full bg-secondary border border-theme rounded-lg p-3 text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 outline-none mb-3 min-h-[100px]"
+                                    />
+                                    <Button
+                                        variant="primary"
+                                        disabled={!newReview.feedback_text.trim()}
+                                        onClick={async () => {
+                                            try {
+                                                await eventsService.submitFeedback({ event: event.id, rating: newReview.rating, feedback_text: newReview.feedback_text });
+                                                setNewReview({ rating: 5, feedback_text: '' });
+                                                loadEvent();
+                                                alert("Review submitted successfully");
+                                            } catch (err) {
+                                                alert(err.response?.data?.error || "Failed to submit review");
+                                            }
+                                        }}
+                                    >
+                                        Submit Review
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Reviews List */}
+                            <div className="space-y-4">
+                                {reviews.length > 0 ? reviews.map((review, idx) => (
+                                    <div key={idx} className="p-4 bg-secondary rounded-lg border border-theme/30">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary-600">
+                                                    {(review.user?.first_name || review.user_name || 'U')[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-primary text-sm">{review.user?.first_name || review.user_name || 'Anonymous User'}</p>
+                                                    <div className="flex gap-1">
+                                                        {[1, 2, 3, 4, 5].map(star => (
+                                                            <Star
+                                                                key={star}
+                                                                size={12}
+                                                                className={review.rating >= star ? 'text-yellow-500 fill-current' : 'text-tertiary'}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-tertiary">{formatDate(review.created_at || new Date().toISOString())}</span>
+                                        </div>
+                                        <p className="text-secondary text-sm">{review.feedback_text}</p>
+                                    </div>
+                                )) : (
+                                    <p className="text-secondary text-center py-6">No reviews yet.</p>
+                                )}
+                            </div>
                         </CardBody>
                     </Card>
                 )}

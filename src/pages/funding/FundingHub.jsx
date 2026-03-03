@@ -254,9 +254,14 @@ const OPPORTUNITY_CATEGORIES = [
 
 const InvestmentOpportunities = ({ navigate }) => (
     <div>
-        <div className="mb-6">
-            <h2 className="text-xl font-bold text-primary mb-1">Explore Investment Opportunities</h2>
-            <p className="text-sm text-secondary">Browse diverse investment avenues across multiple asset classes.</p>
+        <div className="flex justify-between items-center mb-6">
+            <div>
+                <h2 className="text-xl font-bold text-primary mb-1">Explore Investment Opportunities</h2>
+                <p className="text-sm text-secondary">Browse diverse investment avenues across multiple asset classes.</p>
+            </div>
+            <Button onClick={() => navigate('/funding/enterprise/create')} className="bg-primary hover:bg-primary-dark text-white flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Create Enterprise
+            </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {OPPORTUNITY_CATEGORIES.map(cat => {
@@ -354,8 +359,8 @@ const ApplicationTracking = ({ requests, loading, navigate }) => {
                                                         <React.Fragment key={s.key}>
                                                             <div className={`flex flex-col items-center min-w-[80px] ${isCurrent ? 'scale-110' : ''}`}>
                                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${isCompleted ? 'bg-green-100 text-green-600' :
-                                                                        isCurrent ? `bg-${s.color}-100 text-${s.color}-600 ring-2 ring-${s.color}-300` :
-                                                                            'bg-gray-100 text-gray-400'
+                                                                    isCurrent ? `bg-${s.color}-100 text-${s.color}-600 ring-2 ring-${s.color}-300` :
+                                                                        'bg-gray-100 text-gray-400'
                                                                     }`}>
                                                                     {isCompleted ? <CheckCircle className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                                                                 </div>

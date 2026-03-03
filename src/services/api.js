@@ -10,10 +10,20 @@ const api = axios.create({
     },
 });
 
+// Helper to get token from the correct storage
+const getToken = (key) => {
+    const rememberMe = localStorage.getItem('remember_me') === 'true';
+    if (rememberMe) {
+        return localStorage.getItem(key);
+    }
+    // Check sessionStorage first, fall back to localStorage (for backward compat)
+    return sessionStorage.getItem(key) || localStorage.getItem(key);
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = getToken('access_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -39,7 +49,7 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const refreshToken = localStorage.getItem('refresh_token');
+                const refreshToken = getToken('refresh_token');
                 if (!refreshToken) {
                     throw new Error('No refresh token available');
                 }
@@ -49,7 +59,13 @@ api.interceptors.response.use(
                 });
 
                 const { access } = response.data;
-                localStorage.setItem('access_token', access);
+                // Store in the correct storage
+                const rememberMe = localStorage.getItem('remember_me') === 'true';
+                if (rememberMe) {
+                    localStorage.setItem('access_token', access);
+                } else {
+                    sessionStorage.setItem('access_token', access);
+                }
 
                 originalRequest.headers.Authorization = `Bearer ${access}`;
                 return api(originalRequest);
@@ -58,6 +74,10 @@ api.interceptors.response.use(
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('remember_me');
+                sessionStorage.removeItem('access_token');
+                sessionStorage.removeItem('refresh_token');
+                sessionStorage.removeItem('user');
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             }

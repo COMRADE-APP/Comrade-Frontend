@@ -205,6 +205,7 @@ const Resources = () => {
 };
 
 const ResourceCard = ({ resource, onDelete }) => {
+    const navigate = useNavigate();
     const getIcon = (type) => {
         switch (type) {
             case 'image':
@@ -219,7 +220,7 @@ const ResourceCard = ({ resource, onDelete }) => {
     };
 
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/resources/${resource.id}`)}>
             <CardBody>
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -227,7 +228,7 @@ const ResourceCard = ({ resource, onDelete }) => {
                             {getIcon(resource.file_type)}
                         </div>
                         <button
-                            onClick={() => onDelete(resource.id)}
+                            onClick={(e) => { e.stopPropagation(); onDelete(resource.id); }}
                             className="text-tertiary hover:text-red-600 transition-colors"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -246,11 +247,11 @@ const ResourceCard = ({ resource, onDelete }) => {
                     </div>
 
                     <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1">
+                        <Button variant="outline" className="flex-1" onClick={(e) => { e.stopPropagation(); navigate(`/resources/${resource.id}`); }}>
                             <Eye className="w-4 h-4 mr-1" />
                             View
                         </Button>
-                        <Button variant="primary" className="flex-1">
+                        <Button variant="primary" className="flex-1" onClick={(e) => e.stopPropagation()}>
                             <Download className="w-4 h-4 mr-1" />
                             Download
                         </Button>

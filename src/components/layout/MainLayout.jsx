@@ -4,6 +4,7 @@ import Header from './Header';
 import MobileNav from './MobileNav';
 import MobileDrawer from './MobileDrawer';
 import AccountSelectionModal from '../AccountSelectionModal';
+import VoiceAssistantWidget from '../common/VoiceAssistantWidget';
 import { useAuth } from '../../contexts/AuthContext';
 
 import { Toaster } from 'react-hot-toast';
@@ -21,11 +22,25 @@ const MainLayout = ({ children }) => {
     return (
         <div className="flex h-screen overflow-hidden bg-secondary">
             <Toaster position="top-right" />
+
+            {/* Skip to content link for screen readers */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[10000] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm"
+            >
+                Skip to main content
+            </a>
+
             {/* Desktop Sidebar */}
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto relative pb-20 md:pb-0">
+            <main
+                id="main-content"
+                className="flex-1 overflow-y-auto relative pb-20 md:pb-0"
+                role="main"
+                aria-label="Page content"
+            >
                 {/* Mobile Header */}
                 <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />
 
@@ -51,6 +66,9 @@ const MainLayout = ({ children }) => {
                 onSelect={handleAccountSelected}
                 userName={user?.first_name}
             />
+
+            {/* Voice Assistant Floating Widget */}
+            <VoiceAssistantWidget />
         </div>
     );
 };

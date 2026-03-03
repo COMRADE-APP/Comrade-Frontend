@@ -109,4 +109,14 @@ export const ROUTES = {
     MODERATOR_PORTAL: '/portal/moderator',
     LECTURER_PORTAL: '/portal/lecturer',
     INSTITUTION_PORTAL: '/portal/institution',
-}
+
+    // System Operations
+    ML_DASHBOARD: '/admin/ml-dashboard',
+    ML_PRICING: '/admin/ml/pricing',
+    ML_RECOMMENDATION: '/admin/ml/recommendation',
+    ML_DISTRIBUTION: '/admin/ml/distribution',
+    ML_SCRAPING: '/admin/ml/scraping',
+
+    // Voice Assistant
+    VOICE_SETTINGS: '/settings/voice',
+};
