@@ -118,15 +118,15 @@ const Login = () => {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+            <div className="flex-1 flex items-center justify-center p-8 bg-base">
                 <div className="w-full max-w-md">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in to Qomrade</h2>
-                        <p className="text-gray-600">Welcome back! Please enter your details.</p>
+                        <h2 className="text-3xl font-bold text-primary mb-2">Sign in to Qomrade</h2>
+                        <p className="text-secondary">Welcome back! Please enter your details.</p>
                     </div>
 
                     {generalError && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                             {generalError}
                         </div>
                     )}
@@ -156,7 +156,7 @@ const Login = () => {
 
                         {/* OTP Method Selection */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Verify Identity via:</label>
+                            <label className="block text-sm font-medium text-secondary">Verify Identity via:</label>
                             <div className="flex gap-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -165,9 +165,9 @@ const Login = () => {
                                         value="email"
                                         checked={formData.otpMethod === 'email'}
                                         onChange={handleChange}
-                                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                        className="w-4 h-4 text-primary-600 border-theme focus:ring-primary-500"
                                     />
-                                    <span className="text-sm text-gray-700">Email</span>
+                                    <span className="text-sm text-secondary">Email</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -176,9 +176,9 @@ const Login = () => {
                                         value="sms"
                                         checked={formData.otpMethod === 'sms'}
                                         onChange={handleChange}
-                                        className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                        className="w-4 h-4 text-primary-600 border-theme focus:ring-primary-500"
                                     />
-                                    <span className="text-sm text-gray-700">SMS (Phone)</span>
+                                    <span className="text-sm text-secondary">SMS (Phone)</span>
                                 </label>
                             </div>
                         </div>
@@ -190,9 +190,9 @@ const Login = () => {
                                     name="rememberMe"
                                     checked={formData.rememberMe}
                                     onChange={handleChange}
-                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                    className="w-4 h-4 text-primary-600 border-theme rounded focus:ring-primary-500"
                                 />
-                                <span className="text-sm text-gray-700">Keep me signed in</span>
+                                <span className="text-sm text-secondary">Keep me signed in</span>
                             </label>
                             <Link to={ROUTES.FORGOT_PASSWORD} className="text-sm text-primary-600 hover:text-primary-700">
                                 Forgot password?
@@ -209,9 +209,9 @@ const Login = () => {
                                         setAgreedToTerms(e.target.checked);
                                         if (errors.terms) setErrors(prev => ({ ...prev, terms: '' }));
                                     }}
-                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mt-0.5"
+                                    className="w-4 h-4 text-primary-600 border-theme rounded focus:ring-primary-500 mt-0.5"
                                 />
-                                <span className="text-sm text-gray-700">
+                                <span className="text-sm text-secondary">
                                     I agree to the{' '}
                                     <button
                                         type="button"
@@ -231,7 +231,7 @@ const Login = () => {
                                 </span>
                             </label>
                             {errors.terms && (
-                                <p className="text-sm text-red-600 mt-1">{errors.terms}</p>
+                                <p className="text-sm text-red-500 mt-1">{errors.terms}</p>
                             )}
                         </div>
 
@@ -248,7 +248,7 @@ const Login = () => {
                     {/* Social Login Buttons */}
                     <SocialLoginButtons />
 
-                    <p className="mt-8 text-center text-sm text-gray-600">
+                    <p className="mt-8 text-center text-sm text-secondary">
                         Don't have an account?{' '}
                         <Link to={ROUTES.REGISTER} className="text-primary-600 hover:text-primary-700 font-medium">
                             Sign up
@@ -260,23 +260,23 @@ const Login = () => {
             {/* Terms of Service Modal */}
             {showTermsModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
-                        <div className="p-5 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-                            <h2 className="text-xl font-bold text-gray-900">Terms of Service &amp; Conditions</h2>
-                            <button onClick={() => setShowTermsModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <div className="bg-elevated rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+                        <div className="p-5 border-b border-theme flex items-center justify-between flex-shrink-0">
+                            <h2 className="text-xl font-bold text-primary">Terms of Service &amp; Conditions</h2>
+                            <button onClick={() => setShowTermsModal(false)} className="p-1 text-tertiary hover:text-primary rounded-lg hover:bg-secondary">
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto flex-1 text-sm text-gray-700 space-y-4">
-                            <p className="text-xs text-gray-500">Last updated: February 19, 2026</p>
+                        <div className="p-6 overflow-y-auto flex-1 text-sm text-secondary space-y-4">
+                            <p className="text-xs text-tertiary">Last updated: February 19, 2026</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">1. Acceptance of Terms</h3>
+                            <h3 className="font-semibold text-primary text-base">1. Acceptance of Terms</h3>
                             <p>By accessing or using Qomrade ("the Platform"), you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using this Platform.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">2. User Accounts</h3>
+                            <h3 className="font-semibold text-primary text-base">2. User Accounts</h3>
                             <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate. You must notify us immediately of any unauthorized use of your account.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">3. Acceptable Use</h3>
+                            <h3 className="font-semibold text-primary text-base">3. Acceptable Use</h3>
                             <p>You agree not to use the Platform to:</p>
                             <ul className="list-disc pl-6 space-y-1">
                                 <li>Violate any applicable laws or regulations</li>
@@ -287,28 +287,28 @@ const Login = () => {
                                 <li>Harass, bully, or intimidate other users</li>
                             </ul>
 
-                            <h3 className="font-semibold text-gray-900 text-base">4. Content &amp; Intellectual Property</h3>
+                            <h3 className="font-semibold text-primary text-base">4. Content &amp; Intellectual Property</h3>
                             <p>You retain ownership of content you create on the Platform. By posting content, you grant Qomrade a non-exclusive, royalty-free license to use, display, and distribute your content within the Platform. You may not reproduce, distribute, or create derivative works from any Platform content without permission.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">5. Payment Terms</h3>
+                            <h3 className="font-semibold text-primary text-base">5. Payment Terms</h3>
                             <p>Certain features may require payment. All payments are processed securely through our payment partners (M-Pesa, Stripe, PayPal). You agree to pay all charges at the prices listed. All transactions are final unless otherwise stated. Qomrade reserves the right to modify pricing with reasonable notice.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">6. Privacy &amp; Data Protection</h3>
+                            <h3 className="font-semibold text-primary text-base">6. Privacy &amp; Data Protection</h3>
                             <p>We are committed to protecting your personal information. Data is collected, stored, and processed in accordance with applicable data-protection laws. We use encryption (AES-256-GCM) to protect sensitive data. We do not sell your personal information to third parties.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">7. Disclaimers &amp; Limitation of Liability</h3>
+                            <h3 className="font-semibold text-primary text-base">7. Disclaimers &amp; Limitation of Liability</h3>
                             <p>The Platform is provided "as is" without warranties of any kind. Qomrade shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform. Our total liability shall not exceed the amount paid by you in the preceding 12 months.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">8. Account Termination</h3>
+                            <h3 className="font-semibold text-primary text-base">8. Account Termination</h3>
                             <p>We reserve the right to suspend or terminate your account if you violate these terms. You may delete your account at any time through the Settings page. Upon termination, your right to use the Platform will immediately cease.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">9. Changes to Terms</h3>
+                            <h3 className="font-semibold text-primary text-base">9. Changes to Terms</h3>
                             <p>We may update these Terms at any time. Continued use of the Platform after changes constitutes acceptance. We will notify users of material changes via email or Platform notification.</p>
 
-                            <h3 className="font-semibold text-gray-900 text-base">10. Contact</h3>
+                            <h3 className="font-semibold text-primary text-base">10. Contact</h3>
                             <p>For questions about these Terms, contact us at <span className="text-primary-600 font-medium">support@qomradeapp.com</span>.</p>
                         </div>
-                        <div className="p-5 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
+                        <div className="p-5 border-t border-theme flex justify-end gap-3 flex-shrink-0">
                             <button
                                 onClick={() => {
                                     setAgreedToTerms(true);
@@ -321,7 +321,7 @@ const Login = () => {
                             </button>
                             <button
                                 onClick={() => setShowTermsModal(false)}
-                                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition text-sm"
+                                className="px-6 py-2.5 border border-theme text-secondary rounded-xl hover:bg-secondary transition text-sm"
                             >
                                 Close
                             </button>

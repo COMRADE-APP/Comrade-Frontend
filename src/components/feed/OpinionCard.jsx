@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    Heart, MessageCircle, Repeat2, Share2, MoreHorizontal,
+    Heart, MessageCircle, Repeat2, Send, MoreHorizontal,
     Users, Bookmark, UserPlus, Ban, Flag, EyeOff, HelpCircle,
     FileText, ExternalLink, User, Lock, Quote
 } from 'lucide-react';
@@ -52,20 +52,13 @@ const OpinionCard = ({
 
     // Helper for rendering Repost content
     const isRepost = opinion.is_repost;
-    const originalOpinion = opinion.original_opinion;
 
-    // For reposts, use original opinion's counts (TikTok-style)
-    const displayCounts = isRepost && originalOpinion ? {
-        likes_count: originalOpinion.likes_count ?? opinion.likes_count,
-        comments_count: originalOpinion.comments_count ?? opinion.comments_count,
-        reposts_count: originalOpinion.reposts_count ?? opinion.reposts_count,
-        is_liked: originalOpinion.is_liked ?? opinion.is_liked,
-        is_reposted: originalOpinion.is_reposted ?? opinion.is_reposted,
-        is_bookmarked: originalOpinion.is_bookmarked ?? opinion.is_bookmarked,
-    } : opinion;
+    // The backend serializer now natively syncs all metrics (likes, comments, etc.) 
+    // from the original opinion to this repost object, so we just use opinion directly.
+    const displayCounts = opinion;
 
     // Target ID for interactions — operate on original for reposts
-    const interactionId = isRepost && originalOpinion ? originalOpinion.id : opinion.id;
+    const interactionId = isRepost && opinion.original_content ? opinion.original_content.id : opinion.id;
 
     return (
         <>
@@ -157,19 +150,6 @@ const OpinionCard = ({
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${entityAuthor.type === 'organisation' ? 'bg-blue-100 text-blue-700' : entityAuthor.type === 'establishment' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
                                             {entityAuthor.type === 'organisation' ? 'Organization' : entityAuthor.type === 'establishment' ? 'Shop' : 'Institution'}
                                         </span>
-                                        {/* Poster role badge */}
-                                        {opinion.poster_role && (
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${opinion.poster_role === 'owner' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' :
-                                                opinion.poster_role === 'admin' ? 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300' :
-                                                    opinion.poster_role === 'moderator' ? 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300' :
-                                                        'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                                                }`}>
-                                                {opinion.poster_role === 'owner' && '👑'}
-                                                {opinion.poster_role === 'admin' && '⚡'}
-                                                {opinion.poster_role === 'moderator' && '🛡️'}
-                                                {opinion.poster_role.charAt(0).toUpperCase() + opinion.poster_role.slice(1)}
-                                            </span>
-                                        )}
                                     </>
                                 ) : (
                                     <>
@@ -269,6 +249,18 @@ const OpinionCard = ({
                                 {opinion.content}
                             </p>
                         </Link>
+
+                        {/* Tagged Rooms */}
+                        {opinion.tagged_rooms && opinion.tagged_rooms.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {opinion.tagged_rooms.map(room => (
+                                    <Link key={room?.id || room} to={`/rooms/${room?.id || room}`} className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 text-xs font-medium rounded-full transition-colors">
+                                        <Users className="w-3 h-3" />
+                                        {room?.name || 'View Room'}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Media files (new multi-media support) */}
                         {opinion.media_files?.length > 0 && (
@@ -401,7 +393,7 @@ const OpinionCard = ({
                                 onClick={() => onShare(opinion)}
                                 className="p-2 text-secondary hover:text-primary-500 hover:bg-secondary rounded-full transition-colors"
                             >
-                                <Share2 className="w-5 h-5" />
+                                <Send className="w-5 h-5 -rotate-12" />
                             </button>
                         </div>
                     </div>

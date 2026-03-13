@@ -36,7 +36,20 @@ const ArticleDetail = () => {
         if (id) {
             fetchData();
         }
-    }, [id, navigate]);
+
+        let readTimer = null;
+        if (id && article && !article.has_read) {
+            readTimer = setTimeout(() => {
+                articlesService.recordRead(id).then(() => {
+                    setArticle(prev => ({ ...prev, has_read: true }));
+                }).catch(console.error);
+            }, 5000); // 5 seconds to count as read
+        }
+
+        return () => {
+            if (readTimer) clearTimeout(readTimer);
+        };
+    }, [id, navigate, article?.has_read]);
 
     const handleLike = async () => {
         try {
@@ -97,23 +110,6 @@ const ArticleDetail = () => {
         } finally {
             setSubmittingComment(false);
         }
-    };
-
-    const renderMarkdown = (text) => {
-        if (!text) return '';
-        // Simple markdown replacement (same as CreateArticle for consistency)
-        return text
-            .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-6 mb-3 text-primary">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-8 mb-4 text-primary">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-10 mb-6 text-primary">$1</h1>')
-            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-            .replace(/`(.*?)`/gim, '<code class="bg-secondary px-1 py-0.5 rounded text-sm font-mono text-primary">$1</code>')
-            .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 italic text-secondary my-6 bg-secondary/50 p-4 rounded-r-lg">$1</blockquote>')
-            .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc marker:text-primary mb-1">$1</li>')
-            .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 list-decimal marker:text-primary mb-1">$1</li>')
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
-            .replace(/\n/g, '<br/>');
     };
 
     if (loading) {
@@ -200,19 +196,24 @@ const ArticleDetail = () => {
                     <div className="flex items-center justify-between py-6 border-y border-theme">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center text-primary font-bold text-xl overflow-hidden">
-                                {article.author_details?.avatar ? (
-                                    <img src={article.author_details.avatar} alt={article.author_name} className="w-full h-full object-cover" />
+                                {article.author?.avatar ? (
+                                    <img src={article.author.avatar} alt={article.author?.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    article.author_name?.[0] || 'U'
+                                    article.author?.name?.[0] || 'U'
                                 )}
                             </div>
                             <div>
-                                <h3 className="font-medium text-primary text-lg">{article.author_name}</h3>
-                                <div className="flex items-center gap-4 text-sm text-secondary mt-1">
-                                    <span className="flex items-center gap-1">
+                                <h3 className="font-medium text-primary text-lg">{article.author?.name}</h3>
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-secondary mt-1">
+                                    <span className="flex items-center gap-1" title="Posted">
                                         <Calendar className="w-4 h-4" />
                                         {new Date(article.created_at).toLocaleDateString()}
                                     </span>
+                                    {article.updated_at && article.updated_at !== article.created_at && (
+                                        <span className="flex items-center gap-1 text-tertiary" title="Updated">
+                                            • Updated {new Date(article.updated_at).toLocaleDateString()}
+                                        </span>
+                                    )}
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-4 h-4" />
                                         {article.read_time || Math.ceil(article.content.split(' ').length / 200)} min read
@@ -237,7 +238,7 @@ const ArticleDetail = () => {
                 {/* Article Content */}
                 <div
                     className="prose prose-lg prose-headings:font-bold prose-headings:text-primary prose-a:text-primary prose-p:text-secondary prose-strong:text-primary prose-li:text-secondary max-w-none mb-12"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}
+                    dangerouslySetInnerHTML={{ __html: article.content }}
                 />
 
                 {/* Attachments */}

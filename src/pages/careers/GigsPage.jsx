@@ -121,7 +121,14 @@ const GigsPage = () => {
                 )}
 
                 <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-lg text-primary">{gig.title}</h3>
+                    <div className="flex gap-3 items-center">
+                        {gig.image_url && (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative bg-secondary/10 border border-theme">
+                                <img src={gig.image_url} alt={gig.title} className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                        )}
+                        <h3 className="font-bold text-lg text-primary">{gig.title}</h3>
+                    </div>
                     {isExpired ? (
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 border border-red-500/20">
                             Expired

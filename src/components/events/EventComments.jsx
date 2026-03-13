@@ -12,6 +12,7 @@ const EventComments = ({ eventId }) => {
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const inputRef = React.useRef(null);
 
     useEffect(() => {
         loadComments();
@@ -56,6 +57,15 @@ const EventComments = ({ eventId }) => {
         }
     };
 
+    const handleReply = (commentId) => {
+        setReplyTo(commentId);
+        // Focus the input and scroll to it
+        setTimeout(() => {
+            inputRef.current?.focus();
+            inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2 text-primary">
@@ -64,37 +74,38 @@ const EventComments = ({ eventId }) => {
             </div>
 
             {/* Comment Form */}
-            <form onSubmit={handleSubmit} className="flex gap-2">
-                <div className="flex-1 relative">
-                    {replyTo && (
-                        <div className="absolute -top-8 left-0 text-sm text-secondary flex items-center gap-2">
-                            <Reply className="w-3 h-3" />
-                            <span>Replying to comment</span>
-                            <button
-                                type="button"
-                                onClick={() => setReplyTo(null)}
-                                className="text-red-500 hover:underline"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    )}
+            <form onSubmit={handleSubmit} className="space-y-2">
+                {replyTo && (
+                    <div className="text-sm text-secondary flex items-center gap-2 px-2 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
+                        <Reply className="w-3 h-3 text-primary-500" />
+                        <span>Replying to comment</span>
+                        <button
+                            type="button"
+                            onClick={() => setReplyTo(null)}
+                            className="text-red-500 hover:underline ml-auto text-xs font-medium"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                )}
+                <div className="flex gap-2">
                     <input
+                        ref={inputRef}
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         placeholder={replyTo ? "Write a reply..." : "Write a comment..."}
-                        className="w-full px-4 py-2 bg-secondary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-primary placeholder-tertiary"
+                        className="flex-1 px-4 py-2 bg-secondary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-primary placeholder-tertiary"
                     />
+                    <button
+                        type="submit"
+                        disabled={!newComment.trim()}
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    >
+                        <Send className="w-4 h-4" />
+                        <span className="hidden sm:inline">Post</span>
+                    </button>
                 </div>
-                <button
-                    type="submit"
-                    disabled={!newComment.trim()}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-                >
-                    <Send className="w-4 h-4" />
-                    <span className="hidden sm:inline">Post</span>
-                </button>
             </form>
 
             {/* Comments List */}
@@ -113,7 +124,7 @@ const EventComments = ({ eventId }) => {
                         <CommentItem
                             key={comment.id}
                             comment={comment}
-                            onReply={setReplyTo}
+                            onReply={handleReply}
                             onDelete={handleDelete}
                         />
                     ))}

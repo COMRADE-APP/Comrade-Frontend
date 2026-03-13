@@ -11,7 +11,7 @@ const Specializations = () => {
     const [specializations, setSpecializations] = useState([]);
     const [stacks, setStacks] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [view, setView] = useState('specializations'); // specializations or stacks
+    const [view, setView] = useState('specializations'); // specializations, courses, masterclasses, or stacks
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -54,9 +54,27 @@ const Specializations = () => {
         }
     };
 
-    const filteredItems = view === 'specializations'
-        ? specializations.filter(s => s.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-        : stacks.filter(s => s.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredItems = view === 'stacks'
+        ? stacks.filter(s => s.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+        : specializations.filter(s => s.learning_type === view && s.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const getTabIcon = () => {
+        switch (view) {
+            case 'courses': return <BookOpen className="w-4 h-4 inline mr-2" />;
+            case 'masterclasses': return <Award className="w-4 h-4 inline mr-2" />;
+            case 'stacks': return <BookOpen className="w-4 h-4 inline mr-2" />;
+            default: return <GraduationCap className="w-4 h-4 inline mr-2" />;
+        }
+    };
+
+    const getTabLabel = () => {
+        switch (view) {
+            case 'courses': return 'Courses';
+            case 'masterclasses': return 'Masterclasses';
+            case 'stacks': return 'Stacks';
+            default: return 'Specializations';
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -78,27 +96,23 @@ const Specializations = () => {
             </div>
 
             {/* View Toggle */}
-            <div className="flex gap-2">
-                <button
-                    onClick={() => setView('specializations')}
-                    className={`px-6 py-2 rounded-lg font-medium transition-colors ${view === 'specializations'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
-                        }`}
-                >
-                    <GraduationCap className="w-4 h-4 inline mr-2" />
-                    Specializations
-                </button>
-                <button
-                    onClick={() => setView('stacks')}
-                    className={`px-6 py-2 rounded-lg font-medium transition-colors ${view === 'stacks'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
-                        }`}
-                >
-                    <BookOpen className="w-4 h-4 inline mr-2" />
-                    Stacks
-                </button>
+            <div className="flex gap-2 flex-wrap">
+                {['specializations', 'courses', 'masterclasses', 'stacks'].map(tab => (
+                    <button
+                        key={tab}
+                        onClick={() => setView(tab)}
+                        className={`px-6 py-2 rounded-lg font-medium transition-colors capitalize ${view === tab
+                            ? 'bg-primary-600 text-white shadow-md'
+                            : 'bg-elevated text-secondary border border-theme hover:bg-secondary/10'
+                            }`}
+                    >
+                        {tab === 'specializations' && <GraduationCap className="w-4 h-4 inline mr-2" />}
+                        {tab === 'courses' && <BookOpen className="w-4 h-4 inline mr-2" />}
+                        {tab === 'masterclasses' && <Award className="w-4 h-4 inline mr-2" />}
+                        {tab === 'stacks' && <BookOpen className="w-4 h-4 inline mr-2" />}
+                        {tab}
+                    </button>
+                ))}
             </div>
 
             {/* Search */}
@@ -120,23 +134,20 @@ const Specializations = () => {
                 </div>
             ) : filteredItems.length === 0 ? (
                 <Card>
-                    <CardBody className="text-center py-12">
-                        {view === 'specializations' ? (
-                            <>
-                                <GraduationCap className="w-12 h-12 text-tertiary mx-auto mb-4" />
-                                <p className="text-secondary">No specializations found</p>
-                            </>
-                        ) : (
-                            <>
-                                <BookOpen className="w-12 h-12 text-tertiary mx-auto mb-4" />
-                                <p className="text-secondary">No stacks found</p>
-                            </>
-                        )}
+                    <CardBody className="text-center py-16">
+                        <div className="mb-4 text-tertiary flex justify-center">
+                            {getTabIcon()}
+                        </div>
+                        <h3 className="text-xl font-semibold text-primary mb-2">No {getTabLabel()} Found</h3>
+                        <p className="text-secondary max-w-md mx-auto">There are currently no items matching your search criteria in this category. Be the first to create one!</p>
+                        <Button variant="outline" className="mt-6" onClick={() => navigate(view === 'stacks' ? ROUTES.CREATE_STACK : ROUTES.CREATE_SPECIALIZATION)}>
+                            Create New {getTabLabel().slice(0, -1)}
+                        </Button>
                     </CardBody>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {view === 'specializations'
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {view !== 'stacks'
                         ? filteredItems.map((spec) => (
                             <SpecializationCard key={spec.id} specialization={spec} onJoin={handleJoin} />
                         ))
@@ -150,57 +161,98 @@ const Specializations = () => {
 };
 
 const SpecializationCard = ({ specialization, onJoin }) => (
-    <Card className="hover:shadow-md transition-shadow border border-theme bg-elevated">
-        <CardBody>
-            <div className="space-y-4">
-                <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-purple-600" />
-                </div>
-
-                <div>
-                    <h3 className="font-semibold text-lg text-primary">{specialization.name}</h3>
-                    <p className="text-sm text-secondary mt-1 line-clamp-2">
-                        {specialization.description || 'No description available'}
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-secondary">
-                    <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span>{specialization.stacks?.length || 0} stacks</span>
+    <Card className="hover:shadow-xl transition-all duration-300 border border-theme bg-elevated overflow-hidden group flex flex-col h-full transform hover:-translate-y-1">
+        {specialization.image_url ? (
+            <div className="h-40 w-full overflow-hidden relative">
+                <img
+                    src={specialization.image_url}
+                    alt={specialization.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {specialization.is_paid && (
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                        Premium
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{specialization.members?.length || 0} members</span>
-                    </div>
-                </div>
-
-                <Button
-                    variant="primary"
-                    className="w-full"
-                    onClick={() => onJoin(specialization.id)}
-                >
-                    Join Specialization
-                </Button>
+                )}
             </div>
+        ) : (
+            <div className="h-40 w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex flex-col items-center justify-center relative border-b border-theme">
+                <GraduationCap className="w-16 h-16 text-primary/30 group-hover:scale-110 transition-transform duration-500" />
+                {specialization.is_paid && (
+                    <div className="absolute top-3 right-3 bg-yellow-400/20 text-yellow-600 text-xs font-bold px-2 py-1 rounded-full border border-yellow-400/50">
+                        Paid Access
+                    </div>
+                )}
+            </div>
+        )}
+        <CardBody className="flex flex-col flex-grow p-5 space-y-4">
+            <div className="flex-grow">
+                <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg text-primary leading-tight group-hover:text-purple-500 transition-colors">{specialization.name}</h3>
+                </div>
+                <p className="text-sm text-secondary/80 line-clamp-2 leading-relaxed">
+                    {specialization.description || 'Embark on this learning journey to gain new skills and mastery. Join others in this curated path.'}
+                </p>
+                {specialization.is_paid && (
+                    <p className="mt-3 text-sm font-bold text-primary">
+                        ${specialization.price || '0.00'}
+                    </p>
+                )}
+            </div>
+
+            <div className="flex items-center gap-4 text-xs font-medium text-secondary/70 bg-secondary/5 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 flex-1 justify-center">
+                    <BookOpen className="w-4 h-4 text-blue-500" />
+                    <span>{specialization.stacks?.length || 0} Modules</span>
+                </div>
+                <div className="w-px h-4 bg-theme"></div>
+                <div className="flex items-center gap-1.5 flex-1 justify-center">
+                    <Users className="w-4 h-4 text-green-500" />
+                    <span>{specialization.members?.length || 0} Learners</span>
+                </div>
+            </div>
+
+            <Button
+                variant="primary"
+                className="w-full mt-auto bg-gradient-to-r hover:from-purple-600 hover:to-indigo-600 transition-all font-semibold"
+                onClick={() => onJoin(specialization.id)}
+            >
+                Enroll Now
+            </Button>
         </CardBody>
     </Card>
 );
 
 const StackCard = ({ stack, onComplete }) => (
-    <Card className="hover:shadow-md transition-shadow border border-theme bg-elevated">
-        <CardBody>
-            <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-700">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+    <Card className="hover:shadow-md transition-shadow border border-theme bg-elevated overflow-hidden group">
+        {stack.image_url ? (
+            <div className="h-32 w-full overflow-hidden relative">
+                <img
+                    src={stack.image_url}
+                    alt={stack.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-2 right-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-background text-primary shadow-sm">
+                        <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
                         In Progress
                     </span>
                 </div>
-
+            </div>
+        ) : (
+            <div className="h-32 w-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center relative">
+                <BookOpen className="w-12 h-12 text-blue-600/50" />
+                <div className="absolute top-2 right-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-background text-primary shadow-sm">
+                        <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                        In Progress
+                    </span>
+                </div>
+            </div>
+        )}
+        <CardBody>
+            <div className="space-y-4">
                 <div>
                     <h3 className="font-semibold text-lg text-primary">{stack.name}</h3>
                     <p className="text-sm text-secondary mt-1 line-clamp-2">
@@ -219,10 +271,10 @@ const StackCard = ({ stack, onComplete }) => (
                 </div>
 
                 <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1">
+                    <Button variant="outline" className="flex-1 text-xs">
                         View Details
                     </Button>
-                    <Button variant="primary" className="flex-1" onClick={() => onComplete(stack.id)}>
+                    <Button variant="primary" className="flex-1 text-xs" onClick={() => onComplete(stack.id)}>
                         Complete
                     </Button>
                 </div>

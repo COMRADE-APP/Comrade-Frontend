@@ -260,7 +260,16 @@ export const paymentsService = {
     },
 
     async getProductById(id) {
-        const response = await api.get(API_ENDPOINTS.PRODUCT_DETAIL(id));
+        return api.get(API_ENDPOINTS.PRODUCT_DETAIL(id)).then(res => res.data);
+    },
+
+    async processCheckout(data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_PROFILE.replace('my_profile/', '')}checkout/`, data);
+        return response.data;
+    },
+
+    async processGroupCheckout(data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${data.group_id}/group_checkout/`, data);
         return response.data;
     },
 

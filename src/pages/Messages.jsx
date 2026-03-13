@@ -73,7 +73,7 @@ const Messages = () => {
         const typingInterval = setInterval(async () => {
             try {
                 const users = await roomsService.getTypingUsers(selectedConversation.id, 'dm');
-                setTypingUsers(users);
+                setTypingUsers(Array.isArray(users) ? users.filter(u => u.id !== user?.id) : []);
             } catch (error) {
                 console.error('Error fetching typing users:', error);
             }
@@ -417,11 +417,16 @@ const Messages = () => {
                                             className={`p-4 flex items-start gap-3 cursor-pointer transition-colors border-b border-theme ${selectedConversation?.id === conv.id ? 'bg-primary/10' : 'hover:bg-secondary/50'
                                                 }`}
                                         >
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden">
-                                                {other?.avatar_url ? (
-                                                    <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    other?.first_name?.[0] || 'U'
+                                            <div className="relative flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                                    {other?.avatar_url ? (
+                                                        <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        other?.first_name?.[0] || 'U'
+                                                    )}
+                                                </div>
+                                                {String(other?.is_online).toLowerCase() === 'true' && (
+                                                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-elevated rounded-full"></span>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -436,7 +441,11 @@ const Messages = () => {
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-secondary truncate">
-                                                    {lastMsg?.content || 'No messages yet'}
+                                                    {String(other?.is_online).toLowerCase() !== 'true' && other?.last_seen && !lastMsg ? (
+                                                        `Last seen ${formatTimeAgo(other.last_seen)}`
+                                                    ) : (
+                                                        lastMsg?.content || 'No messages yet'
+                                                    )}
                                                 </p>
                                                 {conv.unread_count > 0 && (
                                                     <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 mt-1 text-xs font-medium bg-primary-600 text-white rounded-full">
@@ -537,7 +546,7 @@ const Messages = () => {
                             </button>
                             {(() => {
                                 const other = getOtherParticipant(selectedConversation);
-                                const isOnline = other?.is_online;
+                                const isOnline = String(other?.is_online).toLowerCase() === 'true';
                                 const lastSeen = other?.last_seen;
 
                                 return (

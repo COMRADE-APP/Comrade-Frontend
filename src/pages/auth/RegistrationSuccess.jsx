@@ -22,7 +22,7 @@ const RegistrationSuccess = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-green-50 to-emerald-100">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-full max-w-md bg-elevated rounded-2xl shadow-xl p-8 text-center">
                 {/* Success Icon */}
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,16 +30,16 @@ const RegistrationSuccess = () => {
                     </svg>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Email Verified!</h2>
-                <p className="text-gray-600 mb-8">
+                <h2 className="text-2xl font-bold text-primary mb-2">Email Verified!</h2>
+                <p className="text-secondary mb-8">
                     Your email has been verified successfully.<br />
                     Welcome to <span className="font-semibold text-primary-600">Qomrade</span>!
                 </p>
 
                 {email && (
-                    <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-500">Registered as</p>
-                        <p className="font-medium text-gray-900">{email}</p>
+                    <div className="mb-6 p-4 bg-base rounded-xl">
+                        <p className="text-sm text-tertiary">Registered as</p>
+                        <p className="font-medium text-primary">{email}</p>
                         <p className="text-sm text-primary-600 capitalize mt-1">{userType}</p>
                     </div>
                 )}
@@ -55,14 +55,14 @@ const RegistrationSuccess = () => {
 
                     <button
                         onClick={handleSkip}
-                        className="w-full py-2 text-sm text-gray-500 hover:text-gray-700"
+                        className="w-full py-2 text-sm text-tertiary hover:text-secondary"
                     >
                         Skip for now → Login
                     </button>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-tertiary">
                         Complete your profile to unlock all features and connect with your community.
                     </p>
                 </div>

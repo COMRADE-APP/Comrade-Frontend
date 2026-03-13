@@ -22,11 +22,7 @@ export const resourcesService = {
             }
         });
 
-        const response = await api.post(API_ENDPOINTS.RESOURCE_UPLOAD, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const response = await api.post(API_ENDPOINTS.RESOURCE_UPLOAD, formData);
         return response.data;
     },
 
@@ -58,6 +54,22 @@ export const resourcesService = {
         return response.data;
     },
 
+    async reactComment(resourceId, commentId, action) {
+        const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}comments/${commentId}/react/`, { action });
+        return response.data;
+    },
+
+    // Reviews
+    async getReviews(resourceId) {
+        const response = await api.get(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}reviews/`);
+        return response.data;
+    },
+
+    async addReview(resourceId, reviewData) {
+        const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}reviews/`, reviewData);
+        return response.data;
+    },
+
     // Reactions
     async addReaction(resourceId, reactionType) {
         const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}react/`, { reaction_type: reactionType });
@@ -69,6 +81,35 @@ export const resourcesService = {
         const response = await api.post(`${API_ENDPOINTS.RESOURCE_DETAIL(resourceId)}share/`, shareData);
         return response.data;
     },
+
+    // Access Requests
+    async requestAccess(resourceId, message = '') {
+        const response = await api.post(`/api/resources/resource/${resourceId}/request_access/`, { message });
+        return response.data;
+    },
+
+    async getAccessRequests(resourceId, statusFilter = '') {
+        const params = statusFilter ? { status: statusFilter } : {};
+        const response = await api.get(`/api/resources/resource/${resourceId}/access_requests/`, { params });
+        return response.data;
+    },
+
+    async reviewAccess(resourceId, requestId, status, reviewNote = '') {
+        const response = await api.post(`/api/resources/resource/${resourceId}/review-access/${requestId}/`, { status, review_note: reviewNote });
+        return response.data;
+    },
+
+    // Analytics
+    async recordAnalytics(resourceId, action, metadata = {}) {
+        const response = await api.post(`/api/resources/resource/${resourceId}/record_analytics/`, { action, metadata });
+        return response.data;
+    },
+
+    async getAnalytics(resourceId) {
+        const response = await api.get(`/api/resources/resource/${resourceId}/analytics/`);
+        return response.data;
+    },
 };
 
 export default resourcesService;
+

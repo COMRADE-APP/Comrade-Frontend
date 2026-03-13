@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon, Search, Plus } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Trash2, X, File, Image, Video, Link as LinkIcon, Search, Plus, ExternalLink } from 'lucide-react';
 import resourcesService from '../services/resources.service';
 import { formatDate } from '../utils/dateFormatter';
 
@@ -206,6 +206,14 @@ const Resources = () => {
 
 const ResourceCard = ({ resource, onDelete }) => {
     const navigate = useNavigate();
+
+    const formatFileSize = (bytes) => {
+        if (!bytes) return null;
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
     const getIcon = (type) => {
         switch (type) {
             case 'image':
@@ -224,9 +232,15 @@ const ResourceCard = ({ resource, onDelete }) => {
             <CardBody>
                 <div className="space-y-3">
                     <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                            {getIcon(resource.file_type)}
-                        </div>
+                        {resource.image_url ? (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden relative shrink-0 border border-theme">
+                                <img src={resource.image_url} alt={resource.title} className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                        ) : (
+                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                {getIcon(resource.file_type)}
+                            </div>
+                        )}
                         <button
                             onClick={(e) => { e.stopPropagation(); onDelete(resource.id); }}
                             className="text-tertiary hover:text-red-600 transition-colors"
@@ -242,6 +256,20 @@ const ResourceCard = ({ resource, onDelete }) => {
                         </p>
                     </div>
 
+                    {/* File type & size metadata */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {resource.file_type && (
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium uppercase">
+                                {resource.file_type}
+                            </span>
+                        )}
+                        {formatFileSize(resource.file_size || resource.size) && (
+                            <span className="text-xs text-tertiary">
+                                {formatFileSize(resource.file_size || resource.size)}
+                            </span>
+                        )}
+                    </div>
+
                     <div className="text-xs text-tertiary">
                         Uploaded {formatDate(resource.created_on)}
                     </div>
@@ -251,6 +279,18 @@ const ResourceCard = ({ resource, onDelete }) => {
                             <Eye className="w-4 h-4 mr-1" />
                             View
                         </Button>
+                        {resource.file && (
+                            <a
+                                href={resource.file}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-elevated border border-theme text-primary rounded-lg hover:bg-secondary transition-colors text-sm"
+                                title="View File"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+                        )}
                         <Button variant="primary" className="flex-1" onClick={(e) => e.stopPropagation()}>
                             <Download className="w-4 h-4 mr-1" />
                             Download

@@ -10,7 +10,8 @@ import {
     Edit2, MoreHorizontal, UserPlus, UserMinus, MessageCircle,
     Shield, Settings, Share2, Flag, Ban, X, Check, Loader2,
     Heart, MessageSquare, Repeat2, Bookmark, Users,
-    FileText, Layers, PenLine, Calendar, ClipboardList
+    FileText, Layers, PenLine, Calendar, ClipboardList,
+    BookOpen, Award, Plus, Trash2
 } from 'lucide-react';
 import profileService from '../services/profile.service';
 import opinionsService from '../services/opinions.service';
@@ -48,6 +49,10 @@ const Profile = () => {
         occupation: '',
         website: '',
         interests: [],
+        religion: '',
+        hobbies: [],
+        certifications: [],
+        work_experience: [],
         show_email: 'followers',
         show_phone: 'private',
         allow_messages: 'followers',
@@ -88,6 +93,10 @@ const Profile = () => {
                 occupation: data.occupation || '',
                 website: data.website || '',
                 interests: data.interests || [],
+                religion: data.religion || '',
+                hobbies: data.hobbies || [],
+                certifications: data.certifications || [],
+                work_experience: data.work_experience || [],
                 show_email: data.show_email || 'followers',
                 show_phone: data.show_phone || 'private',
                 allow_messages: data.allow_messages || 'followers',
@@ -643,7 +652,64 @@ const Profile = () => {
                         </div>
                     )}
 
-                    {/* Edit fields for location, occupation, website */}
+                    {/* Additional Profile Info (view mode) */}
+                    {!isEditing && (
+                        <div className="mt-4 space-y-3">
+                            {profile.religion && (
+                                <div className="flex items-center gap-2 text-sm">
+                                    <BookOpen className="w-4 h-4 text-tertiary" />
+                                    <span className="text-secondary">Religion:</span>
+                                    <span className="text-primary font-medium">{profile.religion}</span>
+                                </div>
+                            )}
+                            {profile.hobbies?.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-tertiary uppercase mb-2">Hobbies</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {profile.hobbies.map((hobby, i) => (
+                                            <span key={i} className="px-3 py-1 bg-green-500/10 text-green-700 rounded-full text-sm">
+                                                {hobby}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {profile.certifications?.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-tertiary uppercase mb-2 flex items-center gap-1"><Award className="w-4 h-4" /> Certifications</h3>
+                                    <div className="space-y-2">
+                                        {profile.certifications.map((cert, i) => (
+                                            <div key={i} className="flex items-start gap-2 p-2 bg-secondary rounded-lg text-sm">
+                                                <Award className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-primary font-medium">{cert.name || cert}</p>
+                                                    {cert.issuer && <p className="text-tertiary text-xs">{cert.issuer}{cert.year ? ` · ${cert.year}` : ''}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {profile.work_experience?.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-tertiary uppercase mb-2 flex items-center gap-1"><Briefcase className="w-4 h-4" /> Work Experience</h3>
+                                    <div className="space-y-2">
+                                        {profile.work_experience.map((exp, i) => (
+                                            <div key={i} className="flex items-start gap-2 p-2 bg-secondary rounded-lg text-sm">
+                                                <Briefcase className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-primary font-medium">{exp.title || exp}</p>
+                                                    {exp.company && <p className="text-secondary text-xs">{exp.company}{exp.period ? ` · ${exp.period}` : ''}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Edit fields for location, occupation, website, and new fields */}
                     {isEditing && (
                         <div className="mt-4 space-y-4">
                             <Input
@@ -667,6 +733,100 @@ const Profile = () => {
                                 onChange={handleChange}
                                 placeholder="https://example.com"
                             />
+                            <Input
+                                label="Religion"
+                                name="religion"
+                                value={formData.religion}
+                                onChange={handleChange}
+                                placeholder="Your religion (optional)"
+                            />
+
+                            {/* Hobbies (tag-style) */}
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Hobbies</label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {formData.hobbies.map((hobby, i) => (
+                                        <span key={i} className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-700 rounded-full text-sm">
+                                            {hobby}
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, hobbies: prev.hobbies.filter((_, idx) => idx !== i) }))} className="hover:text-red-500"><X size={12} /></button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Add a hobby..."
+                                        className="flex-1 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && e.target.value.trim()) {
+                                                e.preventDefault();
+                                                setFormData(prev => ({ ...prev, hobbies: [...prev.hobbies, e.target.value.trim()] }));
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Certifications */}
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Certifications</label>
+                                <div className="space-y-2 mb-2">
+                                    {formData.certifications.map((cert, i) => (
+                                        <div key={i} className="flex items-center gap-2 p-2 bg-secondary rounded-lg text-sm">
+                                            <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                            <span className="flex-1 text-primary">{typeof cert === 'string' ? cert : `${cert.name}${cert.issuer ? ` - ${cert.issuer}` : ''}${cert.year ? ` (${cert.year})` : ''}`}</span>
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, certifications: prev.certifications.filter((_, idx) => idx !== i) }))} className="text-tertiary hover:text-red-500"><Trash2 size={14} /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input id="cert-name" type="text" placeholder="Certification name" className="flex-1 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <input id="cert-issuer" type="text" placeholder="Issuer" className="flex-1 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <input id="cert-year" type="text" placeholder="Year" className="w-20 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <button type="button" onClick={() => {
+                                        const name = document.getElementById('cert-name').value.trim();
+                                        if (name) {
+                                            const issuer = document.getElementById('cert-issuer').value.trim();
+                                            const year = document.getElementById('cert-year').value.trim();
+                                            setFormData(prev => ({ ...prev, certifications: [...prev.certifications, { name, issuer, year }] }));
+                                            document.getElementById('cert-name').value = '';
+                                            document.getElementById('cert-issuer').value = '';
+                                            document.getElementById('cert-year').value = '';
+                                        }
+                                    }} className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"><Plus size={16} /></button>
+                                </div>
+                            </div>
+
+                            {/* Work Experience */}
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Work Experience</label>
+                                <div className="space-y-2 mb-2">
+                                    {formData.work_experience.map((exp, i) => (
+                                        <div key={i} className="flex items-center gap-2 p-2 bg-secondary rounded-lg text-sm">
+                                            <Briefcase className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                            <span className="flex-1 text-primary">{typeof exp === 'string' ? exp : `${exp.title}${exp.company ? ` at ${exp.company}` : ''}${exp.period ? ` (${exp.period})` : ''}`}</span>
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, work_experience: prev.work_experience.filter((_, idx) => idx !== i) }))} className="text-tertiary hover:text-red-500"><Trash2 size={14} /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input id="exp-title" type="text" placeholder="Job title" className="flex-1 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <input id="exp-company" type="text" placeholder="Company" className="flex-1 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <input id="exp-period" type="text" placeholder="Period" className="w-28 px-3 py-2 border border-theme bg-primary text-primary rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <button type="button" onClick={() => {
+                                        const title = document.getElementById('exp-title').value.trim();
+                                        if (title) {
+                                            const company = document.getElementById('exp-company').value.trim();
+                                            const period = document.getElementById('exp-period').value.trim();
+                                            setFormData(prev => ({ ...prev, work_experience: [...prev.work_experience, { title, company, period }] }));
+                                            document.getElementById('exp-title').value = '';
+                                            document.getElementById('exp-company').value = '';
+                                            document.getElementById('exp-period').value = '';
+                                        }
+                                    }} className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"><Plus size={16} /></button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </CardBody>

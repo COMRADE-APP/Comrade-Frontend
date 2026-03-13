@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import fundingService from '../../services/funding.service';
 import Button from '../../components/common/Button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const INDUSTRY_LABELS = {
     tech: 'Technology', agri: 'Agriculture', fin: 'Finance',
@@ -27,14 +27,23 @@ const STATUS_TIMELINE = [
 const STATUS_ORDER = ['draft', 'submitted', 'under_review', 'due_diligence', 'negotiating', 'approved', 'funded'];
 
 const FundingHub = () => {
-    const [activeTab, setActiveTab] = useState('market');
+    const { tab } = useParams();
+    const navigate = useNavigate();
+    const activeTab = tab || 'market';
+
     const [businesses, setBusinesses] = useState([]);
     const [myBusinesses, setMyBusinesses] = useState([]);
     const [myRequests, setMyRequests] = useState([]);
     const [allVentures, setAllVentures] = useState([]);
     const [myVentures, setMyVentures] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+
+    useEffect(() => {
+        // If someone hits /funding with no tab, route them to market
+        if (!tab) {
+            navigate('/funding/market', { replace: true });
+        }
+    }, [tab, navigate]);
 
     useEffect(() => {
         fetchData();
@@ -88,7 +97,7 @@ const FundingHub = () => {
                     return (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => navigate(`/funding/${tab.id}`)}
                             className={`pb-4 px-4 font-medium transition-colors relative whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'text-primary' : 'text-secondary hover:text-primary'
                                 }`}
                         >
@@ -320,7 +329,11 @@ const ApplicationTracking = ({ requests, loading, navigate }) => {
                                 const withdrawn = isWithdrawn(req.status);
 
                                 return (
-                                    <div key={req.id} className="bg-elevated rounded-2xl border border-theme p-6">
+                                    <div
+                                        key={req.id}
+                                        className="bg-elevated rounded-2xl border border-theme p-6 cursor-pointer hover:border-primary-300 transition-colors"
+                                        onClick={() => navigate(`/funding/requests/${req.id}`)}
+                                    >
                                         {/* Request Header */}
                                         <div className="flex justify-between items-start mb-4">
                                             <div>

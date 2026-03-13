@@ -4,17 +4,17 @@
  */
 import React, { useState } from 'react';
 import {
-    Heart, Star, Bell, Share2, Pin, MoreVertical,
+    Heart, Star, Bell, Send, Pin, MoreVertical,
     AlertCircle, Flag, Copy, Facebook, Twitter, Linkedin, Mail
 } from 'lucide-react';
 import eventsService from '../../services/events.service';
 
-const EventActions = ({ event, onUpdate }) => {
+const EventActions = ({ event, onUpdate, onOpenReminders }) => {
     const [showShareMenu, setShowShareMenu] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
-    const [userReaction, setUserReaction] = useState(null);
-    const [isPinned, setIsPinned] = useState(false);
-    const [isInterested, setIsInterested] = useState(false);
+    const [userReaction, setUserReaction] = useState(event?.user_reaction || null);
+    const [isPinned, setIsPinned] = useState(event?.is_pinned || false);
+    const [isInterested, setIsInterested] = useState(event?.is_interested || false);
 
     const reactions = [
         { type: 'love', icon: Heart, label: 'Love', color: 'text-red-500', activeBg: 'bg-red-500/10' },
@@ -22,7 +22,16 @@ const EventActions = ({ event, onUpdate }) => {
         { type: 'remind_me', icon: Bell, label: 'Remind Me', color: 'text-blue-500', activeBg: 'bg-blue-500/10' },
     ];
 
-    const handleReaction = async (reactionType) => {
+    const handleReaction = async (reactionType, e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+
+        if (reactionType === 'remind_me') {
+            if (onOpenReminders) {
+                onOpenReminders();
+            }
+            return;
+        }
+
         try {
             if (userReaction === reactionType) {
                 await eventsService.removeReaction(event.id);
@@ -37,7 +46,8 @@ const EventActions = ({ event, onUpdate }) => {
         }
     };
 
-    const handleInterested = async () => {
+    const handleInterested = async (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         try {
             await eventsService.markInterested(event.id, { interested: !isInterested });
             setIsInterested(!isInterested);
@@ -47,7 +57,8 @@ const EventActions = ({ event, onUpdate }) => {
         }
     };
 
-    const handlePin = async () => {
+    const handlePin = async (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         try {
             if (isPinned) {
                 await eventsService.unpinEvent(event.id);
@@ -125,7 +136,7 @@ const EventActions = ({ event, onUpdate }) => {
                 {reactions.map(({ type, icon: Icon, label, color, activeBg }) => (
                     <button
                         key={type}
-                        onClick={() => handleReaction(type)}
+                        onClick={(e) => handleReaction(type, e)}
                         className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all ${userReaction === type
                             ? `${color} ${activeBg}`
                             : 'text-secondary hover:bg-secondary/50'
@@ -169,7 +180,7 @@ const EventActions = ({ event, onUpdate }) => {
                         className="p-2 rounded-lg text-secondary hover:bg-secondary/50 transition-all"
                         title="Share event"
                     >
-                        <Share2 className="w-4 h-4" />
+                        <Send className="w-4 h-4 -rotate-12" />
                     </button>
 
                     {showShareMenu && (

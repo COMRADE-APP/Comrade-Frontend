@@ -46,6 +46,20 @@ export const specializationsService = {
         const response = await api.post(API_ENDPOINTS.STACKS, data);
         return response.data;
     },
+
+    async getAnalytics(id) {
+        const response = await api.get(API_ENDPOINTS.SPECIALIZATION_DETAIL(id) + 'analytics/');
+        return response.data;
+    },
+
+    async generateFromFiles(formData) {
+        const response = await api.post(
+            API_ENDPOINTS.SPECIALIZATIONS + 'generate_from_files/',
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+        return response.data;
+    },
 };
 
 export default specializationsService;

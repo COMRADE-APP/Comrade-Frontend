@@ -6,11 +6,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, GraduationCap, CheckCircle, AlertCircle,
-    ChevronRight, ChevronLeft, BookOpen, Target, Tag, Users
+    ChevronRight, ChevronLeft, BookOpen, Target, Tag, Users, Award
 } from 'lucide-react';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import specializationsService from '../services/specializations.service';
+import FileUploader from '../components/common/FileUploader';
 
 const STEPS = [
     { number: 1, title: 'Basics' },
@@ -27,12 +28,17 @@ const CreateSpecialization = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
+        learning_type: 'specialization',
+        is_paid: false,
+        price: '',
         category: '',
         difficulty_level: 'beginner',
         estimated_duration: '',
         prerequisites: '',
         tags: '',
     });
+    const [useAI, setUseAI] = useState(false);
+    const [aiFiles, setAiFiles] = useState([]);
 
     const nextStep = () => {
         if (currentStep === 1) {
@@ -54,20 +60,31 @@ const CreateSpecialization = () => {
         setLoading(true);
         setError(null);
         try {
-            const payload = {
-                name: formData.name,
-                description: formData.description,
-            };
-            if (formData.category) payload.category = formData.category;
-            if (formData.difficulty_level) payload.difficulty_level = formData.difficulty_level;
-            if (formData.estimated_duration) payload.estimated_duration = formData.estimated_duration;
-            if (formData.prerequisites) payload.prerequisites = formData.prerequisites;
-            if (formData.tags) payload.tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+            if (useAI && aiFiles.length > 0) {
+                const formDataPayload = new FormData();
+                aiFiles.forEach(file => {
+                    formDataPayload.append('files', file);
+                });
+                await specializationsService.generateFromFiles(formDataPayload);
+            } else {
+                const payload = {
+                    name: formData.name,
+                    description: formData.description,
+                    learning_type: formData.learning_type,
+                    is_paid: formData.is_paid,
+                };
+                if (formData.is_paid && formData.price) payload.price = formData.price;
+                if (formData.category) payload.category = formData.category;
+                if (formData.difficulty_level) payload.difficulty_level = formData.difficulty_level;
+                if (formData.estimated_duration) payload.estimated_duration = formData.estimated_duration;
+                if (formData.prerequisites) payload.prerequisites = formData.prerequisites;
+                if (formData.tags) payload.tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
-            await specializationsService.create(payload);
+                await specializationsService.create(payload);
+            }
             navigate('/specializations');
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to create specialization');
+            setError(err.response?.data?.error || err.response?.data?.detail || 'Failed to create specialization');
             setLoading(false);
         }
     };
@@ -128,46 +145,121 @@ const CreateSpecialization = () => {
                             {/* STEP 1: Basics */}
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Specialization Name *</label>
-                                        <input
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            placeholder="e.g., Data Science, Full-Stack Web Development"
-                                            autoFocus
-                                        />
+
+                                    <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-6 mb-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-3 bg-purple-100 rounded-lg text-purple-600">
+                                                <Target size={24} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-semibold text-purple-900 mb-1">AI Path Builder</h3>
+                                                <p className="text-sm text-purple-700 mb-4">Upload documents, presentations, or books and we'll automatically generate a complete curriculum with corresponding stacks.</p>
+
+                                                <label className="flex items-center gap-3 p-3 bg-white w-full rounded-lg border border-purple-200 cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={useAI}
+                                                        onChange={(e) => setUseAI(e.target.checked)}
+                                                        className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                                    />
+                                                    <span className="font-medium text-purple-900">Use AI to generate from files</span>
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Description *</label>
-                                        <textarea
-                                            value={formData.description}
-                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                            rows={4}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary resize-none"
-                                            placeholder="Describe what learners will achieve with this specialization..."
-                                        />
-                                    </div>
+                                    {useAI ? (
+                                        <div className="animate-fade-in">
+                                            <label className="block text-sm font-medium text-primary mb-2">Upload Source Materials</label>
+                                            <FileUploader
+                                                onFileSelect={(files) => setAiFiles(Array.from(files))}
+                                                accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+                                                maxSize={50 * 1024 * 1024} // 50MB
+                                                multiple={true}
+                                            />
+                                            <p className="text-xs text-secondary mt-2">Upload multiple files to create a comprehensive multi-stack path automatically.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6 animate-fade-in">
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-2">Type of Learning Path</label>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                    {[
+                                                        { id: 'course', icon: BookOpen, label: 'Course', desc: 'A focused subject' },
+                                                        { id: 'specialization', icon: GraduationCap, label: 'Specialization', desc: 'A multi-course series' },
+                                                        { id: 'masterclass', icon: Award, label: 'Masterclass', desc: 'Expert-led deep dive' }
+                                                    ].map(type => (
+                                                        <button
+                                                            key={type.id}
+                                                            type="button"
+                                                            onClick={() => setFormData({ ...formData, learning_type: type.id })}
+                                                            className={`p-4 rounded-xl border-2 text-left transition-all ${formData.learning_type === type.id
+                                                                ? 'border-green-600 bg-green-50/10'
+                                                                : 'border-theme hover:border-green-300'
+                                                                }`}
+                                                        >
+                                                            <type.icon className={`w-8 h-8 mb-3 ${formData.learning_type === type.id ? 'text-green-600' : 'text-secondary'}`} />
+                                                            <div className={`font-semibold ${formData.learning_type === type.id ? 'text-green-700' : 'text-primary'}`}>{type.label}</div>
+                                                            <div className="text-xs text-secondary mt-1">{type.desc}</div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Category</label>
-                                        <select
-                                            value={formData.category}
-                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                        >
-                                            <option value="">Select a category</option>
-                                            <option value="technology">Technology</option>
-                                            <option value="business">Business</option>
-                                            <option value="science">Science</option>
-                                            <option value="arts">Arts & Design</option>
-                                            <option value="health">Health & Medicine</option>
-                                            <option value="engineering">Engineering</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-2">Name *</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
+                                                    placeholder="e.g., Data Science, Full-Stack Web Development"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-2">Description *</label>
+                                                <textarea
+                                                    value={formData.description}
+                                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                    rows={4}
+                                                    className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary resize-none"
+                                                    placeholder="Describe what learners will achieve..."
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-2">Paid Access?</label>
+                                                    <div className="flex items-center h-[42px] px-4 border border-theme rounded-lg bg-transparent">
+                                                        <label className="flex items-center cursor-pointer w-full">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.is_paid}
+                                                                onChange={(e) => setFormData({ ...formData, is_paid: e.target.checked })}
+                                                                className="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                                            />
+                                                            <span className="ml-3 text-sm font-medium text-primary">Require Payment/Subscription</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {formData.is_paid && (
+                                                    <div className="animate-fade-in">
+                                                        <label className="block text-sm font-medium text-primary mb-2">Price ($)</label>
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={formData.price}
+                                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
+                                                            placeholder="0.00"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -183,8 +275,8 @@ const CreateSpecialization = () => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, difficulty_level: level })}
                                                     className={`p-3 rounded-lg border-2 text-center capitalize font-medium transition-all ${formData.difficulty_level === level
-                                                            ? 'border-green-600 bg-green-50/10 text-green-600'
-                                                            : 'border-theme text-secondary hover:border-green-300'
+                                                        ? 'border-green-600 bg-green-50/10 text-green-600'
+                                                        : 'border-theme text-secondary hover:border-green-300'
                                                         }`}
                                                 >
                                                     {level}
@@ -232,51 +324,59 @@ const CreateSpecialization = () => {
                             {currentStep === 3 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
-                                        <CheckCircle className="text-green-600" /> Review Your Specialization
+                                        <CheckCircle className="text-green-600" /> Review Your {formData.learning_type ? formData.learning_type.charAt(0).toUpperCase() + formData.learning_type.slice(1) : 'Path'}
                                     </h2>
 
-                                    <div className="bg-secondary/5 rounded-xl p-6 space-y-4 border border-theme">
-                                        <div>
-                                            <span className="text-sm text-secondary">Name</span>
-                                            <p className="text-primary font-medium text-lg">{formData.name || '—'}</p>
+                                    {useAI ? (
+                                        <div className="bg-purple-50 rounded-xl p-8 border border-purple-200 text-center">
+                                            <Target className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                                            <h3 className="text-xl font-bold text-purple-900 mb-2">Ready to Auto-Generate</h3>
+                                            <p className="text-purple-700 max-w-md mx-auto">We'll process your {aiFiles.length} uploaded file(s) and instantly create a structured curriculum, breaking it down into individual stacks.</p>
                                         </div>
-                                        <div>
-                                            <span className="text-sm text-secondary">Description</span>
-                                            <p className="text-primary">{formData.description || '—'}</p>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                    ) : (
+                                        <div className="bg-secondary/5 rounded-xl p-6 space-y-4 border border-theme">
                                             <div>
-                                                <span className="text-sm text-secondary">Category</span>
-                                                <p className="text-primary capitalize">{formData.category || 'Not set'}</p>
+                                                <span className="text-sm text-secondary">Name</span>
+                                                <p className="text-primary font-medium text-lg">{formData.name || '—'}</p>
                                             </div>
                                             <div>
-                                                <span className="text-sm text-secondary">Difficulty</span>
-                                                <p className="text-primary capitalize">{formData.difficulty_level}</p>
+                                                <span className="text-sm text-secondary">Description</span>
+                                                <p className="text-primary">{formData.description || '—'}</p>
                                             </div>
-                                            <div>
-                                                <span className="text-sm text-secondary">Duration</span>
-                                                <p className="text-primary">{formData.estimated_duration || 'Not set'}</p>
-                                            </div>
-                                        </div>
-                                        {formData.prerequisites && (
-                                            <div>
-                                                <span className="text-sm text-secondary">Prerequisites</span>
-                                                <p className="text-primary">{formData.prerequisites}</p>
-                                            </div>
-                                        )}
-                                        {formData.tags && (
-                                            <div>
-                                                <span className="text-sm text-secondary">Tags</span>
-                                                <div className="flex flex-wrap gap-2 mt-1">
-                                                    {formData.tags.split(',').map((tag, i) => (
-                                                        <span key={i} className="px-2 py-1 rounded-full bg-green-100/20 text-green-600 text-xs font-medium">
-                                                            {tag.trim()}
-                                                        </span>
-                                                    ))}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <span className="text-sm text-secondary">Access</span>
+                                                    <p className="text-primary capitalize">{formData.is_paid ? `Paid ($${formData.price})` : 'Free'}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-secondary">Difficulty</span>
+                                                    <p className="text-primary capitalize">{formData.difficulty_level}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-secondary">Duration</span>
+                                                    <p className="text-primary">{formData.estimated_duration || 'Not set'}</p>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+                                            {formData.prerequisites && (
+                                                <div>
+                                                    <span className="text-sm text-secondary">Prerequisites</span>
+                                                    <p className="text-primary">{formData.prerequisites}</p>
+                                                </div>
+                                            )}
+                                            {formData.tags && (
+                                                <div>
+                                                    <span className="text-sm text-secondary">Tags</span>
+                                                    <div className="flex flex-wrap gap-2 mt-1">
+                                                        {formData.tags.split(',').map((tag, i) => (
+                                                            <span key={i} className="px-2 py-1 rounded-full bg-green-100/20 text-green-600 text-xs font-medium">
+                                                                {tag.trim()}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -8,8 +8,8 @@ import eventsService from '../../services/events.service';
 import Button from '../common/Button';
 
 const EventTicketing = ({ event, tickets = [] }) => {
-    const [selectedTicket, setSelectedTicket] = useState(null);
-    const [quantity, setQuantity] = useState(1);
+    // Map of ticket.id -> quantity selected
+    const [selectedQuantities, setSelectedQuantities] = useState({});
     const [paymentOption, setPaymentOption] = useState('stripe');
     const [loading, setLoading] = useState(false);
     const [purchasedTickets, setPurchasedTickets] = useState([]);
@@ -21,33 +21,64 @@ const EventTicketing = ({ event, tickets = [] }) => {
         { value: 'comrade_balance', label: 'Qomrade Balance', icon: CreditCard },
     ];
 
+    const totalTicketsSelected = Object.values(selectedQuantities).reduce((sum, q) => sum + q, 0);
+
     const handlePurchase = async () => {
-        if (!selectedTicket) {
-            alert('Please select a ticket type');
+        if (totalTicketsSelected === 0) {
+            alert('Please select at least one ticket');
             return;
         }
 
         setLoading(true);
         try {
+            // Build payload for bulk processing
+            const ticketsPayload = Object.entries(selectedQuantities)
+                .filter(([_, qty]) => qty > 0)
+                .map(([id, qty]) => ({
+                    ticket_id: parseInt(id),
+                    quantity: qty
+                }));
+
+            // The backend endpoint typically anticipates an array or similar,
+            // or we might need to iterate. Let's send `tickets_data` containing the array.
             const response = await eventsService.purchaseTicket(event.id, {
-                ticket_id: selectedTicket.id,
-                quantity,
+                tickets_data: ticketsPayload,
                 payment_option: paymentOption
             });
 
-            setPurchasedTickets([...purchasedTickets, response.data]);
-            alert('Ticket purchased successfully! Check your email for confirmation.');
-            setSelectedTicket(null);
-            setQuantity(1);
+            // If response returns multiple, concat them. If single, append it.
+            const purchases = Array.isArray(response.data) ? response.data : (response.data?.purchases || [response.data]);
+            setPurchasedTickets([...purchasedTickets, ...purchases]);
+            alert('Tickets purchased successfully! Check your email for confirmation.');
+            setSelectedQuantities({});
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to purchase ticket');
+            alert(error.response?.data?.error || 'Failed to purchase tickets');
         } finally {
             setLoading(false);
         }
     };
 
     const getTotalPrice = () => {
-        return selectedTicket ? (parseFloat(selectedTicket.price) * quantity).toFixed(2) : '0.00';
+        let total = 0;
+        tickets.forEach(ticket => {
+            const qty = selectedQuantities[ticket.id] || 0;
+            total += (parseFloat(ticket.price) * qty);
+        });
+        return total.toFixed(2);
+    };
+
+    const handleQuantityChange = (ticketId, delta, maxAvailable) => {
+        setSelectedQuantities(prev => {
+            const current = prev[ticketId] || 0;
+            const next = current + delta;
+            if (next < 0) return prev;
+            if (next > maxAvailable) return prev;
+
+            const newState = { ...prev };
+            newState[ticketId] = next;
+            if (newState[ticketId] === 0) delete newState[ticketId];
+            return newState;
+        });
     };
 
     return (
@@ -60,66 +91,69 @@ const EventTicketing = ({ event, tickets = [] }) => {
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {tickets.map((ticket) => (
-                        <div
-                            key={ticket.id}
-                            onClick={() => setSelectedTicket(ticket)}
-                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedTicket?.id === ticket.id
-                                ? 'border-primary-600 bg-primary-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h4 className="font-semibold text-gray-900">{ticket.ticket_type}</h4>
-                                    <p className="text-2xl font-bold text-primary-600 mt-1">
-                                        ${parseFloat(ticket.price).toFixed(2)}
-                                    </p>
+                    {tickets.map((ticket) => {
+                        const isSelected = (selectedQuantities[ticket.id] || 0) > 0;
+                        const qty = selectedQuantities[ticket.id] || 0;
+                        return (
+                            <div
+                                key={ticket.id}
+                                className={`p-4 border-2 rounded-lg transition-all ${isSelected
+                                    ? 'border-primary-600 bg-primary-50'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="font-semibold text-gray-900">{ticket.ticket_type || ticket.name}</h4>
+                                        <p className="text-2xl font-bold text-primary-600 mt-1">
+                                            ${parseFloat(ticket.price).toFixed(2)}
+                                        </p>
+                                        {(ticket.group_size_allowed > 1) && (
+                                            <p className="text-sm text-gray-600 mt-1">Admit: {ticket.group_size_allowed}</p>
+                                        )}
+                                        {ticket.custom_criteria && (
+                                            <p className="text-xs text-blue-600 mt-1">{ticket.custom_criteria}</p>
+                                        )}
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-sm text-gray-600">Available</span>
+                                        <p className="font-semibold text-gray-900">{ticket.capacity || ticket.quantity_available}</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-sm text-gray-600">Available</span>
-                                    <p className="font-semibold text-gray-900">{ticket.quantity_available}</p>
-                                </div>
-                            </div>
 
-                            {selectedTicket?.id === ticket.id && (
                                 <div className="mt-4 pt-4 border-t border-gray-200">
                                     {/* Quantity Selector */}
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center justify-between">
                                         <label className="text-sm font-medium text-gray-700">Quantity:</label>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setQuantity(Math.max(1, quantity - 1));
-                                                }}
-                                                className="w-8 h-8 rounded-lg border border-gray-300 hover:bg-gray-100 flex items-center justify-center"
+                                                onClick={() => handleQuantityChange(ticket.id, -1, ticket.capacity || ticket.quantity_available)}
+                                                className="w-8 h-8 rounded-lg border border-gray-300 hover:bg-gray-100 flex items-center justify-center text-gray-600 font-medium"
+                                                disabled={qty <= 0}
                                             >
                                                 -
                                             </button>
-                                            <span className="w-12 text-center font-semibold">{quantity}</span>
+                                            <span className="w-8 text-center font-semibold text-gray-900">{qty}</span>
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setQuantity(Math.min(ticket.quantity_available, quantity + 1));
-                                                }}
-                                                className="w-8 h-8 rounded-lg border border-gray-300 hover:bg-gray-100 flex items-center justify-center"
+                                                onClick={() => handleQuantityChange(ticket.id, 1, ticket.capacity || ticket.quantity_available)}
+                                                className="w-8 h-8 rounded-lg border border-gray-300 hover:bg-gray-100 flex items-center justify-center text-gray-600 font-medium"
+                                                disabled={qty >= (ticket.capacity || ticket.quantity_available)}
                                             >
                                                 +
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                            )}
-                        </div>
-                    ))}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Payment Method */}
-            {selectedTicket && (
+            {totalTicketsSelected > 0 && (
                 <div>
-                    <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">Payment Method</h3>
                     <div className="space-y-2">
                         {paymentMethods.map((method) => (
                             <label
@@ -143,14 +177,21 @@ const EventTicketing = ({ event, tickets = [] }) => {
             )}
 
             {/* Summary & Purchase */}
-            {selectedTicket && (
-                <div className="bg-gray-50 p-6 rounded-lg">
-                    <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-gray-700">
-                            <span>{selectedTicket.ticket_type} x {quantity}</span>
-                            <span>${(parseFloat(selectedTicket.price) * quantity).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold text-lg text-gray-900 pt-2 border-t border-gray-200">
+            {totalTicketsSelected > 0 && (
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">Order Summary</h3>
+                    <div className="space-y-3 mb-4">
+                        {tickets.map(ticket => {
+                            const qty = selectedQuantities[ticket.id] || 0;
+                            if (qty === 0) return null;
+                            return (
+                                <div key={ticket.id} className="flex justify-between text-gray-700 text-sm">
+                                    <span>{ticket.ticket_type || ticket.name} <span className="text-gray-500">x {qty}</span></span>
+                                    <span className="font-medium">${(parseFloat(ticket.price) * qty).toFixed(2)}</span>
+                                </div>
+                            );
+                        })}
+                        <div className="flex justify-between font-semibold text-lg text-gray-900 pt-3 border-t border-gray-300">
                             <span>Total</span>
                             <span className="text-primary-600">${getTotalPrice()}</span>
                         </div>
@@ -158,11 +199,11 @@ const EventTicketing = ({ event, tickets = [] }) => {
 
                     <Button
                         variant="primary"
-                        className="w-full"
+                        className="w-full mt-4"
                         onClick={handlePurchase}
                         disabled={loading}
                     >
-                        {loading ? 'Processing...' : `Purchase Ticket - $${getTotalPrice()}`}
+                        {loading ? 'Processing...' : `Purchase Tickets - $${getTotalPrice()}`}
                     </Button>
                 </div>
             )}

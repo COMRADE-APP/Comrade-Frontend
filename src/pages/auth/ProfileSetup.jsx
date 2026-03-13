@@ -150,7 +150,7 @@ const ProfileSetup = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-primary-50 via-purple-50 to-pink-50">
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="w-full max-w-lg bg-elevated rounded-2xl shadow-xl overflow-hidden">
                 {/* Progress Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-purple-600 p-6 text-white">
                     <h2 className="text-xl font-bold mb-4">Complete Your Profile</h2>
@@ -164,8 +164,8 @@ const ProfileSetup = () => {
                                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${step > s.id
                                             ? 'bg-green-400'
                                             : step === s.id
-                                                ? 'bg-white text-primary-600'
-                                                : 'bg-white/30'
+                                                ? 'bg-elevated text-primary-600'
+                                                : 'bg-elevated/30'
                                             }`}
                                     >
                                         {step > s.id ? (
@@ -177,7 +177,7 @@ const ProfileSetup = () => {
                                     <span className="text-xs mt-1 opacity-80">{s.title}</span>
                                 </div>
                                 {index < DYNAMIC_STEPS.length - 1 && (
-                                    <div className={`flex-1 h-0.5 mx-2 ${step > s.id ? 'bg-green-400' : 'bg-white/30'}`} />
+                                    <div className={`flex-1 h-0.5 mx-2 ${step > s.id ? 'bg-green-400' : 'bg-elevated/30'}`} />
                                 )}
                             </React.Fragment>
                         ))}
@@ -196,8 +196,8 @@ const ProfileSetup = () => {
                     {/* Step 0: Set Password (social login users only) */}
                     {step === 0 && (
                         <div className="space-y-4 animate-fadeIn">
-                            <h3 className="text-lg font-semibold text-gray-900">Set your password</h3>
-                            <p className="text-sm text-gray-600">Create a password so you can also sign in with your email.</p>
+                            <h3 className="text-lg font-semibold text-primary">Set your password</h3>
+                            <p className="text-sm text-secondary">Create a password so you can also sign in with your email.</p>
                             <Input
                                 label="Password"
                                 type="password"
@@ -228,10 +228,10 @@ const ProfileSetup = () => {
                     {/* Step 1: Basic Info */}
                     {step === 1 && (
                         <div className="space-y-4 animate-fadeIn">
-                            <h3 className="text-lg font-semibold text-gray-900">Tell us about yourself</h3>
-                            <p className="text-sm text-gray-600">A short bio helps others get to know you.</p>
+                            <h3 className="text-lg font-semibold text-primary">Tell us about yourself</h3>
+                            <p className="text-sm text-secondary">A short bio helps others get to know you.</p>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-secondary mb-1">
                                     Bio <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
@@ -239,10 +239,10 @@ const ProfileSetup = () => {
                                     value={formData.bio}
                                     onChange={handleChange}
                                     placeholder="I'm a passionate learner who loves..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
+                                    className="w-full px-4 py-3 border border-theme rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
                                     rows={4}
                                 />
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-tertiary mt-1">
                                     {formData.bio.length}/200 characters (min 10)
                                 </p>
                             </div>
@@ -252,8 +252,8 @@ const ProfileSetup = () => {
                     {/* Step 2: Location & Work */}
                     {step === 2 && (
                         <div className="space-y-4 animate-fadeIn">
-                            <h3 className="text-lg font-semibold text-gray-900">Where are you based?</h3>
-                            <p className="text-sm text-gray-600">This helps us connect you with nearby opportunities.</p>
+                            <h3 className="text-lg font-semibold text-primary">Where are you based?</h3>
+                            <p className="text-sm text-secondary">This helps us connect you with nearby opportunities.</p>
                             <Input
                                 label="Location"
                                 type="text"
@@ -285,8 +285,8 @@ const ProfileSetup = () => {
                     {/* Step 3: Interests */}
                     {step === 3 && (
                         <div className="space-y-4 animate-fadeIn">
-                            <h3 className="text-lg font-semibold text-gray-900">What interests you?</h3>
-                            <p className="text-sm text-gray-600">Select at least one topic you're passionate about.</p>
+                            <h3 className="text-lg font-semibold text-primary">What interests you?</h3>
+                            <p className="text-sm text-secondary">Select at least one topic you're passionate about.</p>
                             <div className="flex flex-wrap gap-2">
                                 {INTEREST_OPTIONS.map((interest) => (
                                     <button
@@ -295,14 +295,14 @@ const ProfileSetup = () => {
                                         onClick={() => handleInterestToggle(interest)}
                                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${formData.interests.includes(interest)
                                             ? 'bg-primary-600 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            : 'bg-secondary text-secondary hover:bg-gray-200'
                                             }`}
                                     >
                                         {interest}
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-tertiary">
                                 Selected: {formData.interests.length} topic(s)
                             </p>
                         </div>
@@ -311,12 +311,12 @@ const ProfileSetup = () => {
                     {/* Step 4: Photo */}
                     {step === 4 && (
                         <div className="space-y-4 animate-fadeIn">
-                            <h3 className="text-lg font-semibold text-gray-900">Add a profile photo</h3>
-                            <p className="text-sm text-gray-600">A photo helps build trust in the community.</p>
+                            <h3 className="text-lg font-semibold text-primary">Add a profile photo</h3>
+                            <p className="text-sm text-secondary">A photo helps build trust in the community.</p>
 
                             <div className="flex justify-center">
                                 <label className="cursor-pointer">
-                                    <div className={`w-32 h-32 rounded-full border-4 border-dashed flex items-center justify-center overflow-hidden transition-colors ${formData.profilePicturePreview ? 'border-primary-600' : 'border-gray-300 hover:border-primary-400'
+                                    <div className={`w-32 h-32 rounded-full border-4 border-dashed flex items-center justify-center overflow-hidden transition-colors ${formData.profilePicturePreview ? 'border-primary-600' : 'border-theme hover:border-primary-400'
                                         }`}>
                                         {formData.profilePicturePreview ? (
                                             <img
@@ -326,8 +326,8 @@ const ProfileSetup = () => {
                                             />
                                         ) : (
                                             <div className="text-center">
-                                                <Camera className="w-8 h-8 text-gray-400 mx-auto" />
-                                                <span className="text-xs text-gray-500 mt-2 block">Upload Photo</span>
+                                                <Camera className="w-8 h-8 text-tertiary mx-auto" />
+                                                <span className="text-xs text-tertiary mt-2 block">Upload Photo</span>
                                             </div>
                                         )}
                                     </div>
@@ -340,7 +340,7 @@ const ProfileSetup = () => {
                                 </label>
                             </div>
 
-                            <p className="text-xs text-gray-400 text-center">
+                            <p className="text-xs text-tertiary text-center">
                                 PNG, JPG up to 5MB. This step is optional.
                             </p>
                         </div>
@@ -381,14 +381,14 @@ const ProfileSetup = () => {
 
                     <button
                         onClick={handleSkip}
-                        className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                        className="w-full py-2 text-sm text-tertiary hover:text-secondary transition-colors"
                     >
                         Skip for now
                     </button>
                 </div>
 
                 <div className="px-6 pb-6 pt-2 border-t border-gray-100 text-center">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-tertiary">
                         You can always complete your profile later in Settings
                     </p>
                 </div>

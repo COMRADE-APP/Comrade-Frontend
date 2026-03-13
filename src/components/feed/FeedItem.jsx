@@ -133,17 +133,23 @@ const FeedItem = ({
             {/* Header: Avatar, Name, Category Badge, Options */}
             <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                    {/* Avatar */}
-                    <Link to={`/profile/${item.user?.id || item.creator?.id}`}>
+                    {/* Avatar – use entity avatar when available */}
+                    <Link to={item.entity_author ? `/${item.entity_author.type}s/${item.entity_author.id}` : `/profile/${item.user?.id || item.creator?.id}`}>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium overflow-hidden">
-                            {item.user?.avatar_url || item.creator?.avatar_url ? (
+                            {item.entity_author?.avatar ? (
+                                <img
+                                    src={item.entity_author.avatar}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : item.user?.avatar_url || item.creator?.avatar_url ? (
                                 <img
                                     src={item.user?.avatar_url || item.creator?.avatar_url}
                                     alt=""
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                (item.user?.first_name?.[0] || item.creator?.name?.[0] || 'U').toUpperCase()
+                                (item.entity_author?.name?.[0] || item.user?.first_name?.[0] || item.creator?.name?.[0] || 'U').toUpperCase()
                             )}
                         </div>
                     </Link>
@@ -151,12 +157,28 @@ const FeedItem = ({
                     {/* Name, handle, time */}
                     <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <Link
-                                to={`/profile/${item.user?.id || item.creator?.id}`}
-                                className="font-semibold text-primary hover:underline"
-                            >
-                                {item.user?.full_name || item.user?.first_name || item.creator?.name || 'User'}
-                            </Link>
+                            {item.entity_author ? (
+                                <>
+                                    <Link
+                                        to={`/${item.entity_author.type}s/${item.entity_author.id}`}
+                                        className="font-semibold text-primary hover:underline"
+                                    >
+                                        {item.entity_author.name}
+                                    </Link>
+                                    {item.entity_author.poster_role_display && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                                            {item.entity_author.poster_role_display.icon} {item.entity_author.poster_role_display.label}
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <Link
+                                    to={`/profile/${item.user?.id || item.creator?.id}`}
+                                    className="font-semibold text-primary hover:underline"
+                                >
+                                    {item.user?.full_name || item.user?.first_name || item.creator?.name || 'User'}
+                                </Link>
+                            )}
 
                             {/* Follow button */}
                             {item.user?.is_following === false && onFollow && (
@@ -177,6 +199,16 @@ const FeedItem = ({
                             <span className="text-tertiary text-sm">·</span>
                             <span className="text-secondary text-sm">{item.time_ago || 'now'}</span>
                         </div>
+
+                        {/* Show personal author below entity name */}
+                        {item.entity_author && item.user && (
+                            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-secondary">
+                                <span>by</span>
+                                <Link to={`/profile/${item.user.id}`} className="hover:underline font-medium text-secondary">
+                                    {item.user.full_name || item.user.first_name || 'User'}
+                                </Link>
+                            </div>
+                        )}
 
                         {/* Title for articles/research/products */}
                         {item.title && (

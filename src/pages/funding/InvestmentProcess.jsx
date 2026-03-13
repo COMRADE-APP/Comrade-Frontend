@@ -31,6 +31,24 @@ const InvestmentProcess = () => {
     const { user } = useAuth();
     const [currentStep, setCurrentStep] = useState(1);
     const [processing, setProcessing] = useState(false);
+    const [hasConsent, setHasConsent] = useState(false);
+
+    // Skip to Step 5 (Amount) if consent was already given for this venture
+    React.useEffect(() => {
+        if (localStorage.getItem(`investment_consent_${ventureId}`)) {
+            setHasConsent(true);
+            setAgreements({
+                terms: true,
+                privacy: true,
+                riskAcknowledged: true,
+                ethicalCompliance: true,
+                antiMoneyLaundering: true,
+                contractSigned: true,
+                finalConfirmation: true,
+            });
+            setCurrentStep(5);
+        }
+    }, [ventureId]);
 
     const [agreements, setAgreements] = useState({
         terms: false,
@@ -89,28 +107,40 @@ const InvestmentProcess = () => {
     const handleFinalSubmit = async () => {
         if (!canProceed()) return;
         setProcessing(true);
-        try {
-            const { default: fundingService } = await import('../../services/funding.service');
-            await fundingService.createRequest({
-                target_venture: ventureId,
-                amount: parseFloat(investmentData.amount),
-                currency: investmentData.currency,
-                investment_type: investmentData.investment_type,
-                duration_months: parseInt(investmentData.duration_months),
-                purpose: investmentData.purpose,
-                is_donation: investmentData.is_donation,
-                kyc_verified: true,
-                terms_accepted: true,
-                risk_acknowledged: true,
-                ethical_compliance: true,
-                digital_signature: signature,
-            });
-            navigate('/funding', { state: { tab: 'tracking', message: 'Investment submitted successfully!' } });
-        } catch (error) {
-            console.error('Investment submission failed:', error);
-        } finally {
-            setProcessing(false);
-        }
+        
+        // Save consent confirmation locally so future investments can skip KYC
+        localStorage.setItem(`investment_consent_${ventureId}`, 'true');
+
+        const investmentPayload = {
+            target_venture: ventureId,
+            amount: parseFloat(investmentData.amount),
+            currency: investmentData.currency,
+            investment_type: investmentData.investment_type,
+            duration_months: parseInt(investmentData.duration_months),
+            purpose: investmentData.purpose,
+            is_donation: investmentData.investment_type === 'donation',
+            kyc_verified: true,
+            terms_accepted: true,
+            risk_acknowledged: true,
+            ethical_compliance: true,
+            digital_signature: signature || "Previously Signed via Consent",
+        };
+
+        navigate('/payments/checkout', { 
+            state: { 
+                cartItems: [{
+                    id: ventureId,
+                    name: investmentData.investment_type === 'donation' ? 'Charity Donation' : 'Venture Investment',
+                    type: 'funding',
+                    price: investmentData.amount,
+                    payload: investmentPayload
+                }],
+                purchaseType: 'individual',
+                totalAmount: parseFloat(investmentData.amount)
+            } 
+        });
+        
+        setProcessing(false);
     };
 
     const completedSteps = currentStep - 1;
@@ -442,17 +472,23 @@ const InvestmentProcess = () => {
 
             {/* Navigation */}
             <div className="flex justify-between">
-                <Button variant="ghost" onClick={currentStep === 1 ? () => navigate(-1) : prevStep}>
+                <Button variant="ghost" onClick={(currentStep === 1 || (currentStep === 5 && hasConsent)) ? () => navigate(-1) : prevStep}>
                     <ChevronLeft size={18} className="mr-1" />
-                    {currentStep === 1 ? 'Cancel' : 'Previous'}
+                    {(currentStep === 1 || (currentStep === 5 && hasConsent)) ? 'Cancel' : 'Previous'}
                 </Button>
                 {currentStep < 7 ? (
-                    <Button onClick={nextStep} disabled={!canProceed()}>
-                        Next <ChevronRight size={18} className="ml-1" />
-                    </Button>
+                    hasConsent && currentStep === 5 ? (
+                        <Button onClick={handleFinalSubmit} disabled={!canProceed() || processing} className="bg-green-600 hover:bg-green-700 text-white">
+                            {processing ? 'Processing...' : 'Proceed to Checkout'}
+                        </Button>
+                    ) : (
+                        <Button onClick={nextStep} disabled={!canProceed()}>
+                            Next <ChevronRight size={18} className="ml-1" />
+                        </Button>
+                    )
                 ) : (
                     <Button onClick={handleFinalSubmit} disabled={!canProceed() || processing} className="bg-green-600 hover:bg-green-700 text-white">
-                        {processing ? 'Processing...' : 'Submit Investment'}
+                        {processing ? 'Processing...' : 'Proceed to Checkout'}
                     </Button>
                 )}
             </div>

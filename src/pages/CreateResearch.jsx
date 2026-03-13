@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft, Search, FileText, Upload, Save, Send, Megaphone, X, Plus,
     Beaker, Calendar, Users, CheckCircle, ChevronRight, ChevronLeft
@@ -12,6 +12,8 @@ import Input from '../components/common/Input';
 
 const CreateResearch = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const isEditing = !!id;
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,16 @@ const CreateResearch = () => {
         start_date: '',
         end_date: '',
         status: 'draft',
+        seeking_participants: false,
+        requesting_funding: false,
+        seeking_teams: false,
+        seeking_partners_sponsors: false,
+        is_paid: false,
+        price: '',
     });
+
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [savedProjectId, setSavedProjectId] = useState(null);
 
     const [milestones, setMilestones] = useState([
         { title: 'Project Planning', description: 'Initial planning phase', due_date: '' }
@@ -39,17 +50,81 @@ const CreateResearch = () => {
         location_requirements: ''
     });
 
+    const [compensation, setCompensation] = useState({
+        type: 'unpaid',
+        amount: '',
+        currency: 'USD',
+        description: ''
+    });
+
     const [skillInput, setSkillInput] = useState('');
+
+    React.useEffect(() => {
+        if (isEditing) {
+            loadProjectToEdit();
+        }
+    }, [id]);
+
+    const loadProjectToEdit = async () => {
+        setLoading(true);
+        try {
+            const project = await researchService.getProjectById(id);
+            if (project) {
+                setFormData({
+                    title: project.title || '',
+                    abstract: project.abstract || '',
+                    description: project.description || '',
+                    research_type: project.research_type || 'paper',
+                    start_date: project.start_date || '',
+                    end_date: project.end_date || '',
+                    status: project.status || 'draft',
+                    seeking_participants: project.seeking_participants || false,
+                    requesting_funding: project.requesting_funding || false,
+                    seeking_teams: project.seeking_teams || false,
+                    seeking_partners_sponsors: project.seeking_partners_sponsors || false,
+                    is_paid: project.is_paid || false,
+                    price: project.price || '',
+                });
+                if (project.milestones?.length > 0) {
+                    setMilestones(project.milestones);
+                }
+                if (project.positions?.length > 0 && project.positions[0]?.compensation_type) {
+                    setCompensation({
+                        type: project.positions[0].compensation_type,
+                        amount: project.positions[0].compensation_amount || '',
+                        currency: project.positions[0].currency || 'USD',
+                        description: project.positions[0].compensation_description || ''
+                    });
+                }
+                if (project.requirements?.length > 0) {
+                    setRequirements(prev => ({
+                        ...prev,
+                        ...project.requirements[0]
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error loading project for edit:', error);
+            alert('Could not load project data for editing.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Handlers
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleRequirementChange = (e) => {
         const { name, value } = e.target;
         setRequirements(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleCompensationChange = (e) => {
+        const { name, value } = e.target;
+        setCompensation(prev => ({ ...prev, [name]: value }));
     };
 
     const addMilestone = () => {
@@ -86,23 +161,28 @@ const CreateResearch = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // 1. Create Project
+            // 1. Create or Update Project
             const projectData = {
                 ...formData,
                 authors: [] // Authors logic can be added later or PI is auto-added
             };
 
-            // In a real app, you might want to send everything in one go or use transactions
-            // For now, we'll create the project first
-            const project = await researchService.createProject(projectData);
+            let project;
+            if (isEditing) {
+                project = await api.patch(`/research/projects/${id}/`, projectData).then(res => res.data);
+            } else {
+                project = await researchService.createProject(projectData);
+            }
 
-            // 2. Add Milestones (if endpoint exists/supports it)
-            // Currently backend creates empty project. We might need specific endpoints or update serializer to handle nested writes.
-            // Assuming simplified flow or nested creation in backend for now.
+            setSavedProjectId(project.id);
+            setShowSuccessModal(true);
 
-            // For this demo, we'll just navigate back
-            alert('Research project created successfully!');
-            navigate(`/research/${project.id}`);
+            // 2. Add Milestones and Positions
+            console.log("Milestones:", milestones);
+            console.log("Requirements:", requirements);
+            console.log("Compensation:", compensation);
+
+            // Replaced immediate navigation with success modal
         } catch (error) {
             console.error('Error creating research:', error);
             alert('Failed to create research project.');
@@ -164,6 +244,49 @@ const CreateResearch = () => {
                     value={formData.end_date}
                     onChange={handleInputChange}
                 />
+            </div>
+
+            <hr className="border-theme my-6" />
+
+            <h3 className="text-xl font-semibold text-primary mb-4">Research Goals</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                    { name: 'seeking_participants', label: 'Seeking Participants' },
+                    { name: 'requesting_funding', label: 'Requesting Funding' },
+                    { name: 'seeking_teams', label: 'Seeking Team Members' },
+                    { name: 'seeking_partners_sponsors', label: 'Seeking Partners/Sponsors' }
+                ].map(goal => (
+                    <label key={goal.name} className="flex items-center gap-3 p-3 bg-elevated border border-theme rounded-xl cursor-pointer hover:border-primary/50 transition-colors text-secondary">
+                        <input type="checkbox" name={goal.name} checked={formData[goal.name]} onChange={handleInputChange} className="w-5 h-5 rounded border-theme text-primary focus:ring-primary" />
+                        <span>{goal.label}</span>
+                    </label>
+                ))}
+            </div>
+
+            <hr className="border-theme my-6" />
+
+            <h3 className="text-xl font-semibold text-primary mb-4">Publication & Access</h3>
+            <p className="text-secondary text-sm mb-4">Define whether this research will require paid access upon publishing.</p>
+            <div className="space-y-4 bg-elevated p-4 border border-theme rounded-xl">
+                <label className="flex items-center gap-3 cursor-pointer text-primary font-medium">
+                    <input type="checkbox" name="is_paid" checked={formData.is_paid} onChange={handleInputChange} className="w-5 h-5 rounded border-theme text-primary focus:ring-primary" />
+                    <span>Require Paid Access</span>
+                </label>
+
+                {formData.is_paid && (
+                    <div className="pt-2 pl-8 border-l-2 border-primary/20">
+                        <Input
+                            type="number"
+                            label="Access Price"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="E.g., 29.99"
+                            min="0"
+                            step="0.01"
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -303,6 +426,61 @@ const CreateResearch = () => {
                     placeholder="Specific countries, cities, or remote..."
                 />
             </div>
+
+            <hr className="border-theme" />
+
+            <h3 className="text-xl font-semibold text-primary mb-4 pt-2">Participant Compensation</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-secondary mb-1">Compensation Type</label>
+                    <select
+                        name="type"
+                        value={compensation.type}
+                        onChange={handleCompensationChange}
+                        className="w-full px-4 py-2 bg-elevated border border-theme rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <option value="unpaid">Unpaid / Volunteer</option>
+                        <option value="monetary">Monetary</option>
+                        <option value="gift_card">Gift Card</option>
+                        <option value="academic_credit">Academic Credit</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                {compensation.type === 'monetary' && (
+                    <>
+                        <Input
+                            type="number"
+                            label="Amount"
+                            name="amount"
+                            value={compensation.amount}
+                            onChange={handleCompensationChange}
+                            placeholder="E.g., 50.00"
+                        />
+                        <Input
+                            label="Currency"
+                            name="currency"
+                            value={compensation.currency}
+                            onChange={handleCompensationChange}
+                            placeholder="E.g., USD, EUR"
+                        />
+                    </>
+                )}
+            </div>
+
+            {(compensation.type !== 'unpaid') && (
+                <div>
+                    <label className="block text-sm font-medium text-secondary mb-1">Compensation Description</label>
+                    <textarea
+                        name="description"
+                        value={compensation.description}
+                        onChange={handleCompensationChange}
+                        rows={2}
+                        className="w-full px-4 py-2 bg-elevated border border-theme rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Details about compensation (e.g., $50 Amazon gift card upon completion)"
+                    />
+                </div>
+            )}
         </div>
     );
 
@@ -337,14 +515,25 @@ const CreateResearch = () => {
                 </section>
 
                 <section>
-                    <h4 className="text-sm font-bold text-secondary uppercase tracking-wide mb-2">Requirements</h4>
+                    <h4 className="text-sm font-bold text-secondary uppercase tracking-wide mb-2">Requirements & Compensation</h4>
                     <div className="bg-elevated p-4 rounded-xl border border-theme">
-                        <ul className="list-disc list-inside text-sm text-secondary space-y-1">
+                        <ul className="list-disc list-inside text-sm text-secondary space-y-1 mb-4">
                             <li>Age: {requirements.min_age || '?'} - {requirements.max_age || '?'}</li>
                             <li>Gender: {requirements.gender}</li>
                             <li>Education: {requirements.min_education_level}</li>
                             <li>Skills: {requirements.required_skills.join(', ') || 'None'}</li>
                         </ul>
+
+                        <div className="border-t border-theme pt-3">
+                            <h5 className="font-semibold text-primary mb-1">Compensation</h5>
+                            <p className="text-sm text-secondary capitalize">{compensation.type.replace('_', ' ')}</p>
+                            {compensation.type === 'monetary' && (
+                                <p className="text-sm text-secondary font-medium">{compensation.amount} {compensation.currency}</p>
+                            )}
+                            {compensation.description && (
+                                <p className="text-sm text-secondary mt-1 italic">{compensation.description}</p>
+                            )}
+                        </div>
                     </div>
                 </section>
             </div>
@@ -359,7 +548,7 @@ const CreateResearch = () => {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold text-primary">Create New Research Project</h1>
+                    <h1 className="text-2xl font-bold text-primary">{isEditing ? 'Edit Research Project' : 'Create New Research Project'}</h1>
                     <p className="text-secondary">Plan, execute, and publish your research</p>
                 </div>
             </div>
@@ -380,7 +569,7 @@ const CreateResearch = () => {
                         <div key={s.num} className="flex flex-col items-center relative z-10">
                             <div
                                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' :
-                                        isCompleted ? 'bg-green-500 text-white' : 'bg-secondary/20 text-secondary'
+                                    isCompleted ? 'bg-green-500 text-white' : 'bg-secondary/20 text-secondary'
                                     }`}
                             >
                                 {isCompleted ? <CheckCircle className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
@@ -426,15 +615,33 @@ const CreateResearch = () => {
                 ) : (
                     <Button
                         variant="primary"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="w-40 bg-green-600 hover:bg-green-700"
+                        onClick={step === 4 ? handleSubmit : () => setStep(s => s + 1)}
+                        disabled={loading || (step === 1 && !formData.title)}
+                        className="flex-1 sm:flex-none"
                     >
-                        {loading ? 'Creating...' : 'Create Project'}
-                        {!loading && <CheckCircle className="w-4 h-4 ml-2" />}
+                        {loading && step === 4 ? 'Processing...' :
+                            step === 4 ? (isEditing ? 'Update Research' : 'Submit Research') :
+                                'Continue'}
+                        {step !== 4 && <ChevronRight className="w-4 h-4 ml-1" />}
                     </Button>
                 )}
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+                    <div className="bg-elevated border border-theme rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="w-16 h-16 mx-auto bg-green-500/10 rounded-full flex items-center justify-center mb-4">
+                            <CheckCircle className="w-8 h-8 text-green-500" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-primary mb-2">Success!</h2>
+                        <p className="text-secondary mb-6">Your research project has been {isEditing ? 'updated' : 'created'} successfully.</p>
+                        <Button variant="primary" className="w-full" onClick={() => navigate(`/research/${savedProjectId || id}`)}>
+                            View Project
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

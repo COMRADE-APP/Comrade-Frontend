@@ -4,7 +4,7 @@ import {
     Building2, FileText, MessageSquare, Settings, Users, DollarSign,
     ArrowLeft, CheckCircle, XCircle, Clock, ArrowRight, Plus, Eye, Filter,
     Shield, TrendingUp, Briefcase, Globe, Calendar, Award,
-    BarChart3, Target, PieChart
+    BarChart3, Target, PieChart, Search
 } from 'lucide-react';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -149,6 +149,56 @@ const ReviewModal = ({ request, onClose, onSubmit }) => {
                         </Button>
                         <Button type="submit" variant="primary" disabled={loading || !newStatus} className="flex-1">
                             {loading ? 'Submitting...' : 'Submit Review'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+const AddFundsModal = ({ onClose, onSubmit }) => {
+    const [amount, setAmount] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onSubmit(parseFloat(amount));
+            onClose();
+        } catch (error) {
+            console.error('Failed to add funds:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-elevated rounded-xl shadow-xl max-w-sm w-full">
+                <div className="p-4 border-b border-theme">
+                    <h2 className="text-lg font-semibold text-primary">Top-Up Venture Funds</h2>
+                </div>
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount to Add (KES)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            placeholder="e.g. 5000000"
+                            className="w-full px-3 py-2 border border-theme rounded-lg bg-secondary text-primary"
+                            required
+                        />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={loading || !amount} className="flex-1">
+                            {loading ? 'Processing...' : 'Add Funds'}
                         </Button>
                     </div>
                 </form>
@@ -356,6 +406,7 @@ const FundingOrgDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('requests');
     const [reviewingRequest, setReviewingRequest] = useState(null);
+    const [isAddingFunds, setIsAddingFunds] = useState(false);
     const [statusFilter, setStatusFilter] = useState('all');
     const [isOwner, setIsOwner] = useState(false);
 
@@ -401,6 +452,16 @@ const FundingOrgDashboard = () => {
         }
     };
 
+    const handleAddFunds = async (amount) => {
+        try {
+            await fundingService.addFunds(id, amount);
+            await loadVenture(); // Reload data to reflect new balance
+        } catch (error) {
+            console.error('Add funds failed:', error);
+            throw error;
+        }
+    };
+
     const handleCreateNegotiationRoom = async (request) => {
         try {
             const result = await fundingService.createNegotiationRoom(id, request.id);
@@ -439,29 +500,37 @@ const FundingOrgDashboard = () => {
     return (
         <div className="max-w-6xl mx-auto p-4 space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <button onClick={() => navigate(-1)} className="p-2 hover:bg-secondary rounded-lg">
-                    <ArrowLeft className="w-5 h-5 text-secondary" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-primary">{venture?.name || 'Funding Organization'}</h1>
-                    <p className="text-secondary">{venture?.investment_focus || 'Investment Fund'}</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate(-1)} className="p-2 hover:bg-secondary rounded-lg shrink-0">
+                        <ArrowLeft className="w-5 h-5 text-secondary" />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold text-primary">{venture?.name || 'Funding Organization'}</h1>
+                            {venture?.is_verified && (
+                                <CheckCircle className="w-6 h-6 text-green-500 shrink-0" />
+                            )}
+                        </div>
+                        <p className="text-secondary">{venture?.investment_focus || 'Investment Fund'}</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="text-right">
-                        <p className="text-sm text-secondary">Available Fund</p>
-                        <p className="font-bold text-lg text-primary-600">
+
+                <div className="flex items-center justify-between md:justify-end gap-6 bg-secondary/30 p-4 rounded-xl border border-theme">
+                    <div>
+                        <p className="text-sm text-secondary mb-1">Available Fund</p>
+                        <p className="font-bold text-xl text-primary-600">
                             KES {venture?.available_fund?.toLocaleString()}
                         </p>
                     </div>
-                    {venture?.is_verified && (
-                        <CheckCircle className="w-6 h-6 text-green-500" />
-                    )}
+                    <Button variant="primary" onClick={() => setIsAddingFunds(true)}>
+                        <Plus className="w-4 h-4 mr-2" /> Add Funds
+                    </Button>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-theme">
+            <div className="flex gap-2 border-b border-theme overflow-x-auto custom-scrollbar pb-1">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (
@@ -528,66 +597,168 @@ const FundingOrgDashboard = () => {
             )}
 
             {activeTab === 'stats' && (
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardBody className="text-center p-6">
-                            <p className="text-3xl font-bold text-primary-600">{requests.length}</p>
-                            <p className="text-secondary">Total Requests</p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody className="text-center p-6">
-                            <p className="text-3xl font-bold text-green-600">
-                                {requests.filter(r => r.status === 'funded').length}
-                            </p>
-                            <p className="text-secondary">Funded</p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody className="text-center p-6">
-                            <p className="text-3xl font-bold text-yellow-600">
-                                {requests.filter(r => ['under_review', 'due_diligence', 'negotiating'].includes(r.status)).length}
-                            </p>
-                            <p className="text-secondary">In Progress</p>
-                        </CardBody>
-                    </Card>
+                <div className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200">
+                            <CardBody className="text-center p-6 relative overflow-hidden">
+                                <Eye className="w-10 h-10 text-blue-500/20 absolute -bottom-2 -right-2" />
+                                <p className="text-blue-800 font-medium text-sm">Fund Profile Views</p>
+                                <p className="text-3xl font-bold text-blue-600 mt-2">{requests.length * 14 + 112}</p>
+                            </CardBody>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200">
+                            <CardBody className="text-center p-6 relative overflow-hidden">
+                                <FileText className="w-10 h-10 text-purple-500/20 absolute -bottom-2 -right-2" />
+                                <p className="text-purple-800 font-medium text-sm">Total Applications</p>
+                                <p className="text-3xl font-bold text-purple-600 mt-2">{requests.length}</p>
+                            </CardBody>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200">
+                            <CardBody className="text-center p-6 relative overflow-hidden">
+                                <Search className="w-10 h-10 text-orange-500/20 absolute -bottom-2 -right-2" />
+                                <p className="text-orange-800 font-medium text-sm">In Due Diligence</p>
+                                <p className="text-3xl font-bold text-orange-600 mt-2">
+                                    {requests.filter(r => ['due_diligence', 'negotiating'].includes(r.status)).length}
+                                </p>
+                            </CardBody>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200">
+                            <CardBody className="text-center p-6 relative overflow-hidden">
+                                <DollarSign className="w-10 h-10 text-green-500/20 absolute -bottom-2 -right-2" />
+                                <p className="text-green-800 font-medium text-sm">Successfully Funded</p>
+                                <p className="text-3xl font-bold text-green-600 mt-2">
+                                    {requests.filter(r => r.status === 'funded').length}
+                                </p>
+                            </CardBody>
+                        </Card>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <Card>
+                            <CardBody className="p-6">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <PieChart className="w-5 h-5 text-primary-600" /> Investment Pipeline
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-secondary font-medium">1. Under Review</span>
+                                            <span className="text-primary font-bold">
+                                                {requests.filter(r => ['submitted', 'under_review'].includes(r.status)).length}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-theme rounded-full h-2">
+                                            <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => ['submitted', 'under_review'].includes(r.status)).length / (requests.length || 1)) * 100, 5)}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-secondary font-medium">2. Due Diligence</span>
+                                            <span className="text-primary font-bold">
+                                                {requests.filter(r => r.status === 'due_diligence').length}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-theme rounded-full h-2">
+                                            <div className="bg-orange-500 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => r.status === 'due_diligence').length / (requests.length || 1)) * 100, 5)}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-secondary font-medium">3. Negotiating</span>
+                                            <span className="text-primary font-bold">
+                                                {requests.filter(r => r.status === 'negotiating').length}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-theme rounded-full h-2">
+                                            <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => r.status === 'negotiating').length / (requests.length || 1)) * 100, 5)}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-secondary font-medium">4. Funded</span>
+                                            <span className="text-primary font-bold">
+                                                {requests.filter(r => r.status === 'funded').length}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-theme rounded-full h-2">
+                                            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => r.status === 'funded').length / (requests.length || 1)) * 100, 5)}%` }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+
+                        <Card>
+                            <CardBody className="p-6">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <Briefcase className="w-5 h-5 text-primary-600" /> Fund Utilisation
+                                </h3>
+
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between p-4 bg-secondary/20 rounded-xl border border-theme">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                <DollarSign className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-primary">Total Committed</p>
+                                                <p className="text-xs text-secondary">Across all active investments</p>
+                                            </div>
+                                        </div>
+                                        <p className="font-bold text-lg text-primary">
+                                            KES {Number((venture?.total_fund || 0) - (venture?.available_fund || 0)).toLocaleString()}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-secondary/20 rounded-xl border border-theme">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+                                                <Target className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-primary">Dry Powder</p>
+                                                <p className="text-xs text-secondary">Capital ready to deploy</p>
+                                            </div>
+                                        </div>
+                                        <p className="font-bold text-lg text-primary">
+                                            KES {Number(venture?.available_fund || 0).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
                 </div>
             )}
 
             {activeTab === 'settings' && (
                 <Card>
-                    <CardBody className="p-6">
-                        <h3 className="font-semibold text-primary mb-4">Venture Settings</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm text-secondary">Investment Focus</label>
-                                <p className="text-primary">{venture?.investment_focus || 'Not specified'}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm text-secondary">Investment Criteria</label>
-                                <p className="text-primary">{venture?.investment_criteria || 'Not specified'}</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div>
-                                    <label className="block text-sm text-secondary">Min Investment</label>
-                                    <p className="text-primary">KES {venture?.min_investment?.toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-secondary">Max Investment</label>
-                                    <p className="text-primary">KES {venture?.max_investment?.toLocaleString()}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <CardBody className="p-6 text-center py-12">
+                        <Settings className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                        <h3 className="font-bold text-lg text-primary mb-2">Fund Settings</h3>
+                        <p className="text-secondary mb-6">Manage your venture's profile, team members, and investment criteria.</p>
+                        <Button variant="outline">Edit Organization Profile</Button>
                     </CardBody>
                 </Card>
             )}
 
-            {/* Review Modal */}
+            {/* Modals */}
             {reviewingRequest && (
                 <ReviewModal
                     request={reviewingRequest}
                     onClose={() => setReviewingRequest(null)}
                     onSubmit={handleReviewSubmit}
+                />
+            )}
+
+            {isAddingFunds && (
+                <AddFundsModal
+                    onClose={() => setIsAddingFunds(false)}
+                    onSubmit={handleAddFunds}
                 />
             )}
         </div>

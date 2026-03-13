@@ -44,20 +44,38 @@ const eventsService = {
         return api.delete(`${BASE_URL}/${id}/`);
     },
 
+    /**
+     * AI Parse Event Document for Auto-fill
+     */
+    parseDocument: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`${BASE_URL}/event/parse-document/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
     // ===== TICKETING =====
 
     /**
-     * Purchase event ticket
+     * Purchase event ticket / Book slots
      */
     purchaseTicket: (eventId, ticketData) => {
-        return api.post(`${BASE_URL}/${eventId}/purchase_ticket/`, ticketData);
+        return api.post(`${BASE_URL}/slot_bookings/book_slot/`, { event_id: eventId, ...ticketData });
+    },
+
+    /**
+     * Get event analytics dashboard data
+     */
+    getAnalytics: (eventId) => {
+        return api.get(`${BASE_URL}/event_analytics/event_dashboard/`, { params: { event_id: eventId } });
     },
 
     /**
      * Get available tickets for event
      */
     getEventTickets: (eventId) => {
-        return api.get(`${BASE_URL}/${eventId}/tickets/`);
+        return api.get(`${BASE_URL}/events/${eventId}/tickets/`);
     },
 
     /**
@@ -80,14 +98,14 @@ const eventsService = {
      * Add reaction to event
      */
     addReaction: (eventId, reactionType) => {
-        return api.post(`${BASE_URL}/${eventId}/add_reaction/`, { reaction_type: reactionType });
+        return api.post(`${BASE_URL}/events/${eventId}/add_reaction/`, { reaction_type: reactionType });
     },
 
     /**
      * Remove reaction from event
      */
     removeReaction: (eventId) => {
-        return api.delete(`${BASE_URL}/${eventId}/remove_reaction/`);
+        return api.delete(`${BASE_URL}/events/${eventId}/remove_reaction/`);
     },
 
     // ===== COMMENTS =====
@@ -96,14 +114,14 @@ const eventsService = {
      * Add comment to event
      */
     addComment: (eventId, commentData) => {
-        return api.post(`${BASE_URL}/${eventId}/add_comment/`, commentData);
+        return api.post(`${BASE_URL}/events/${eventId}/add_comment/`, commentData);
     },
 
     /**
      * Get all comments for event
      */
     getComments: (eventId) => {
-        return api.get(`${BASE_URL}/${eventId}/comments/`);
+        return api.get(`${BASE_URL}/events/${eventId}/comments/`);
     },
 
     /**
@@ -126,7 +144,7 @@ const eventsService = {
      * Share event
      */
     shareEvent: (eventId, shareData) => {
-        return api.post(`${BASE_URL}/${eventId}/share/`, shareData);
+        return api.post(`${BASE_URL}/events/${eventId}/share/`, shareData);
     },
 
     /**
@@ -145,14 +163,14 @@ const eventsService = {
      * Pin event to dashboard
      */
     pinEvent: (eventId) => {
-        return api.post(`${BASE_URL}/${eventId}/pin/`);
+        return api.post(`${BASE_URL}/events/${eventId}/pin/`);
     },
 
     /**
      * Unpin event from dashboard
      */
     unpinEvent: (eventId) => {
-        return api.delete(`${BASE_URL}/${eventId}/unpin/`);
+        return api.delete(`${BASE_URL}/events/${eventId}/unpin/`);
     },
 
     /**
@@ -188,16 +206,16 @@ const eventsService = {
     /**
      * Submit event feedback / review
      */
-    submitFeedback: (feedbackData) => {
-        // feedbackData should have { event: eventId, rating, feedback_text }
-        return api.post('/api/event_feedback/', feedbackData);
+    submitFeedback: (eventId, feedbackData) => {
+        // feedbackData should have { rating, feedback_text }
+        return api.post(`${BASE_URL}/events/${eventId}/submit_review/`, feedbackData);
     },
 
     /**
      * Get event feedback / reviews
      */
     getEventFeedback: (eventId) => {
-        return api.get(`/api/event_feedback/?event=${eventId}`);
+        return api.get(`${BASE_URL}/events/${eventId}/reviews/`);
     },
 
     // ===== REMINDERS =====
@@ -206,7 +224,7 @@ const eventsService = {
      * Set event reminder
      */
     setReminder: (eventId, reminderData) => {
-        return api.post(`${BASE_URL}/${eventId}/set_reminder/`, reminderData);
+        return api.post(`${BASE_URL}/events/${eventId}/set_reminder/`, reminderData);
     },
 
     /**
@@ -526,6 +544,148 @@ const eventsService = {
             target_amount: targetAmount
         });
     },
+
+    // ===== REACTIONS (love, excited, remind-me) =====
+
+    addReaction: (eventId, reactionType) => {
+        return api.post(`${BASE_URL}/events/${eventId}/add_reaction/`, { reaction_type: reactionType });
+    },
+
+    removeReaction: (eventId) => {
+        return api.delete(`${BASE_URL}/events/${eventId}/remove_reaction/`);
+    },
+
+    // ===== USER REMINDERS (3-channel: notification, system message, email) =====
+
+    setUserReminder: (eventId, timeBefore) => {
+        return api.post(`${BASE_URL}/events/${eventId}/set_user_reminder/`, { time_before: timeBefore });
+    },
+
+    removeUserReminder: (eventId, timeBefore = null) => {
+        const params = timeBefore ? `?time_before=${timeBefore}` : '';
+        return api.delete(`${BASE_URL}/events/${eventId}/remove_user_reminder/${params}`);
+    },
+
+    getMyReminders: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/my_reminders/`);
+    },
+
+    // ===== SCHEDULE MANAGEMENT =====
+
+    getSchedule: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/schedule/`);
+    },
+
+    addScheduleItem: (eventId, data) => {
+        return api.post(`${BASE_URL}/events/${eventId}/add_schedule_item/`, data);
+    },
+
+    deleteScheduleItem: (eventId, itemId) => {
+        return api.delete(`${BASE_URL}/events/${eventId}/delete_schedule_item/${itemId}/`);
+    },
+
+    // ===== SPEAKERS =====
+
+    getSpeakers: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/event_speakers/`);
+    },
+
+    addSpeaker: (eventId, data) => {
+        return api.post(`${BASE_URL}/events/${eventId}/add_speaker/`, data);
+    },
+
+    // ===== MATERIALS/FILES =====
+
+    getMaterials: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/materials/`);
+    },
+
+    getEventDocuments: (eventId) => {
+        return api.get(`${BASE_URL}/event_documents/?event=${eventId}`);
+    },
+
+    uploadDocument: (eventId, data) => {
+        const formData = new FormData();
+        Object.keys(data).forEach(key => formData.append(key, data[key]));
+        formData.append('event', eventId);
+        return api.post(`${BASE_URL}/event_documents/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
+    downloadDocument: (docId) => {
+        return api.post(`${BASE_URL}/event_documents/${docId}/download/`);
+    },
+
+    archiveDocument: (docId) => {
+        return api.patch(`${BASE_URL}/event_documents/${docId}/`, { is_archived: true });
+    },
+
+    getEventArticles: (eventId) => {
+        return api.get(`${BASE_URL}/event_article_links/?event=${eventId}`);
+    },
+
+    getEventResearch: (eventId) => {
+        return api.get(`${BASE_URL}/event_research_links/?event=${eventId}`);
+    },
+
+    getEventAnnouncements: (eventId) => {
+        return api.get(`${BASE_URL}/event_announcement_links/?event=${eventId}`);
+    },
+
+    getEventProducts: (eventId) => {
+        return api.get(`${BASE_URL}/event_product_links/?event=${eventId}`);
+    },
+
+    addMaterial: (eventId, data) => {
+        return api.post(`${BASE_URL}/events/${eventId}/add_material/`, data);
+    },
+
+    deleteMaterial: (eventId, materialId) => {
+        return api.delete(`${BASE_URL}/events/${eventId}/delete_material/${materialId}/`);
+    },
+
+    // ===== ANALYTICS =====
+
+    logInteraction: (eventId, interactionType, durationSeconds = 0) => {
+        return api.post(`${BASE_URL}/event_analytics/log_interaction/`, {
+            event_id: eventId,
+            interaction_type: interactionType,
+            duration_seconds: durationSeconds
+        }).catch(() => { });
+    },
+
+    getEventAnalytics: (eventId) => {
+        return api.get(`${BASE_URL}/event_analytics/event_dashboard/?event_id=${eventId}`);
+    },
+
+    // ===== SLOT BOOKING =====
+
+    bookSlot: (eventId, ticketId = null, ticketTierId = null, quantity = 1) => {
+        return api.post(`${BASE_URL}/slot_bookings/book_slot/`, {
+            event_id: eventId,
+            ticket_id: ticketId,
+            ticket_tier_id: ticketTierId,
+            quantity: quantity
+        });
+    },
+
+    getMyBookings: () => {
+        return api.get(`${BASE_URL}/slot_bookings/my_bookings/`);
+    },
+
+    getAvailability: (eventId) => {
+        return api.get(`${BASE_URL}/slot_bookings/availability/${eventId}/`);
+    },
+
+    cancelBooking: (bookingId) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingId}/cancel/`);
+    },
+
+    confirmPayment: (bookingId) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingId}/confirm_payment/`);
+    },
 };
 
 export default eventsService;
+

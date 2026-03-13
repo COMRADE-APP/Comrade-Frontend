@@ -66,17 +66,17 @@ const VerifyEmail = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-            <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-base">
+            <div className="w-full max-w-md bg-elevated rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify your Email</h2>
-                    <p className="text-gray-600">
+                    <h2 className="text-2xl font-bold text-primary mb-2">Verify your Email</h2>
+                    <p className="text-secondary">
                         We sent a verification code to <span className="font-semibold">{email}</span>
                     </p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-red-500/10 text-red-400 rounded-lg text-sm">
                         {error}
                     </div>
                 )}
@@ -95,7 +95,7 @@ const VerifyEmail = () => {
                 </form>
 
                 <div className="mt-6 text-center space-y-2">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-secondary">
                         Didn't receive the code?{' '}
                         <button
                             type="button"
@@ -107,7 +107,7 @@ const VerifyEmail = () => {
                     </p>
                     <button
                         onClick={() => navigate(ROUTES.LOGIN)}
-                        className="text-sm text-gray-400 hover:text-gray-600"
+                        className="text-sm text-tertiary hover:text-secondary"
                     >
                         Back to Login
                     </button>

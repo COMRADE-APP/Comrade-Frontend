@@ -95,6 +95,11 @@ const announcementService = {
         return response.data;
     },
 
+    reactComment: async (announcementId, commentId, action) => {
+        const response = await api.post(`/api/announcements/${announcementId}/comments/${commentId}/react/`, { action });
+        return response.data;
+    },
+
     // Reactions
     addReaction: async (announcementId, reactionType = 'like') => {
         const response = await api.post(`/api/announcements/${announcementId}/react/`, { reaction_type: reactionType });

@@ -7,7 +7,8 @@ import {
     Building2, MapPin, Globe, Mail, Phone, Users, Plus,
     ChevronRight, Settings, Network, FileCheck, ArrowLeft,
     Loader2, AlertCircle, Camera, MoreHorizontal,
-    Share2, Flag, CheckCircle, BookOpen, Calendar, MessageCircle, Briefcase
+    Share2, Flag, CheckCircle, BookOpen, Calendar, MessageCircle, Briefcase,
+    BarChart3, TrendingUp, Eye, UserPlus, Search, Shield, X
 } from 'lucide-react';
 import institutionsService from '../../services/institutions.service';
 import unitsService from '../../services/units.service';
@@ -15,15 +16,27 @@ import { careersService } from '../../services/careers.service';
 import CreateUnit from './CreateUnit';
 import PendingUnitsReview from '../../components/institutions/PendingUnitsReview';
 
+const TABS = [
+    { id: 'overview', label: 'Overview', icon: Building2 },
+    { id: 'jobs', label: 'Jobs', icon: Briefcase },
+    { id: 'opinions', label: 'Opinions', icon: MessageCircle },
+    { id: 'articles', label: 'Articles', icon: BookOpen },
+    { id: 'events', label: 'Events', icon: Calendar },
+    { id: 'units', label: 'Units & Structure', icon: Network },
+    { id: 'members', label: 'Members', icon: Users },
+    { id: 'verification', label: 'Verification', icon: FileCheck },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+];
+
 const InstitutionDetail = () => {
-    const { id } = useParams();
+    const { id, tab } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
 
     const [institution, setInstitution] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('overview');
+    const activeTab = tab || 'overview';
     const [isAdmin, setIsAdmin] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
@@ -38,6 +51,18 @@ const InstitutionDetail = () => {
     const [jobs, setJobs] = useState([]);
     const [jobsLoading, setJobsLoading] = useState(false);
 
+    // Members state
+    const [members, setMembers] = useState([]);
+    const [membersLoading, setMembersLoading] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteData, setInviteData] = useState({ email: '', role: 'member' });
+    const [inviting, setInviting] = useState(false);
+    const [memberSearch, setMemberSearch] = useState('');
+
+    // Analytics state
+    const [analyticsData, setAnalyticsData] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
     // File inputs
     const avatarInputRef = useRef(null);
     const coverInputRef = useRef(null);
@@ -45,6 +70,10 @@ const InstitutionDetail = () => {
     useEffect(() => {
         loadInstitution();
     }, [id]);
+
+    const setActiveTab = (tabId) => {
+        navigate(`/institutions/${id}/${tabId}`, { replace: true });
+    };
 
     const loadInstitution = async () => {
         setLoading(true);
@@ -54,8 +83,6 @@ const InstitutionDetail = () => {
             const data = await institutionsService.getInstitution(id);
             setInstitution(data);
 
-            // Check if current user is admin/creator
-            // Check if current user is admin/creator/moderator/staff
             const isCreator = data.created_by === user?.id;
             const userRole = data.current_user_role;
             const hasEditPermission = isCreator || user?.is_staff || ['creator', 'admin', 'moderator'].includes(userRole);
@@ -63,7 +90,6 @@ const InstitutionDetail = () => {
             setIsAdmin(hasEditPermission);
             setIsFollowing(data.is_following);
             setFollowersCount(data.followers_count || 0);
-
         } catch (err) {
             console.error('Error loading institution:', err);
             setError('Failed to load institution details');
@@ -104,16 +130,53 @@ const InstitutionDetail = () => {
         }
     };
 
+    const loadMembers = async () => {
+        setMembersLoading(true);
+        try {
+            const data = await institutionsService.getMembers(id);
+            setMembers(Array.isArray(data) ? data : data?.results || data?.members || []);
+        } catch (error) {
+            console.error('Error loading members:', error);
+        } finally {
+            setMembersLoading(false);
+        }
+    };
+
+    const loadAnalytics = async () => {
+        setAnalyticsLoading(true);
+        try {
+            // Build analytics from available data
+            setAnalyticsData({
+                followers: followersCount,
+                total_units: Object.values(units).reduce((sum, arr) => sum + arr.length, 0),
+                total_jobs: jobs.length,
+                total_members: members.length,
+                verified: institution?.documents_verified || false,
+            });
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+        } finally {
+            setAnalyticsLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'units' && id) {
             loadUnits();
         } else if (activeTab === 'jobs' && id) {
             loadJobs();
+        } else if (activeTab === 'members' && id) {
+            loadMembers();
+        } else if (activeTab === 'analytics' && id) {
+            // Load dependent data first
+            if (Object.keys(units).length === 0) loadUnits();
+            if (jobs.length === 0) loadJobs();
+            if (members.length === 0) loadMembers();
+            loadAnalytics();
         }
     }, [activeTab, id]);
 
     const handleUnitCreated = (unit) => {
-        // Reload units after creation
         loadUnits();
     };
 
@@ -122,12 +185,8 @@ const InstitutionDetail = () => {
         if (!file) return;
 
         const formData = new FormData();
-
         if (type === 'avatar') {
             formData.append('profile_picture', file);
-            // Also try logo_url just in case backend expects it, though model says profile_picture
-            // But if we send both, one might override. 
-            // Best to rely on what we added to the model: profile_picture. 
         } else {
             formData.append('cover_picture', file);
         }
@@ -156,16 +215,29 @@ const InstitutionDetail = () => {
         }
     };
 
-    const TABS = [
-        { id: 'overview', label: 'Overview', icon: Building2 },
-        { id: 'jobs', label: 'Jobs', icon: Briefcase },
-        { id: 'opinions', label: 'Opinions', icon: MessageCircle },
-        { id: 'articles', label: 'Articles', icon: BookOpen },
-        { id: 'events', label: 'Events', icon: Calendar },
-        { id: 'units', label: 'Units & Structure', icon: Network },
-        { id: 'members', label: 'Members', icon: Users },
-        { id: 'verification', label: 'Verification', icon: FileCheck },
-    ];
+    const handleInviteMember = async () => {
+        if (!inviteData.email.trim()) return;
+        setInviting(true);
+        try {
+            await institutionsService.inviteMember(id, inviteData);
+            setShowInviteModal(false);
+            setInviteData({ email: '', role: 'member' });
+            loadMembers();
+            alert('Invitation sent successfully!');
+        } catch (error) {
+            console.error('Error inviting member:', error);
+            alert(error.response?.data?.error || 'Failed to send invitation');
+        } finally {
+            setInviting(false);
+        }
+    };
+
+    const filteredMembers = members.filter(m => {
+        if (!memberSearch) return true;
+        const name = `${m.first_name || m.user?.first_name || ''} ${m.last_name || m.user?.last_name || ''}`.toLowerCase();
+        const email = (m.email || m.user?.email || '').toLowerCase();
+        return name.includes(memberSearch.toLowerCase()) || email.includes(memberSearch.toLowerCase());
+    });
 
     if (loading) {
         return (
@@ -192,7 +264,6 @@ const InstitutionDetail = () => {
         );
     }
 
-    // Determine display images
     const coverUrl = institution.cover_picture || institution.cover_url;
     const profileUrl = institution.profile_picture || institution.logo_url;
 
@@ -210,7 +281,6 @@ const InstitutionDetail = () => {
             {/* Cover & Avatar Section */}
             <Card className="overflow-hidden">
                 <div className="relative">
-                    {/* Cover Photo - Gradient Fallback */}
                     <div
                         className="h-48 md:h-64 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900 relative"
                         style={coverUrl ? {
@@ -324,7 +394,6 @@ const InstitutionDetail = () => {
                 </div>
 
                 <CardBody className="pt-20">
-                    {/* Name & Type */}
                     <div className="mb-4">
                         <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
                             {institution.name}
@@ -333,7 +402,6 @@ const InstitutionDetail = () => {
                         <p className="text-primary-600 font-medium">{institution.institution_type || 'Educational Institution'}</p>
                     </div>
 
-                    {/* Contact Info */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-secondary mb-6">
                         {institution.city && (
                             <div className="flex items-center gap-1">
@@ -353,9 +421,12 @@ const InstitutionDetail = () => {
                                 <span>{institution.website.replace(/^https?:\/\//, '')}</span>
                             </a>
                         )}
+                        <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span className="text-primary">{followersCount} followers</span>
+                        </div>
                     </div>
 
-                    {/* Description */}
                     {institution.description && (
                         <p className="text-primary border-t border-theme pt-4">{institution.description}</p>
                     )}
@@ -366,19 +437,21 @@ const InstitutionDetail = () => {
             <Card>
                 <div className="border-b border-theme">
                     <div className="flex overflow-x-auto">
-                        {TABS.map((tab) => {
-                            const Icon = tab.icon;
+                        {TABS.map((t) => {
+                            const Icon = t.icon;
+                            // Hide analytics and verification from non-admins
+                            if ((t.id === 'analytics' || t.id === 'verification') && !isAdmin) return null;
                             return (
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 py-4 px-6 text-sm font-medium text-center transition-colors whitespace-nowrap ${activeTab === tab.id
+                                    key={t.id}
+                                    onClick={() => setActiveTab(t.id)}
+                                    className={`flex items-center gap-2 py-4 px-6 text-sm font-medium text-center transition-colors whitespace-nowrap ${activeTab === t.id
                                         ? 'text-primary-600 border-b-2 border-primary-600'
                                         : 'text-tertiary hover:text-primary'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
-                                    {tab.label}
+                                    {t.label}
                                 </button>
                             );
                         })}
@@ -386,7 +459,7 @@ const InstitutionDetail = () => {
                 </div>
 
                 <div className="p-6">
-                    {/* Overview Tab Content */}
+                    {/* Overview Tab */}
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-primary">About {institution.name}</h3>
@@ -407,6 +480,18 @@ const InstitutionDetail = () => {
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Quick Stats */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 text-center">
+                                            <p className="text-2xl font-bold text-primary">{followersCount}</p>
+                                            <p className="text-xs text-secondary">Followers</p>
+                                        </div>
+                                        <div className="p-3 bg-violet-500/10 rounded-lg border border-violet-500/20 text-center">
+                                            <p className="text-2xl font-bold text-primary">{Object.values(units).reduce((s, a) => s + a.length, 0)}</p>
+                                            <p className="text-xs text-secondary">Units</p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {isAdmin && (
@@ -425,7 +510,7 @@ const InstitutionDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Jobs & Gigs</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/careers/create')} size="sm">
+                                    <Button onClick={() => navigate(`/careers/create?institution=${id}&name=${encodeURIComponent(institution.name)}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Post Job
                                     </Button>
                                 )}
@@ -471,7 +556,7 @@ const InstitutionDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Opinions from {institution.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/opinions')} size="sm">
+                                    <Button onClick={() => navigate(`/opinions?institution=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Post Opinion
                                     </Button>
                                 )}
@@ -490,7 +575,7 @@ const InstitutionDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Articles from {institution.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/articles/create')} size="sm">
+                                    <Button onClick={() => navigate(`/articles/create?institution=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Write Article
                                     </Button>
                                 )}
@@ -509,7 +594,7 @@ const InstitutionDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Events from {institution.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/events/create')} size="sm">
+                                    <Button onClick={() => navigate(`/events/create?institution=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Create Event
                                     </Button>
                                 )}
@@ -556,16 +641,31 @@ const InstitutionDetail = () => {
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {typeUnits.map(unit => (
-                                                        <div key={unit.id} className="p-4 bg-secondary/10 rounded-lg border border-theme hover:border-primary/50 transition-colors">
+                                                        <div
+                                                            key={unit.id}
+                                                            className="p-4 bg-secondary/10 rounded-lg border border-theme hover:border-primary/50 transition-colors cursor-pointer group"
+                                                            onClick={() => navigate(`/institutions/${id}/units/${type.key}/${unit.id}`)}
+                                                        >
                                                             <div className="flex justify-between items-start">
                                                                 <div>
-                                                                    <h5 className="font-medium text-primary">{unit.name}</h5>
+                                                                    <h5 className="font-medium text-primary group-hover:text-primary-600 transition-colors">{unit.name}</h5>
                                                                     {isAdmin && (
                                                                         <p className="text-xs text-secondary mt-1">Code: {unit.branch_code || unit.faculty_code || unit.dep_code || 'N/A'}</p>
                                                                     )}
                                                                 </div>
-                                                                <ChevronRight className="w-4 h-4 text-tertiary" />
+                                                                <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-primary transition-colors" />
                                                             </div>
+                                                            {isAdmin && (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <button
+                                                                        className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors"
+                                                                        onClick={(e) => { e.stopPropagation(); /* TODO: act as unit */ }}
+                                                                    >
+                                                                        <Shield className="w-3 h-3 inline mr-1" />
+                                                                        Act as unit
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -580,23 +680,72 @@ const InstitutionDetail = () => {
                     {/* Members Tab */}
                     {activeTab === 'members' && (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-primary">Members</h3>
-                                {isAdmin && (
-                                    <Button onClick={() => navigate(`/institutions/${id}/settings`)} size="sm">
-                                        <Plus className="w-4 h-4 mr-2" /> Invite Member
-                                    </Button>
-                                )}
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <h3 className="text-lg font-semibold text-primary">Members ({members.length})</h3>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search members..."
+                                            value={memberSearch}
+                                            onChange={(e) => setMemberSearch(e.target.value)}
+                                            className="pl-9 pr-4 py-2 bg-secondary border border-theme rounded-lg text-primary text-sm outline-none focus:ring-2 focus:ring-primary/20 w-48"
+                                        />
+                                    </div>
+                                    {isAdmin && (
+                                        <Button onClick={() => setShowInviteModal(true)} size="sm">
+                                            <UserPlus className="w-4 h-4 mr-2" /> Invite Member
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="text-center py-12 text-secondary">
-                                <Users className="w-12 h-12 mx-auto mb-3 text-tertiary" />
-                                <p>Members management view coming soon.</p>
-                            </div>
+
+                            {membersLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : filteredMembers.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Users className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p>{memberSearch ? 'No matching members found' : 'No members yet'}</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-3">
+                                    {filteredMembers.map((member, idx) => {
+                                        const memberUser = member.user || member;
+                                        const displayName = `${memberUser.first_name || ''} ${memberUser.last_name || ''}`.trim() || memberUser.email || 'Unknown';
+                                        const role = member.role || member.membership_role || 'member';
+
+                                        return (
+                                            <div key={idx} className="p-4 bg-secondary/5 border border-theme rounded-lg flex items-center justify-between hover:border-primary/30 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+                                                        {displayName[0]?.toUpperCase() || 'U'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-primary text-sm">{displayName}</p>
+                                                        <p className="text-xs text-secondary">{memberUser.email || ''}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                                    role === 'admin' || role === 'creator' ? 'bg-violet-500/10 text-violet-500' :
+                                                    role === 'moderator' ? 'bg-blue-500/10 text-blue-500' :
+                                                    role === 'staff' ? 'bg-green-500/10 text-green-500' :
+                                                    'bg-secondary text-secondary'
+                                                }`}>
+                                                    {role}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Verification Tab */}
-                    {activeTab === 'verification' && (
+                    {activeTab === 'verification' && isAdmin && (
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-primary">Verification Status</h3>
                             <div className="space-y-3">
@@ -620,19 +769,164 @@ const InstitutionDetail = () => {
                                         {institution.website_verified ? 'Verified' : 'Pending'}
                                     </span>
                                 </div>
+                                <div className="p-4 border border-theme rounded-lg flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <FileCheck className="w-5 h-5 text-tertiary" />
+                                        <span className="text-primary">Document Verification</span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${institution.documents_verified ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                        }`}>
+                                        {institution.documents_verified ? 'Verified' : 'Pending'}
+                                    </span>
+                                </div>
                             </div>
 
-                            {isAdmin && !institution.documents_verified && (
-                                <div className="mt-4">
+                            {!institution.documents_verified && (
+                                <div className="mt-4 flex gap-3">
                                     <Button onClick={() => navigate(`/institutions/${id}/verification`)}>
-                                        Continue Verification
+                                        <FileCheck className="w-4 h-4 mr-2" /> Continue Verification
                                     </Button>
+                                    {!institution.email_verified && (
+                                        <Button variant="outline" onClick={async () => {
+                                            try {
+                                                await institutionsService.sendEmailVerification(id);
+                                                alert('Verification email sent!');
+                                            } catch (e) {
+                                                alert('Failed to send verification email');
+                                            }
+                                        }}>
+                                            <Mail className="w-4 h-4 mr-2" /> Send Verification Email
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Analytics Tab */}
+                    {activeTab === 'analytics' && isAdmin && (
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                <BarChart3 className="w-5 h-5" /> Institution Analytics
+                            </h3>
+
+                            {analyticsLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { label: 'Followers', value: followersCount, color: 'blue', icon: Users },
+                                            { label: 'Members', value: members.length, color: 'violet', icon: UserPlus },
+                                            { label: 'Units', value: Object.values(units).reduce((s, a) => s + a.length, 0), color: 'emerald', icon: Network },
+                                            { label: 'Jobs Posted', value: jobs.length, color: 'orange', icon: Briefcase },
+                                        ].map((stat, idx) => (
+                                            <div key={idx} className={`p-4 rounded-xl bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <stat.icon className={`w-4 h-4 text-${stat.color}-400`} />
+                                                    <span className="text-xs text-secondary">{stat.label}</span>
+                                                </div>
+                                                <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="p-4 bg-secondary/10 rounded-lg border border-theme">
+                                        <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                                            <TrendingUp className="w-4 h-4" /> Verification Status
+                                        </h4>
+                                        <div className="flex flex-wrap gap-3">
+                                            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${institution.email_verified ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                Email: {institution.email_verified ? '✓ Verified' : '⏳ Pending'}
+                                            </span>
+                                            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${institution.website_verified ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                Website: {institution.website_verified ? '✓ Verified' : '⏳ Pending'}
+                                            </span>
+                                            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${institution.documents_verified ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                Documents: {institution.documents_verified ? '✓ Verified' : '⏳ Pending'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-secondary/10 rounded-lg border border-theme">
+                                        <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                                            <Eye className="w-4 h-4" /> Unit Breakdown
+                                        </h4>
+                                        {Object.keys(units).length > 0 ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                {unitsService.getInstitutionUnitTypes().map(type => {
+                                                    const count = (units[type.key] || []).length;
+                                                    if (count === 0) return null;
+                                                    return (
+                                                        <div key={type.key} className="flex items-center justify-between p-2 bg-elevated rounded-md">
+                                                            <span className="text-sm text-secondary capitalize">{type.label}s</span>
+                                                            <span className="font-bold text-primary">{count}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-secondary">No units created yet</p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
             </Card>
+
+            {/* Invite Member Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="max-w-md w-full">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                                    <UserPlus className="w-5 h-5" /> Invite Member
+                                </h3>
+                                <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-secondary rounded-full">
+                                    <X className="w-5 h-5 text-secondary" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Email Address *</label>
+                                    <input
+                                        type="email"
+                                        value={inviteData.email}
+                                        onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                                        placeholder="member@example.com"
+                                        className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Role</label>
+                                    <select
+                                        value={inviteData.role}
+                                        onChange={(e) => setInviteData(prev => ({ ...prev, role: e.target.value }))}
+                                        className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                    >
+                                        <option value="member">Member</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="moderator">Moderator</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-3 justify-end pt-2">
+                                    <Button variant="secondary" onClick={() => setShowInviteModal(false)}>Cancel</Button>
+                                    <Button variant="primary" onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
+                                        {inviting ? 'Sending...' : 'Send Invitation'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
 
             <CreateUnit
                 isOpen={createUnitOpen}

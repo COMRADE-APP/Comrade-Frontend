@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Calendar, User, Users, FileText, CheckCircle, Clock,
     MessageSquare, Share2, Award, BookOpen, AlertCircle, Plus,
-    Flag, Heart, DollarSign, Percent, Shield, Download
+    Flag, Heart, DollarSign, Percent, Shield, Download, BarChart2, Edit2
 } from 'lucide-react';
 import researchService from '../services/research.service';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +23,16 @@ const ResearchDetail = () => {
     const [personas, setPersonas] = useState([]);
     const [newPersona, setNewPersona] = useState({ name: '', description: '', percentage: '' });
 
+    // Recruitment state
+    const [recruitmentPosts, setRecruitmentPosts] = useState([]);
+
+    // Publication state
+    const [pubData, setPubData] = useState({
+        fee: 0,
+        currency: 'USD',
+        full_paper: null
+    });
+
     useEffect(() => {
         loadProject();
     }, [id]);
@@ -30,10 +40,22 @@ const ResearchDetail = () => {
     const loadProject = async () => {
         setLoading(true);
         try {
-            const data = await researchService.getProjectById(id);
-            setProject(data);
+            const [projectData, postsData] = await Promise.all([
+                researchService.getProjectById(id),
+                researchService.getRecruitmentPosts({ research: id })
+            ]);
+            setProject(projectData);
+            setRecruitmentPosts(postsData.results || postsData);
+
+            if (projectData?.publication) {
+                setPubData(prev => ({
+                    ...prev,
+                    fee: projectData.publication.fee || 0,
+                    currency: projectData.publication.currency || 'USD'
+                }));
+            }
         } catch (error) {
-            console.error('Error loading project:', error);
+            console.error('Error loading project data:', error);
         } finally {
             setLoading(false);
         }
@@ -63,7 +85,34 @@ const ResearchDetail = () => {
         }
     };
 
-    const isPI = project?.principal_investigator?.id === user?.id;
+    const handlePubSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('research', project.id);
+        formData.append('fee', pubData.fee);
+        formData.append('currency', pubData.currency);
+        if (pubData.full_paper) {
+            formData.append('full_paper', pubData.full_paper);
+        }
+        // Add required fields
+        formData.append('title', project.title);
+        formData.append('abstract', project.abstract);
+
+        try {
+            if (project.publication) {
+                await researchService.updatePublication(project.publication.id, formData);
+            } else {
+                await researchService.createPublication(formData);
+            }
+            alert('Publication details updated!');
+            loadProject();
+        } catch (error) {
+            console.error('Error updating publication:', error);
+            alert('Failed to update publication.');
+        }
+    };
+
+    const isPI = String(project?.principal_investigator?.id) === String(user?.id);
 
     if (loading) return <div className="p-8 text-center">Loading...</div>;
     if (!project) return <div className="p-8 text-center">Project not found</div>;
@@ -364,39 +413,6 @@ const ResearchDetail = () => {
     );
 
     const renderPublication = () => {
-        const [pubData, setPubData] = useState({
-            fee: project.publication?.fee || 0,
-            currency: project.publication?.currency || 'USD',
-            full_paper: null
-        });
-
-        const handlePubSubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('research', project.id);
-            formData.append('fee', pubData.fee);
-            formData.append('currency', pubData.currency);
-            if (pubData.full_paper) {
-                formData.append('full_paper', pubData.full_paper);
-            }
-            // Add required fields
-            formData.append('title', project.title);
-            formData.append('abstract', project.abstract);
-
-            try {
-                if (project.publication) {
-                    await researchService.updatePublication(project.publication.id, formData);
-                } else {
-                    await researchService.createPublication(formData);
-                }
-                alert('Publication details updated!');
-                loadProject();
-            } catch (error) {
-                console.error('Error updating publication:', error);
-                alert('Failed to update publication.');
-            }
-        };
-
         if (isPI) {
             return (
                 <Card>
@@ -508,6 +524,74 @@ const ResearchDetail = () => {
         );
     };
 
+    const renderRecruitment = () => (
+        <div className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-primary">Recruitment Posts</h3>
+                {isPI && (
+                    <Button variant="primary" size="sm" onClick={() => {/* Navigate to create post */ }}>
+                        <Plus className="w-4 h-4 mr-2" /> Create Post
+                    </Button>
+                )}
+            </div>
+
+            {recruitmentPosts.length === 0 ? (
+                <div className="text-center py-8 bg-elevated rounded-xl border border-theme">
+                    <Users className="w-12 h-12 mx-auto text-tertiary mb-3" />
+                    <p className="text-secondary">No active recruitment posts right now.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {recruitmentPosts.map((post) => (
+                        <Card key={post.id} className="hover:border-primary/50 transition-colors">
+                            <CardBody className="space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <h4 className="font-semibold text-primary text-lg">{post.title}</h4>
+                                    <Badge variant={post.is_active ? 'success' : 'secondary'}>
+                                        {post.is_active ? 'Active' : 'Closed'}
+                                    </Badge>
+                                </div>
+
+                                <Badge variant="info" className="w-fit mb-2">
+                                    Seeking: {post.post_type === 'team_members' ? 'Team Members' : 'Participants'}
+                                </Badge>
+
+                                <p className="text-sm text-secondary line-clamp-3">{post.description}</p>
+
+                                {post.requirements_text && (
+                                    <div className="bg-secondary/10 p-3 rounded-lg text-xs text-secondary">
+                                        <p className="font-semibold text-primary mb-1">Requirements:</p>
+                                        <p className="line-clamp-2">{post.requirements_text}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-4 text-xs text-tertiary mt-2">
+                                    {post.application_deadline && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar size={14} />
+                                            Due {new Date(post.application_deadline).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="pt-3 border-t border-theme flex justify-end">
+                                    <Button
+                                        onClick={() => navigate(`/research/${project.id}/recruitment/${post.id}/apply`)}
+                                        variant="primary"
+                                        className="w-full"
+                                        disabled={!post.is_active}
+                                    >
+                                        Apply Now
+                                    </Button>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <Button variant="ghost" onClick={() => navigate('/research')}>
@@ -557,14 +641,29 @@ const ResearchDetail = () => {
                         </div>
                     </div>
                     <div className="flex flex-col gap-2">
+                        {isPI && (
+                            <Button onClick={() => navigate(`/research/${id}/edit`)} className="bg-white text-primary hover:bg-gray-100 text-sm py-1.5 h-auto">
+                                <Edit2 className="w-4 h-4 mr-2" /> Update Research
+                            </Button>
+                        )}
                         {isPI && !project.is_published && (
                             <Button onClick={handlePublish} className="bg-white text-primary hover:bg-gray-100">
                                 <Share2 className="w-4 h-4 mr-2" /> Publish Now
                             </Button>
                         )}
                         {isPI && (
-                            <Button className="bg-primary-600 text-white border border-primary-500 hover:bg-primary-500">
+                            <Button className="bg-primary-600 text-white border border-primary-500 hover:bg-primary-500 text-sm py-1.5 h-auto">
                                 <Award className="w-4 h-4 mr-2" /> Manage Reviews
+                            </Button>
+                        )}
+                        {isPI && (
+                            <Button onClick={() => navigate(`/research/${project.id}/analytics`)} className="bg-elevated text-primary border border-theme hover:bg-secondary text-sm py-1.5 h-auto">
+                                <BarChart2 className="w-4 h-4 mr-2" /> View Analytics
+                            </Button>
+                        )}
+                        {isPI && (
+                            <Button onClick={() => navigate(`/research/edit/${project.id}`)} className="bg-elevated text-primary border border-theme hover:bg-secondary text-sm py-1.5 h-auto">
+                                <Edit2 className="w-4 h-4 mr-2" /> Edit Project
                             </Button>
                         )}
                     </div>
@@ -573,7 +672,7 @@ const ResearchDetail = () => {
 
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-theme overflow-x-auto pb-1">
-                {['overview', 'personas', 'participants', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
+                {['overview', 'personas', 'participants', 'recruitment', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -592,6 +691,7 @@ const ResearchDetail = () => {
                 {activeTab === 'overview' && renderOverview()}
                 {activeTab === 'personas' && renderPersonas()}
                 {activeTab === 'participants' && renderPositions()}
+                {activeTab === 'recruitment' && renderRecruitment()}
                 {activeTab === 'guidelines' && renderGuidelines()}
                 {activeTab === 'team' && renderTeam()}
                 {activeTab === 'reviews' && (

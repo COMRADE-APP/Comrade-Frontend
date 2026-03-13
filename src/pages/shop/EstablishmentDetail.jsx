@@ -25,6 +25,13 @@ const StarRating = ({ rating, count }) => (
     </div>
 );
 
+const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function EstablishmentDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -190,7 +197,7 @@ export default function EstablishmentDetail() {
             {/* Banner */}
             <div className="relative h-64 md:h-80 w-full overflow-hidden">
                 {establishment.banner ? (
-                    <img src={establishment.banner} alt={establishment.name} className="w-full h-full object-cover" />
+                    <img src={getImageUrl(establishment.banner)} alt={establishment.name} className="w-full h-full object-cover" />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                         <div className="text-center">
@@ -306,7 +313,7 @@ export default function EstablishmentDetail() {
                                         {items.map(item => (
                                             <div key={item.id} className="bg-elevated border border-theme rounded-xl p-4 flex gap-4 hover:border-primary/30 transition-colors group">
                                                 {item.image && (
-                                                    <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-lg bg-secondary/10 shrink-0" />
+                                                    <img src={getImageUrl(item.image)} alt={item.name} className="w-24 h-24 object-cover rounded-lg bg-secondary/10 shrink-0" />
                                                 )}
                                                 <div className="flex-1 flex flex-col">
                                                     <div className="flex justify-between items-start mb-1">

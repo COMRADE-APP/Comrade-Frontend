@@ -11,6 +11,11 @@ const shopService = {
         const response = await api.get(API_ENDPOINTS.PRODUCT_DETAIL(id));
         return response.data;
     },
+    syncInventory: async (data, isFormData = false) => {
+        const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        const response = await api.post('/api/products/sync_inventory/', data, config);
+        return response.data;
+    },
 
     // Establishments
     getEstablishments: async (params = {}) => {
@@ -118,6 +123,10 @@ const shopService = {
     },
     createOrder: async (data) => {
         const response = await api.post(API_ENDPOINTS.ORDERS, data);
+        return response.data;
+    },
+    recordOfflineSale: async (data) => {
+        const response = await api.post('/api/orders/record_offline_sale/', data);
         return response.data;
     },
     updateOrderStatus: async (id, status) => {

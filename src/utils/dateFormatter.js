@@ -20,8 +20,17 @@ export const formatTimeAgo = (date) => {
 
 export const formatTime = (date) => {
     if (!date) return '';
-    const dateObj = typeof date === 'string' ? parseISO(date) : date;
-    return format(dateObj, 'HH:mm');
+    // Handle bare time strings like "09:00" or "09:00:00" from Django TimeField
+    if (typeof date === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(date)) {
+        return date.slice(0, 5);
+    }
+    try {
+        const dateObj = typeof date === 'string' ? parseISO(date) : date;
+        if (isNaN(dateObj.getTime())) return typeof date === 'string' ? date : '';
+        return format(dateObj, 'HH:mm');
+    } catch {
+        return typeof date === 'string' ? date : '';
+    }
 };
 
 /**

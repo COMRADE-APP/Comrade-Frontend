@@ -44,10 +44,10 @@ const Setup2FA = () => {
 
     return (
         <div className="p-8 max-w-2xl mx-auto">
-            <div className="bg-white rounded-xl shadow-md p-8">
+            <div className="bg-elevated rounded-xl shadow-md p-8">
                 <h2 className="text-2xl font-bold mb-6">Setup Two-Factor Authentication</h2>
 
-                {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
+                {error && <div className="mb-4 p-3 bg-red-500/10 text-red-400 rounded-lg">{error}</div>}
 
                 <div className="space-y-8">
                     {/* Step 1: Scan QR */}
@@ -56,7 +56,7 @@ const Setup2FA = () => {
                             <span className="bg-primary-100 text-primary-800 text-sm font-medium px-2.5 py-0.5 rounded">Step 1</span>
                         </div>
                         <h3 className="text-lg font-medium mb-2">Scan this QR Code</h3>
-                        <p className="text-gray-500 mb-4 text-sm">
+                        <p className="text-tertiary mb-4 text-sm">
                             Use Google Authenticator or any TOTP app to scan.
                         </p>
 
@@ -66,8 +66,8 @@ const Setup2FA = () => {
                             </div>
                         )}
 
-                        <div className="bg-gray-50 p-3 rounded-lg inline-block text-left">
-                            <p className="text-xs text-gray-500 mb-1">Manual Entry Code:</p>
+                        <div className="bg-base p-3 rounded-lg inline-block text-left">
+                            <p className="text-xs text-tertiary mb-1">Manual Entry Code:</p>
                             <code className="font-mono font-bold text-gray-800">{secretData?.secret}</code>
                         </div>
                     </div>

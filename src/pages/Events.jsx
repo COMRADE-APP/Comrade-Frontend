@@ -9,7 +9,7 @@ import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
 import {
     Calendar, MapPin, Users, Clock, Ticket, Bell,
-    X, ChevronRight, Plus, Search
+    X, ChevronRight, Plus, Search, BarChart3
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import { formatDate } from '../utils/dateFormatter';
@@ -22,6 +22,33 @@ const displayTime = (val) => {
     try {
         return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch { return val; }
+};
+
+const getTemporalStatus = (event) => {
+    if (!event.event_date) return null;
+    
+    let startDateTime = new Date(event.event_date);
+    let endDateTime = new Date(event.event_date);
+    
+    // Parse times if available
+    if (event.start_time) {
+        const [hours, minutes] = event.start_time.split(':');
+        startDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
+    }
+    if (event.end_time) {
+        const [hours, minutes] = event.end_time.split(':');
+        endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
+    }
+
+    const now = new Date();
+    
+    if (endDateTime < now) {
+        return 'past';
+    } else if (startDateTime <= now && endDateTime >= now) {
+        return 'happening_now';
+    } else {
+        return 'upcoming';
+    }
 };
 
 const FILTERS = [
@@ -90,10 +117,16 @@ const Events = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-primary">Events</h1>
                     <p className="text-secondary mt-1">Discover and join upcoming events</p>
                 </div>
-                <Button variant="primary" onClick={() => navigate('/events/create')}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Event
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="secondary" onClick={() => navigate('/events/analytics')}>
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Analytics
+                    </Button>
+                    <Button variant="primary" onClick={() => navigate('/events/create')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Event
+                    </Button>
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -184,8 +217,15 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
         <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between">
             <div>
                 {/* Event Image */}
-                <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/20 flex flex-col justify-between p-3 relative">
-                    <div className="flex justify-between items-start w-full gap-2">
+                <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/20 flex flex-col justify-between p-3 relative overflow-hidden">
+                    {(event.cover_image || event.image_url) && (
+                        <img
+                            src={event.cover_image || event.image_url}
+                            alt={event.name}
+                            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay group-hover:scale-105 transition-transform duration-500"
+                        />
+                    )}
+                    <div className="flex justify-between items-start w-full gap-2 relative z-10">
                         {(() => {
                             const locLabel = locationTypeDisplay();
                             const badgeColors = locLabel === 'Virtual' ? 'bg-green-500/20 text-green-400 border border-green-500/30'
@@ -197,11 +237,28 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                                 </span>
                             );
                         })()}
-                        {event.status && (
-                            <span className="px-3 py-1 bg-elevated/90 backdrop-blur-sm rounded-full text-xs font-medium text-secondary capitalize shadow-sm border border-theme">
-                                {event.status}
-                            </span>
-                        )}
+                        {(() => {
+                            const temporalStatus = getTemporalStatus(event);
+                            if (!temporalStatus) return null;
+                            
+                            const styles = {
+                                past: 'bg-elevated/90 text-secondary border-theme',
+                                happening_now: 'bg-red-500/20 text-red-500 border-red-500/30 animate-pulse',
+                                upcoming: 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+                            };
+                            
+                            const labels = {
+                                past: 'Past',
+                                happening_now: 'Happening Now',
+                                upcoming: 'Upcoming'
+                            };
+
+                            return (
+                                <span className={`px-3 py-1 backdrop-blur-sm rounded-full text-xs font-medium uppercase tracking-wider shadow-sm border ${styles[temporalStatus]}`}>
+                                    {labels[temporalStatus]}
+                                </span>
+                            );
+                        })()}
                     </div>
                     <div className="flex justify-center flex-1 items-center">
                         <Calendar className="w-12 h-12 text-primary" />

@@ -87,7 +87,75 @@ const researchService = {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
+    },
+
+    // Applications
+    applyToPosition: async (projectId, data) => {
+        const response = await api.post(`${BASE_URL}/projects/${projectId}/apply/`, data);
+        return response.data;
+    },
+
+    getProjectApplications: async (projectId, statusFilter = '') => {
+        const params = statusFilter ? { status: statusFilter } : {};
+        const response = await api.get(`${BASE_URL}/projects/${projectId}/applications/`, { params });
+        return response.data;
+    },
+
+    reviewApplication: async (applicationId, status, reviewerNotes = '') => {
+        const response = await api.post(`${BASE_URL}/applications/${applicationId}/review/`, {
+            status,
+            reviewer_notes: reviewerNotes
+        });
+        return response.data;
+    },
+
+    withdrawApplication: async (applicationId) => {
+        const response = await api.post(`${BASE_URL}/applications/${applicationId}/withdraw/`);
+        return response.data;
+    },
+
+    getMyApplications: async () => {
+        const response = await api.get(`${BASE_URL}/applications/my_applications/`);
+        return response.data;
+    },
+
+    // Analytics
+    recordProjectView: async (projectId) => {
+        const response = await api.post(`${BASE_URL}/projects/${projectId}/record_view/`);
+        return response.data;
+    },
+
+    getProjectAnalytics: async (projectId) => {
+        const response = await api.get(`${BASE_URL}/projects/${projectId}/analytics/`);
+        return response.data;
+    },
+
+    // Recruitment Posts
+    getRecruitmentPosts: async (params = {}) => {
+        const response = await api.get(`${BASE_URL}/recruitment_posts/`, { params });
+        return response.data;
+    },
+
+    createRecruitmentPost: async (data) => {
+        const response = await api.post(`${BASE_URL}/recruitment_posts/`, data);
+        return response.data;
+    },
+
+    applyToRecruitmentPost: async (postId, data) => {
+        const response = await api.post(`${BASE_URL}/recruitment_posts/${postId}/apply/`, data);
+        return response.data;
+    },
+
+    getRecruitmentPostApplications: async (postId) => {
+        const response = await api.get(`${BASE_URL}/recruitment_posts/${postId}/applications/`);
+        return response.data;
+    },
+
+    convertRecruitmentPostToOpinion: async (postId) => {
+        const response = await api.post(`${BASE_URL}/recruitment_posts/${postId}/convert_to_opinion/`);
+        return response.data;
     }
 };
 
 export default researchService;
+

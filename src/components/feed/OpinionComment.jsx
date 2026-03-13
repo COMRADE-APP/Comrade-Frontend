@@ -31,8 +31,29 @@ const OpinionComment = ({
     const hasReplies = comment.replies && comment.replies.length > 0;
     const canReply = depth < maxDepth;
     const commentUser = comment.user || {};
-    const userName = `${commentUser.first_name || ''} ${commentUser.last_name || ''}`.trim() || 'User';
-    const userHandle = commentUser.username || commentUser.email?.split('@')[0] || 'user';
+    
+    // Check if posted by an entity (org/inst/estab)
+    const isEntityAuthor = !!comment.entity_author;
+    const entityInfo = comment.entity_author;
+    
+    // Determine display name and avatar based on authorship
+    const userName = isEntityAuthor 
+        ? entityInfo.name 
+        : (`${commentUser.first_name || ''} ${commentUser.last_name || ''}`.trim() || 'User');
+    
+    const userHandle = isEntityAuthor
+        ? (entityInfo.name.replace(/\s+/g, '').toLowerCase())
+        : (commentUser.username || commentUser.email?.split('@')[0] || 'user');
+        
+    const avatarUrl = isEntityAuthor ? entityInfo.avatar : commentUser.avatar_url;
+    
+    // Role badge
+    const roleBadge = isEntityAuthor && entityInfo.poster_role_display ? (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-primary border border-theme ml-1">
+            {entityInfo.poster_role_display.icon && <span>{entityInfo.poster_role_display.icon}</span>}
+            {entityInfo.poster_role_display.label}
+        </span>
+    ) : null;
 
     const handleLike = async () => {
         if (onLike) {
@@ -80,10 +101,10 @@ const OpinionComment = ({
                     <div className="flex items-start gap-3">
                         <Link to={`/profile/${commentUser.id}`} className="shrink-0">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
-                                {commentUser.avatar_url ? (
-                                    <img src={commentUser.avatar_url} alt="" className="w-full h-full object-cover" />
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    (commentUser.first_name?.[0] || 'U').toUpperCase()
+                                    (isEntityAuthor ? entityInfo.name[0] : (commentUser.first_name?.[0] || 'U')).toUpperCase()
                                 )}
                             </div>
                         </Link>
@@ -91,8 +112,9 @@ const OpinionComment = ({
                         <div className="flex-1 min-w-0">
                             {/* Name row */}
                             <div className="flex items-center gap-1.5 flex-wrap">
-                                <Link to={`/profile/${commentUser.id}`} className="font-semibold text-primary hover:underline text-sm">
+                                <Link to={`/profile/${commentUser.id}`} className="font-semibold text-primary hover:underline text-sm flex items-center">
                                     {userName}
+                                    {roleBadge}
                                 </Link>
                                 <span className="text-secondary text-sm">@{userHandle}</span>
                                 <span className="text-secondary">·</span>

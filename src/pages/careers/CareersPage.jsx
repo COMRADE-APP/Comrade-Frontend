@@ -146,9 +146,15 @@ const CareersPage = () => {
 
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center text-primary">
-                            <Building2 size={24} />
-                        </div>
+                        {career.image_url ? (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative bg-secondary/10 border border-theme">
+                                <img src={career.image_url} alt={career.company_name} className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                        ) : (
+                            <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center text-primary mt-1 shrink-0">
+                                <Building2 size={24} />
+                            </div>
+                        )}
                         <div>
                             <h3 className="font-bold text-lg text-primary">{career.title}</h3>
                             <p className="text-sm text-secondary">{career.company_name}</p>

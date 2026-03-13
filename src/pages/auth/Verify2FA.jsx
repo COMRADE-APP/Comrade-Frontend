@@ -40,17 +40,17 @@ const Verify2FA = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-            <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-base">
+            <div className="w-full max-w-md bg-elevated rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Two-Factor Verification</h2>
-                    <p className="text-gray-600">
+                    <h2 className="text-2xl font-bold text-primary mb-2">Two-Factor Verification</h2>
+                    <p className="text-secondary">
                         Enter the 6-digit code from your authenticator app.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    <div className="mb-4 p-3 bg-red-500/10 text-red-400 rounded-lg text-sm">
                         {error}
                     </div>
                 )}
@@ -71,7 +71,7 @@ const Verify2FA = () => {
                 <div className="mt-6 text-center">
                     <button
                         onClick={() => navigate(ROUTES.LOGIN)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        className="text-sm text-tertiary hover:text-secondary"
                     >
                         Back to Login
                     </button>

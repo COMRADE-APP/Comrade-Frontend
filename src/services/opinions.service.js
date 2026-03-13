@@ -76,16 +76,25 @@ const opinionsService = {
         return response.data;
     },
 
-    // Add comment to opinion (supports text, image, video, file)
-    addComment: async (id, content, media = null, parentCommentId = null) => {
+    // Add comment to opinion (supports text, image, video, file, and entity authorship)
+    addComment: async (id, content, media = null, options = {}) => {
         const formData = new FormData();
         formData.append('content', content);
-        if (parentCommentId) {
-            formData.append('parent_comment', parentCommentId);
+        
+        if (options.parentCommentId) {
+            formData.append('parent_comment', options.parentCommentId);
         }
+        
+        // Add entity authorship data if present
+        if (options.organisation) formData.append('organisation', options.organisation);
+        if (options.institution) formData.append('institution', options.institution);
+        if (options.establishment) formData.append('establishment', options.establishment);
+        if (options.poster_role) formData.append('poster_role', options.poster_role);
+
         if (media) {
             formData.append('file', media);
         }
+        
         const response = await api.post(`${BASE_URL}/opinions/${id}/comments/`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });

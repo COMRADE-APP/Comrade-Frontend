@@ -173,6 +173,26 @@ const articlesService = {
     },
 
     /**
+     * Upload an attachment to an existing article
+     */
+    uploadAttachment: async (id, file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post(`${API_ENDPOINTS.ARTICLES.DETAIL(id)}upload_attachment/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
+    /**
+     * Record a read view
+     */
+    recordRead: async (id) => {
+        const response = await apiClient.post(`${API_ENDPOINTS.ARTICLES.DETAIL(id)}record_read/`);
+        return response.data;
+    },
+
+    /**
      * Get articles by category
      */
     getByCategory: async (category) => {

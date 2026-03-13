@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Image as ImageIcon, DollarSign, Tag, Save, Send, X } from 'lucide-react';
+import { ArrowLeft, Package, Image as ImageIcon, DollarSign, Tag, Save, Send, X, Share2, Users, Lock, Info } from 'lucide-react';
 import api from '../../services/api';
 
 const PRODUCT_TYPES = [
@@ -21,6 +21,7 @@ const CreateProduct = () => {
         price: '',
         product_type: 'physical',
         is_sharable: true,
+        allow_group_purchase: true,
         requires_subscription: false,
         duration_days: 30,
     });
@@ -142,18 +143,75 @@ const CreateProduct = () => {
                         </div>
                     </div>
 
-                    {/* Options */}
-                    <div className="mb-6 space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={formData.is_sharable}
-                                onChange={(e) => setFormData({ ...formData, is_sharable: e.target.checked })}
-                                className="w-4 h-4 rounded"
-                                style={{ accentColor: 'var(--accent-primary)' }}
-                            />
-                            <span className="text-sm text-secondary">Allow group purchases</span>
-                        </label>
+                    {/* Sharing & Purchase Options */}
+                    <div className="mb-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                            <Share2 size={16} /> Sharing & Purchase Options
+                        </h3>
+
+                        {/* Allow Group Purchase */}
+                        <div className={`p-4 rounded-xl border transition-colors ${formData.allow_group_purchase ? 'bg-blue-500/5 border-blue-500/20' : 'bg-secondary/5 border-theme'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.allow_group_purchase}
+                                    onChange={(e) => {
+                                        const allowGroup = e.target.checked;
+                                        setFormData({
+                                            ...formData,
+                                            allow_group_purchase: allowGroup,
+                                            // If disabling group purchase, also disable sharable
+                                            is_sharable: allowGroup ? formData.is_sharable : false,
+                                        });
+                                    }}
+                                    className="w-4 h-4 rounded mt-0.5"
+                                    style={{ accentColor: 'var(--accent-primary)' }}
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-primary flex items-center gap-1.5">
+                                        <Users size={14} /> Allow Group Purchase
+                                    </span>
+                                    <p className="text-xs text-secondary mt-0.5">
+                                        When enabled, groups can purchase this product on behalf of all members.
+                                        When disabled, the product is strictly for individual purchase.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+
+                        {/* Sharable */}
+                        {formData.allow_group_purchase && (
+                            <div className={`p-4 rounded-xl border transition-colors ${formData.is_sharable ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.is_sharable}
+                                        onChange={(e) => setFormData({ ...formData, is_sharable: e.target.checked })}
+                                        className="w-4 h-4 rounded mt-0.5"
+                                        style={{ accentColor: 'var(--accent-primary)' }}
+                                    />
+                                    <div>
+                                        <span className="text-sm font-medium text-primary flex items-center gap-1.5">
+                                            <Share2 size={14} /> Sharable Product
+                                        </span>
+                                        <p className="text-xs text-secondary mt-0.5">
+                                            {formData.is_sharable
+                                                ? '✅ Sharable: 1 product is purchased and shared among all group members.'
+                                                : '📦 Non-sharable: 1 product per member — quantity equals group size (each member gets their own).'}
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
+
+                        {!formData.allow_group_purchase && (
+                            <div className="flex items-center gap-2 p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+                                <Lock size={14} className="text-red-400 shrink-0" />
+                                <p className="text-xs text-secondary">This product will only be available for individual purchases. Group orders are disabled.</p>
+                            </div>
+                        )}
+
+                        {/* Requires Subscription */}
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
@@ -202,9 +260,15 @@ const CreateProduct = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-elevated border border-theme rounded-xl p-6 max-w-md w-full shadow-xl">
                         <h3 className="text-lg font-bold text-primary mb-4">📦 Create Product?</h3>
-                        <p className="text-secondary mb-6">
+                        <p className="text-secondary mb-4">
                             Your product will be created and available in the shop.
                         </p>
+                        <div className="text-sm text-secondary space-y-1 mb-6 bg-secondary/10 p-3 rounded-lg">
+                            <p><strong>Name:</strong> {formData.name}</p>
+                            <p><strong>Price:</strong> ${formData.price}</p>
+                            <p><strong>Type:</strong> {formData.product_type}</p>
+                            <p><strong>Group Purchase:</strong> {formData.allow_group_purchase ? (formData.is_sharable ? 'Allowed (Sharable)' : 'Allowed (Non-sharable)') : 'Individual Only'}</p>
+                        </div>
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setShowConfirmation(false)}

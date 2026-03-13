@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { MessageSquare, Users, Lock, Plus, Search, Star, Sparkles, Settings, Trash2, Edit, Filter, X } from 'lucide-react';
+import { MessageSquare, Users, Lock, Plus, Search, Star, Sparkles, Settings, Trash2, Edit, Filter, X, CheckCircle } from 'lucide-react';
 import roomsService from '../services/rooms.service';
 import { ROUTES } from '../constants/routes';
 
@@ -396,97 +396,97 @@ const Rooms = () => {
     );
 };
 
-const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecommended, onOpen }) => (
-    <Card className="hover:shadow-md transition-shadow">
-        <CardBody>
-            <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <MessageSquare className="w-6 h-6 text-primary-600" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {room.operation_state === 'active' ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                Active
-                            </span>
-                        ) : (
-                            <Lock className="w-4 h-4 text-tertiary" />
-                        )}
-                        {canManage && (
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => onEdit(room)}
-                                    className="p-1 text-tertiary hover:text-primary-600 transition-colors"
-                                    title="Edit room"
-                                >
-                                    <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => onDelete(room.id)}
-                                    className="p-1 text-tertiary hover:text-red-600 transition-colors"
-                                    title="Delete room"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
+const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecommended, onOpen }) => {
+    const isJoined = room.is_member;
+    // Card click opens the room if user is a member
+    const handleCardClick = () => {
+        if (isJoined) onOpen(room.id);
+    };
 
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg text-primary line-clamp-1">{room.name}</h3>
-                        {(room.unread_count > 0) && (
-                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
-                                {room.unread_count > 99 ? '99+' : room.unread_count}
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-sm text-secondary mt-1 line-clamp-2">
-                        {room.description || 'No description available'}
-                    </p>
-                </div>
-
-                {isRecommended && room.match_reason && (
-                    <div className="flex items-center gap-1 text-xs text-primary-600">
-                        <Sparkles className="w-3 h-3" />
-                        {room.match_reason}
-                    </div>
-                )}
-
-                <div className="flex items-center gap-2 text-sm text-secondary">
-                    <Users className="w-4 h-4" />
-                    <span>{room.member_count || 0} members</span>
-                </div>
-
-                {room.is_member ? (
-                    <div className="flex gap-2">
-                        <Button
-                            variant="primary"
-                            className="flex-1"
-                            onClick={() => onOpen(room.id)}
-                        >
-                            Open Room
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => onLeave(room.id)}
-                        >
-                            Leave
-                        </Button>
-                    </div>
+    return (
+        <Card className={`overflow-hidden transition-shadow ${isJoined ? 'hover:shadow-lg cursor-pointer hover:border-primary-500/30' : 'hover:shadow-md'}`}
+            onClick={isJoined ? handleCardClick : undefined}
+        >
+            {/* Cover Photo Banner */}
+            <div className="h-24 w-full bg-gradient-to-r from-primary-500/20 to-purple-500/20 relative">
+                {room.cover_image ? (
+                    <img src={room.cover_image} alt={room.name} className="w-full h-full object-cover" />
                 ) : (
-                    <Button
-                        variant="primary"
-                        className="w-full"
-                        onClick={() => onJoin(room.id)}
-                    >
-                        Join Room
-                    </Button>
+                    <div className="w-full h-full flex items-center justify-center">
+                        <Users className="w-8 h-8 text-primary-500/30" />
+                    </div>
                 )}
             </div>
-        </CardBody>
-    </Card>
-);
+            <CardBody>
+                <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                        <div className="w-16 h-16 rounded-xl bg-elevated border-4 border-elevated flex items-center justify-center -mt-10 relative shadow-sm z-10 overflow-hidden">
+                            {room.avatar_url ? (
+                                <img src={room.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                    <MessageSquare className="w-6 h-6 text-primary-600" />
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {room.operation_state === 'active' ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                                    Active
+                                </span>
+                            ) : (
+                                <Lock className="w-4 h-4 text-tertiary" />
+                            )}
+                            {/* Edit/Delete icons removed from card surface per requirement */}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg text-primary line-clamp-1">{room.name}</h3>
+                            {(room.unread_count > 0) && (
+                                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                                    {room.unread_count > 99 ? '99+' : room.unread_count}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-secondary mt-1 line-clamp-2">
+                            {room.description || 'No description available'}
+                        </p>
+                    </div>
+
+                    {isRecommended && room.match_reason && (
+                        <div className="flex items-center gap-1 text-xs text-primary-600">
+                            <Sparkles className="w-3 h-3" />
+                            {room.match_reason}
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-sm text-secondary">
+                        <Users className="w-4 h-4" />
+                        <span>{room.member_count || 0} members</span>
+                    </div>
+
+                    {/* Joined rooms: no buttons — click card to open */}
+                    {isJoined ? (
+                        <div className="flex items-center gap-2 text-xs text-primary-600 bg-primary/5 px-3 py-2 rounded-lg">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="font-medium">Joined — click to open</span>
+                        </div>
+                    ) : (
+                        /* Non-joined rooms: show Join button only */
+                        <Button
+                            variant="primary"
+                            className="w-full"
+                            onClick={(e) => { e.stopPropagation(); onJoin(room.id); }}
+                        >
+                            Join Room
+                        </Button>
+                    )}
+                </div>
+            </CardBody>
+        </Card>
+    );
+};
 
 export default Rooms;

@@ -8,10 +8,10 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import {
-    ArrowLeft, Share2, Bookmark, FileText, Bell, BellOff,
-    Clock, Users, MessageSquare, Send, Smile, Calendar, Heart,
+    ArrowLeft, Send, Bookmark, FileText, Bell, BellOff,
+    Clock, Users, MessageSquare, Smile, Calendar, Heart,
     CheckCircle, AlertTriangle, Megaphone, Eye, Paperclip, Pin, Star,
-    MoreHorizontal
+    MoreHorizontal, ThumbsUp, ThumbsDown, CornerDownRight, X
 } from 'lucide-react';
 import { announcementsService } from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
@@ -32,6 +32,8 @@ const AnnouncementDetail = () => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [commentsLoading, setCommentsLoading] = useState(false);
+    const [replyTo, setReplyTo] = useState(null);
+    const [replyingToTarget, setReplyingToTarget] = useState(null);
     const commentInputRef = useRef(null);
 
     // Reactions state
@@ -78,12 +80,40 @@ const AnnouncementDetail = () => {
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
         try {
-            await announcementsService.addComment(id, { content: newComment });
+            await announcementsService.addComment(id, {
+                content: newComment,
+                parent_id: replyTo
+            });
             setNewComment('');
+            cancelReply();
             loadComments();
         } catch (err) {
             console.error('Failed to add comment:', err);
         }
+    };
+
+    const handleCommentReact = async (commentId, action) => {
+        try {
+            await announcementsService.reactComment(id, commentId, action);
+            loadComments(); // Refresh comments to update likes/dislikes
+        } catch (err) {
+            console.error('Failed to react to comment:', err);
+        }
+    };
+
+    const handleReply = (comment) => {
+        setReplyTo(comment.id);
+        setReplyingToTarget(comment.user_name || comment.user?.username || 'User');
+        setActiveTab('discussion');
+        if (commentInputRef.current) {
+            commentInputRef.current.focus();
+        }
+    };
+
+    const cancelReply = () => {
+        setReplyTo(null);
+        setReplyingToTarget(null);
+        setNewComment('');
     };
 
     const handleReaction = async (emoji) => {
@@ -192,7 +222,7 @@ const AnnouncementDetail = () => {
                         {isSubscribed ? <BellOff size={18} /> : <Bell size={18} />}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={handleShare}>
-                        <Share2 size={18} />
+                        <Send size={18} className="-rotate-12" />
                     </Button>
                     <Button variant="ghost" size="sm">
                         <Bookmark size={18} />
@@ -276,7 +306,7 @@ const AnnouncementDetail = () => {
                         onClick={handleShare}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-secondary hover:bg-secondary transition-colors"
                     >
-                        <Share2 size={18} />
+                        <Send size={18} className="-rotate-12" />
                         Share
                     </button>
                 </CardBody>
@@ -354,11 +384,30 @@ const AnnouncementDetail = () => {
                                 <CardBody>
                                     <h3 className="font-semibold mb-3 text-primary">Published by</h3>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-                                            <Megaphone className="w-6 h-6 text-amber-600" />
+                                        <div
+                                            className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
+                                            onClick={() => {
+                                                if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);
+                                            }}
+                                            title="View Publisher Profile"
+                                        >
+                                            {announcement.user?.avatar_url || announcement.created_by_avatar ? (
+                                                <img src={announcement.user?.avatar_url || announcement.created_by_avatar} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="font-semibold text-lg">
+                                                    {announcement.user?.first_name?.[0] || announcement.user?.username?.[0] || 'A'}
+                                                </span>
+                                            )}
                                         </div>
                                         <div>
-                                            <p className="font-medium text-primary">{announcement.created_by_name || 'Publisher'}</p>
+                                            <p
+                                                className="font-medium text-primary hover:text-primary-600 hover:underline cursor-pointer transition-colors"
+                                                onClick={() => {
+                                                    if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);
+                                                }}
+                                            >
+                                                {announcement.user?.first_name || announcement.user?.username || announcement.created_by_name || 'Publisher'}
+                                            </p>
                                             <p className="text-sm text-secondary">Author</p>
                                         </div>
                                     </div>
@@ -387,14 +436,16 @@ const AnnouncementDetail = () => {
                                 </CardBody>
                             </Card>
 
-                            <Button
-                                variant={isSubscribed ? 'outline' : 'primary'}
-                                className="w-full flex items-center justify-center gap-2"
-                                onClick={handleToggleSubscription}
-                            >
-                                {isSubscribed ? <BellOff size={16} /> : <Bell size={16} />}
-                                {isSubscribed ? 'Unsubscribe' : 'Subscribe for Updates'}
-                            </Button>
+                            <div className="mt-6">
+                                <Button
+                                    variant={isSubscribed ? 'outline' : 'primary'}
+                                    className="w-full flex items-center justify-center gap-2"
+                                    onClick={handleToggleSubscription}
+                                >
+                                    {isSubscribed ? <BellOff size={16} /> : <Bell size={16} />}
+                                    {isSubscribed ? 'Unsubscribe' : 'Subscribe for Updates'}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -409,25 +460,35 @@ const AnnouncementDetail = () => {
                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                     <Users className="w-5 h-5 text-primary" />
                                 </div>
-                                <div className="flex-1 flex gap-2">
-                                    <input
-                                        ref={commentInputRef}
-                                        type="text"
-                                        value={newComment}
-                                        onChange={(e) => setNewComment(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                                        placeholder="Add a comment..."
-                                        className="flex-1 bg-secondary border border-theme rounded-full px-4 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                    />
-                                    <Button
-                                        variant="primary"
-                                        size="sm"
-                                        onClick={handleAddComment}
-                                        disabled={!newComment.trim()}
-                                        className="rounded-full px-4"
-                                    >
-                                        <Send size={16} />
-                                    </Button>
+                                <div className="flex-1 flex flex-col gap-2">
+                                    {replyingToTarget && (
+                                        <div className="flex items-center justify-between bg-secondary/50 px-3 py-1.5 rounded-md text-sm text-secondary">
+                                            <span>Replying to <strong>{replyingToTarget}</strong></span>
+                                            <button onClick={cancelReply} className="hover:text-red-500 transition-colors">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <input
+                                            ref={commentInputRef}
+                                            type="text"
+                                            value={newComment}
+                                            onChange={(e) => setNewComment(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                                            placeholder={replyingToTarget ? "Write a reply..." : "Add a comment..."}
+                                            className="flex-1 bg-secondary border border-theme rounded-lg px-4 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={handleAddComment}
+                                            disabled={!newComment.trim()}
+                                            className="rounded-lg px-4"
+                                        >
+                                            <Send size={16} />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -464,81 +525,119 @@ const AnnouncementDetail = () => {
                                     )}
 
                                     {/* All Comments */}
-                                    <div className="space-y-3">
+                                    <div className="space-y-4">
                                         {comments.map((comment, idx) => {
                                             const isCreator = user?.id === announcement?.user;
-                                            return (
-                                                <div key={comment.id || idx} className="border border-theme/40 rounded-xl p-4 bg-elevated hover:border-theme transition-colors group relative">
-                                                    <div className="flex gap-3">
-                                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                                            {comment.user_avatar ? (
-                                                                <img src={comment.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
-                                                            ) : (
-                                                                <Users className="w-4 h-4 text-primary" />
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
+                                            
+                                            // Helper to render a comment or reply
+                                            const renderComment = (c, isReply = false) => (
+                                                <div key={c.id || idx} className={`flex gap-3 ${isReply ? 'mt-4 ml-8 relative before:content-[""] before:absolute before:-left-5 before:top-4 before:w-4 before:h-px before:bg-theme before:rounded-bl-xl border-l-2 border-theme pl-2' : ''}`}>
+                                                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                        {c.user_avatar ? (
+                                                            <img src={c.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                                        ) : (
+                                                            <Users className="w-4 h-4 text-primary" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 group/comment">
+                                                        <div className="border border-theme/40 rounded-xl p-3 bg-secondary hover:bg-elevated hover:border-theme transition-colors relative">
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <span className="font-semibold text-sm text-primary">{comment.user_name || comment.user?.username || 'User'}</span>
-                                                                <span className="text-xs text-tertiary">{comment.created_at ? formatTimeAgo(comment.created_at) : ''}</span>
-                                                                {comment.highlight_order && (
+                                                                <span className="font-semibold text-sm text-primary">{c.user_name || c.user?.username || 'User'}</span>
+                                                                <span className="text-xs text-tertiary">{c.created_at || c.time_stamp ? formatTimeAgo(c.created_at || c.time_stamp) : ''}</span>
+                                                                {c.highlight_order && !isReply && (
                                                                     <span className="text-xs px-2 py-0.5 bg-amber-500/10 text-amber-600 rounded-full font-medium flex items-center gap-1">
-                                                                        <Star className="w-3 h-3 fill-current" /> #{comment.highlight_order}
+                                                                        <Star className="w-3 h-3 fill-current" /> #{c.highlight_order}
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="text-secondary text-sm leading-relaxed">{comment.content || comment.text}</p>
-                                                        </div>
-
-                                                        {/* Three-dot menu for creators */}
-                                                        {isCreator && (
-                                                            <div className="relative">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        const menu = document.getElementById(`comment-menu-${comment.id}`);
-                                                                        if (menu) menu.classList.toggle('hidden');
-                                                                    }}
-                                                                    className="p-1.5 text-tertiary hover:text-primary hover:bg-secondary rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                                                                >
-                                                                    <MoreHorizontal className="w-4 h-4" />
-                                                                </button>
-                                                                <div id={`comment-menu-${comment.id}`} className="hidden absolute right-0 top-8 z-20 bg-elevated rounded-xl shadow-lg border border-theme py-1 w-48">
-                                                                    {[1, 2, 3, 4, 5, 6].map(num => (
-                                                                        <button
-                                                                            key={num}
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleHighlightSelect(comment.id, comment.highlight_order === num ? null : num);
-                                                                                document.getElementById(`comment-menu-${comment.id}`)?.classList.add('hidden');
-                                                                            }}
-                                                                            className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-secondary transition-colors ${comment.highlight_order === num ? 'text-amber-600 font-medium' : 'text-primary'
-                                                                                }`}
-                                                                        >
-                                                                            <Pin className="w-4 h-4" />
-                                                                            {comment.highlight_order === num ? `Unpin #${num}` : `Pin as #${num}`}
-                                                                        </button>
-                                                                    ))}
-                                                                    {comment.highlight_order && (
-                                                                        <>
-                                                                            <hr className="my-1 border-theme" />
+                                                            <p className="text-secondary text-sm leading-relaxed">{c.content || c.text}</p>
+                                                            
+                                                            {/* Creator Options Menu */}
+                                                            {isCreator && !isReply && (
+                                                                <div className="absolute top-2 right-2">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const menu = document.getElementById(`comment-menu-${c.id}`);
+                                                                            if (menu) menu.classList.toggle('hidden');
+                                                                        }}
+                                                                        className="p-1 text-tertiary hover:text-primary hover:bg-theme rounded-full opacity-0 group-hover/comment:opacity-100 transition-all"
+                                                                    >
+                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    </button>
+                                                                    <div id={`comment-menu-${c.id}`} className="hidden absolute right-0 top-6 z-20 bg-elevated rounded-xl shadow-lg border border-theme py-1 w-48">
+                                                                        {[1, 2, 3, 4, 5, 6].map(num => (
                                                                             <button
+                                                                                key={num}
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
-                                                                                    handleHighlightSelect(comment.id, null);
-                                                                                    document.getElementById(`comment-menu-${comment.id}`)?.classList.add('hidden');
+                                                                                    handleHighlightSelect(c.id, c.highlight_order === num ? null : num);
+                                                                                    document.getElementById(`comment-menu-${c.id}`)?.classList.add('hidden');
                                                                                 }}
-                                                                                className="w-full px-4 py-2 text-left text-sm text-red-500 flex items-center gap-2 hover:bg-secondary transition-colors"
+                                                                                className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-secondary transition-colors ${c.highlight_order === num ? 'text-amber-600 font-medium' : 'text-primary'}`}
                                                                             >
-                                                                                <Star className="w-4 h-4" />
-                                                                                Remove Highlight
+                                                                                <Pin className="w-4 h-4" />
+                                                                                {c.highlight_order === num ? `Unpin #${num}` : `Pin as #${num}`}
                                                                             </button>
-                                                                        </>
-                                                                    )}
+                                                                        ))}
+                                                                        {c.highlight_order && (
+                                                                            <>
+                                                                                <hr className="my-1 border-theme" />
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handleHighlightSelect(c.id, null);
+                                                                                        document.getElementById(`comment-menu-${c.id}`)?.classList.add('hidden');
+                                                                                    }}
+                                                                                    className="w-full px-4 py-2 text-left text-sm text-red-500 flex items-center gap-2 hover:bg-secondary transition-colors"
+                                                                                >
+                                                                                    <Star className="w-4 h-4" />
+                                                                                    Remove Highlight
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {/* Comment Actions (Like, Dislike, Reply) */}
+                                                        <div className="flex items-center gap-4 mt-1.5 ml-1">
+                                                            <button 
+                                                                onClick={() => handleCommentReact(c.id, 'like')}
+                                                                className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${c.is_liked ? 'text-primary-600' : 'text-tertiary hover:text-primary'}`}
+                                                            >
+                                                                <ThumbsUp className={`w-3.5 h-3.5 ${c.is_liked ? 'fill-current' : ''}`} />
+                                                                {c.likes_count > 0 && <span>{c.likes_count}</span>}
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleCommentReact(c.id, 'dislike')}
+                                                                className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${c.is_disliked ? 'text-red-600' : 'text-tertiary hover:text-red-500'}`}
+                                                            >
+                                                                <ThumbsDown className={`w-3.5 h-3.5 ${c.is_disliked ? 'fill-current' : ''}`} />
+                                                                {c.dislikes_count > 0 && <span>{c.dislikes_count}</span>}
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleReply(c)}
+                                                                className="flex items-center gap-1.5 text-xs text-tertiary hover:text-primary font-medium transition-colors"
+                                                            >
+                                                                <CornerDownRight className="w-3.5 h-3.5" />
+                                                                Reply
+                                                            </button>
+                                                        </div>
                                                     </div>
+                                                </div>
+                                            );
+
+                                            return (
+                                                <div key={comment.id} className="pt-2">
+                                                    {renderComment(comment)}
+                                                    {/* Render Replies */}
+                                                    {comment.replies && comment.replies.length > 0 && (
+                                                        <div className="mt-2">
+                                                            {comment.replies.map(reply => renderComment(reply, true))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}

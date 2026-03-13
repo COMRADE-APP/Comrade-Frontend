@@ -46,12 +46,27 @@ export const API_ENDPOINTS = {
     EVENT_DETAIL: (id) => `${API_BASE_URL}/api/events/${id}/`,
     EVENT_REGISTER: (id) => `${API_BASE_URL}/api/events/${id}/register/`,
 
+    // Event Slot Bookings
+    SLOT_BOOKINGS: `${API_BASE_URL}/api/events/slot_bookings/`,
+    SLOT_BOOKING_DETAIL: (id) => `${API_BASE_URL}/api/events/slot_bookings/${id}/`,
+    SLOT_BOOK: `${API_BASE_URL}/api/events/slot_bookings/book_slot/`,
+    SLOT_MY_BOOKINGS: `${API_BASE_URL}/api/events/slot_bookings/my_bookings/`,
+    SLOT_AVAILABILITY: (eventId) => `${API_BASE_URL}/api/events/slot_bookings/availability/${eventId}/`,
+    SLOT_CANCEL: (id) => `${API_BASE_URL}/api/events/slot_bookings/${id}/cancel/`,
+    SLOT_CONFIRM_PAYMENT: (id) => `${API_BASE_URL}/api/events/slot_bookings/${id}/confirm_payment/`,
+
     // Tasks
     TASKS: `${API_BASE_URL}/api/tasks/tasks/`,
     TASKS_MY: `${API_BASE_URL}/api/tasks/my_tasks/`,
     TASK_DETAIL: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/`,
     TASK_SUBMIT: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/submit/`,
     TASK_QUESTIONS: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/questions/`,
+    RESPONSE_DETAIL: (id) => `${API_BASE_URL}/api/tasks/responses/${id}/`,
+    TASK_RESPONSES: (id) => `${API_BASE_URL}/api/tasks/tasks/${id}/responses/`,
+    TASK_GRADE_RESPONSE: (taskId, responseId) => `${API_BASE_URL}/api/tasks/tasks/${taskId}/grade_response/`,
+    TASK_UPDATE_STATUS: (taskId) => `${API_BASE_URL}/api/tasks/tasks/${taskId}/update_response_status/`,
+    TASK_AUTO_GRADE: (taskId) => `${API_BASE_URL}/api/tasks/tasks/${taskId}/auto_grade/`,
+    TASK_GRADING_CONFIG: (taskId) => `${API_BASE_URL}/api/tasks/tasks/${taskId}/grading_config/`,
 
     // User
     USER_PROFILE: `${API_BASE_URL}/api/users/profile/`,
@@ -178,13 +193,13 @@ export const API_ENDPOINTS = {
     INVITATION_PENDING: `${API_BASE_URL}/api/payments/invitations/pending/`,
 
     // Specializations & Stacks
-    SPECIALIZATIONS: `${API_BASE_URL}/api/specializations/`,
-    SPECIALIZATION_DETAIL: (id) => `${API_BASE_URL}/api/specializations/${id}/`,
-    SPECIALIZATION_JOIN: (id) => `${API_BASE_URL}/api/specializations/${id}/join/`,
-    STACKS: `${API_BASE_URL}/api/stacks/`,
-    STACK_DETAIL: (id) => `${API_BASE_URL}/api/stacks/${id}/`,
-    STACK_COMPLETE: (id) => `${API_BASE_URL}/api/stacks/${id}/complete/`,
-    CERTIFICATES: `${API_BASE_URL}/api/certificates/`,
+    SPECIALIZATIONS: `${API_BASE_URL}/api/specializations/specializations/`,
+    SPECIALIZATION_DETAIL: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/`,
+    SPECIALIZATION_JOIN: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/join/`,
+    STACKS: `${API_BASE_URL}/api/specializations/stacks/`,
+    STACK_DETAIL: (id) => `${API_BASE_URL}/api/specializations/stacks/${id}/`,
+    STACK_COMPLETE: (id) => `${API_BASE_URL}/api/specializations/stacks/${id}/complete/`,
+    CERTIFICATES: `${API_BASE_URL}/api/specializations/certificates/`,
 
     // Shop & Products
     PRODUCTS: `${API_BASE_URL}/api/payments/products/`,

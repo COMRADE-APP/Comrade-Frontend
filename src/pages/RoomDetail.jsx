@@ -299,7 +299,7 @@ const MemberItem = ({ member, role, roomId, currentUserId, onFollow }) => {
 };
 
 // Settings Panel Component
-const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
+const SettingsPanel = ({ room, settings, onUpdate, isAdmin, onClose, onEditRoom, onDeleteRoom }) => {
     const [localSettings, setLocalSettings] = useState(settings || {});
     const [saving, setSaving] = useState(false);
 
@@ -448,14 +448,41 @@ const SettingsPanel = ({ settings, onUpdate, isAdmin, onClose }) => {
                 </div>
 
                 {isAdmin && (
-                    <Button
-                        variant="primary"
-                        className="w-full"
-                        onClick={handleSave}
-                        disabled={saving}
-                    >
-                        {saving ? 'Saving...' : 'Save Settings'}
-                    </Button>
+                    <>
+                        <Button
+                            variant="primary"
+                            className="w-full"
+                            onClick={handleSave}
+                            disabled={saving}
+                        >
+                            {saving ? 'Saving...' : 'Save Settings'}
+                        </Button>
+
+                        <div className="pt-6 mt-6 border-t border-theme border-dashed">
+                            <h4 className="text-sm font-medium text-red-600 mb-3 flex items-center gap-1">
+                                <AlertCircle className="w-4 h-4" />
+                                Danger Zone
+                            </h4>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 border-tertiary text-primary hover:bg-secondary"
+                                    onClick={onEditRoom}
+                                >
+                                    <settings.Edit className="w-4 h-4 mr-1 hidden" />
+                                    Edit Room Info
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                    onClick={onDeleteRoom}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-1" />
+                                    Delete Room
+                                </Button>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
@@ -516,6 +543,8 @@ const RoomDetail = () => {
     const [replyTo, setReplyTo] = useState(null);
     const [showMembersPanel, setShowMembersPanel] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editRoomData, setEditRoomData] = useState({ name: '', description: '' });
     const [activeTab, setActiveTab] = useState('chat');
     const [messageFilter, setMessageFilter] = useState(null);
     const [typingUsers, setTypingUsers] = useState([]);
@@ -577,6 +606,7 @@ const RoomDetail = () => {
             setRoom(roomData);
             setMembers(Array.isArray(membersData) ? membersData : []);
             setSettings(settingsData);
+            setEditRoomData({ name: roomData.name, description: roomData.description });
 
             // Load chats
             await loadChats();
@@ -693,6 +723,29 @@ const RoomDetail = () => {
             navigate(ROUTES.ROOMS);
         } catch (error) {
             alert('Failed to leave room');
+        }
+    };
+
+    const handleEditRoom = async (e) => {
+        e.preventDefault();
+        try {
+            const updated = await roomsService.update(id, editRoomData);
+            setRoom(updated);
+            setShowEditModal(false);
+        } catch (error) {
+            console.error('Failed to update room:', error);
+            alert('Failed to update room');
+        }
+    };
+
+    const handleDeleteRoom = async () => {
+        if (!confirm('Are you sure you want to completely delete this room? This action cannot be undone.')) return;
+        try {
+            await roomsService.delete(id);
+            navigate(ROUTES.ROOMS);
+        } catch (error) {
+            console.error('Failed to delete room:', error);
+            alert('Failed to delete room');
         }
     };
 
@@ -1070,13 +1123,59 @@ const RoomDetail = () => {
                 {/* Settings Panel */}
                 {showSettings && (
                     <SettingsPanel
+                        room={room}
                         settings={settings}
                         onUpdate={handleUpdateSettings}
                         isAdmin={isAdmin}
                         onClose={() => setShowSettings(false)}
+                        onEditRoom={() => {
+                            setEditRoomData({ name: room.name, description: room.description || '' });
+                            setShowEditModal(true);
+                        }}
+                        onDeleteRoom={handleDeleteRoom}
                     />
                 )}
             </div>
+
+            {/* Edit Room Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md">
+                        <CardBody>
+                            <h2 className="text-xl font-bold text-primary mb-4">Edit Room Profile</h2>
+                            <form onSubmit={handleEditRoom} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-primary mb-1">Room Name</label>
+                                    <input
+                                        type="text"
+                                        value={editRoomData.name}
+                                        onChange={(e) => setEditRoomData({ ...editRoomData, name: e.target.value })}
+                                        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                    <textarea
+                                        value={editRoomData.description}
+                                        onChange={(e) => setEditRoomData({ ...editRoomData, description: e.target.value })}
+                                        rows="3"
+                                        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                    />
+                                </div>
+                                <div className="flex gap-2 justify-end pt-4">
+                                    <Button variant="outline" type="button" onClick={() => setShowEditModal(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button variant="primary" type="submit">
+                                        Save Changes
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 };

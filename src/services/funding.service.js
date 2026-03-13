@@ -70,6 +70,21 @@ const fundingService = {
         return response.data;
     },
 
+    // Reactions and Responses for analytics
+    getReactions: async (fundingRequestId) => {
+        const response = await api.get(API_ENDPOINTS.FUNDING.REACTIONS, {
+            params: { funding_request_id: fundingRequestId }
+        });
+        return response.data.results || response.data;
+    },
+
+    getResponses: async (fundingRequestId) => {
+        const response = await api.get(API_ENDPOINTS.FUNDING.RESPONSES, {
+            params: { funding_request_id: fundingRequestId }
+        });
+        return response.data.results || response.data;
+    },
+
     // Get funding requests for current user's businesses (for tracking)
     getMyRequests: async () => {
         const response = await api.get(`${API_ENDPOINTS.FUNDING.REQUESTS}my_requests/`);
@@ -124,6 +139,37 @@ const fundingService = {
     createNegotiationRoom: async (ventureId, fundingRequestId) => {
         const response = await api.post(`${API_ENDPOINTS.FUNDING.VENTURE_DETAIL(ventureId)}create_negotiation_room/`, {
             funding_request_id: fundingRequestId
+        });
+        return response.data;
+    },
+
+    // Add funds to a venture
+    addFunds: async (ventureId, amount) => {
+        const response = await api.post(`${API_ENDPOINTS.FUNDING.VENTURES}${ventureId}/add_funds/`, {
+            amount: amount
+        });
+        return response.data;
+    },
+
+    // Get or Create a negotiation thread for a request
+    getOrCreateNegotiation: async (requestId, investorId = null) => {
+        const payload = investorId ? { investor_id: investorId } : {};
+        const response = await api.post(`${API_ENDPOINTS.FUNDING.REQUESTS}${requestId}/get_or_create_negotiation/`, payload);
+        return response.data;
+    },
+
+    // Get messages for a negotiation
+    getNegotiationMessages: async (negotiationId) => {
+        const response = await api.get(`/api/funding/negotiations/${negotiationId}/messages/`);
+        return response.data;
+    },
+
+    // Send a negotiation message
+    sendNegotiationMessage: async (negotiationId, formData) => {
+        const response = await api.post(`/api/funding/negotiations/${negotiationId}/send_message/`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
         });
         return response.data;
     },

@@ -27,7 +27,7 @@ const LoginSuccess = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-primary-50 to-primary-100">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-full max-w-md bg-elevated rounded-2xl shadow-xl p-8 text-center">
                 {/* Success Animation */}
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
                     <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,17 +35,17 @@ const LoginSuccess = () => {
                     </svg>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Successful!</h2>
-                <p className="text-gray-600 mb-4">
+                <h2 className="text-2xl font-bold text-primary mb-2">Login Successful!</h2>
+                <p className="text-secondary mb-4">
                     Welcome back, <span className="font-semibold text-primary-600">{firstName}</span>!
                 </p>
 
-                <div className="mb-6 py-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-500">Redirecting to dashboard in</p>
+                <div className="mb-6 py-4 bg-base rounded-xl">
+                    <p className="text-sm text-tertiary">Redirecting to dashboard in</p>
                     <p className="text-3xl font-bold text-primary-600">{countdown}</p>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center justify-center gap-2 text-sm text-tertiary">
                     <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                     <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>

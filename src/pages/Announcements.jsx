@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardFooter, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { Megaphone, ThumbsUp, Heart, MessageSquare, Share2, Plus, Search, Eye, MoreHorizontal, Flag, EyeOff } from 'lucide-react';
+import { Megaphone, ThumbsUp, Heart, MessageSquare, Send, Plus, Search, Eye, MoreHorizontal, Flag, EyeOff } from 'lucide-react';
 import announcementsService from '../services/announcements.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
 
 const FILTERS = [
     { value: 'all', label: 'All' },
+    { value: 'subscribed', label: 'Subscribed' },
     { value: 'newest', label: 'Newest' },
     { value: 'oldest', label: 'Oldest' },
 ];
@@ -43,6 +44,12 @@ const Announcements = () => {
             a.heading?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             a.content?.toLowerCase().includes(searchQuery.toLowerCase())
         )
+        .filter(a => {
+            if (sortBy === 'subscribed') {
+                return a.is_subscribed === true;
+            }
+            return true;
+        })
         .sort((a, b) => {
             if (sortBy === 'oldest') return new Date(a.time_stamp) - new Date(b.time_stamp);
             return new Date(b.time_stamp) - new Date(a.time_stamp); // newest default
@@ -114,9 +121,9 @@ const Announcements = () => {
 const AnnouncementCard = ({ announcement }) => {
     const navigate = useNavigate();
     const [isExpanded, setIsExpanded] = useState(false);
-    const [likes, setLikes] = useState(0); // Optional: if tracking count
-    const [hasLiked, setHasLiked] = useState(false);
-    const [views, setViews] = useState(announcement.views || 0);
+    const [likes, setLikes] = useState(announcement.likes_count || announcement.reactions_count || 0);
+    const [hasLiked, setHasLiked] = useState(announcement.is_liked || false);
+    const [views, setViews] = useState(announcement.view_count || announcement.views || 0);
     const [showOptions, setShowOptions] = useState(false);
 
     const handleCardClick = () => {
@@ -173,13 +180,34 @@ const AnnouncementCard = ({ announcement }) => {
             <CardBody>
                 <div className="flex items-start justify-between">
                     <div className="flex gap-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <Megaphone className="w-5 h-5" />
+                        <div
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);
+                            }}
+                            title="View Publisher Profile"
+                        >
+                            {announcement.user?.avatar_url || announcement.created_by_avatar ? (
+                                <img src={announcement.user?.avatar_url || announcement.created_by_avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="font-semibold text-lg">
+                                    {announcement.user?.first_name?.[0] || announcement.user?.username?.[0] || 'A'}
+                                </span>
+                            )}
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-primary">{announcement.heading}</h3>
                             <div className="flex items-center gap-2 text-sm text-tertiary">
-                                <span>{announcement.user?.first_name || announcement.user?.username || 'Admin'}</span>
+                                <span
+                                    className="hover:underline cursor-pointer hover:text-primary-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);
+                                    }}
+                                >
+                                    {announcement.user?.first_name || announcement.user?.username || 'Admin'}
+                                </span>
                                 <span>•</span>
                                 <span>{formatTimeAgo(announcement.time_stamp)}</span>
                             </div>
@@ -230,7 +258,7 @@ const AnnouncementCard = ({ announcement }) => {
                         <Heart className="w-4 h-4" /> {likes}
                     </div>
                     <div className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" /> {(announcement.comments || []).length || 0}
+                        <MessageSquare className="w-4 h-4" /> {announcement.comments_count || (announcement.comments || []).length || 0}
                     </div>
                     <div className="flex items-center gap-1">
                         <Eye className="w-4 h-4" /> {views}
@@ -254,7 +282,7 @@ const AnnouncementCard = ({ announcement }) => {
                         onClick={handleShare}
                         className="p-2 text-secondary hover:bg-secondary hover:text-primary rounded-full transition-colors"
                     >
-                        <Share2 className="w-5 h-5" />
+                        <Send className="w-5 h-5 -rotate-12" />
                     </button>
                 </div>
             </CardFooter>

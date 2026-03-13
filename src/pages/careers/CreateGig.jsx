@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Briefcase, MapPin, CheckCircle, ChevronRight, ChevronLeft, AlertCircle
 } from 'lucide-react';
 import { gigsService } from '../../services/careers.service';
+import institutionsService from '../../services/institutions.service';
+import organizationsService from '../../services/organizations.service';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import './Careers.css';
@@ -16,10 +18,15 @@ const STEPS = [
 
 const CreateGig = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(null);
+
+    // Affiliations
+    const [affiliations, setAffiliations] = useState([]);
+    const [selectedAffiliation, setSelectedAffiliation] = useState('');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -30,8 +37,67 @@ const CreateGig = () => {
         industry: 'tech',
         deadline: '',
         location: '',
-        is_remote: true
+        is_remote: true,
+        company_name: '',
+        institution_id: null,
+        organization_id: null,
     });
+
+    // Load affiliations
+    useEffect(() => {
+        const loadAffiliations = async () => {
+            const items = [];
+            try {
+                const insts = await institutionsService.getMyInstitutions();
+                const instList = Array.isArray(insts) ? insts : insts?.results || [];
+                instList.forEach(inst => items.push({ id: inst.id, name: inst.name, type: 'institution' }));
+            } catch (e) {}
+            try {
+                const orgs = await organizationsService.getMyOrganizations();
+                const orgList = Array.isArray(orgs) ? orgs : orgs?.results || [];
+                orgList.forEach(org => items.push({ id: org.id, name: org.name, type: 'organization' }));
+            } catch (e) {}
+            setAffiliations(items);
+
+            const instParam = searchParams.get('institution');
+            const orgParam = searchParams.get('organization');
+            const nameParam = searchParams.get('name');
+
+            if (instParam) {
+                setSelectedAffiliation(`institution-${instParam}`);
+                setFormData(prev => ({ ...prev, company_name: nameParam || '', institution_id: instParam }));
+            } else if (orgParam) {
+                setSelectedAffiliation(`organization-${orgParam}`);
+                setFormData(prev => ({ ...prev, company_name: nameParam || '', organization_id: orgParam }));
+            } else if (items.length === 1) {
+                const aff = items[0];
+                setSelectedAffiliation(`${aff.type}-${aff.id}`);
+                setFormData(prev => ({
+                    ...prev, company_name: aff.name,
+                    institution_id: aff.type === 'institution' ? aff.id : null,
+                    organization_id: aff.type === 'organization' ? aff.id : null,
+                }));
+            }
+        };
+        loadAffiliations();
+    }, []);
+
+    const handleAffiliationChange = (value) => {
+        setSelectedAffiliation(value);
+        if (!value || value === 'none') {
+            setFormData(prev => ({ ...prev, institution_id: null, organization_id: null }));
+            return;
+        }
+        const [type, id] = value.split('-');
+        const aff = affiliations.find(a => a.type === type && String(a.id) === id);
+        if (aff) {
+            setFormData(prev => ({
+                ...prev, company_name: aff.name,
+                institution_id: type === 'institution' ? aff.id : null,
+                organization_id: type === 'organization' ? aff.id : null,
+            }));
+        }
+    };
 
     const industries = [
         { value: 'tech', label: 'Technology' },
@@ -162,6 +228,24 @@ const CreateGig = () => {
                                                 className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
                                             />
                                         </div>
+                                        {/* On-behalf-of Selector */}
+                                        {affiliations.length > 0 && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-primary mb-1">Post on behalf of</label>
+                                                <select
+                                                    value={selectedAffiliation}
+                                                    onChange={(e) => handleAffiliationChange(e.target.value)}
+                                                    className="w-full px-4 py-2 bg-background border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-primary"
+                                                >
+                                                    <option value="none">-- Personal / None --</option>
+                                                    {affiliations.map(aff => (
+                                                        <option key={`${aff.type}-${aff.id}`} value={`${aff.type}-${aff.id}`}>
+                                                            {aff.name} ({aff.type === 'institution' ? '🏛️ Institution' : '🏢 Organization'})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
                                         <div>
                                             <label className="block text-sm font-medium text-primary mb-1">Industry *</label>
                                             <select

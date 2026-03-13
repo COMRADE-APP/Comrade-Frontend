@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Send, Heart, Repeat2, Bookmark, Share2, Image as ImageIcon, Paperclip, Smile } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Send, Heart, Repeat2, Bookmark, Image as ImageIcon, Paperclip, Smile } from 'lucide-react';
 import opinionsService from '../services/opinions.service';
 import FeedItem from '../components/feed/FeedItem';
 import OpinionComment from '../components/feed/OpinionComment';
@@ -43,16 +43,30 @@ const OpinionDetail = () => {
 
     const fetchOpinionDetails = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const [opinionData, commentsData] = await Promise.all([
-                opinionsService.getById(id),
-                opinionsService.getComments(id)
-            ]);
+            const opinionData = await opinionsService.getById(id);
             setOpinion(opinionData);
-            setComments(Array.isArray(commentsData) ? commentsData : commentsData.results || []);
+            
+            // Fetch comments separately so a comment failure doesn't block the opinion
+            try {
+                const commentsData = await opinionsService.getComments(id);
+                setComments(Array.isArray(commentsData) ? commentsData : commentsData.results || []);
+            } catch (commentErr) {
+                console.error('Error fetching comments:', commentErr);
+                setComments([]);
+            }
         } catch (err) {
             console.error('Error fetching opinion details:', err);
-            setError('Failed to load opinion');
+            const status = err.response?.status;
+            const detail = err.response?.data?.detail || err.response?.data?.error;
+            if (status === 404) {
+                setError("This opinion doesn't exist or has been removed.");
+            } else if (status === 403) {
+                setError("You don't have permission to view this opinion.");
+            } else {
+                setError(detail || `Failed to load opinion (${status || 'network error'})`);
+            }
         } finally {
             setLoading(false);
         }
@@ -63,7 +77,21 @@ const OpinionDetail = () => {
 
         setPostingComment(true);
         try {
-            await opinionsService.addComment(id, newComment.trim(), commentMedia, parentCommentId);
+            const options = { parentCommentId };
+            
+            // Add entity authorship if active
+            if (user?.activeEntity) {
+                if (user.activeEntity.type === 'organisation') {
+                    options.organisation = user.activeEntity.id;
+                } else if (user.activeEntity.type === 'institution') {
+                    options.institution = user.activeEntity.id;
+                } else if (user.activeEntity.type === 'establishment') {
+                    options.establishment = user.activeEntity.id;
+                }
+                options.poster_role = user.activeEntity.role || 'owner';
+            }
+
+            await opinionsService.addComment(id, newComment.trim(), commentMedia, options);
             setNewComment('');
             setCommentMedia(null);
             // Refresh comments
@@ -86,7 +114,21 @@ const OpinionDetail = () => {
     // Handle nested reply
     const handleReply = async (parentCommentId, content) => {
         try {
-            await opinionsService.addComment(id, content, null, parentCommentId);
+            const options = { parentCommentId };
+            
+            // Add entity authorship if active
+            if (user?.activeEntity) {
+                if (user.activeEntity.type === 'organisation') {
+                    options.organisation = user.activeEntity.id;
+                } else if (user.activeEntity.type === 'institution') {
+                    options.institution = user.activeEntity.id;
+                } else if (user.activeEntity.type === 'establishment') {
+                    options.establishment = user.activeEntity.id;
+                }
+                options.poster_role = user.activeEntity.role || 'owner';
+            }
+
+            await opinionsService.addComment(id, content, null, options);
             // Refresh comments
             const commentsData = await opinionsService.getComments(id);
             setComments(Array.isArray(commentsData) ? commentsData : commentsData.results || []);
@@ -258,7 +300,7 @@ const OpinionDetail = () => {
                         onClick={handleShare}
                         className="p-2 text-secondary hover:text-primary-500 hover:bg-secondary rounded-full transition-colors ml-auto"
                     >
-                        <Share2 className="w-5 h-5" />
+                        <Send className="w-5 h-5 -rotate-12" />
                     </button>
                 </div>
 
@@ -352,7 +394,9 @@ const OpinionDetail = () => {
 
                         <div className="flex gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
-                                {user?.avatar_url ? (
+                                {user?.avatar ? (
+                                    <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                                ) : user?.avatar_url ? (
                                     <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     user?.first_name?.[0] || 'U'

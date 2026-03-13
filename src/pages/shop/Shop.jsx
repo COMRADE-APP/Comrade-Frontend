@@ -4,12 +4,21 @@ import {
     Search, ShoppingBag, UtensilsCrossed, Hotel, Store, Briefcase,
     Star, MapPin, Truck, Package, Clock, Plus, ArrowRight,
     Check, X, Loader2, ShoppingCart, Minus, Trash2, ChevronRight,
-    CalendarCheck, ClipboardList, Bell, Eye
+    CalendarCheck, ClipboardList, Bell, Eye, Users, User
 } from 'lucide-react';
+import { paymentsService } from '../../services/payments.service';
 import shopService from '../../services/shop.service';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/common/Button';
 import Card, { CardBody } from '../../components/common/Card';
+import InventoryManager from './InventoryManager';
+
+const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 // --- Service Categories ---
 const SERVICE_CATEGORIES = [
@@ -42,6 +51,7 @@ const TABS = [
     { key: 'services', label: 'Services', icon: Briefcase },
     { key: 'orders', label: 'My Orders', icon: ClipboardList },
     { key: 'my-services', label: 'My Services', icon: CalendarCheck },
+    { key: 'dashboard', label: 'Inventory & Sales', icon: Store },
 ];
 
 const FOOD_TYPES = ['restaurant', 'coffee_shop', 'food_shop'];
@@ -57,10 +67,26 @@ const useCart = () => {
             return saved ? JSON.parse(saved) : [];
         } catch { return []; }
     });
+    const [purchaseType, setPurchaseType] = useState('individual');
+    const [selectedGroupId, setSelectedGroupId] = useState('');
+    const [paymentGroups, setPaymentGroups] = useState([]);
 
     useEffect(() => {
         localStorage.setItem('comrade_cart', JSON.stringify(items));
     }, [items]);
+
+    // Fetch payment groups when switching to group mode
+    useEffect(() => {
+        if (purchaseType === 'group' && paymentGroups.length === 0) {
+            (async () => {
+                try {
+                    const data = await paymentsService.getMyGroups();
+                    const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+                    setPaymentGroups(list);
+                } catch (e) { console.error('Failed to load payment groups:', e); }
+            })();
+        }
+    }, [purchaseType]);
 
     const addItem = useCallback((item) => {
         setItems(prev => {
@@ -83,12 +109,12 @@ const useCart = () => {
         setItems(prev => prev.map(i => i.id === id && i.type === type ? { ...i, qty } : i));
     }, [removeItem]);
 
-    const clearCart = useCallback(() => setItems([]), []);
+    const clearCart = useCallback(() => { setItems([]); setPurchaseType('individual'); setSelectedGroupId(''); }, []);
 
     const total = items.reduce((sum, i) => sum + (Number(i.price) || 0) * i.qty, 0);
     const count = items.reduce((sum, i) => sum + i.qty, 0);
 
-    return { items, addItem, removeItem, updateQty, clearCart, total, count };
+    return { items, addItem, removeItem, updateQty, clearCart, total, count, purchaseType, setPurchaseType, selectedGroupId, setSelectedGroupId, paymentGroups };
 };
 
 // --- Star Rating ---
@@ -112,7 +138,7 @@ const EstablishmentCard = ({ establishment, onClick }) => {
         <div className="bg-elevated border border-theme rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer group flex flex-col h-full" onClick={onClick}>
             <div className="h-40 w-full bg-secondary/10 relative overflow-hidden shrink-0">
                 {banner ? (
-                    <img src={banner} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img src={getImageUrl(banner)} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center">
                         <Store className="text-tertiary opacity-20" size={48} />
@@ -120,7 +146,7 @@ const EstablishmentCard = ({ establishment, onClick }) => {
                 )}
                 <div className="absolute -bottom-6 left-4">
                     <div className="w-12 h-12 rounded-xl border-2 border-elevated bg-elevated overflow-hidden shadow-sm">
-                        {logo ? <img src={logo} alt={name} className="w-full h-full object-cover" /> : (
+                        {logo ? <img src={getImageUrl(logo)} alt={name} className="w-full h-full object-cover" /> : (
                             <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">{name?.charAt(0)}</div>
                         )}
                     </div>
@@ -174,46 +200,74 @@ const EstablishmentCard = ({ establishment, onClick }) => {
 };
 
 // --- Product Card with Add to Cart ---
-const ProductCard = ({ product, onClick, onAddToCart }) => (
-    <div className="bg-elevated border border-theme rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group flex flex-col h-full" onClick={onClick}>
-        <div className="h-40 sm:h-44 md:h-48 w-full bg-secondary/5 relative overflow-hidden shrink-0">
-            {product.image_url ? (
-                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            ) : (
-                <div className="w-full h-full bg-gradient-to-br from-secondary/5 to-secondary/10 flex items-center justify-center">
-                    <ShoppingBag size={36} className="text-tertiary opacity-30" />
+const ProductCard = ({ product, onClick, onAddToCart }) => {
+    const typeBadge = {
+        service: 'bg-indigo-500/90 text-white',
+        digital: 'bg-purple-500/90 text-white',
+        subscription: 'bg-amber-500/90 text-white',
+        physical: 'bg-emerald-500/90 text-white',
+        recommendation: 'bg-rose-500/90 text-white',
+    };
+
+    return (
+        <div className="bg-elevated border border-theme rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full" onClick={onClick}>
+            {/* Image */}
+            <div className="aspect-[4/3] w-full bg-secondary/5 relative overflow-hidden">
+                {product.image_url ? (
+                    <img src={getImageUrl(product.image_url)} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
+                        <Package size={40} className="text-tertiary opacity-25" />
+                    </div>
+                )}
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Type badge */}
+                <div className="absolute top-3 left-3">
+                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm ${typeBadge[product.product_type] || typeBadge.physical}`}>
+                        {product.product_type}
+                    </span>
                 </div>
-            )}
-            <div className="absolute top-3 left-3">
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md
-                    ${product.product_type === 'service' ? 'bg-indigo-500/90 text-white' :
-                        product.product_type === 'digital' ? 'bg-purple-500/90 text-white' :
-                            product.product_type === 'subscription' ? 'bg-amber-500/90 text-white' :
-                                'bg-white/90 text-slate-800 border border-slate-200 shadow-sm'
-                    }`}>
-                    {product.product_type}
-                </span>
+                {/* Sharability badges */}
+                <div className="absolute top-3 right-3 flex flex-col gap-1">
+                    {product.is_sharable && (
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-blue-500/80 text-white backdrop-blur-md">Sharable</span>
+                    )}
+                    {product.allow_group_purchase === false && (
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-red-500/80 text-white backdrop-blur-md">Individual Only</span>
+                    )}
+                </div>
+            </div>
+            {/* Content */}
+            <div className="p-4 flex flex-col flex-1 gap-3">
+                <div className="flex-1">
+                    <h3 className="font-bold text-sm sm:text-base text-primary line-clamp-1 leading-snug">{product.name}</h3>
+                    <p className="text-xs text-secondary line-clamp-2 mt-1">{product.description}</p>
+                </div>
+                {/* Price + Actions */}
+                <div className="pt-3 border-t border-theme space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-primary">${(Number(product.price) || 0).toFixed(2)}</span>
+                        <span className="text-[10px] text-tertiary uppercase tracking-wide">{product.product_type}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onAddToCart?.({ id: product.id, name: product.name, price: product.price, type: 'product', image: getImageUrl(product.image_url), is_sharable: product.is_sharable, allow_group_purchase: product.allow_group_purchase }); }}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-elevated border border-theme rounded-xl text-xs font-medium text-primary hover:bg-secondary/40 transition-colors"
+                        >
+                            <ShoppingCart size={14} /> Add to Cart
+                        </button>
+                        <button
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-600 to-violet-600 rounded-xl text-xs font-medium text-white hover:from-purple-700 hover:to-violet-700 transition-colors shadow-sm"
+                        >
+                            <Eye size={14} /> View
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div className="p-3 sm:p-4 flex flex-col flex-1 gap-2">
-            <div>
-                <h3 className="font-bold text-sm sm:text-base text-primary line-clamp-2 leading-snug mb-1">{product.name}</h3>
-                <p className="text-xs sm:text-sm text-secondary line-clamp-2">{product.description}</p>
-            </div>
-            <div className="mt-auto pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-t border-theme">
-                <span className="text-base sm:text-lg font-bold text-primary">${(Number(product.price) || 0).toFixed(2)}</span>
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Button size="sm" variant="outline" className="h-8 text-xs flex-1 sm:flex-initial" onClick={(e) => { e.stopPropagation(); onAddToCart?.({ id: product.id, name: product.name, price: product.price, type: 'product', image: product.image_url }); }}>
-                        <ShoppingCart size={14} className="mr-1" /> Add
-                    </Button>
-                    <Button size="sm" variant="primary" className="h-8 text-xs flex-1 sm:flex-initial">
-                        <Eye size={14} className="mr-1" /> View
-                    </Button>
-                </div>
-            </div>
-        </div>
-    </div>
-);
+    );
+};
 
 // --- Cart Drawer ---
 const CartDrawer = ({ cart, open, onClose, onCheckout, checkoutLoading, checkoutMsg }) => {
@@ -273,13 +327,52 @@ const CartDrawer = ({ cart, open, onClose, onCheckout, checkoutLoading, checkout
                 </div>
                 {cart.items.length > 0 && (
                     <div className="p-5 border-t border-theme space-y-4">
+                        {/* Purchase Type Toggle */}
+                        <div className="space-y-3">
+                            <label className="text-xs font-semibold text-secondary uppercase tracking-wide">Purchase Type</label>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => cart.setPurchaseType?.('individual')}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium border transition-all ${cart.purchaseType !== 'group'
+                                        ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
+                                        : 'border-theme text-secondary hover:bg-secondary/20'
+                                        }`}
+                                >
+                                    <User size={14} /> Individual
+                                </button>
+                                <button
+                                    onClick={() => cart.setPurchaseType?.('group')}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium border transition-all ${cart.purchaseType === 'group'
+                                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                                        : 'border-theme text-secondary hover:bg-secondary/20'
+                                        }`}
+                                >
+                                    <Users size={14} /> Group Purchase
+                                </button>
+                            </div>
+                            {cart.purchaseType === 'group' && (
+                                <div className="space-y-2">
+                                    <select
+                                        value={cart.selectedGroupId || ''}
+                                        onChange={(e) => cart.setSelectedGroupId?.(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-secondary/10 border border-theme rounded-xl text-sm text-primary outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    >
+                                        <option value="">Select a group...</option>
+                                        {(cart.paymentGroups || []).map(g => (
+                                            <option key={g.id} value={g.id}>{g.name} ({g.member_count || 0} members)</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-tertiary">Sharable items: 1 product shared by all. Non-sharable: 1 per member.</p>
+                                </div>
+                            )}
+                        </div>
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-secondary">Subtotal</span>
                             <span className="text-lg font-bold text-primary">${cart.total.toFixed(2)}</span>
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm" className="flex-1" onClick={cart.clearCart} disabled={checkoutLoading}>Clear Cart</Button>
-                            <Button variant="primary" size="sm" className="flex-1" onClick={onCheckout} disabled={checkoutLoading}>
+                            <Button variant="primary" size="sm" className="flex-1" onClick={onCheckout} disabled={checkoutLoading || (cart.purchaseType === 'group' && !cart.selectedGroupId)}>
                                 {checkoutLoading ? 'Processing...' : 'Checkout'} {!checkoutLoading && <ChevronRight size={16} className="ml-1" />}
                             </Button>
                         </div>
@@ -562,6 +655,158 @@ const MyServicesTab = ({ navigate }) => {
     );
 };
 
+// --- Dashboard (Inventory & Sales) Tab ---
+const DashboardTab = () => {
+    const [analytics, setAnalytics] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [offlineForm, setOfflineForm] = useState({
+        total_amount: '', sales_channel: 'in_store', notes: ''
+    });
+    const [addingSale, setAddingSale] = useState(false);
+
+    useEffect(() => { loadAnalytics(); }, []);
+
+    const loadAnalytics = async () => {
+        try {
+            const data = await paymentsService.getShopAnalytics();
+            setAnalytics(data);
+        } catch (e) {
+            console.error('Failed to load shop analytics:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOfflineSale = async (e) => {
+        e.preventDefault();
+        setAddingSale(true);
+        try {
+            await shopService.recordOfflineSale({
+                total_amount: parseFloat(offlineForm.total_amount),
+                sales_channel: offlineForm.sales_channel,
+                notes: offlineForm.notes
+            });
+            setOfflineForm({ total_amount: '', sales_channel: 'in_store', notes: '' });
+            alert("Offline sale recorded successfully!");
+            loadAnalytics(); // refresh analytics
+        } catch (err) {
+            console.error(err);
+            alert("Error recording offline sale.");
+        } finally {
+            setAddingSale(false);
+        }
+    };
+
+    if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="animate-spin text-primary" size={24} /></div>;
+
+    if (!analytics) return (
+        <Card><CardBody className="text-center py-12 text-secondary">No analytics found. Make sure you have a registered establishment.</CardBody></Card>
+    );
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-primary flex items-center gap-2"><Store size={20} /> Shop Dashboard</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                    <CardBody className="p-5 flex flex-col items-center text-center">
+                        <span className="p-3 bg-purple-500/10 text-purple-600 rounded-xl mb-3"><ShoppingCart size={24} /></span>
+                        <h4 className="text-secondary text-sm font-medium mb-1">Total Sales</h4>
+                        <span className="text-3xl font-bold text-primary">${Number(analytics.total_revenue || 0).toFixed(2)}</span>
+                    </CardBody>
+                </Card>
+                <Card>
+                    <CardBody className="p-5 flex flex-col items-center text-center">
+                        <span className="p-3 bg-blue-500/10 text-blue-600 rounded-xl mb-3"><Package size={24} /></span>
+                        <h4 className="text-secondary text-sm font-medium mb-1">Orders Count</h4>
+                        <span className="text-3xl font-bold text-primary">{analytics.total_orders || 0}</span>
+                    </CardBody>
+                </Card>
+                <Card>
+                    <CardBody className="p-5 flex flex-col items-center text-center">
+                        <span className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl mb-3"><UtensilsCrossed size={24} /></span>
+                        <h4 className="text-secondary text-sm font-medium mb-1">In-Store vs Online</h4>
+                        <div className="flex gap-4 mt-1">
+                            <div><span className="text-xs text-secondary">Online</span><p className="font-bold text-primary">{analytics.online_orders || 0}</p></div>
+                            <div className="w-px bg-theme" />
+                            <div><span className="text-xs text-secondary">Offline</span><p className="font-bold text-primary">{analytics.offline_orders || 0}</p></div>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                    <CardBody>
+                        <h4 className="font-semibold text-primary mb-4 flex items-center gap-2">Revenue By Channel</h4>
+                        <div className="space-y-4">
+                            {Object.entries((analytics.revenue_by_channel || {})).map(([channel, val]) => (
+                                <div key={channel} className="flex flex-col gap-1">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-secondary capitalize">{channel.replace('_', ' ')}</span>
+                                        <span className="font-medium text-primary">${Number(val || 0).toFixed(2)}</span>
+                                    </div>
+                                    <div className="w-full bg-secondary/20 rounded-full h-2 overflow-hidden">
+                                        <div className="bg-primary h-full rounded-full" style={{ width: `${analytics.total_revenue ? (val / analytics.total_revenue) * 100 : 0}%` }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody>
+                        <h4 className="font-semibold text-primary flex items-center gap-2 mb-4"><Plus size={18} /> Log Offline Sale</h4>
+                        <form onSubmit={handleOfflineSale} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Amount ($)</label>
+                                <input
+                                    type="number" step="0.01" min="0" required
+                                    className="w-full px-4 py-2.5 bg-secondary/10 border border-theme rounded-xl text-primary outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={offlineForm.total_amount}
+                                    onChange={e => setOfflineForm({ ...offlineForm, total_amount: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Sales Channel</label>
+                                <select
+                                    className="w-full px-4 py-2.5 bg-secondary/10 border border-theme rounded-xl text-primary outline-none focus:ring-2 focus:ring-primary-500"
+                                    value={offlineForm.sales_channel}
+                                    onChange={e => setOfflineForm({ ...offlineForm, sales_channel: e.target.value })}
+                                >
+                                    <option value="in_store">In-Store / POS</option>
+                                    <option value="pop_up">Pop-Up Market</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Notes (Optional)</label>
+                                <textarea
+                                    className="w-full px-4 py-2.5 bg-secondary/10 border border-theme rounded-xl text-primary outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                                    rows={2}
+                                    value={offlineForm.notes}
+                                    onChange={e => setOfflineForm({ ...offlineForm, notes: e.target.value })}
+                                />
+                            </div>
+                            <Button variant="primary" type="submit" className="w-full" disabled={addingSale}>
+                                {addingSale ? 'Logging...' : 'Record Sale'}
+                            </Button>
+                        </form>
+                    </CardBody>
+                </Card>
+            </div>
+
+            {/* Inventory Management Block */}
+            <div className="pt-4 mt-6 border-t border-theme">
+                <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2"><Package size={20} /> Inventory Manager</h3>
+                <InventoryManager />
+            </div>
+        </div>
+    );
+};
+
 // --- Main Shop Component ---
 export default function Shop() {
     const navigate = useNavigate();
@@ -628,53 +873,22 @@ export default function Shop() {
     const [checkoutLoading, setCheckoutLoading] = useState(false);
     const [checkoutMsg, setCheckoutMsg] = useState({ type: '', text: '' });
 
-    const handleCheckout = async () => {
+    const handleCheckout = () => {
         if (cart.items.length === 0) return;
-        setCheckoutLoading(true);
-        setCheckoutMsg({ type: '', text: '' });
-        try {
-            // Separate product items from service items
-            const productItems = cart.items.filter(i => i.type === 'product');
-            const serviceItems = cart.items.filter(i => i.type === 'service');
-
-            // Create product order if there are products
-            if (productItems.length > 0) {
-                await shopService.createOrder({
-                    order_type: 'product',
-                    delivery_mode: 'pickup',
-                    items: productItems.map(item => ({
-                        product_id: item.id,
-                        quantity: item.qty,
-                    })),
-                });
+        // Navigate to the payments checkout page with cart data
+        navigate('/payments/checkout', {
+            state: {
+                cartItems: cart.items,
+                purchaseType: cart.purchaseType || 'individual',
+                selectedGroupId: cart.selectedGroupId || null,
+                selectedGroup: cart.purchaseType === 'group'
+                    ? (cart.paymentGroups || []).find(g => g.id === cart.selectedGroupId)
+                    : null,
+                totalAmount: cart.total,
             }
-
-            // Book service time slots individually
-            for (const svc of serviceItems) {
-                if (svc.timeSlotId) {
-                    await shopService.bookTimeSlot(svc.timeSlotId);
-                } else {
-                    // Create service appointment order
-                    await shopService.createOrder({
-                        order_type: 'service_appointment',
-                        delivery_mode: 'appointment',
-                        service_time_slot_id: svc.timeSlotId || undefined,
-                        items: [],
-                    });
-                }
-            }
-
-            cart.clearCart();
-            setCartOpen(false);
-            setCheckoutMsg({ type: 'success', text: 'Order placed successfully!' });
-            setActiveTab('orders');
-        } catch (err) {
-            console.error('Checkout failed:', err);
-            const detail = err.response?.data?.error || err.response?.data?.detail || 'Checkout failed. Please try again.';
-            setCheckoutMsg({ type: 'error', text: detail });
-        } finally {
-            setCheckoutLoading(false);
-        }
+        });
+        cart.clearCart();
+        setCartOpen(false);
     };
 
     return (
@@ -706,7 +920,7 @@ export default function Shop() {
 
             {/* Search and Tabs */}
             <div className="mb-8 space-y-6">
-                {!['orders', 'my-services'].includes(activeTab) && (
+                {!['orders', 'my-services', 'dashboard'].includes(activeTab) && (
                     <div className="relative max-w-xl">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary w-5 h-5" />
                         <input
@@ -748,6 +962,8 @@ export default function Shop() {
                     <OrdersTab />
                 ) : activeTab === 'my-services' ? (
                     <MyServicesTab navigate={navigate} />
+                ) : activeTab === 'dashboard' ? (
+                    <DashboardTab />
                 ) : loading ? (
                     <div className="flex flex-col items-center justify-center py-20 text-secondary">
                         <Loader2 className="animate-spin mb-4" size={32} />

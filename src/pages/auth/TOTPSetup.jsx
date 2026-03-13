@@ -56,14 +56,14 @@ const TOTPSetup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-            <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="min-h-screen bg-base flex items-center justify-center py-12 px-4">
+            <div className="max-w-2xl w-full bg-elevated rounded-lg shadow-lg p-8">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-3xl font-bold text-primary">
                         Enable Two-Factor Authentication
                     </h1>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-secondary">
                         Add an extra layer of security to your account
                     </p>
                 </div>
@@ -72,7 +72,7 @@ const TOTPSetup = () => {
                 <div className="flex justify-between mb-8">
                     {[1, 2, 3].map((s) => (
                         <div key={s} className="flex items-center">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= s ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= s ? 'bg-blue-600 text-white' : 'bg-gray-300 text-secondary'
                                 }`}>
                                 {s}
                             </div>
@@ -88,7 +88,7 @@ const TOTPSetup = () => {
                 {step === 1 && (
                     <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Setting up 2FA...</p>
+                        <p className="mt-4 text-secondary">Setting up 2FA...</p>
                     </div>
                 )}
 
@@ -96,28 +96,28 @@ const TOTPSetup = () => {
                 {step === 2 && (
                     <div>
                         <h2 className="text-xl font-semibold mb-4">Scan QR Code</h2>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-secondary mb-6">
                             Use Google Authenticator, Authy, or any TOTP app to scan this QR code:
                         </p>
 
                         {/* QR Code */}
                         <div className="flex justify-center mb-6">
                             {qrCode && (
-                                <img src={qrCode} alt="TOTP QR Code" className="border-4 border-gray-200 rounded-lg" />
+                                <img src={qrCode} alt="TOTP QR Code" className="border-4 border-theme rounded-lg" />
                             )}
                         </div>
 
                         {/* Manual Entry */}
-                        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                            <p className="text-sm text-gray-600 mb-2">Can't scan? Enter this code manually:</p>
-                            <code className="block p-2 bg-white border rounded text-center font-mono text-sm">
+                        <div className="bg-base p-4 rounded-lg mb-6">
+                            <p className="text-sm text-secondary mb-2">Can't scan? Enter this code manually:</p>
+                            <code className="block p-2 bg-elevated border rounded text-center font-mono text-sm">
                                 {secret}
                             </code>
                         </div>
 
                         {/* Verification */}
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-secondary mb-2">
                                 Enter 6-digit code from your app
                             </label>
                             <input
@@ -125,13 +125,13 @@ const TOTPSetup = () => {
                                 maxLength={6}
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-3 border border-theme rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="000000"
                             />
                         </div>
 
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-sm">
                                 {error}
                             </div>
                         )}
@@ -154,7 +154,7 @@ const TOTPSetup = () => {
                                 <span className="text-3xl">✓</span>
                             </div>
                             <h2 className="text-2xl font-semibold text-green-600">2FA Enabled!</h2>
-                            <p className="text-gray-600 mt-2">Your account is now more secure</p>
+                            <p className="text-secondary mt-2">Your account is now more secure</p>
                         </div>
 
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -165,10 +165,10 @@ const TOTPSetup = () => {
                             </p>
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                        <div className="bg-base p-4 rounded-lg mb-6">
                             <div className="grid grid-cols-2 gap-2">
                                 {backupCodes.map((code, index) => (
-                                    <code key={index} className="block p-2 bg-white border rounded text-center font-mono text-sm">
+                                    <code key={index} className="block p-2 bg-elevated border rounded text-center font-mono text-sm">
                                         {code}
                                     </code>
                                 ))}

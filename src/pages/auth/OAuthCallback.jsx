@@ -64,18 +64,18 @@ const OAuthCallback = ({ provider }) => {
     }, [searchParams, navigate, provider]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-base">
             <div className="text-center">
                 {error ? (
                     <>
                         <div className="text-red-600 text-xl mb-4">❌</div>
                         <p className="text-red-600">{error}</p>
-                        <p className="text-gray-500 text-sm mt-2">Redirecting to login...</p>
+                        <p className="text-tertiary text-sm mt-2">Redirecting to login...</p>
                     </>
                 ) : (
                     <>
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Signing you in with {provider}...</p>
+                        <p className="text-secondary">Signing you in with {provider}...</p>
                     </>
                 )}
             </div>

@@ -41,15 +41,15 @@ const ForgotPassword = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-                <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="min-h-screen flex items-center justify-center p-8 bg-base">
+                <div className="w-full max-w-md bg-elevated rounded-xl shadow-lg p-8 text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
-                    <p className="text-gray-600 mb-8">
+                    <h2 className="text-2xl font-bold text-primary mb-2">Check your email</h2>
+                    <p className="text-secondary mb-8">
                         We've sent a verification code to {email}
                     </p>
 
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
                     </Link>
 
                     <div className="mt-4">
-                        <Link to={ROUTES.LOGIN} className="text-sm text-gray-500 hover:text-gray-700">
+                        <Link to={ROUTES.LOGIN} className="text-sm text-tertiary hover:text-secondary">
                             Back to Login
                         </Link>
                     </div>
@@ -70,11 +70,11 @@ const ForgotPassword = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-            <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-base">
+            <div className="w-full max-w-md bg-elevated rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Forgot password?</h2>
-                    <p className="text-gray-600">No worries, we'll send you reset instructions.</p>
+                    <h2 className="text-3xl font-bold text-primary mb-2">Forgot password?</h2>
+                    <p className="text-secondary">No worries, we'll send you reset instructions.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">

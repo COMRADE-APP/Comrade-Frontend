@@ -11,13 +11,21 @@ const Notifications = () => {
     const { user } = useAuth();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all'); // all, unread
+    const [category, setCategory] = useState('all');
+    const [showUnreadOnly, setShowUnreadOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
+    const notificationTypes = {
+        interactions: ['like', 'comment', 'repost', 'reply', 'mention'],
+        following: ['follow', 'new_post'],
+        recommendations: ['recommendation', 'trending', 'suggested', 'profile_view'],
+        system: ['system', 'announcement', 'research_update', 'product_update']
+    };
+
     useEffect(() => {
         loadNotifications();
-    }, [filter]);
+    }, []);
 
     const loadNotifications = async (loadMore = false) => {
         if (!loadMore) setLoading(true);
@@ -26,8 +34,7 @@ const Notifications = () => {
             const response = await api.get('/api/notifications/', {
                 params: {
                     page: currentPage,
-                    page_size: 20,
-                    is_read: filter === 'unread' ? false : undefined
+                    page_size: 50,
                 }
             });
 
@@ -40,7 +47,7 @@ const Notifications = () => {
             }
 
             setPage(currentPage);
-            setHasMore(results.length === 20);
+            setHasMore(results.length === 50);
         } catch (error) {
             console.error('Failed to load notifications:', error);
         } finally {
@@ -91,9 +98,19 @@ const Notifications = () => {
             research_update: '📚',
             product_update: '🛍️',
             profile_view: '👀',
+            recommendation: '✨',
+            trending: '🔥',
+            suggested: '💡',
+            new_post: '📝',
         };
         return icons[type] || '🔔';
     };
+
+    const displayedNotifications = notifications.filter(n => {
+        if (showUnreadOnly && n.is_read) return false;
+        if (category === 'all') return true;
+        return notificationTypes[category]?.includes(n.notification_type);
+    });
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -118,27 +135,34 @@ const Notifications = () => {
                 </div>
             </div>
 
+            {/* Category tabs */}
+            <div className="flex overflow-x-auto gap-2 mb-4 pb-2 scrollbar-hide">
+                {['all', 'interactions', 'following', 'recommendations', 'system'].map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setCategory(cat)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${category === cat
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-elevated border border-theme text-secondary hover:bg-secondary'
+                            }`}
+                    >
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </button>
+                ))}
+            </div>
+
             {/* Actions bar */}
             <div className="flex items-center justify-between mb-4 bg-elevated rounded-xl p-3 border border-theme">
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setFilter('all')}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'all'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-secondary hover:bg-secondary'
-                            }`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setFilter('unread')}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'unread'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-secondary hover:bg-secondary'
-                            }`}
-                    >
-                        Unread
-                    </button>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={showUnreadOnly}
+                            onChange={(e) => setShowUnreadOnly(e.target.checked)}
+                            className="w-4 h-4 text-primary-600 rounded cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-primary">Unread only</span>
+                    </label>
                 </div>
                 <div className="flex items-center gap-2">
                     {unreadCount > 0 && (
@@ -169,15 +193,15 @@ const Notifications = () => {
                         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
                         Loading notifications...
                     </div>
-                ) : notifications.length === 0 ? (
+                ) : displayedNotifications.length === 0 ? (
                     <div className="p-12 text-center text-secondary">
                         <Bell size={48} className="mx-auto mb-4 opacity-30" />
                         <h3 className="font-medium text-primary mb-1">No notifications</h3>
-                        <p className="text-sm">When you get notifications, they'll show up here</p>
+                        <p className="text-sm">No notifications found for this category</p>
                     </div>
                 ) : (
                     <>
-                        {notifications.map(notification => (
+                        {displayedNotifications.map(notification => (
                             <div
                                 key={notification.id}
                                 onClick={() => !notification.is_read && markAsRead(notification.id)}

@@ -118,15 +118,15 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-base">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h2>
-                    <p className="text-gray-600">Join Qomrade and start collaborating</p>
+                    <h2 className="text-3xl font-bold text-primary mb-2">Create your account</h2>
+                    <p className="text-secondary">Join Qomrade and start collaborating</p>
                 </div>
 
                 {generalError && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                         {generalError}
                     </div>
                 )}
@@ -179,8 +179,8 @@ const Register = () => {
                     />
 
                     <div>
-                        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
-                            Date of Birth <span className="text-gray-400 text-xs">(Optional)</span>
+                        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-secondary mb-1">
+                            Date of Birth <span className="text-tertiary text-xs">(Optional)</span>
                         </label>
                         <input
                             type="date"
@@ -189,7 +189,7 @@ const Register = () => {
                             value={formData.dateOfBirth}
                             onChange={handleChange}
                             max={new Date().toISOString().split('T')[0]}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                            className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                         />
                         {errors.dateOfBirth && (
                             <p className="mt-1 text-xs text-red-500">{errors.dateOfBirth}</p>
@@ -197,7 +197,7 @@ const Register = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="userType" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="userType" className="block text-sm font-medium text-secondary mb-1">
                             I am a <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -205,7 +205,7 @@ const Register = () => {
                             name="userType"
                             value={formData.userType}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                            className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                         >
                             <option value="student">Student</option>
                             <option value="normal_user">Normal User (Non-Student)</option>
@@ -246,7 +246,7 @@ const Register = () => {
                     </Button>
                 </form>
 
-                <p className="mt-8 text-center text-sm text-gray-600">
+                <p className="mt-8 text-center text-sm text-secondary">
                     Already have an account?{' '}
                     <Link to={ROUTES.LOGIN} className="text-primary-600 hover:text-primary-700 font-medium">
                         Sign in

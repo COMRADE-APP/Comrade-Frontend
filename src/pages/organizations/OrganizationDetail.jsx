@@ -7,23 +7,35 @@ import {
     Building2, MapPin, Globe, Mail, Phone, Users, Plus,
     ChevronRight, Settings, Network, FileCheck, ArrowLeft,
     Loader2, AlertCircle, Camera, MoreHorizontal,
-    Share2, Flag, CheckCircle, BookOpen, Calendar, MessageCircle, Briefcase
+    Share2, Flag, CheckCircle, BookOpen, Calendar, MessageCircle, Briefcase,
+    BarChart3, TrendingUp, Eye, UserPlus, Search, Shield, X
 } from 'lucide-react';
 import organizationsService from '../../services/organizations.service';
 import unitsService from '../../services/units.service';
 import { careersService } from '../../services/careers.service';
 import CreateOrgUnit from './CreateOrgUnit';
-import MembersTab from './MembersTab';
+
+const TABS = [
+    { id: 'overview', label: 'Overview', icon: Building2 },
+    { id: 'jobs', label: 'Jobs', icon: Briefcase },
+    { id: 'opinions', label: 'Opinions', icon: MessageCircle },
+    { id: 'articles', label: 'Articles', icon: BookOpen },
+    { id: 'events', label: 'Events', icon: Calendar },
+    { id: 'units', label: 'Units & Structure', icon: Network },
+    { id: 'members', label: 'Members', icon: Users },
+    { id: 'verification', label: 'Verification', icon: FileCheck },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+];
 
 const OrganizationDetail = () => {
-    const { id } = useParams();
+    const { id, tab } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
 
     const [organization, setOrganization] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('overview');
+    const activeTab = tab || 'overview';
     const [isAdmin, setIsAdmin] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
@@ -38,6 +50,17 @@ const OrganizationDetail = () => {
     const [jobs, setJobs] = useState([]);
     const [jobsLoading, setJobsLoading] = useState(false);
 
+    // Members state
+    const [members, setMembers] = useState([]);
+    const [membersLoading, setMembersLoading] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteData, setInviteData] = useState({ email: '', role: 'member' });
+    const [inviting, setInviting] = useState(false);
+    const [memberSearch, setMemberSearch] = useState('');
+
+    // Analytics state
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
     // File inputs
     const avatarInputRef = useRef(null);
     const coverInputRef = useRef(null);
@@ -45,6 +68,10 @@ const OrganizationDetail = () => {
     useEffect(() => {
         loadOrganization();
     }, [id]);
+
+    const setActiveTab = (tabId) => {
+        navigate(`/organizations/${id}/${tabId}`, { replace: true });
+    };
 
     const loadOrganization = async () => {
         setLoading(true);
@@ -54,8 +81,6 @@ const OrganizationDetail = () => {
             const data = await organizationsService.getById(id);
             setOrganization(data);
 
-            // Check if current user is admin/creator
-            // Check if current user is admin/creator/moderator
             const isCreator = data.created_by === user?.id;
             const userRole = data.current_user_role;
             const hasEditPermission = isCreator || user?.is_staff || ['creator', 'admin', 'moderator'].includes(userRole);
@@ -63,7 +88,6 @@ const OrganizationDetail = () => {
             setIsAdmin(hasEditPermission);
             setIsFollowing(data.is_following);
             setFollowersCount(data.followers_count || 0);
-
         } catch (err) {
             console.error('Error loading organization:', err);
             setError('Failed to load organization details');
@@ -104,52 +128,45 @@ const OrganizationDetail = () => {
         }
     };
 
+    const loadMembers = async () => {
+        setMembersLoading(true);
+        try {
+            const data = await organizationsService.getMembers(id);
+            setMembers(Array.isArray(data) ? data : data?.results || data?.members || []);
+        } catch (error) {
+            console.error('Error loading members:', error);
+        } finally {
+            setMembersLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'units' && id) {
             loadUnits();
         } else if (activeTab === 'jobs' && id) {
             loadJobs();
+        } else if (activeTab === 'members' && id) {
+            loadMembers();
+        } else if (activeTab === 'analytics' && id) {
+            if (Object.keys(units).length === 0) loadUnits();
+            if (jobs.length === 0) loadJobs();
+            if (members.length === 0) loadMembers();
+            setAnalyticsLoading(false);
         }
     }, [activeTab, id]);
-
-    const handleUnitCreated = (unit) => {
-        // Reload units after creation
-        loadUnits();
-    };
 
     const handleImageUpload = async (e, type) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const formData = new FormData();
-        // Backend expects 'profile_picture' or 'cover_picture'
-        // But some endpoints might use specific keys. 
-        // Based on models: profile_picture, cover_picture.
-        // Serializer uses __all__. 
-        // We will use organizationsService.update which does a PUT/PATCH (usually JSON)
-        // But for files we need multipart. 
-        // Let's assume update handles it if we pass FormData, or we might need a specific endpoint if update wraps in JSON.
-        // Looking at organizationsService.update: uses api.put(..., data). Axios handles FormData automatically if data is FormData.
-
         if (type === 'avatar') {
-            formData.append('logo_url', ''); // Clear regular URL if any? Model has profile_picture. 
-            // Actually, the model has `profile_picture`. `logo_url` might be legacy or for external. 
-            // Let's check the model again. 
-            // Organisation model has `profile_picture` (ImageField). 
-            // OrganizationDetail.jsx uses `organization.logo_url`. 
-            // We should probably check if `profile_picture` is available in response and use it, falling back to `logo_url`.
-            // For now, let's append 'profile_picture'.
             formData.append('profile_picture', file);
         } else {
             formData.append('cover_picture', file);
         }
 
         try {
-            // We use PATCH for partial update if possible, but service uses PUT. 
-            // Most storage updates for files work better with PATCH to avoid overwriting other fields if not provided.
-            // Let's try to use a direct API call or modify service if needed.
-            // organizationsService.update uses PUT. 
-            // Let's try sending FormData with PUT.
             await organizationsService.partialUpdate(id, formData);
             loadOrganization();
         } catch (error) {
@@ -173,16 +190,29 @@ const OrganizationDetail = () => {
         }
     };
 
-    const TABS = [
-        { id: 'overview', label: 'Overview', icon: Building2 },
-        { id: 'jobs', label: 'Jobs', icon: Briefcase },
-        { id: 'opinions', label: 'Opinions', icon: MessageCircle },
-        { id: 'articles', label: 'Articles', icon: BookOpen },
-        { id: 'events', label: 'Events', icon: Calendar },
-        { id: 'units', label: 'Units & Structure', icon: Network },
-        { id: 'members', label: 'Members', icon: Users },
-        { id: 'verification', label: 'Verification', icon: FileCheck },
-    ];
+    const handleInviteMember = async () => {
+        if (!inviteData.email.trim()) return;
+        setInviting(true);
+        try {
+            await organizationsService.inviteMember(id, inviteData);
+            setShowInviteModal(false);
+            setInviteData({ email: '', role: 'member' });
+            loadMembers();
+            alert('Invitation sent successfully!');
+        } catch (error) {
+            console.error('Error inviting member:', error);
+            alert(error.response?.data?.error || 'Failed to send invitation');
+        } finally {
+            setInviting(false);
+        }
+    };
+
+    const filteredMembers = members.filter(m => {
+        if (!memberSearch) return true;
+        const name = `${m.first_name || m.user?.first_name || ''} ${m.last_name || m.user?.last_name || ''}`.toLowerCase();
+        const email = (m.email || m.user?.email || '').toLowerCase();
+        return name.includes(memberSearch.toLowerCase()) || email.includes(memberSearch.toLowerCase());
+    });
 
     if (loading) {
         return (
@@ -209,7 +239,6 @@ const OrganizationDetail = () => {
         );
     }
 
-    // Determine display images
     const coverUrl = organization.cover_picture || organization.cover_url;
     const profileUrl = organization.profile_picture || organization.logo_url;
 
@@ -227,9 +256,8 @@ const OrganizationDetail = () => {
             {/* Cover & Avatar Section */}
             <Card className="overflow-hidden">
                 <div className="relative">
-                    {/* Cover Photo - Gradient Fallback */}
                     <div
-                        className="h-48 md:h-64 bg-gradient-to-r from-emerald-900 via-green-800 to-teal-900 relative"
+                        className="h-48 md:h-64 bg-gradient-to-r from-emerald-900 via-teal-800 to-cyan-900 relative"
                         style={coverUrl ? {
                             backgroundImage: `url(${coverUrl})`,
                             backgroundSize: 'cover',
@@ -291,14 +319,12 @@ const OrganizationDetail = () => {
                         </div>
                     </div>
 
-                    {/* Actions (top right under cover) */}
+                    {/* Actions */}
                     <div className="absolute -bottom-6 right-4 flex items-center gap-2">
                         {isAdmin ? (
-                            <>
-                                <Button variant="primary" size="sm" onClick={() => navigate(`/organizations/${id}/settings`)}>
-                                    <Settings className="w-4 h-4 mr-1" /> Settings
-                                </Button>
-                            </>
+                            <Button variant="primary" size="sm" onClick={() => navigate(`/organizations/${id}/settings`)}>
+                                <Settings className="w-4 h-4 mr-1" /> Settings
+                            </Button>
                         ) : (
                             <Button
                                 variant={isFollowing ? "outline" : "primary"}
@@ -306,18 +332,13 @@ const OrganizationDetail = () => {
                                 onClick={handleFollow}
                             >
                                 {isFollowing ? (
-                                    <>
-                                        <CheckCircle className="w-4 h-4 mr-1" /> Following
-                                    </>
+                                    <><CheckCircle className="w-4 h-4 mr-1" /> Following</>
                                 ) : (
-                                    <>
-                                        <Plus className="w-4 h-4 mr-1" /> Follow
-                                    </>
+                                    <><Plus className="w-4 h-4 mr-1" /> Follow</>
                                 )}
                             </Button>
                         )}
 
-                        {/* More Menu */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
@@ -341,26 +362,19 @@ const OrganizationDetail = () => {
                 </div>
 
                 <CardBody className="pt-20">
-                    {/* Name & Type */}
                     <div className="mb-4">
                         <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
                             {organization.name}
-                            {organization.verified && <CheckCircle className="w-5 h-5 text-blue-500" title="Verified Organization" />}
+                            {organization.documents_verified && <CheckCircle className="w-5 h-5 text-blue-500" title="Verified Organization" />}
                         </h1>
-                        <p className="text-primary-600 font-medium">
-                            {organization.org_type?.replace('_', ' ') || 'Organization'}
-                            {organization.industry && <span className="text-secondary"> • {organization.industry}</span>}
-                        </p>
+                        <p className="text-primary-600 font-medium">{organization.organization_type || 'Organization'}</p>
                     </div>
 
-                    {/* Contact Info */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-secondary mb-6">
-                        {(organization.city || organization.town) && (
+                        {organization.city && (
                             <div className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
-                                <span className="text-primary">
-                                    {[organization.town, organization.city, organization.origin || 'Kenya'].filter(Boolean).join(', ')}
-                                </span>
+                                <span className="text-primary">{organization.city}, {organization.country}</span>
                             </div>
                         )}
                         {organization.email && (
@@ -375,9 +389,12 @@ const OrganizationDetail = () => {
                                 <span>{organization.website.replace(/^https?:\/\//, '')}</span>
                             </a>
                         )}
+                        <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span className="text-primary">{followersCount} followers</span>
+                        </div>
                     </div>
 
-                    {/* Description */}
                     {organization.description && (
                         <p className="text-primary border-t border-theme pt-4">{organization.description}</p>
                     )}
@@ -388,19 +405,20 @@ const OrganizationDetail = () => {
             <Card>
                 <div className="border-b border-theme">
                     <div className="flex overflow-x-auto">
-                        {TABS.map((tab) => {
-                            const Icon = tab.icon;
+                        {TABS.map((t) => {
+                            const Icon = t.icon;
+                            if ((t.id === 'analytics' || t.id === 'verification') && !isAdmin) return null;
                             return (
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 py-4 px-6 text-sm font-medium text-center transition-colors whitespace-nowrap ${activeTab === tab.id
+                                    key={t.id}
+                                    onClick={() => setActiveTab(t.id)}
+                                    className={`flex items-center gap-2 py-4 px-6 text-sm font-medium text-center transition-colors whitespace-nowrap ${activeTab === t.id
                                         ? 'text-primary-600 border-b-2 border-primary-600'
                                         : 'text-tertiary hover:text-primary'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
-                                    {tab.label}
+                                    {t.label}
                                 </button>
                             );
                         })}
@@ -408,7 +426,7 @@ const OrganizationDetail = () => {
                 </div>
 
                 <div className="p-6">
-                    {/* Overview Tab Content */}
+                    {/* Overview Tab */}
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-primary">About {organization.name}</h3>
@@ -430,12 +448,16 @@ const OrganizationDetail = () => {
                                         </div>
                                     </div>
 
-                                    {organization.industry && (
-                                        <div className="p-4 bg-secondary/10 rounded-lg">
-                                            <h4 className="font-medium text-primary mb-2">Industry Info</h4>
-                                            <p className="text-sm text-secondary">{organization.industry}</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-center">
+                                            <p className="text-2xl font-bold text-primary">{followersCount}</p>
+                                            <p className="text-xs text-secondary">Followers</p>
                                         </div>
-                                    )}
+                                        <div className="p-3 bg-teal-500/10 rounded-lg border border-teal-500/20 text-center">
+                                            <p className="text-2xl font-bold text-primary">{Object.values(units).reduce((s, a) => s + a.length, 0)}</p>
+                                            <p className="text-xs text-secondary">Units</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -447,7 +469,7 @@ const OrganizationDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Jobs & Gigs</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/careers/create')} size="sm">
+                                    <Button onClick={() => navigate(`/careers/create?organization=${id}&name=${encodeURIComponent(organization.name)}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Post Job
                                     </Button>
                                 )}
@@ -461,7 +483,6 @@ const OrganizationDetail = () => {
                                 <div className="text-center py-12 text-secondary">
                                     <Briefcase className="w-12 h-12 mx-auto mb-3 text-tertiary" />
                                     <p>No jobs posted yet</p>
-                                    <p className="text-sm mt-1">Open positions will appear here</p>
                                 </div>
                             ) : (
                                 <div className="grid gap-4">
@@ -473,7 +494,6 @@ const OrganizationDetail = () => {
                                                     <div className="flex flex-wrap gap-2 text-sm text-secondary mb-2">
                                                         <span className="bg-secondary/20 px-2 py-0.5 rounded">{job.job_type}</span>
                                                         <span className="bg-secondary/20 px-2 py-0.5 rounded">{job.location}</span>
-                                                        <span className="bg-secondary/20 px-2 py-0.5 rounded text-green-600">{job.salary_range}</span>
                                                     </div>
                                                 </div>
                                                 <Button size="sm" variant="outline" onClick={() => navigate(`/careers/${job.id}`)}>
@@ -493,7 +513,7 @@ const OrganizationDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Opinions from {organization.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/opinions')} size="sm">
+                                    <Button onClick={() => navigate(`/opinions?organization=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Post Opinion
                                     </Button>
                                 )}
@@ -501,7 +521,6 @@ const OrganizationDetail = () => {
                             <div className="text-center py-12 text-secondary">
                                 <MessageCircle className="w-12 h-12 mx-auto mb-3 text-tertiary" />
                                 <p>No opinions yet</p>
-                                <p className="text-sm mt-1">Opinions posted by this organization will appear here</p>
                             </div>
                         </div>
                     )}
@@ -512,7 +531,7 @@ const OrganizationDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Articles from {organization.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/articles/create')} size="sm">
+                                    <Button onClick={() => navigate(`/articles/create?organization=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Write Article
                                     </Button>
                                 )}
@@ -520,7 +539,6 @@ const OrganizationDetail = () => {
                             <div className="text-center py-12 text-secondary">
                                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-tertiary" />
                                 <p>No articles yet</p>
-                                <p className="text-sm mt-1">Articles published by this organization will appear here</p>
                             </div>
                         </div>
                     )}
@@ -531,7 +549,7 @@ const OrganizationDetail = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-primary">Events from {organization.name}</h3>
                                 {isAdmin && (
-                                    <Button onClick={() => navigate('/events/create')} size="sm">
+                                    <Button onClick={() => navigate(`/events/create?organization=${id}`)} size="sm">
                                         <Plus className="w-4 h-4 mr-2" /> Create Event
                                     </Button>
                                 )}
@@ -539,7 +557,6 @@ const OrganizationDetail = () => {
                             <div className="text-center py-12 text-secondary">
                                 <Calendar className="w-12 h-12 mx-auto mb-3 text-tertiary" />
                                 <p>No events yet</p>
-                                <p className="text-sm mt-1">Events organized by this organization will appear here</p>
                             </div>
                         </div>
                     )}
@@ -578,18 +595,31 @@ const OrganizationDetail = () => {
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {typeUnits.map(unit => (
-                                                        <div key={unit.id || unit.pk || unit.code} className="p-4 bg-secondary/10 rounded-lg border border-theme hover:border-primary/50 transition-colors">
+                                                        <div
+                                                            key={unit.id}
+                                                            className="p-4 bg-secondary/10 rounded-lg border border-theme hover:border-primary/50 transition-colors cursor-pointer group"
+                                                            onClick={() => navigate(`/organizations/${id}/units/${type.key}/${unit.id}`)}
+                                                        >
                                                             <div className="flex justify-between items-start">
                                                                 <div>
-                                                                    <h5 className="font-medium text-primary">{unit.name}</h5>
+                                                                    <h5 className="font-medium text-primary group-hover:text-primary-600 transition-colors">{unit.name}</h5>
                                                                     {isAdmin && (
-                                                                        <p className="text-xs text-secondary mt-1">
-                                                                            Code: {unit.div_code || unit.dep_code || unit.section_code || unit.unit_code || unit.team_code || 'N/A'}
-                                                                        </p>
+                                                                        <p className="text-xs text-secondary mt-1">Code: {unit.branch_code || unit.division_code || unit.dep_code || 'N/A'}</p>
                                                                     )}
                                                                 </div>
-                                                                <ChevronRight className="w-4 h-4 text-tertiary" />
+                                                                <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-primary transition-colors" />
                                                             </div>
+                                                            {isAdmin && (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <button
+                                                                        className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors"
+                                                                        onClick={(e) => { e.stopPropagation(); }}
+                                                                    >
+                                                                        <Shield className="w-3 h-3 inline mr-1" />
+                                                                        Act as unit
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -603,30 +633,171 @@ const OrganizationDetail = () => {
 
                     {/* Members Tab */}
                     {activeTab === 'members' && (
-                        <MembersTab
-                            organizationId={id}
-                            isAdmin={isAdmin}
-                            organizationsService={organizationsService}
-                        />
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <h3 className="text-lg font-semibold text-primary">Members ({members.length})</h3>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search members..."
+                                            value={memberSearch}
+                                            onChange={(e) => setMemberSearch(e.target.value)}
+                                            className="pl-9 pr-4 py-2 bg-secondary border border-theme rounded-lg text-primary text-sm outline-none focus:ring-2 focus:ring-primary/20 w-48"
+                                        />
+                                    </div>
+                                    {isAdmin && (
+                                        <Button onClick={() => setShowInviteModal(true)} size="sm">
+                                            <UserPlus className="w-4 h-4 mr-2" /> Invite Member
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {membersLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                </div>
+                            ) : filteredMembers.length === 0 ? (
+                                <div className="text-center py-12 text-secondary">
+                                    <Users className="w-12 h-12 mx-auto mb-3 text-tertiary" />
+                                    <p>{memberSearch ? 'No matching members found' : 'No members yet'}</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-3">
+                                    {filteredMembers.map((member, idx) => {
+                                        const memberUser = member.user || member;
+                                        const displayName = `${memberUser.first_name || ''} ${memberUser.last_name || ''}`.trim() || memberUser.email || 'Unknown';
+                                        const role = member.role || member.membership_role || 'member';
+
+                                        return (
+                                            <div key={idx} className="p-4 bg-secondary/5 border border-theme rounded-lg flex items-center justify-between hover:border-primary/30 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+                                                        {displayName[0]?.toUpperCase() || 'U'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-primary text-sm">{displayName}</p>
+                                                        <p className="text-xs text-secondary">{memberUser.email || ''}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                                    role === 'admin' || role === 'creator' ? 'bg-violet-500/10 text-violet-500' :
+                                                    role === 'moderator' ? 'bg-blue-500/10 text-blue-500' :
+                                                    role === 'staff' ? 'bg-green-500/10 text-green-500' :
+                                                    'bg-secondary text-secondary'
+                                                }`}>
+                                                    {role}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     )}
 
                     {/* Verification Tab */}
-                    {activeTab === 'verification' && (
+                    {activeTab === 'verification' && isAdmin && (
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-primary">Verification Status</h3>
                             <div className="space-y-3">
-                                {isAdmin ? (
-                                    <div className="p-4 border border-theme rounded-lg flex flex-col items-center justify-center text-center py-8">
-                                        <FileCheck className="w-12 h-12 text-tertiary mb-3" />
-                                        <p className="text-secondary mb-4">Verification process for Organizations is coming soon.</p>
-                                        <Button
-                                            onClick={() => navigate(`/organizations/${id}/verification`)}
-                                        >
-                                            Go to Verification Portal
+                                {[
+                                    { label: 'Email Verification', icon: Mail, key: 'email_verified' },
+                                    { label: 'Website Verification', icon: Globe, key: 'website_verified' },
+                                    { label: 'Document Verification', icon: FileCheck, key: 'documents_verified' },
+                                ].map(item => (
+                                    <div key={item.key} className="p-4 border border-theme rounded-lg flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <item.icon className="w-5 h-5 text-tertiary" />
+                                            <span className="text-primary">{item.label}</span>
+                                        </div>
+                                        <span className={`px-2 py-1 rounded text-xs font-medium ${organization[item.key] ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
+                                            {organization[item.key] ? 'Verified' : 'Pending'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {!organization.documents_verified && (
+                                <div className="mt-4 flex gap-3">
+                                    <Button onClick={() => navigate(`/organizations/${id}/verification`)}>
+                                        <FileCheck className="w-4 h-4 mr-2" /> Continue Verification
+                                    </Button>
+                                    {!organization.email_verified && (
+                                        <Button variant="outline" onClick={async () => {
+                                            try {
+                                                await organizationsService.sendEmailVerification(id);
+                                                alert('Verification email sent!');
+                                            } catch (e) {
+                                                alert('Failed to send verification email');
+                                            }
+                                        }}>
+                                            <Mail className="w-4 h-4 mr-2" /> Send Verification Email
                                         </Button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Analytics Tab */}
+                    {activeTab === 'analytics' && isAdmin && (
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                <BarChart3 className="w-5 h-5" /> Organization Analytics
+                            </h3>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Followers', value: followersCount, color: 'emerald', icon: Users },
+                                    { label: 'Members', value: members.length, color: 'teal', icon: UserPlus },
+                                    { label: 'Units', value: Object.values(units).reduce((s, a) => s + a.length, 0), color: 'cyan', icon: Network },
+                                    { label: 'Jobs Posted', value: jobs.length, color: 'orange', icon: Briefcase },
+                                ].map((stat, idx) => (
+                                    <div key={idx} className={`p-4 rounded-xl bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <stat.icon className={`w-4 h-4 text-${stat.color}-400`} />
+                                            <span className="text-xs text-secondary">{stat.label}</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="p-4 bg-secondary/10 rounded-lg border border-theme">
+                                <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4" /> Verification Status
+                                </h4>
+                                <div className="flex flex-wrap gap-3">
+                                    {['email_verified', 'website_verified', 'documents_verified'].map(key => (
+                                        <span key={key} className={`px-3 py-1.5 rounded-full text-xs font-medium ${organization[key] ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                            {key.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())}: {organization[key] ? '✓' : '⏳'}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-secondary/10 rounded-lg border border-theme">
+                                <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                                    <Eye className="w-4 h-4" /> Unit Breakdown
+                                </h4>
+                                {Object.keys(units).length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {unitsService.getOrganisationUnitTypes().map(type => {
+                                            const count = (units[type.key] || []).length;
+                                            if (count === 0) return null;
+                                            return (
+                                                <div key={type.key} className="flex items-center justify-between p-2 bg-elevated rounded-md">
+                                                    <span className="text-sm text-secondary capitalize">{type.label}s</span>
+                                                    <span className="font-bold text-primary">{count}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 ) : (
-                                    <p className="text-secondary text-center">You do not have permission to view verification details.</p>
+                                    <p className="text-sm text-secondary">No units created yet</p>
                                 )}
                             </div>
                         </div>
@@ -634,12 +805,62 @@ const OrganizationDetail = () => {
                 </div>
             </Card>
 
+            {/* Invite Member Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="max-w-md w-full">
+                        <CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                                    <UserPlus className="w-5 h-5" /> Invite Member
+                                </h3>
+                                <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-secondary rounded-full">
+                                    <X className="w-5 h-5 text-secondary" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Email Address *</label>
+                                    <input
+                                        type="email"
+                                        value={inviteData.email}
+                                        onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                                        placeholder="member@example.com"
+                                        className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Role</label>
+                                    <select
+                                        value={inviteData.role}
+                                        onChange={(e) => setInviteData(prev => ({ ...prev, role: e.target.value }))}
+                                        className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                    >
+                                        <option value="member">Member</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="moderator">Moderator</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-3 justify-end pt-2">
+                                    <Button variant="secondary" onClick={() => setShowInviteModal(false)}>Cancel</Button>
+                                    <Button variant="primary" onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
+                                        {inviting ? 'Sending...' : 'Send Invitation'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
             <CreateOrgUnit
                 isOpen={createUnitOpen}
                 onClose={() => setCreateUnitOpen(false)}
                 organizationId={id}
                 organizationName={organization?.name}
-                onUnitCreated={handleUnitCreated}
+                onUnitCreated={() => loadUnits()}
             />
         </div>
     );

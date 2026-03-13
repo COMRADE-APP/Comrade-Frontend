@@ -41,6 +41,7 @@ import OrganizationVerification from './pages/organizations/OrganizationVerifica
 import Payments from './pages/Payments';
 import PaymentMethods from './pages/PaymentMethods';
 import Specializations from './pages/Specializations';
+import SpecializationAnalytics from './pages/SpecializationAnalytics';
 import Settings from './pages/Settings';
 
 // New Feature Pages
@@ -56,6 +57,7 @@ import ServiceDetail from './pages/shop/ServiceDetail';
 import ShopCart from './pages/shop/Cart';
 import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
+import CheckoutPage from './pages/payments/CheckoutPage';
 
 // Payment System Components
 import ProductCatalog from './pages/products/ProductCatalog';
@@ -93,6 +95,7 @@ import CreateAnnouncement from './pages/CreateAnnouncement';
 import CreateEvent from './pages/CreateEvent';
 import EventDetail from './pages/EventDetail';
 import TaskDetail from './pages/TaskDetail';
+import ResponseDetail from './pages/ResponseDetail';
 import ResourceDetail from './pages/ResourceDetail';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import TaskCreation from './pages/TaskCreation';
@@ -100,6 +103,9 @@ import CreateRoom from './pages/CreateRoom';
 import CreateResource from './pages/CreateResource';
 import CreateResearch from './pages/CreateResearch';
 import ResearchDetail from './pages/ResearchDetail';
+import ResearchApplication from './pages/ResearchApplication';
+import ResearchAnalytics from './pages/ResearchAnalytics';
+import ApplyResearcher from './pages/ApplyResearcher';
 import CreateArticle from './pages/CreateArticle';
 import CreateSpecialization from './pages/CreateSpecialization';
 import Report from './pages/Report';
@@ -142,6 +148,8 @@ import BusinessDetail from './pages/funding/BusinessDetail';
 import OpportunitiesExplorer from './pages/funding/OpportunitiesExplorer';
 import CreateEnterprise from './pages/funding/CreateEnterprise';
 import InvestmentProcess from './pages/funding/InvestmentProcess';
+import RequestDetail from './pages/funding/RequestDetail';
+import FundingRequestAnalytics from './pages/funding/FundingRequestAnalytics';
 
 // Careers & Gigs
 import GigsPage from './pages/careers/GigsPage';
@@ -223,11 +231,37 @@ function App() {
                 }
             />
             <Route
-                path={ROUTES.FUNDING}
+                path="/funding/:tab"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
                             <FundingHub />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.FUNDING}
+                element={
+                    <Navigate to="/funding/market" replace />
+                }
+            />
+            <Route
+                path="/funding/requests/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <RequestDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/funding/analytics/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <FundingRequestAnalytics />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -445,7 +479,57 @@ function App() {
                 }
             />
             <Route
+                path="/events/edit/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateEvent />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.TASKS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Tasks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/my_tasks"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Tasks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/all_tasks"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Tasks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/submissions"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Tasks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/responses"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -460,6 +544,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <TaskCreation />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/tasks/responses/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ResponseDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -611,6 +705,36 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <ResearchDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/research/apply"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ApplyResearcher />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/research/edit/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateResearch />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/research/:id/analytics"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <ResearchAnalytics />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -797,7 +921,7 @@ function App() {
                 }
             />
             <Route
-                path="/institutions/:id"
+                path="/institutions/:id/:tab?"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -835,7 +959,7 @@ function App() {
                 }
             />
             <Route
-                path="/organizations/:id"
+                path="/organizations/:id/:tab?"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -890,6 +1014,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreateSpecialization />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/specializations/:id/analytics"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <SpecializationAnalytics />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1178,7 +1312,7 @@ function App() {
                 element={
                     <ProtectedRoute>
                         <MainLayout>
-                            <TransactionPage />
+                            <CheckoutPage />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1283,7 +1417,7 @@ function App() {
                 }
             />
             <Route
-                path="/institutions/:id"
+                path="/institutions/:id/:tab?"
                 element={
                     <ProtectedRoute>
                         <MainLayout>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { BookOpen, Clock, User, Heart, MessageCircle, Bookmark, Share, Search, Plus } from 'lucide-react';
+import { BookOpen, Clock, User, Heart, MessageCircle, Bookmark, Share, Search, Plus, Eye } from 'lucide-react';
 import articlesService from '../services/articles.service';
 import toast from 'react-hot-toast';
 
@@ -132,9 +132,9 @@ const Articles = () => {
                                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group h-full">
                                     {/* Cover Image */}
                                     <div className="relative h-48 overflow-hidden bg-secondary">
-                                        {article.cover_image ? (
+                                        {(article.image_url || article.cover_image) ? (
                                             <img
-                                                src={article.cover_image}
+                                                src={article.image_url || article.cover_image}
                                                 alt={article.title}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                             />
@@ -150,7 +150,7 @@ const Articles = () => {
                                         </div>
                                     </div>
 
-                                    <CardBody className="p-5 flex flex-col h-full">
+                                    <CardBody className="p-4 flex flex-col flex-1 min-h-0">
                                         <h3 className="font-bold text-primary mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                                             {article.title}
                                         </h3>
@@ -159,21 +159,28 @@ const Articles = () => {
                                         </p>
 
                                         {/* Author and Meta */}
-                                        <div className="mt-auto">
+                                        <div className="mt-auto pt-2">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
-                                                        {article.author_details?.avatar ? (
-                                                            <img src={article.author_details.avatar} alt={article.author_name} className="w-full h-full object-cover" />
+                                                        {article.author?.avatar ? (
+                                                            <img src={article.author.avatar} alt={article.author?.name} className="w-full h-full object-cover" />
                                                         ) : (
-                                                            article.author_name?.[0] || 'U'
+                                                            article.author?.name?.[0] || 'U'
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-primary">{article.author_name}</p>
-                                                        <p className="text-xs text-secondary flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            {new Date(article.created_at).toLocaleDateString()}
+                                                        <p className="text-sm font-medium text-primary">{article.author?.name}</p>
+                                                        <p className="text-xs text-secondary flex flex-wrap items-center gap-2 mt-1">
+                                                            <span className="flex items-center gap-1" title="Posted">
+                                                                <Clock className="w-3 h-3" />
+                                                                {new Date(article.created_at).toLocaleDateString()}
+                                                            </span>
+                                                            {article.updated_at && article.updated_at !== article.created_at && (
+                                                                <span className="flex items-center gap-1 text-tertiary" title="Updated">
+                                                                    • Updated {new Date(article.updated_at).toLocaleDateString()}
+                                                                </span>
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -181,14 +188,18 @@ const Articles = () => {
 
                                             {/* Actions */}
                                             <div className="flex items-center justify-between pt-4 border-t border-theme">
-                                                <div className="flex items-center gap-4 text-secondary text-sm">
-                                                    <span className="flex items-center gap-1">
+                                                <div className="flex items-center gap-4 text-secondary text-sm flex-wrap">
+                                                    <span className="flex items-center gap-1" title={`${article.views_count || 0} Views`}>
+                                                        <Eye className="w-4 h-4" />
+                                                        {article.views_count || 0}
+                                                    </span>
+                                                    <span className="flex items-center gap-1" title={`${article.read_count || 0} Reads`}>
+                                                        <BookOpen className="w-4 h-4" />
+                                                        {article.read_count || 0}
+                                                    </span>
+                                                    <span className="flex items-center gap-1" title={`${article.likes_count || 0} Likes`}>
                                                         <Heart className={`w-4 h-4 ${article.is_liked ? 'fill-red-500 text-red-500' : ''}`} />
                                                         {article.likes_count || 0}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <MessageCircle className="w-4 h-4" />
-                                                        {article.comments_count || 0}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
