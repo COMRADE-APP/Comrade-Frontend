@@ -15,6 +15,7 @@ import {
     Loader2, XCircle, Shield, Search, Filter, Users, Zap, Brain,
     Sparkles, BookOpen
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { tasksService } from '../services/tasks.service';
 import { formatDate, formatTime } from '../utils/dateFormatter';
 
@@ -111,8 +112,9 @@ const ResponseDetail = () => {
                 feedback
             });
             await loadTaskAndResponses();
+            toast.success('Status updated successfully');
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to update status');
+            toast.error(err.response?.data?.error || 'Failed to update status');
         } finally {
             setUpdating(false);
         }
@@ -129,8 +131,9 @@ const ResponseDetail = () => {
             });
             setGradingMode(false);
             await loadTaskAndResponses();
+            toast.success('Grades saved successfully');
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to save grades');
+            toast.error(err.response?.data?.error || 'Failed to save grades');
         } finally {
             setSavingGrades(false);
         }
@@ -139,10 +142,11 @@ const ResponseDetail = () => {
     const handleAutoGrade = async () => {
         if (!task?.id) return;
         try {
-            await tasksService.autoGrade(task.id);
+            const res = await tasksService.autoGrade(task.id);
             await loadTaskAndResponses();
+            toast.success(res.message || 'Auto-graded successfully');
         } catch (err) {
-            alert(err.response?.data?.error || 'Auto-grade failed');
+            toast.error(err.response?.data?.error || 'Auto-grade failed');
         }
     };
 
@@ -154,8 +158,9 @@ const ResponseDetail = () => {
             const result = await tasksService.aiGrade(task.id, selectedResponse.id);
             setAiGradingResults(result.grading_details);
             await loadTaskAndResponses();
+            toast.success('AI grading completed');
         } catch (err) {
-            alert(err.response?.data?.error || 'AI grading failed. Make sure GEMINI_API_KEY is configured.');
+            toast.error(err.response?.data?.error || 'AI grading failed. Make sure GEMINI_API_KEY is configured.');
         } finally {
             setAiGrading(false);
         }
@@ -293,7 +298,7 @@ const ResponseDetail = () => {
                                             {respStatus.label}
                                         </div>
                                     </div>
-                                    {resp.total_score != null && (
+                                    {(isOwner || (resp.status === 'graded' || resp.review_status === 'graded')) && resp.total_score != null && (
                                         <div className="mt-2 text-sm text-secondary">
                                             Score: <span className="font-bold text-primary">{resp.total_score}</span>
                                         </div>
@@ -337,7 +342,11 @@ const ResponseDetail = () => {
                                     </div>
                                     <div className="p-3 bg-secondary/20 rounded-lg">
                                         <p className="text-secondary text-xs">Score</p>
-                                        <p className="font-semibold text-primary mt-1 text-lg">{selectedResponse.total_score ?? '—'}</p>
+                                        <p className="font-semibold text-primary mt-1 text-lg">
+                                            {(isOwner || (selectedResponse.status === 'graded' || selectedResponse.review_status === 'graded'))
+                                                ? (selectedResponse.total_score ?? '—')
+                                                : 'Pending'}
+                                        </p>
                                     </div>
                                     <div className="p-3 bg-secondary/20 rounded-lg">
                                         <p className="text-secondary text-xs">Answers</p>

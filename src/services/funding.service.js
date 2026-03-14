@@ -173,6 +173,20 @@ const fundingService = {
         });
         return response.data;
     },
+
+    // ==================== INVESTMENT AGREEMENTS ====================
+
+    // Check if current user has a signed agreement for this venture
+    checkAgreement: async (ventureId) => {
+        const response = await api.get(`${API_ENDPOINTS.FUNDING.VENTURES}${ventureId}/check_agreement/`);
+        return response.data;
+    },
+
+    // Sign a new investment agreement deed
+    signAgreement: async (ventureId, data) => {
+        const response = await api.post(`${API_ENDPOINTS.FUNDING.VENTURES}${ventureId}/sign_agreement/`, data);
+        return response.data;
+    },
 };
 
 export default fundingService;

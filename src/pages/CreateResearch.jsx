@@ -57,6 +57,18 @@ const CreateResearch = () => {
         description: ''
     });
 
+    const [ethics, setEthics] = useState({
+        requires_irb: false,
+        irb_approval_number: '',
+        ethics_statement: '',
+        consent_required: true,
+    });
+
+    const [files, setFiles] = useState({
+        irb_document: null,
+        consent_form_template: null,
+    });
+
     const [skillInput, setSkillInput] = useState('');
 
     React.useEffect(() => {
@@ -127,6 +139,18 @@ const CreateResearch = () => {
         setCompensation(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleEthicsChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setEthics(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    };
+
+    const handleFileChange = (e) => {
+        const { name, files: selectedFiles } = e.target;
+        if (selectedFiles?.length > 0) {
+            setFiles(prev => ({ ...prev, [name]: selectedFiles[0] }));
+        }
+    };
+
     const addMilestone = () => {
         setMilestones([...milestones, { title: '', description: '', due_date: '' }]);
     };
@@ -162,27 +186,43 @@ const CreateResearch = () => {
         setLoading(true);
         try {
             // 1. Create or Update Project
-            const projectData = {
-                ...formData,
-                authors: [] // Authors logic can be added later or PI is auto-added
-            };
+            const projectData = new FormData();
+            
+            // Append basic form data
+            Object.keys(formData).forEach(key => {
+                projectData.append(key, formData[key]);
+            });
+
+            // Append ethics data (stringify booleans if needed, though FormData handles them as strings)
+            projectData.append('requires_irb', ethics.requires_irb);
+            projectData.append('irb_approval_number', ethics.irb_approval_number);
+            projectData.append('ethics_statement', ethics.ethics_statement);
+            projectData.append('consent_required', ethics.consent_required);
+
+            // Append files if they exist
+            if (files.irb_document) projectData.append('irb_document', files.irb_document);
+            if (files.consent_form_template) projectData.append('consent_form_template', files.consent_form_template);
 
             let project;
             if (isEditing) {
-                project = await api.patch(`/research/projects/${id}/`, projectData).then(res => res.data);
+                project = await api.patch(`/research/projects/${id}/`, projectData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                }).then(res => res.data);
             } else {
-                project = await researchService.createProject(projectData);
+                project = await api.post(`/research/projects/`, projectData, {
+                     headers: { 'Content-Type': 'multipart/form-data' }
+                }).then(res => res.data);
             }
 
             setSavedProjectId(project.id);
             setShowSuccessModal(true);
 
-            // 2. Add Milestones and Positions
+            // 2. Add Milestones and Positions (Using the separate service/endpoints if needed, 
+            // or we log them for now pending full backend endpoints for nested creation)
             console.log("Milestones:", milestones);
             console.log("Requirements:", requirements);
             console.log("Compensation:", compensation);
 
-            // Replaced immediate navigation with success modal
         } catch (error) {
             console.error('Error creating research:', error);
             alert('Failed to create research project.');
@@ -484,6 +524,76 @@ const CreateResearch = () => {
         </div>
     );
 
+    const renderStep4 = () => (
+        <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-primary mb-4">Ethics & Compliance</h3>
+            <p className="text-secondary text-sm mb-4">Rigorous ethics tracking is required for credible research. Please detail your ethical approvals and participant consent processes.</p>
+            
+            <div className="space-y-4 bg-elevated p-4 border border-theme rounded-xl">
+                <label className="flex items-center gap-3 cursor-pointer text-primary font-medium">
+                    <input type="checkbox" name="requires_irb" checked={ethics.requires_irb} onChange={handleEthicsChange} className="w-5 h-5 rounded border-theme text-primary focus:ring-primary" />
+                    <span>Requires IRB (Institutional Review Board) or Ethics Committee Approval</span>
+                </label>
+
+                {ethics.requires_irb && (
+                    <div className="pt-2 pl-8 border-l-2 border-primary/20 space-y-4">
+                        <Input
+                            label="IRB Approval Number / Reference"
+                            name="irb_approval_number"
+                            value={ethics.irb_approval_number}
+                            onChange={handleEthicsChange}
+                            placeholder="E.g., IRB-2024-00123"
+                            required
+                        />
+                        <div>
+                            <label className="block text-sm font-medium text-secondary mb-1">IRB Approval Document (Optional here, required before publishing)</label>
+                            <input
+                                type="file"
+                                name="irb_document"
+                                onChange={handleFileChange}
+                                className="block w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                                accept=".pdf,.doc,.docx"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-4 bg-elevated p-4 border border-theme rounded-xl mt-4">
+                <label className="flex items-center gap-3 cursor-pointer text-primary font-medium">
+                    <input type="checkbox" name="consent_required" checked={ethics.consent_required} onChange={handleEthicsChange} className="w-5 h-5 rounded border-theme text-primary focus:ring-primary" />
+                    <span>Informed Consent is Required from Participants</span>
+                </label>
+                
+                {ethics.consent_required && (
+                     <div className="pt-2 pl-8 border-l-2 border-primary/20">
+                         <label className="block text-sm font-medium text-secondary mb-1">Participant Consent Form Template (Optional at creation)</label>
+                         <input
+                             type="file"
+                             name="consent_form_template"
+                             onChange={handleFileChange}
+                             className="block w-full text-sm text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                             accept=".pdf,.doc,.docx"
+                         />
+                     </div>
+                )}
+            </div>
+
+            <div className="mt-4">
+                <label className="block text-sm font-medium text-secondary mb-1">General Ethics Statement *</label>
+                <textarea
+                    name="ethics_statement"
+                    value={ethics.ethics_statement}
+                    onChange={handleEthicsChange}
+                    rows={4}
+                    required
+                    className="w-full px-4 py-2 bg-elevated border border-theme rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Briefly describe how participant data anonymity, safety, and ethical guidelines are managed."
+                />
+            </div>
+        </div>
+    );
+
     const renderReview = () => (
         <div className="space-y-6">
             <h3 className="text-xl font-semibold text-primary mb-4">Review & Submit</h3>
@@ -554,19 +664,20 @@ const CreateResearch = () => {
             </div>
 
             {/* Stepper */}
-            <div className="flex items-center justify-between px-8 py-4 bg-elevated rounded-xl border border-theme">
+            <div className="flex items-center justify-between px-8 py-4 bg-elevated rounded-xl border border-theme overflow-x-auto gap-4">
                 {[
                     { num: 1, label: 'Basic Info', icon: Beaker },
                     { num: 2, label: 'Milestones', icon: Calendar },
                     { num: 3, label: 'Requirements', icon: Users },
-                    { num: 4, label: 'Review', icon: CheckCircle },
+                    { num: 4, label: 'Ethics', icon: FileText },
+                    { num: 5, label: 'Review', icon: CheckCircle },
                 ].map((s) => {
                     const Icon = s.icon;
                     const isActive = step === s.num;
                     const isCompleted = step > s.num;
 
                     return (
-                        <div key={s.num} className="flex flex-col items-center relative z-10">
+                        <div key={s.num} className="flex flex-col items-center relative z-10 min-w-[80px]">
                             <div
                                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' :
                                     isCompleted ? 'bg-green-500 text-white' : 'bg-secondary/20 text-secondary'
@@ -574,13 +685,12 @@ const CreateResearch = () => {
                             >
                                 {isCompleted ? <CheckCircle className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
                             </div>
-                            <span className={`text-sm mt-2 font-medium ${isActive ? 'text-primary' : 'text-secondary'}`}>
+                            <span className={`text-sm mt-2 font-medium text-center ${isActive ? 'text-primary' : 'text-secondary'}`}>
                                 {s.label}
                             </span>
                         </div>
                     );
                 })}
-                {/* Progress Bar Background (could be added with absolute positioning but simplified here) */}
             </div>
 
             {/* Content */}
@@ -589,12 +699,13 @@ const CreateResearch = () => {
                     {step === 1 && renderStep1()}
                     {step === 2 && renderStep2()}
                     {step === 3 && renderStep3()}
-                    {step === 4 && renderReview()}
+                    {step === 4 && renderStep4()}
+                    {step === 5 && renderReview()}
                 </CardBody>
             </Card>
 
             {/* Actions */}
-            <div className="flex justify-between">
+            <div className="flex justify-between mt-4">
                 <Button
                     variant="outline"
                     onClick={() => setStep(step - 1)}
@@ -604,7 +715,7 @@ const CreateResearch = () => {
                     <ChevronLeft className="w-4 h-4 mr-2" /> Back
                 </Button>
 
-                {step < 4 ? (
+                {step < 5 ? (
                     <Button
                         variant="primary"
                         onClick={() => setStep(step + 1)}
@@ -615,14 +726,14 @@ const CreateResearch = () => {
                 ) : (
                     <Button
                         variant="primary"
-                        onClick={step === 4 ? handleSubmit : () => setStep(s => s + 1)}
+                        onClick={step === 5 ? handleSubmit : () => setStep(s => s + 1)}
                         disabled={loading || (step === 1 && !formData.title)}
                         className="flex-1 sm:flex-none"
                     >
-                        {loading && step === 4 ? 'Processing...' :
-                            step === 4 ? (isEditing ? 'Update Research' : 'Submit Research') :
+                        {loading && step === 5 ? 'Processing...' :
+                            step === 5 ? (isEditing ? 'Update Research' : 'Submit Research') :
                                 'Continue'}
-                        {step !== 4 && <ChevronRight className="w-4 h-4 ml-1" />}
+                        {step !== 5 && <ChevronRight className="w-4 h-4 ml-1" />}
                     </Button>
                 )}
             </div>

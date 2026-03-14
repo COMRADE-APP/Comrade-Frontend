@@ -12,6 +12,7 @@ import {
     Timer, Shield, AlertTriangle, BarChart3, Star, Eye, ChevronRight,
     Video, Shuffle, CheckCircle, XCircle, AlertCircle, ClipboardList, ExternalLink, File, Edit2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { tasksService } from '../services/tasks.service';
 import { formatDate, formatTime } from '../utils/dateFormatter';
 
@@ -205,8 +206,9 @@ const TaskDetail = () => {
             setMyResponse(result);
             setSubmitted(true);
             setAnswering(false);
+            toast.success('Task submitted successfully!');
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to submit');
+            toast.error(err.response?.data?.error || 'Failed to submit');
         } finally {
             setSubmitting(false);
         }
@@ -251,10 +253,10 @@ const TaskDetail = () => {
 
             setViewingResponse(updatedResponse);
             setResponses(prev => prev.map(r => r.id === updatedResponse.id ? updatedResponse : r));
-            alert('Grades saved successfully!');
+            toast.success('Grades saved successfully!');
         } catch (error) {
             console.error('Failed to save grades', error);
-            alert('Failed to save grades');
+            toast.error('Failed to save grades');
         } finally {
             setSavingGrades(false);
         }
@@ -315,7 +317,7 @@ const TaskDetail = () => {
 
             {/* Header */}
             <div className="flex items-center gap-4">
-                <button onClick={() => { if (answering) { if (confirm('Leave task? Progress may be lost.')) { setAnswering(false); navigate('/tasks'); } } else navigate('/tasks'); }}
+                <button onClick={() => { if (answering) { if (window.confirm('Leave task? Progress may be lost.')) { setAnswering(false); navigate('/tasks'); } } else navigate('/tasks'); }}
                     className="p-2 hover:bg-secondary rounded-full transition-colors">
                     <ArrowLeft size={24} className="text-secondary" />
                 </button>
@@ -555,10 +557,10 @@ const TaskDetail = () => {
                                                 await tasksService.markCompleted(task.id);
                                                 setSubmitted(true);
                                                 setMyResponse({ time_stamp: new Date().toISOString() });
-                                                alert("Marked as Done!");
+                                                toast.success("Marked as Done!");
                                             } catch (e) {
                                                 console.error(e);
-                                                alert("Error marking as completed");
+                                                toast.error("Error marking as completed");
                                             }
                                         } : startAnswering}>
                                             {task.is_activity ? "Mark as Done" : "Start Task"} <ChevronRight size={16} className="ml-1" />
@@ -602,10 +604,10 @@ const TaskDetail = () => {
                                                 await tasksService.markCompleted(task.id);
                                                 setSubmitted(true);
                                                 setMyResponse({ time_stamp: new Date().toISOString() });
-                                                alert("Marked as Done!");
+                                                toast.success("Marked as Done!");
                                             } catch (e) {
                                                 console.error(e);
-                                                alert("Error marking as completed");
+                                                toast.error("Error marking as completed");
                                             }
                                         } : startAnswering}>
                                             {task.is_activity ? "Mark as Done" : "Begin Task"} <ChevronRight size={16} className="ml-1" />

@@ -58,6 +58,7 @@ import ShopCart from './pages/shop/Cart';
 import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
 import CheckoutPage from './pages/payments/CheckoutPage';
+import KittyManagement from './pages/payments/KittyManagement';
 
 // Payment System Components
 import ProductCatalog from './pages/products/ProductCatalog';
@@ -252,6 +253,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <RequestDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.KITTIES}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <KittyManagement />
                         </MainLayout>
                     </ProtectedRoute>
                 }

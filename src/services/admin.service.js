@@ -35,6 +35,11 @@ const adminService = {
     reviewOrganization: (id, action, notes = '') =>
         api.patch(`/api/organizations/${id}/`, { status: action, review_notes: notes }),
 
+    // Researcher Applications
+    getResearcherApplications: (params = {}) => api.get('/research/researcher_applications/', { params }),
+    reviewResearcherApplication: (id, status, notes = '') =>
+        api.post(`/research/researcher_applications/${id}/review/`, { status, reviewer_notes: notes }),
+
     // Analytics
     getAnalytics: (params = {}) => api.get(`${BASE}/analytics/`, { params }),
 

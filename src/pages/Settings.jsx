@@ -13,7 +13,7 @@ import activityLogService from '../services/activityLog.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
     UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail,
-    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil
+    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil, HelpCircle, MonitorSmartphone
 } from 'lucide-react';
 
 const USER_TYPE_OPTIONS = [
@@ -274,54 +274,62 @@ const Settings = () => {
         : portalLinks.filter(p => p.roles.some(r => user?.user_type === r || user?.roles?.includes(r)));
 
     const tabs = [
-        { id: 'account', label: 'Account', icon: UserCog },
-        { id: 'security', label: 'Security', icon: Shield },
+        { id: 'account', label: 'Account Center', icon: UserCog },
+        { id: 'security', label: 'Privacy & Security', icon: Shield },
         { id: 'notifications', label: 'Notifications', icon: Bell },
-        { id: 'appearance', label: 'Appearance', icon: Palette },
-        { id: 'privacy', label: 'Privacy', icon: Lock },
-        { id: 'activity', label: 'Activity', icon: Activity },
+        { id: 'appearance', label: 'Display & Accessibility', icon: MonitorSmartphone },
+        { id: 'activity', label: 'Activity Log', icon: Activity },
         { id: 'portals', label: 'Other Portals', icon: ExternalLink },
+        { id: 'help', label: 'Help & Support', icon: HelpCircle },
     ];
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-primary">Settings</h1>
-                <p className="text-secondary mt-1">Manage your account and preferences</p>
-            </div>
-
-            {/* Message Alert */}
-            {message.text && (
-                <div className={`p-4 rounded-lg flex items-center gap-2 ${message.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
-                    : 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
-                    }`}>
-                    {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                    {message.text}
-                </div>
-            )}
-
-            {/* Tabs */}
-            <div className="border-b border-theme overflow-x-auto">
-                <nav className="-mb-px flex space-x-8">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-700'
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-8rem)] gap-4 md:gap-8 bg-background">
+            {/* Sidebar Navigation */}
+            <div className="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-theme bg-elevated/30 md:bg-transparent -mx-4 md:mx-0 px-4 md:px-0 sticky top-0 z-20 md:h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden pt-2 md:pt-4">
+                <div className="md:pb-6">
+                    <h1 className="text-2xl font-bold text-primary mb-1 md:px-2 hidden md:block">Settings</h1>
+                    <p className="text-sm text-secondary mb-6 md:px-2 hidden md:block">Manage your experience</p>
+                    <nav className="flex md:flex-col space-x-2 md:space-x-0 md:space-y-1 overflow-x-auto pb-2 md:pb-0 hidescrollbar w-full">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-shrink-0 flex items-center gap-3 px-4 py-2.5 rounded-full md:rounded-xl font-medium text-sm transition-all ${
+                                        isActive
+                                            ? 'bg-primary text-white md:bg-primary/10 md:text-primary'
+                                            : 'text-secondary hover:bg-secondary/10 hover:text-primary'
                                     }`}
-                            >
-                                <Icon className="w-4 h-4" />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </nav>
+                                >
+                                    <Icon className={`w-5 h-5 ${isActive ? 'text-white md:text-primary' : 'text-secondary'}`} />
+                                    <span className="whitespace-nowrap">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
             </div>
+
+            {/* Content Area */}
+            <div className="flex-1 max-w-4xl pb-12 w-full">
+                {/* Mobile Header */}
+                <div className="md:hidden block mb-6 px-1">
+                    <h1 className="text-2xl font-bold text-primary">{tabs.find(t => t.id === activeTab)?.label}</h1>
+                </div>
+
+                {/* Message Alert */}
+                {message.text && (
+                    <div className={`p-4 rounded-lg flex items-center gap-2 mb-6 ${message.type === 'success'
+                        ? 'bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
+                        : 'bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
+                        }`}>
+                        {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                        {message.text}
+                    </div>
+                )}
 
             {/* Account Tab */}
             {activeTab === 'account' && (
@@ -545,8 +553,8 @@ const Settings = () => {
                             <div className="space-y-3">
                                 {[
                                     { name: 'Google', connected: true, icon: Mail },
-                                    { name: 'Apple', connected: false, icon: AppleLogo },
-                                    { name: 'X (formerly Twitter)', connected: false, icon: XLogo },
+                                    { name: 'Apple', connected: false, icon: MonitorSmartphone },
+                                    { name: 'X (formerly Twitter)', connected: false, icon: Globe },
                                 ].map((account) => {
                                     const Icon = account.icon;
                                     return (
@@ -570,12 +578,6 @@ const Settings = () => {
                             </div>
                         </CardBody>
                     </Card>
-                </div>
-            )}
-
-            {/* Security Tab */}
-            {activeTab === 'security' && (
-                <div className="space-y-6">
                     {/* Change Password */}
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
@@ -628,7 +630,12 @@ const Settings = () => {
                             </form>
                         </CardBody>
                     </Card>
+                </div>
+            )}
 
+            {/* Security Tab */}
+            {activeTab === 'security' && (
+                <div className="space-y-6">
                     {/* Two-Factor Authentication */}
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
@@ -679,6 +686,110 @@ const Settings = () => {
                             <Button variant="outline" className="w-full mt-4">
                                 Sign Out All Devices
                             </Button>
+                        </CardBody>
+                    </Card>
+
+                    {/* Profile Visibility */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <User className="w-5 h-5" />
+                                Profile Visibility
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                {/* Activity Status */}
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Show Activity Status</h4>
+                                        <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !user?.user_profile?.show_activity_status;
+                                                await authService.updateProfile({ show_activity_status: newStatus });
+                                                updateUser({
+                                                    user_profile: {
+                                                        ...user?.user_profile,
+                                                        show_activity_status: newStatus,
+                                                    }
+                                                });
+                                                showMessage('success', 'Privacy setting updated');
+                                            } catch (error) {
+                                                showMessage('error', 'Failed to update setting');
+                                            }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
+                                            }`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Read Receipts */}
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Read Receipts</h4>
+                                        <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !user?.user_profile?.show_read_receipts;
+                                                await authService.updateProfile({ show_read_receipts: newStatus });
+                                                updateUser({
+                                                    user_profile: {
+                                                        ...user?.user_profile,
+                                                        show_read_receipts: newStatus,
+                                                    }
+                                                });
+                                                showMessage('success', 'Privacy setting updated');
+                                            } catch (error) {
+                                                showMessage('error', 'Failed to update setting');
+                                            }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
+                                            }`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Public Profile</h4>
+                                        <p className="text-sm text-secondary">Allow others to view your profile</p>
+                                    </div>
+                                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
+                                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
+                                    </button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Danger Zone */}
+                    <Card className="border-red-200 dark:border-red-900/50">
+                        <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
+                            <h3 className="font-semibold text-red-900 dark:text-red-200 flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5" />
+                                Danger Zone
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="font-medium text-primary">Delete Account</h4>
+                                    <p className="text-sm text-secondary mt-1">
+                                        Once you delete your account, there is no going back. Please be certain.
+                                    </p>
+                                </div>
+                                <Button variant="danger" onClick={handleDeleteAccount}>
+                                    Delete My Account
+                                </Button>
+                            </div>
                         </CardBody>
                     </Card>
                 </div>
@@ -767,116 +878,6 @@ const Settings = () => {
                     </Card>
                 </div>
             )
-            }
-
-            {/* Privacy Tab */}
-            {
-                activeTab === 'privacy' && (
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader className="p-4 border-b border-theme">
-                                <h3 className="font-semibold text-primary flex items-center gap-2">
-                                    <User className="w-5 h-5" />
-                                    Profile Visibility
-                                </h3>
-                            </CardHeader>
-                            <CardBody>
-                                <div className="space-y-4">
-                                    {/* Activity Status */}
-                                    <div className="flex items-center justify-between py-3 border-b border-theme">
-                                        <div>
-                                            <h4 className="font-medium text-primary">Show Activity Status</h4>
-                                            <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
-                                        </div>
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const newStatus = !user?.user_profile?.show_activity_status;
-                                                    await authService.updateProfile({ show_activity_status: newStatus });
-                                                    updateUser({
-                                                        user_profile: {
-                                                            ...user?.user_profile,
-                                                            show_activity_status: newStatus,
-                                                        }
-                                                    });
-                                                    showMessage('success', 'Privacy setting updated');
-                                                } catch (error) {
-                                                    showMessage('error', 'Failed to update setting');
-                                                }
-                                            }}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
-                                                }`}
-                                        >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    {/* Read Receipts */}
-                                    <div className="flex items-center justify-between py-3 border-b border-theme">
-                                        <div>
-                                            <h4 className="font-medium text-primary">Read Receipts</h4>
-                                            <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
-                                        </div>
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const newStatus = !user?.user_profile?.show_read_receipts;
-                                                    await authService.updateProfile({ show_read_receipts: newStatus });
-                                                    updateUser({
-                                                        user_profile: {
-                                                            ...user?.user_profile,
-                                                            show_read_receipts: newStatus,
-                                                        }
-                                                    });
-                                                    showMessage('success', 'Privacy setting updated');
-                                                } catch (error) {
-                                                    showMessage('error', 'Failed to update setting');
-                                                }
-                                            }}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
-                                                }`}
-                                        >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
-                                        <div>
-                                            <h4 className="font-medium text-primary">Public Profile</h4>
-                                            <p className="text-sm text-secondary">Allow others to view your profile</p>
-                                        </div>
-                                        <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
-                                            <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </CardBody>
-                        </Card>
-
-                        {/* Danger Zone */}
-                        <Card className="border-red-200 dark:border-red-900/50">
-                            <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
-                                <h3 className="font-semibold text-red-900 dark:text-red-200 flex items-center gap-2">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    Danger Zone
-                                </h3>
-                            </CardHeader>
-                            <CardBody>
-                                <div className="space-y-4">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Delete Account</h4>
-                                        <p className="text-sm text-secondary mt-1">
-                                            Once you delete your account, there is no going back. Please be certain.
-                                        </p>
-                                    </div>
-                                    <Button variant="danger" onClick={handleDeleteAccount}>
-                                        Delete My Account
-                                    </Button>
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </div>
-                )
             }
 
             {/* Activity Tab */}
@@ -1039,7 +1040,63 @@ const Settings = () => {
                     </Card>
                 </div>
             )}
-        </div >
+
+            {/* Help & Support Tab */}
+            {activeTab === 'help' && (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <HelpCircle className="w-5 h-5" />
+                                Help & Support
+                            </h3>
+                            <p className="text-sm text-secondary mt-1">Get assistance, submit feedback or learn more about the platform.</p>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-primary">Help Center FAQ</h4>
+                                            <p className="text-sm text-secondary">Browse answers to common questions</p>
+                                        </div>
+                                    </div>
+                                    <ExternalLink className="w-4 h-4 text-tertiary" />
+                                </div>
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                            <Mail className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-primary">Contact Support</h4>
+                                            <p className="text-sm text-secondary">Send an email to our support team</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="outline" size="sm">Email Us</Button>
+                                </div>
+                                <div className="flex items-center justify-between py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                            <Globe className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-primary">Terms & Privacy</h4>
+                                            <p className="text-sm text-secondary">Read our policies and terms of service</p>
+                                        </div>
+                                    </div>
+                                    <ExternalLink className="w-4 h-4 text-tertiary" />
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+            </div> {/* End Content Area */}
+        </div>
     );
 };
 

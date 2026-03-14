@@ -3,7 +3,8 @@
  * Multi-step legal, ethical, and verifiable investment contract
  * Works as binding contract between enterprises and users (including donations)
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import fundingService from '../../services/funding.service';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Card, { CardBody } from '../../components/common/Card';
@@ -32,22 +33,42 @@ const InvestmentProcess = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [processing, setProcessing] = useState(false);
     const [hasConsent, setHasConsent] = useState(false);
+    const [customTerms, setCustomTerms] = useState('');
+    const [loadingAgreement, setLoadingAgreement] = useState(true);
 
-    // Skip to Step 5 (Amount) if consent was already given for this venture
-    React.useEffect(() => {
-        if (localStorage.getItem(`investment_consent_${ventureId}`)) {
-            setHasConsent(true);
-            setAgreements({
-                terms: true,
-                privacy: true,
-                riskAcknowledged: true,
-                ethicalCompliance: true,
-                antiMoneyLaundering: true,
-                contractSigned: true,
-                finalConfirmation: true,
-            });
-            setCurrentStep(5);
-        }
+    // Check if investor already signed an agreement for this venture (server-side)
+    useEffect(() => {
+        const checkExistingAgreement = async () => {
+            try {
+                setLoadingAgreement(true);
+                const result = await fundingService.checkAgreement(ventureId);
+                if (result.has_agreement) {
+                    // Already signed — skip to Step 5 (investment amount)
+                    setHasConsent(true);
+                    setAgreements({
+                        terms: true,
+                        privacy: true,
+                        riskAcknowledged: true,
+                        ethicalCompliance: true,
+                        antiMoneyLaundering: true,
+                        contractSigned: true,
+                        finalConfirmation: true,
+                    });
+                    setCurrentStep(5);
+                } else {
+                    // Load custom terms if the enterprise defined any
+                    if (result.custom_terms) {
+                        setCustomTerms(result.custom_terms);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to check agreement:', err);
+                // Fallback: allow the full flow
+            } finally {
+                setLoadingAgreement(false);
+            }
+        };
+        checkExistingAgreement();
     }, [ventureId]);
 
     const [agreements, setAgreements] = useState({
@@ -108,39 +129,52 @@ const InvestmentProcess = () => {
         if (!canProceed()) return;
         setProcessing(true);
         
-        // Save consent confirmation locally so future investments can skip KYC
-        localStorage.setItem(`investment_consent_${ventureId}`, 'true');
+        try {
+            // If first time: persist the signed agreement to the server
+            if (!hasConsent) {
+                await fundingService.signAgreement(ventureId, {
+                    kyc_data: kycData,
+                    digital_signature: signature,
+                    terms_accepted: agreements.terms,
+                    risk_acknowledged: agreements.riskAcknowledged,
+                    ethical_compliance: agreements.ethicalCompliance,
+                    aml_compliance: agreements.antiMoneyLaundering,
+                });
+            }
 
-        const investmentPayload = {
-            target_venture: ventureId,
-            amount: parseFloat(investmentData.amount),
-            currency: investmentData.currency,
-            investment_type: investmentData.investment_type,
-            duration_months: parseInt(investmentData.duration_months),
-            purpose: investmentData.purpose,
-            is_donation: investmentData.investment_type === 'donation',
-            kyc_verified: true,
-            terms_accepted: true,
-            risk_acknowledged: true,
-            ethical_compliance: true,
-            digital_signature: signature || "Previously Signed via Consent",
-        };
+            const investmentPayload = {
+                target_venture: ventureId,
+                amount: parseFloat(investmentData.amount),
+                currency: investmentData.currency,
+                investment_type: investmentData.investment_type,
+                duration_months: parseInt(investmentData.duration_months),
+                purpose: investmentData.purpose,
+                is_donation: investmentData.investment_type === 'donation',
+                kyc_verified: true,
+                terms_accepted: true,
+                risk_acknowledged: true,
+                ethical_compliance: true,
+                digital_signature: signature || 'Previously Signed via Agreement',
+            };
 
-        navigate('/payments/checkout', { 
-            state: { 
-                cartItems: [{
-                    id: ventureId,
-                    name: investmentData.investment_type === 'donation' ? 'Charity Donation' : 'Venture Investment',
-                    type: 'funding',
-                    price: investmentData.amount,
-                    payload: investmentPayload
-                }],
-                purchaseType: 'individual',
-                totalAmount: parseFloat(investmentData.amount)
-            } 
-        });
-        
-        setProcessing(false);
+            navigate('/payments/checkout', { 
+                state: { 
+                    cartItems: [{
+                        id: ventureId,
+                        name: investmentData.investment_type === 'donation' ? 'Charity Donation' : 'Venture Investment',
+                        type: 'funding',
+                        price: investmentData.amount,
+                        payload: investmentPayload
+                    }],
+                    purchaseType: 'individual',
+                    totalAmount: parseFloat(investmentData.amount)
+                } 
+            });
+        } catch (err) {
+            console.error('Failed to sign agreement:', err);
+        } finally {
+            setProcessing(false);
+        }
     };
 
     const completedSteps = currentStep - 1;
@@ -190,26 +224,39 @@ const InvestmentProcess = () => {
             <Card>
                 <CardBody className="p-6 md:p-8">
                     {/* Step 1: Terms & Conditions */}
-                    {currentStep === 1 && (
-                        <div className="space-y-6">
+                    {currentStep === 1 && (                            <div className="space-y-6">
                             <div>
                                 <h2 className="text-xl font-bold text-primary mb-1">Terms & Conditions</h2>
-                                <p className="text-secondary text-sm">Read and accept the investment terms</p>
+                                <p className="text-secondary text-sm">
+                                    {customTerms ? 'Review the enterprise\'s custom investment terms' : 'Read and accept the investment terms'}
+                                </p>
                             </div>
-                            <div className="bg-secondary/20 rounded-xl p-4 max-h-64 overflow-y-auto text-sm text-secondary leading-relaxed border border-theme">
-                                <h3 className="font-semibold text-primary mb-2">Investment Agreement Terms</h3>
-                                <p className="mb-3">By proceeding with this investment, you acknowledge and agree to the following terms:</p>
-                                <ul className="list-disc pl-5 space-y-2">
-                                    <li>All investments are subject to market risk and regulatory compliance.</li>
-                                    <li>The enterprise reserves the right to accept or reject investment proposals.</li>
-                                    <li>Returns are not guaranteed and depend on the performance of the underlying asset.</li>
-                                    <li>Minimum hold periods may apply depending on the investment type.</li>
-                                    <li>All parties agree to dispute resolution through arbitration.</li>
-                                    <li>This agreement constitutes a legally binding contract between the investor and the enterprise.</li>
-                                    <li>Withdrawal and exit terms are governed by the specific investment vehicle's prospectus.</li>
-                                    <li>Both parties agree to comply with all applicable anti-money laundering and counter-terrorism financing regulations.</li>
-                                </ul>
-                            </div>
+                            {customTerms ? (
+                                /* Enterprise custom terms */
+                                <div className="bg-secondary/20 rounded-xl p-4 max-h-64 overflow-y-auto text-sm text-secondary leading-relaxed border border-theme">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Landmark size={16} className="text-primary" />
+                                        <h3 className="font-semibold text-primary">Enterprise Investment Agreement</h3>
+                                    </div>
+                                    <div className="whitespace-pre-wrap">{customTerms}</div>
+                                </div>
+                            ) : (
+                                /* Default template */
+                                <div className="bg-secondary/20 rounded-xl p-4 max-h-64 overflow-y-auto text-sm text-secondary leading-relaxed border border-theme">
+                                    <h3 className="font-semibold text-primary mb-2">Investment Agreement Terms</h3>
+                                    <p className="mb-3">By proceeding with this investment, you acknowledge and agree to the following terms:</p>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li>All investments are subject to market risk and regulatory compliance.</li>
+                                        <li>The enterprise reserves the right to accept or reject investment proposals.</li>
+                                        <li>Returns are not guaranteed and depend on the performance of the underlying asset.</li>
+                                        <li>Minimum hold periods may apply depending on the investment type.</li>
+                                        <li>All parties agree to dispute resolution through arbitration.</li>
+                                        <li>This agreement constitutes a legally binding contract between the investor and the enterprise.</li>
+                                        <li>Withdrawal and exit terms are governed by the specific investment vehicle's prospectus.</li>
+                                        <li>Both parties agree to comply with all applicable anti-money laundering and counter-terrorism financing regulations.</li>
+                                    </ul>
+                                </div>
+                            )}
                             <label className="flex items-center gap-3 p-4 rounded-xl bg-elevated border border-theme hover:bg-secondary/20 cursor-pointer transition-colors">
                                 <input type="checkbox" checked={agreements.terms} onChange={() => toggleAgreement('terms')} className="w-5 h-5 rounded accent-primary" />
                                 <span className="text-sm text-primary font-medium">I have read and agree to the Terms & Conditions</span>

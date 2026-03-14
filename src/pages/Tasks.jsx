@@ -5,6 +5,7 @@ import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { ClipboardList, CheckCircle, Clock, AlertCircle, Plus, X, Calendar, FileText, Edit, Trash2, Search, Heart, Flag, ShieldAlert, Activity, Users, Eye } from 'lucide-react';
+import toast from 'react-hot-toast';
 import tasksService from '../services/tasks.service';
 import { formatDate } from '../utils/dateFormatter';
 
@@ -79,23 +80,24 @@ const Tasks = () => {
             setShowCreateModal(false);
             setNewTask({ heading: '', description: '', due_date: '', visibility: 'private' });
             // Show success message and switch to All Tasks tab
-            alert('✓ Task created successfully!');
+            toast.success('Task created successfully!');
             setActiveTab('all');
             loadTasks();
         } catch (error) {
             console.error('Failed to create task:', error);
-            alert('Failed to create task');
+            toast.error('Failed to create task');
         }
     };
 
     const handleDeleteTask = async (taskId) => {
-        if (!confirm('Are you sure you want to delete this task?')) return;
+        if (!window.confirm('Are you sure you want to delete this task?')) return;
         try {
             await tasksService.delete(taskId);
+            toast.success('Task deleted');
             loadTasks();
         } catch (error) {
             console.error('Failed to delete task:', error);
-            alert('Failed to delete task');
+            toast.error('Failed to delete task');
         }
     };
 
@@ -482,7 +484,7 @@ const Tasks = () => {
                             : originalTaskObj;
 
                         return (
-                            <TaskCard
+                                <TaskCard
                                 key={isSubmissionOrResponseView ? `sub-${item.id}` : `task-${taskObj.id}`}
                                 task={taskObj}
                                 submission={isSubmissionOrResponseView ? item : null}
@@ -496,10 +498,10 @@ const Tasks = () => {
                                     try {
                                         await tasksService.markCompleted(taskObj.id);
                                         loadTasks();
-                                        alert('Activity marked as completed!');
+                                        toast.success('Activity marked as completed!');
                                     } catch (error) {
                                         console.error('Error marking completed:', error);
-                                        alert('Failed to mark as completed');
+                                        toast.error('Failed to mark as completed');
                                     }
                                 }}
                             />

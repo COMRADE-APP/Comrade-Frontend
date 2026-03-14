@@ -4,7 +4,7 @@ import {
     Search, ShoppingBag, UtensilsCrossed, Hotel, Store, Briefcase,
     Star, MapPin, Truck, Package, Clock, Plus, ArrowRight,
     Check, X, Loader2, ShoppingCart, Minus, Trash2, ChevronRight,
-    CalendarCheck, ClipboardList, Bell, Eye, Users, User
+    Bell, Eye, Users, User, Wallet, ClipboardList, CalendarCheck
 } from 'lucide-react';
 import { paymentsService } from '../../services/payments.service';
 import shopService from '../../services/shop.service';
@@ -908,6 +908,9 @@ export default function Shop() {
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => navigate('/shop/register-establishment')}>
                         <Plus className="w-4 h-4 mr-2" /> Register Business
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/payments/kitties')}>
+                        <Wallet className="w-4 h-4 mr-2" /> My Kitties
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => navigate('/payments/register-shop')}>
                         <Store className="w-4 h-4 mr-2" /> Create Shop

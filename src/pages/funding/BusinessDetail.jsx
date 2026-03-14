@@ -19,46 +19,46 @@ const INDUSTRY_LABELS = {
 };
 
 const InvestModal = ({ business, onClose }) => {
+    const navigate = useNavigate();
     const [investType, setInvestType] = useState('individual');
     const [amount, setAmount] = useState('');
     const [agreed, setAgreed] = useState(false);
     const [step, setStep] = useState(1); // 1: amount, 2: legal, 3: confirm
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
 
-    const handleConfirm = async () => {
+    const handleConfirm = () => {
         setLoading(true);
-        try {
-            // Simulate investment creation
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            setSuccess(true);
-        } catch (err) {
-            console.error('Investment failed:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+        const investmentPayload = {
+            target_business: business.id,
+            amount: parseFloat(amount),
+            currency: 'KES',
+            investment_type: business.is_charity ? 'donation' : 'equity',
+            is_donation: !!business.is_charity,
+            investor_type: investType,
+            terms_accepted: true,
+            risk_acknowledged: true,
+        };
 
-    if (success) {
-        return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-elevated rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-                    <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-7 h-7 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-primary mb-2">Investment Recorded</h3>
-                    <p className="text-secondary text-sm mb-6">Your investment interest of KES {Number(amount).toLocaleString()} in {business.name} has been registered. You will be contacted for the next steps.</p>
-                    <Button onClick={onClose} className="bg-primary text-white w-full">Done</Button>
-                </motion.div>
-            </div>
-        );
-    }
+        navigate('/payments/checkout', {
+            state: {
+                cartItems: [{
+                    id: business.id,
+                    name: business.is_charity ? `Donation to ${business.name}` : `Investment in ${business.name}`,
+                    type: 'funding',
+                    price: amount,
+                    payload: investmentPayload
+                }],
+                purchaseType: investType === 'group' ? 'group' : 'individual',
+                totalAmount: parseFloat(amount)
+            }
+        });
+    };
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-elevated rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-5 border-b border-theme flex justify-between items-center">
-                    <h2 className="text-lg font-bold text-primary">Invest in {business.name}</h2>
+                    <h2 className="text-lg font-bold text-primary">{business.is_charity ? 'Donate to' : 'Invest in'} {business.name}</h2>
                     <button onClick={onClose} className="text-secondary hover:text-primary text-xl">&times;</button>
                 </div>
 
@@ -66,9 +66,9 @@ const InvestModal = ({ business, onClose }) => {
                     {step === 1 && (
                         <>
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-2">Investment Type</label>
+                                <label className="block text-sm font-medium text-primary mb-2">{business.is_charity ? 'Donation' : 'Investment'} Type</label>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {[{ id: 'individual', label: 'Individual', desc: 'Personal investment' },
+                                    {[{ id: 'individual', label: 'Individual', desc: business.is_charity ? 'Personal donation' : 'Personal investment' },
                                     { id: 'group', label: 'On Behalf of Group', desc: 'Organization or syndicate' }
                                     ].map(t => (
                                         <div
@@ -84,7 +84,7 @@ const InvestModal = ({ business, onClose }) => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">Investment Amount (KES)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">{business.is_charity ? 'Donation' : 'Investment'} Amount (KES)</label>
                                 <input
                                     type="number"
                                     value={amount}
@@ -92,7 +92,7 @@ const InvestModal = ({ business, onClose }) => {
                                     placeholder="Enter amount"
                                     className="w-full px-4 py-3 border border-theme rounded-xl bg-secondary text-primary focus:ring-2 focus:ring-primary outline-none"
                                 />
-                                {business?.valuation && (
+                                {business?.valuation && !business.is_charity && (
                                     <p className="text-xs text-tertiary mt-1">Company valuation: KES {Number(business.valuation).toLocaleString()}</p>
                                 )}
                             </div>
@@ -111,23 +111,27 @@ const InvestModal = ({ business, onClose }) => {
                                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3 text-sm text-amber-800">
                                     <div className="flex items-start gap-2">
                                         <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                        <p><strong>Investment Risk:</strong> All investments carry risk. You may lose some or all of your invested capital. Past performance does not guarantee future results.</p>
+                                        <p><strong>{business.is_charity ? 'Donation Notice:' : 'Investment Risk:'}</strong> {business.is_charity ? 'Donations are non-refundable contributions. Please ensure this is within your financial capacity.' : 'All investments carry risk. You may lose some or all of your invested capital. Past performance does not guarantee future results.'}</p>
                                     </div>
-                                    <div className="flex items-start gap-2">
-                                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                        <p><strong>No Guaranteed Returns:</strong> Returns on investments in private companies are not guaranteed and depend on business performance.</p>
-                                    </div>
-                                    <div className="flex items-start gap-2">
-                                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                        <p><strong>Illiquidity:</strong> Shares in private companies are typically illiquid. You may not be able to sell your shares immediately.</p>
-                                    </div>
-                                    <div className="flex items-start gap-2">
-                                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                        <p><strong>Dilution:</strong> Future funding rounds may dilute your equity percentage.</p>
-                                    </div>
+                                    {!business.is_charity && (
+                                        <>
+                                            <div className="flex items-start gap-2">
+                                                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                                <p><strong>No Guaranteed Returns:</strong> Returns on investments in private companies are not guaranteed and depend on business performance.</p>
+                                            </div>
+                                            <div className="flex items-start gap-2">
+                                                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                                <p><strong>Illiquidity:</strong> Shares in private companies are typically illiquid. You may not be able to sell your shares immediately.</p>
+                                            </div>
+                                            <div className="flex items-start gap-2">
+                                                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                                <p><strong>Dilution:</strong> Future funding rounds may dilute your equity percentage.</p>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                                    <p><strong>Regulatory Notice:</strong> This platform facilitates introductions between investors and businesses. Qomrade does not provide financial advice. Please consult a licensed financial advisor before making investment decisions.</p>
+                                    <p><strong>Regulatory Notice:</strong> This platform facilitates introductions between {business.is_charity ? 'donors and causes' : 'investors and businesses'}. Qomrade does not provide financial advice. Please consult a licensed financial advisor before making {business.is_charity ? 'large donations' : 'investment decisions'}.</p>
                                 </div>
                                 <label className="flex items-start gap-3 p-3 bg-secondary/5 rounded-xl cursor-pointer border border-theme">
                                     <input
@@ -137,7 +141,10 @@ const InvestModal = ({ business, onClose }) => {
                                         className="mt-1 rounded"
                                     />
                                     <span className="text-sm text-primary">
-                                        I acknowledge that I have read and understood the risk disclaimers above. I am investing at my own risk and have the financial capacity to bear potential losses.
+                                        {business.is_charity
+                                            ? 'I acknowledge that this donation is voluntary and non-refundable. I am donating within my financial capacity.'
+                                            : 'I acknowledge that I have read and understood the risk disclaimers above. I am investing at my own risk and have the financial capacity to bear potential losses.'
+                                        }
                                     </span>
                                 </label>
                             </div>
@@ -153,18 +160,18 @@ const InvestModal = ({ business, onClose }) => {
                     {step === 3 && (
                         <>
                             <div className="text-center space-y-3">
-                                <h3 className="font-bold text-xl text-primary">Confirm Investment</h3>
+                                <h3 className="font-bold text-xl text-primary">Confirm {business.is_charity ? 'Donation' : 'Investment'}</h3>
                                 <div className="p-6 bg-gradient-to-br from-primary/5 to-green-50 rounded-2xl border border-theme">
-                                    <p className="text-sm text-secondary">You are investing</p>
+                                    <p className="text-sm text-secondary">You are {business.is_charity ? 'donating' : 'investing'}</p>
                                     <p className="text-3xl font-bold text-primary my-2">KES {Number(amount).toLocaleString()}</p>
-                                    <p className="text-sm text-secondary">in <strong>{business.name}</strong></p>
-                                    <p className="text-xs text-tertiary mt-2">as {investType === 'individual' ? 'Individual Investor' : 'Group Representative'}</p>
+                                    <p className="text-sm text-secondary">{business.is_charity ? 'to' : 'in'} <strong>{business.name}</strong></p>
+                                    <p className="text-xs text-tertiary mt-2">as {investType === 'individual' ? 'Individual' : 'Group Representative'}</p>
                                 </div>
                             </div>
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={() => setStep(2)} className="flex-1">Back</Button>
                                 <Button onClick={handleConfirm} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                                    {loading ? 'Processing...' : 'Confirm Investment'}
+                                    {loading ? 'Redirecting...' : 'Proceed to Checkout'}
                                 </Button>
                             </div>
                         </>

@@ -6,6 +6,7 @@ import {
     Flag, Heart, DollarSign, Percent, Shield, Download, BarChart2, Edit2
 } from 'lucide-react';
 import researchService from '../services/research.service';
+import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/common/Button';
 import Card, { CardBody } from '../components/common/Card';
@@ -33,6 +34,10 @@ const ResearchDetail = () => {
         full_paper: null
     });
 
+    // Surveys / Data Collection state
+    const [surveys, setSurveys] = useState([]);
+    const [surveysLoading, setSurveysLoading] = useState(false);
+
     useEffect(() => {
         loadProject();
     }, [id]);
@@ -53,6 +58,18 @@ const ResearchDetail = () => {
                     fee: projectData.publication.fee || 0,
                     currency: projectData.publication.currency || 'USD'
                 }));
+            }
+
+            // Load surveys linked to this project
+            try {
+                setSurveysLoading(true);
+                const surveyRes = await api.get('/api/tasks/', { params: { research_project: id } });
+                const surveyData = Array.isArray(surveyRes.data) ? surveyRes.data : surveyRes.data.results || [];
+                setSurveys(surveyData);
+            } catch (err) {
+                console.error('Error loading surveys:', err);
+            } finally {
+                setSurveysLoading(false);
             }
         } catch (error) {
             console.error('Error loading project data:', error);
@@ -592,6 +609,110 @@ const ResearchDetail = () => {
         </div>
     );
 
+    const renderSurveys = () => (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h3 className="text-xl font-semibold text-primary">Data Collection Instruments</h3>
+                    <p className="text-sm text-secondary mt-1">Surveys and questionnaires linked to this research project.</p>
+                </div>
+                {isPI && (
+                    <Button variant="primary" size="sm" onClick={() => navigate(`/tasks/create?research_project=${project.id}`)}>
+                        <Plus className="w-4 h-4 mr-2" /> Create Survey
+                    </Button>
+                )}
+            </div>
+
+            {surveysLoading ? (
+                <div className="text-center py-12 text-secondary">Loading surveys...</div>
+            ) : surveys.length === 0 ? (
+                <div className="text-center py-12 bg-elevated rounded-xl border border-theme">
+                    <FileText className="w-12 h-12 mx-auto text-tertiary mb-3" />
+                    <p className="text-secondary">No surveys have been linked to this project yet.</p>
+                    {isPI && <p className="text-xs text-tertiary mt-1">Create a survey or questionnaire and link it to this project during creation.</p>}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {surveys.map(survey => (
+                        <Card key={survey.id} className="hover:border-primary/50 transition-colors">
+                            <CardBody className="space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <h4 className="font-semibold text-primary">{survey.heading}</h4>
+                                    <Badge variant={survey.state === 'active' ? 'success' : 'secondary'}>
+                                        {survey.state || 'Draft'}
+                                    </Badge>
+                                </div>
+                                <p className="text-sm text-secondary line-clamp-2">{survey.description}</p>
+                                <div className="flex items-center gap-4 text-xs text-tertiary">
+                                    <span className="flex items-center gap-1">
+                                        <FileText size={14} /> {survey.question_count || 0} questions
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Users size={14} /> {survey.response_count || 0} responses
+                                    </span>
+                                    {survey.due_date && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar size={14} /> Due {new Date(survey.due_date).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex gap-2 pt-2 border-t border-theme">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => navigate(`/tasks/${survey.id}`)}
+                                    >
+                                        View Details
+                                    </Button>
+                                    {isPI && (
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => navigate(`/tasks/${survey.id}/responses`)}
+                                        >
+                                            <BarChart2 className="w-4 h-4 mr-1" /> Responses
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardBody>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
+            {/* Aggregate Stats */}
+            {surveys.length > 0 && (
+                <Card>
+                    <CardBody>
+                        <h4 className="font-medium text-primary mb-3 flex items-center gap-2">
+                            <BarChart2 className="w-5 h-5 text-tertiary" /> Collection Summary
+                        </h4>
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div className="text-2xl font-bold text-primary">{surveys.length}</div>
+                                <div className="text-xs text-secondary">Total Surveys</div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-primary">
+                                    {surveys.reduce((sum, s) => sum + (s.response_count || 0), 0)}
+                                </div>
+                                <div className="text-xs text-secondary">Total Responses</div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-primary">
+                                    {surveys.filter(s => s.state === 'active').length}
+                                </div>
+                                <div className="text-xs text-secondary">Active Surveys</div>
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
+        </div>
+    );
+
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <Button variant="ghost" onClick={() => navigate('/research')}>
@@ -672,7 +793,7 @@ const ResearchDetail = () => {
 
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-theme overflow-x-auto pb-1">
-                {['overview', 'personas', 'participants', 'recruitment', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
+                {['overview', 'personas', 'participants', 'surveys', 'recruitment', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -691,6 +812,7 @@ const ResearchDetail = () => {
                 {activeTab === 'overview' && renderOverview()}
                 {activeTab === 'personas' && renderPersonas()}
                 {activeTab === 'participants' && renderPositions()}
+                {activeTab === 'surveys' && renderSurveys()}
                 {activeTab === 'recruitment' && renderRecruitment()}
                 {activeTab === 'guidelines' && renderGuidelines()}
                 {activeTab === 'team' && renderTeam()}

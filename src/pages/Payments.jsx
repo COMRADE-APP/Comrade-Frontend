@@ -127,6 +127,14 @@ const Payments = () => {
                         <PiggyBank className="w-4 h-4 mr-2" />
                         Piggy Banks
                     </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/kitties')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
+                        <Wallet className="w-4 h-4 mr-2" />
+                        My Kitties
+                    </Button>
                     <Button variant="primary" onClick={() => navigate('/payments/send')}>
                         <Send className="w-4 h-4 mr-2" />
                         Send Money

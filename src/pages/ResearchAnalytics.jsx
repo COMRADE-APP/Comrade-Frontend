@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { ArrowLeft, TrendingUp, Users, Eye, CheckCircle, BarChart2 } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, Eye, CheckCircle, BarChart2, FileText, ClipboardList } from 'lucide-react';
 import api from '../services/api';
 
 const ResearchAnalytics = () => {
@@ -68,7 +68,7 @@ const ResearchAnalytics = () => {
             </div>
 
             {/* Overview Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="border border-theme">
                     <CardBody className="p-6">
                         <div className="flex justify-between items-start">
@@ -124,6 +124,34 @@ const ResearchAnalytics = () => {
                         </div>
                     </CardBody>
                 </Card>
+
+                <Card className="border border-theme">
+                    <CardBody className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-secondary">Surveys</p>
+                                <h3 className="text-3xl font-bold text-primary mt-1">{analytics?.total_tasks || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-indigo-100 rounded-lg">
+                                <ClipboardList className="w-6 h-6 text-indigo-600" />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                <Card className="border border-theme">
+                    <CardBody className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-secondary">Survey Responses</p>
+                                <h3 className="text-3xl font-bold text-primary mt-1">{analytics?.total_survey_responses || 0}</h3>
+                            </div>
+                            <div className="p-3 bg-teal-100 rounded-lg">
+                                <FileText className="w-6 h-6 text-teal-600" />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
             </div>
 
             {/* Detailed Charts/Lists */}
@@ -167,6 +195,40 @@ const ResearchAnalytics = () => {
                     </CardBody>
                 </Card>
             </div>
+
+            {/* Data Collection Metrics */}
+            {(analytics?.total_tasks > 0 || analytics?.total_survey_responses > 0) && (
+                <Card className="border border-theme mt-6">
+                    <CardBody className="p-6">
+                        <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5" /> Data Collection Overview
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="text-center p-4 bg-secondary/10 rounded-xl">
+                                <div className="text-3xl font-bold text-primary">{analytics?.total_tasks || 0}</div>
+                                <div className="text-sm text-secondary mt-1">Linked Surveys</div>
+                            </div>
+                            <div className="text-center p-4 bg-secondary/10 rounded-xl">
+                                <div className="text-3xl font-bold text-primary">{analytics?.total_survey_responses || 0}</div>
+                                <div className="text-sm text-secondary mt-1">Total Responses Collected</div>
+                            </div>
+                            <div className="text-center p-4 bg-secondary/10 rounded-xl">
+                                <div className="text-3xl font-bold text-primary">
+                                    {analytics?.total_tasks > 0
+                                        ? Math.round(analytics.total_survey_responses / analytics.total_tasks)
+                                        : 0}
+                                </div>
+                                <div className="text-sm text-secondary mt-1">Avg Responses per Survey</div>
+                            </div>
+                        </div>
+                        {analytics?.total_tasks > 0 && analytics?.total_participants > 0 && (
+                            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                                <strong>Completion Rate:</strong> {Math.round((analytics.total_survey_responses / (analytics.total_participants * analytics.total_tasks)) * 100)}% of participants have responded across all surveys.
+                            </div>
+                        )}
+                    </CardBody>
+                </Card>
+            )}
         </div>
     );
 };

@@ -3,7 +3,7 @@ import {
     TrendingUp, Briefcase, Plus, Search, Filter, Users,
     FileText, DollarSign, Building, PieChart, Building2,
     Clock, CheckCircle, XCircle, AlertCircle, ChevronRight,
-    Heart, Globe, Landmark, BarChart3, Shield, Eye
+    Heart, Globe, Landmark, BarChart3, Shield, Eye, Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import fundingService from '../../services/funding.service';
@@ -207,9 +207,14 @@ const FoundersHub = ({ myBusinesses, loading, navigate }) => (
     <div>
         <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-primary">My Businesses</h2>
-            <Button onClick={() => navigate('/funding/create')} className="bg-primary hover:bg-primary-dark text-white flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Register Business
-            </Button>
+            <div className="flex gap-2">
+                <Button variant="outline" onClick={() => navigate('/payments/kitties')} className="border-theme hover:border-primary text-primary flex items-center gap-2">
+                    <Wallet className="w-4 h-4" /> My Kitties
+                </Button>
+                <Button onClick={() => navigate('/funding/create')} className="bg-primary hover:bg-primary-dark text-white flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Register Business
+                </Button>
+            </div>
         </div>
 
         {loading ? <div className="text-secondary">Loading...</div> : (

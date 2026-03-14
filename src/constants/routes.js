@@ -58,6 +58,7 @@ export const ROUTES = {
     PRODUCT_DETAILS: '/shop/:id',
     TIER_PLANS: '/tier-plans',
     PIGGY_BANKS: '/piggy-banks',
+    KITTIES: '/payments/kitties',
 
     // Opinions & Social
     OPINIONS: '/opinions',

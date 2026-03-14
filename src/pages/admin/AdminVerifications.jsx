@@ -30,8 +30,10 @@ export default function AdminVerifications() {
             let res;
             if (activeTab === 'institutions') {
                 res = await adminService.getInstitutions();
-            } else {
+            } else if (activeTab === 'organizations') {
                 res = await adminService.getOrganizations();
+            } else {
+                res = await adminService.getResearcherApplications();
             }
             const data = Array.isArray(res.data) ? res.data : res.data.results || [];
             setItems(data);
@@ -55,8 +57,10 @@ export default function AdminVerifications() {
         try {
             if (activeTab === 'institutions') {
                 await adminService.reviewInstitution(id, action, reviewNotes);
-            } else {
+            } else if (activeTab === 'organizations') {
                 await adminService.reviewOrganization(id, action, reviewNotes);
+            } else {
+                await adminService.reviewResearcherApplication(id, action, reviewNotes);
             }
             setReviewingId(null);
             setReviewNotes('');
@@ -88,6 +92,9 @@ export default function AdminVerifications() {
                     </button>
                     <button className={`admin-tab ${activeTab === 'organizations' ? 'active' : ''}`} onClick={() => setActiveTab('organizations')}>
                         🏢 Organizations
+                    </button>
+                    <button className={`admin-tab ${activeTab === 'researchers' ? 'active' : ''}`} onClick={() => setActiveTab('researchers')}>
+                        🔬 Researchers
                     </button>
                 </div>
 
@@ -126,9 +133,13 @@ export default function AdminVerifications() {
                                     <table className="admin-table">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
+                                                <th>{activeTab === 'researchers' ? 'Applicant' : 'Name'}</th>
                                                 <th>Email</th>
-                                                <th>Type</th>
+                                                {activeTab === 'researchers' ? (
+                                                    <><th>Qualifications</th><th>Documents</th></>
+                                                ) : (
+                                                    <th>Type</th>
+                                                )}
                                                 <th>Submitted</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -136,11 +147,34 @@ export default function AdminVerifications() {
                                         <tbody>
                                             {getPending.map(item => (
                                                 <tr key={item.id}>
-                                                    <td style={{ fontWeight: 600 }}>{item.name || 'Unnamed'}</td>
-                                                    <td style={{ fontSize: '0.8rem' }}>{item.email || item.contact_email || '—'}</td>
-                                                    <td><span className="admin-badge info">{item.type || item.institution_type || item.organization_type || '—'}</span></td>
+                                                    <td style={{ fontWeight: 600 }}>
+                                                        {activeTab === 'researchers'
+                                                            ? (item.user?.full_name || item.user?.email || 'Unknown')
+                                                            : (item.name || 'Unnamed')}
+                                                    </td>
+                                                    <td style={{ fontSize: '0.8rem' }}>
+                                                        {activeTab === 'researchers'
+                                                            ? (item.user?.email || '—')
+                                                            : (item.email || item.contact_email || '—')}
+                                                    </td>
+                                                    {activeTab === 'researchers' ? (
+                                                        <>
+                                                            <td style={{ fontSize: '0.8rem', maxWidth: 220, whiteSpace: 'pre-wrap' }}>
+                                                                {item.qualifications || '—'}
+                                                            </td>
+                                                            <td style={{ fontSize: '0.8rem' }}>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                                    {item.resume && <a href={item.resume} target="_blank" rel="noreferrer" className="admin-btn sm ghost">📄 Resume</a>}
+                                                                    {item.verification_doc && <a href={item.verification_doc} target="_blank" rel="noreferrer" className="admin-btn sm ghost">🔐 Verification Doc</a>}
+                                                                    {!item.resume && !item.verification_doc && '—'}
+                                                                </div>
+                                                            </td>
+                                                        </>
+                                                    ) : (
+                                                        <td><span className="admin-badge info">{item.type || item.institution_type || item.organization_type || '—'}</span></td>
+                                                    )}
                                                     <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                                                        {item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}
+                                                        {(item.applied_at || item.created_at) ? new Date(item.applied_at || item.created_at).toLocaleDateString() : '—'}
                                                     </td>
                                                     <td>
                                                         {reviewingId === item.id ? (
@@ -195,25 +229,37 @@ export default function AdminVerifications() {
                                     <table className="admin-table">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
+                                                <th>{activeTab === 'researchers' ? 'Applicant' : 'Name'}</th>
                                                 <th>Email</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
+                                                {activeTab === 'researchers' && <th>Notes</th>}
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {[...getApproved, ...getRejected].map(item => (
                                                 <tr key={item.id}>
-                                                    <td style={{ fontWeight: 600 }}>{item.name || 'Unnamed'}</td>
-                                                    <td style={{ fontSize: '0.8rem' }}>{item.email || item.contact_email || '—'}</td>
+                                                    <td style={{ fontWeight: 600 }}>
+                                                        {activeTab === 'researchers'
+                                                            ? (item.user?.full_name || item.user?.email || 'Unknown')
+                                                            : (item.name || 'Unnamed')}
+                                                    </td>
+                                                    <td style={{ fontSize: '0.8rem' }}>
+                                                        {activeTab === 'researchers'
+                                                            ? (item.user?.email || '—')
+                                                            : (item.email || item.contact_email || '—')}
+                                                    </td>
                                                     <td>
                                                         <span className={`admin-badge ${item.status === 'approved' || item.status === 'verified' ? 'success' : 'danger'}`}>
                                                             {item.status}
                                                         </span>
                                                     </td>
                                                     <td style={{ fontSize: '0.8rem' }}>
-                                                        {item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}
+                                                        {(item.reviewed_at || item.created_at) ? new Date(item.reviewed_at || item.created_at).toLocaleDateString() : '—'}
                                                     </td>
+                                                    {activeTab === 'researchers' && (
+                                                        <td style={{ fontSize: '0.8rem', maxWidth: 200 }}>{item.reviewer_notes || '—'}</td>
+                                                    )}
                                                 </tr>
                                             ))}
                                         </tbody>
