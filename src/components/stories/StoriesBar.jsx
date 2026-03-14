@@ -19,7 +19,15 @@ export default function StoriesBar() {
     const fetchStories = async () => {
         try {
             const data = await storiesService.getAll();
-            setStories(data);
+            
+            // Sort stories by most recent update first
+            const sortedData = [...data].sort((a, b) => {
+                const latestA = Math.max(...a.stories.map(s => new Date(s.created_at).getTime()));
+                const latestB = Math.max(...b.stories.map(s => new Date(s.created_at).getTime()));
+                return latestB - latestA;
+            });
+            
+            setStories(sortedData);
         } catch (error) {
             console.error("Failed to fetch stories:", error);
         } finally {
@@ -50,16 +58,18 @@ export default function StoriesBar() {
     return (
         <div className="mb-6">
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-4 md:px-0">
-                {/* Add Story Button */}
+                {/* Add Story Button / Current User */}
                 <div className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setShowCreateModal(true)}>
-                    <div className="relative w-16 h-16 rounded-full p-1 border-2 border-dashed border-gray-600 hover:border-primary transition-colors">
-                        <img
-                            src={user?.avatar || 'https://via.placeholder.com/60'}
-                            alt="Your Story"
-                            className="w-full h-full rounded-full object-cover opacity-50"
-                        />
-                        <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1">
-                            <Plus className="w-3 h-3" />
+                    <div className="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-gray-600 to-gray-400 hover:from-primary hover:to-purple-500 transition-all duration-300">
+                        <div className="w-full h-full rounded-full border-2 border-black overflow-hidden relative">
+                            <img
+                                src={user?.avatar || 'https://via.placeholder.com/60'}
+                                alt="Your Story"
+                                className="w-full h-full rounded-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <Plus className="w-6 h-6 text-white" />
+                            </div>
                         </div>
                     </div>
                     <span className="text-xs text-gray-400 font-medium">Your Story</span>
@@ -72,8 +82,8 @@ export default function StoriesBar() {
                         className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0"
                         onClick={() => handleStoryClick(index)}
                     >
-                        <div className={`w-16 h-16 rounded-full p-[2px] ${group.has_unviewed ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600' : 'bg-gray-700'}`}>
-                            <div className="w-full h-full rounded-full border-2 border-black overflow-hidden">
+                        <div className={`w-16 h-16 rounded-full p-[2px] transition-all duration-300 hover:scale-105 ${group.has_unviewed ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-primary' : 'bg-gray-700'}`}>
+                            <div className="w-full h-full rounded-full border-2 border-black overflow-hidden bg-zinc-800">
                                 <img
                                     src={group.user.avatar_url || 'https://via.placeholder.com/60'}
                                     alt={group.user.full_name}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Image, Type, Send, Loader, Video, Palette } from 'lucide-react';
+import { X, Image, Type, Send, Loader, Video, Palette, Clock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import storiesService from '../../services/stories.service';
 
@@ -15,6 +15,13 @@ export default function CreateStory({ onClose, onSuccess }) {
     const [mediaType, setMediaType] = useState('image'); // 'image', 'video'
     const [caption, setCaption] = useState('');
     const [backgroundColor, setBackgroundColor] = useState(BACKGROUND_COLORS[0]);
+    const [visibility, setVisibility] = useState('followers');
+    const [durationHours, setDurationHours] = useState(24);
+    
+    // Embedding State
+    const [selectedEntity, setSelectedEntity] = useState(null); // { id, type, display }
+    const [showEntitySelector, setShowEntitySelector] = useState(false);
+    
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -68,6 +75,18 @@ export default function CreateStory({ onClose, onSuccess }) {
 
             if (caption) {
                 formData.append('caption', caption);
+            }
+
+            formData.append('visibility', visibility);
+
+            // Calculate exact expires_at
+            const expiresAt = new Date();
+            expiresAt.setHours(expiresAt.getHours() + parseInt(durationHours, 10));
+            formData.append('expires_at', expiresAt.toISOString());
+
+            if (selectedEntity) {
+                formData.append('shared_entity_type_name', selectedEntity.type); // Need a way for backend to map this
+                formData.append('shared_entity_id', selectedEntity.id);
             }
 
             await storiesService.create(formData);
@@ -224,6 +243,59 @@ export default function CreateStory({ onClose, onSuccess }) {
                                 className="w-full bg-black/50 border-none rounded-lg text-white placeholder-gray-500 focus:ring-1 focus:ring-primary px-4 py-2 text-sm"
                                 disabled={loading}
                             />
+                        </div>
+                    )}
+
+                    <div className="flex gap-2 mb-4">
+                        <div className="flex-1 bg-white/5 rounded-lg px-3 py-2 flex items-center gap-2 border border-white/10 hover:border-white/20 transition-colors">
+                            <Globe className="w-4 h-4 text-gray-400" />
+                            <select
+                                value={visibility}
+                                onChange={(e) => setVisibility(e.target.value)}
+                                className="bg-transparent text-sm text-white w-full outline-none appearance-none cursor-pointer"
+                                disabled={loading}
+                            >
+                                <option value="public" className="bg-zinc-800">Public</option>
+                                <option value="followers" className="bg-zinc-800">Followers Only</option>
+                                <option value="close_friends" className="bg-zinc-800">Close Friends</option>
+                                <option value="private" className="bg-zinc-800">Private</option>
+                            </select>
+                        </div>
+
+                        <div className="flex-1 bg-white/5 rounded-lg px-3 py-2 flex items-center gap-2 border border-white/10 hover:border-white/20 transition-colors">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <select
+                                value={durationHours}
+                                onChange={(e) => setDurationHours(e.target.value)}
+                                className="bg-transparent text-sm text-white w-full outline-none appearance-none cursor-pointer"
+                                disabled={loading}
+                            >
+                                <option value="24" className="bg-zinc-800">24 Hours</option>
+                                <option value="48" className="bg-zinc-800">48 Hours</option>
+                                <option value="12" className="bg-zinc-800">12 Hours</option>
+                                <option value="6" className="bg-zinc-800">6 Hours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Embedding Preview */}
+                    {selectedEntity && (
+                        <div className="mb-4 bg-primary/10 border border-primary/20 rounded-xl p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                                    <Globe className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="truncate text-left">
+                                    <p className="text-white text-sm font-medium truncate">{selectedEntity.display}</p>
+                                    <p className="text-primary text-xs capitalize">Attached {selectedEntity.type}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedEntity(null)}
+                                className="p-1 text-gray-400 hover:text-white rounded-full bg-white/5 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
                     )}
 

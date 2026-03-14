@@ -13,10 +13,20 @@ export default function StoryViewer({ stories, initialStoryIndex = 0, onClose, o
     const currentStory = stories[currentIndex];
     const user = currentStory?.user;
 
+    // Local state for immediate like feedback
+    const [isLiked, setIsLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(0);
+
     useEffect(() => {
-        // Mark as viewed
-        if (currentStory && !currentStory.has_viewed) {
-            storiesService.view(currentStory.id).catch(console.error);
+        // Reset local like state when story changes
+        if (currentStory) {
+            setIsLiked(currentStory.is_liked || false);
+            setLikesCount(currentStory.likes_count || 0);
+            
+            // Mark as viewed
+            if (!currentStory.has_viewed) {
+                storiesService.view(currentStory.id).catch(console.error);
+            }
         }
     }, [currentStory]);
 
@@ -86,6 +96,65 @@ export default function StoryViewer({ stories, initialStoryIndex = 0, onClose, o
 
     const handleVideoEnded = () => {
         handleNext();
+    };
+
+    const handleLikeToggle = async () => {
+        if (!currentStory) return;
+        
+        const previousLiked = isLiked;
+        const previousCount = likesCount;
+        
+        // Optimistic update
+        setIsLiked(!previousLiked);
+        setLikesCount(prev => previousLiked ? prev - 1 : prev + 1);
+
+        try {
+            if (previousLiked) {
+                await storiesService.unlike(currentStory.id);
+            } else {
+                await storiesService.like(currentStory.id);
+            }
+        } catch (error) {
+            console.error('Failed to toggle like:', error);
+            // Revert on failure
+            setIsLiked(previousLiked);
+            setLikesCount(previousCount);
+        }
+    };
+
+    const renderSharedEntity = () => {
+        if (!currentStory?.shared_entity_data) return null;
+        const { type, data } = currentStory.shared_entity_data;
+
+        return (
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-32 left-4 right-4 z-40 bg-zinc-900/80 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-zinc-800/90 transition-colors shadow-xl"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    // In a full implementation, we would navigate to the entity
+                    // e.g. navigate(`/events/${data.id}`)
+                }}
+            >
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                    {data.image_url || data.cover_url ? (
+                        <img src={data.image_url || data.cover_url} alt={data.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-primary font-bold text-xs uppercase">{type[0]}</span>
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-semibold truncate leading-tight">
+                        {data.name || data.heading || data.business_name}
+                    </p>
+                    <p className="text-gray-300 text-xs truncate mt-0.5">
+                        {data.description || data.content || (data.price ? `$${data.price}` : 'Tap to view')}
+                    </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+            </motion.div>
+        );
     };
 
     return (
@@ -176,17 +245,31 @@ export default function StoryViewer({ stories, initialStoryIndex = 0, onClose, o
                     </div>
                 )}
 
+                {/* Embedded Shared Entity Overlay */}
+                {renderSharedEntity()}
+
                 {/* Reply Bar */}
                 <div className="absolute bottom-4 left-4 right-4 z-40 flex items-center gap-2">
                     <input
                         type="text"
                         placeholder="Send message..."
                         className="flex-1 bg-transparent border border-white/30 rounded-full px-4 py-2 text-white placeholder-white/50 focus:border-white focus:outline-none backdrop-blur-sm"
+                        onClick={(e) => e.stopPropagation()}
                     />
-                    <button className="p-2 text-white hover:bg-white/10 rounded-full">
-                        <Heart className="w-6 h-6" />
-                    </button>
-                    <button className="p-2 text-white hover:bg-white/10 rounded-full">
+                    <div className="flex items-center gap-1">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleLikeToggle(); }}
+                            className="p-2 text-white hover:bg-white/10 rounded-full transition-colors relative"
+                        >
+                            <Heart className={`w-6 h-6 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                            {likesCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                    {likesCount}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                    <button className="p-2 text-white hover:bg-white/10 rounded-full" onClick={(e) => e.stopPropagation()}>
                         <Send className="w-6 h-6" />
                     </button>
                 </div>

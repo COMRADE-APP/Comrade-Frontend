@@ -30,6 +30,16 @@ const storiesService = {
     getViewers: async (id) => {
         const response = await api.get(API_ENDPOINTS.STORY_VIEWERS(id));
         return response.data;
+    },
+
+    like: async (id) => {
+        const response = await api.post(API_ENDPOINTS.STORY_LIKE(id));
+        return response.data;
+    },
+
+    unlike: async (id) => {
+        const response = await api.post(API_ENDPOINTS.STORY_UNLIKE(id));
+        return response.data;
     }
 };
 

@@ -261,6 +261,8 @@ export const API_ENDPOINTS = {
     STORIES: `${API_BASE_URL}/api/opinions/stories/`,
     STORY_VIEW: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/view/`,
     STORY_VIEWERS: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/viewers/`,
+    STORY_LIKE: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/like/`,
+    STORY_UNLIKE: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/unlike/`,
     MY_STORIES: `${API_BASE_URL}/api/opinions/stories/my_stories/`,
 
     // Following
