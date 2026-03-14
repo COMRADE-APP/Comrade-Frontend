@@ -15,90 +15,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-
-// ==================== MOCK DATA ====================
-const MOCK_KITTIES = [
-    {
-        id: 'k1', name: 'Solar for Schools', type: 'enterprise', entity_type: 'Charity',
-        balance: 245000, currency: 'KES', status: 'active',
-        total_inflow: 890000, total_outflow: 645000,
-        description: 'Community solar energy initiative for rural schools',
-        created_at: '2026-01-15', investors_count: 23, is_charity: true,
-        monthly_data: [
-            { month: 'Sep', inflow: 85000, outflow: 42000 },
-            { month: 'Oct', inflow: 120000, outflow: 95000 },
-            { month: 'Nov', inflow: 95000, outflow: 68000 },
-            { month: 'Dec', inflow: 140000, outflow: 110000 },
-            { month: 'Jan', inflow: 180000, outflow: 130000 },
-            { month: 'Feb', inflow: 150000, outflow: 100000 },
-            { month: 'Mar', inflow: 120000, outflow: 100000 },
-        ],
-        connected_accounts: [{ type: 'mpesa', name: 'M-PESA Paybill', number: '***745' }],
-    },
-    {
-        id: 'k2', name: 'TechHub Ventures', type: 'venture', entity_type: 'Capital Venture',
-        balance: 1250000, currency: 'KES', status: 'active',
-        total_inflow: 3200000, total_outflow: 1950000,
-        description: 'Technology venture capital fund',
-        created_at: '2025-11-20', investors_count: 8, is_charity: false,
-        monthly_data: [
-            { month: 'Sep', inflow: 350000, outflow: 200000 },
-            { month: 'Oct', inflow: 480000, outflow: 310000 },
-            { month: 'Nov', inflow: 520000, outflow: 280000 },
-            { month: 'Dec', inflow: 600000, outflow: 400000 },
-            { month: 'Jan', inflow: 450000, outflow: 260000 },
-            { month: 'Feb', inflow: 400000, outflow: 250000 },
-            { month: 'Mar', inflow: 400000, outflow: 250000 },
-        ],
-        connected_accounts: [
-            { type: 'bank', name: 'KCB Business Account', number: '***892' },
-            { type: 'mpesa', name: 'M-PESA Till', number: '***123' },
-        ],
-    },
-    {
-        id: 'k3', name: 'Mama Mboga Supplies', type: 'shop', entity_type: 'Shop',
-        balance: 45200, currency: 'KES', status: 'active',
-        total_inflow: 320000, total_outflow: 274800,
-        description: 'Fresh produce and grocery supply shop',
-        created_at: '2026-02-01', investors_count: 0, is_charity: false,
-        monthly_data: [
-            { month: 'Jan', inflow: 80000, outflow: 65000 },
-            { month: 'Feb', inflow: 120000, outflow: 109800 },
-            { month: 'Mar', inflow: 120000, outflow: 100000 },
-        ],
-        connected_accounts: [],
-    },
-    {
-        id: 'k4', name: 'GreenBuild Co.', type: 'business', entity_type: 'Business',
-        balance: 780000, currency: 'KES', status: 'active',
-        total_inflow: 2100000, total_outflow: 1320000,
-        description: 'Sustainable construction materials company',
-        created_at: '2025-09-10', investors_count: 12, is_charity: false,
-        monthly_data: [
-            { month: 'Sep', inflow: 200000, outflow: 120000 },
-            { month: 'Oct', inflow: 280000, outflow: 170000 },
-            { month: 'Nov', inflow: 350000, outflow: 230000 },
-            { month: 'Dec', inflow: 400000, outflow: 280000 },
-            { month: 'Jan', inflow: 320000, outflow: 200000 },
-            { month: 'Feb', inflow: 300000, outflow: 180000 },
-            { month: 'Mar', inflow: 250000, outflow: 140000 },
-        ],
-        connected_accounts: [{ type: 'bank', name: 'Equity Business', number: '***567' }],
-    },
-];
-
-const MOCK_TRANSACTIONS = [
-    { id: 't1', type: 'inflow', amount: 25000, description: 'Investment from John K.', date: '2026-03-14', status: 'completed', method: 'wallet' },
-    { id: 't2', type: 'outflow', amount: 15000, description: 'Equipment purchase', date: '2026-03-13', status: 'completed', method: 'mpesa' },
-    { id: 't3', type: 'inflow', amount: 50000, description: 'Donation from Mary W.', date: '2026-03-12', status: 'completed', method: 'bank' },
-    { id: 't4', type: 'outflow', amount: 8000, description: 'Transport costs', date: '2026-03-11', status: 'completed', method: 'mpesa' },
-    { id: 't5', type: 'inflow', amount: 100000, description: 'Group investment - Syndicate A', date: '2026-03-10', status: 'completed', method: 'wallet' },
-    { id: 't6', type: 'outflow', amount: 35000, description: 'Withdrawal to personal wallet', date: '2026-03-09', status: 'completed', method: 'wallet' },
-    { id: 't7', type: 'inflow', amount: 12000, description: 'Product sale #4521', date: '2026-03-08', status: 'completed', method: 'mpesa' },
-    { id: 't8', type: 'outflow', amount: 6500, description: 'Marketing expenses', date: '2026-03-07', status: 'pending', method: 'bank' },
-    { id: 't9', type: 'inflow', amount: 75000, description: 'Investment from Peter Q.', date: '2026-03-06', status: 'completed', method: 'wallet' },
-    { id: 't10', type: 'outflow', amount: 20000, description: 'Salary disbursement', date: '2026-03-05', status: 'completed', method: 'bank' },
-];
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../constants/apiEndpoints';
 
 // ==================== TYPE BADGES ====================
 const TYPE_CONFIG = {
@@ -198,18 +116,37 @@ const KittyCard = ({ kitty, onSelect, isSelected }) => {
 };
 
 // ==================== KITTY DETAIL PANEL ====================
-const KittyDetailPanel = ({ kitty, onClose }) => {
+const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
     const [activeSection, setActiveSection] = useState('analytics');
     const [txFilter, setTxFilter] = useState('all');
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+    const [loadingTxns, setLoadingTxns] = useState(false);
 
     const config = TYPE_CONFIG[kitty.type] || TYPE_CONFIG.business;
     const TypeIcon = config.icon;
 
+    useEffect(() => {
+        if (activeSection === 'transactions') {
+            const fetchTransactions = async () => {
+                setLoadingTxns(true);
+                try {
+                    const res = await api.get(API_ENDPOINTS.KITTY_TRANSACTIONS(kitty.id));
+                    setTransactions(res.data || []);
+                } catch (error) {
+                    console.error("Failed to fetch transactions:", error);
+                } finally {
+                    setLoadingTxns(false);
+                }
+            };
+            fetchTransactions();
+        }
+    }, [activeSection, kitty.id]);
+
     const filteredTxns = txFilter === 'all'
-        ? MOCK_TRANSACTIONS
-        : MOCK_TRANSACTIONS.filter(t => t.type === txFilter);
+        ? transactions
+        : transactions.filter(t => t.type === txFilter);
 
     const sections = [
         { key: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -397,7 +334,11 @@ const KittyDetailPanel = ({ kitty, onClose }) => {
 
                         {/* Transaction List */}
                         <div className="space-y-2">
-                            {filteredTxns.map(txn => (
+                            {loadingTxns ? (
+                                <div className="py-8 text-center text-secondary">Loading transactions...</div>
+                            ) : filteredTxns.length === 0 ? (
+                                <div className="py-8 text-center text-secondary">No transactions found</div>
+                            ) : filteredTxns.map(txn => (
                                 <div key={txn.id} className="flex items-center gap-3 p-3 bg-secondary/5 rounded-xl border border-theme hover:bg-secondary/10 transition-colors">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${txn.type === 'inflow' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
                                         {txn.type === 'inflow'
@@ -511,7 +452,14 @@ const KittyDetailPanel = ({ kitty, onClose }) => {
 
             {/* Withdraw Modal */}
             {showWithdrawModal && (
-                <WithdrawModal kitty={kitty} onClose={() => setShowWithdrawModal(false)} />
+                <WithdrawModal 
+                    kitty={kitty} 
+                    onClose={() => setShowWithdrawModal(false)} 
+                    onSuccess={() => {
+                        setShowWithdrawModal(false);
+                        if (onKittyUpdate) onKittyUpdate();
+                    }}
+                />
             )}
 
             {/* Connect Account Modal */}
@@ -523,17 +471,25 @@ const KittyDetailPanel = ({ kitty, onClose }) => {
 };
 
 // ==================== WITHDRAW MODAL ====================
-const WithdrawModal = ({ kitty, onClose }) => {
+const WithdrawModal = ({ kitty, onClose, onSuccess }) => {
     const [amount, setAmount] = useState('');
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
 
     const handleWithdraw = async () => {
         if (!amount || parseFloat(amount) <= 0 || parseFloat(amount) > kitty.balance) return;
         setProcessing(true);
-        await new Promise(r => setTimeout(r, 1500));
-        setSuccess(true);
-        setProcessing(false);
+        setErrorMsg('');
+        try {
+            await api.post(API_ENDPOINTS.KITTY_WITHDRAW(kitty.id), { amount });
+            setSuccess(true);
+        } catch (error) {
+            console.error("Withdrawal failed:", error);
+            setErrorMsg(error.response?.data?.error || 'Failed to process withdrawal.');
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
@@ -558,7 +514,7 @@ const WithdrawModal = ({ kitty, onClose }) => {
                             </div>
                             <h4 className="text-xl font-bold text-primary mb-2">Withdrawal Initiated</h4>
                             <p className="text-secondary text-sm">KES {Number(amount).toLocaleString()} will be transferred to your personal wallet shortly.</p>
-                            <Button onClick={onClose} className="mt-4 bg-primary text-white w-full">Done</Button>
+                            <Button onClick={() => onSuccess && onSuccess()} className="mt-4 bg-primary text-white w-full">Done</Button>
                         </div>
                     ) : (
                         <>
@@ -579,6 +535,9 @@ const WithdrawModal = ({ kitty, onClose }) => {
                                 />
                                 {amount && parseFloat(amount) > kitty.balance && (
                                     <p className="text-xs text-red-500 mt-1">Amount exceeds available balance</p>
+                                )}
+                                {errorMsg && (
+                                    <p className="text-xs text-red-500 mt-1">{errorMsg}</p>
                                 )}
                             </div>
                             <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-700">
@@ -752,13 +711,20 @@ const KittyManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
 
-    useEffect(() => {
-        // Simulate loading kitties from API
-        const timer = setTimeout(() => {
-            setKitties(MOCK_KITTIES);
+    const fetchKitties = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get(API_ENDPOINTS.MY_KITTIES);
+            setKitties(res.data || []);
+        } catch (error) {
+            console.error("Failed to fetch kitties", error);
+        } finally {
             setLoading(false);
-        }, 600);
-        return () => clearTimeout(timer);
+        }
+    };
+
+    useEffect(() => {
+        fetchKitties();
     }, []);
 
     const selectedKitty = kitties.find(k => k.id === selectedKittyId);
@@ -875,6 +841,7 @@ const KittyManagement = () => {
                     <KittyDetailPanel
                         kitty={selectedKitty}
                         onClose={() => setSelectedKittyId(null)}
+                        onKittyUpdate={fetchKitties}
                     />
                 )}
             </AnimatePresence>

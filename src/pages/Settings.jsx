@@ -16,15 +16,6 @@ import {
     Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil, HelpCircle, MonitorSmartphone
 } from 'lucide-react';
 
-const USER_TYPE_OPTIONS = [
-    { value: 'student', label: 'Student' },
-    { value: 'normal_user', label: 'Normal User' },
-    { value: 'lecturer', label: 'Lecturer' },
-    { value: 'staff', label: 'Staff' },
-    { value: 'moderator', label: 'Moderator' },
-    { value: 'author', label: 'Author' },
-    { value: 'editor', label: 'Editor' },
-];
 
 
 const AppleLogo = ({ className }) => (
@@ -74,10 +65,6 @@ const Settings = () => {
     });
     const [savingNotifications, setSavingNotifications] = useState(false);
 
-    const [roleChangeRequest, setRoleChangeRequest] = useState({
-        requestedRole: '',
-        reason: '',
-    });
 
     const [appearance, setAppearance] = useState({
         theme: 'light',
@@ -220,27 +207,6 @@ const Settings = () => {
         }
     };
 
-    const handleRoleChangeRequest = async (e) => {
-        e.preventDefault();
-        if (!roleChangeRequest.requestedRole || !roleChangeRequest.reason) {
-            showMessage('error', 'Please fill in all fields');
-            return;
-        }
-        setLoading(true);
-        try {
-            await authService.requestRoleChange({
-                current_role: user?.user_type || 'student',
-                requested_role: roleChangeRequest.requestedRole,
-                reason: roleChangeRequest.reason,
-            });
-            showMessage('success', 'Role change request submitted successfully. We will review and notify you.');
-            setRoleChangeRequest({ requestedRole: '', reason: '' });
-        } catch (error) {
-            showMessage('error', error.response?.data?.detail || 'Failed to submit request');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleDeleteAccount = async () => {
         const confirmed = window.confirm(
@@ -493,51 +459,30 @@ const Settings = () => {
                         );
                     })()}
 
-                    {/* Role Change Request */}
+                    {/* Role Management */}
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
                             <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <UserCog className="w-5 h-5" />
-                                Request Role Change
+                                Role Management
                             </h3>
                         </CardHeader>
-                        <CardBody>
-                            <p className="text-sm text-secondary mb-4">
-                                Need a different role? Submit a request and our team will review it.
-                            </p>
-                            <form onSubmit={handleRoleChangeRequest} className="space-y-4">
+                        <CardBody className="p-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">
-                                        Requested Role
-                                    </label>
-                                    <select
-                                        value={roleChangeRequest.requestedRole}
-                                        onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, requestedRole: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
-                                    >
-                                        <option value="">Select a role...</option>
-                                        {USER_TYPE_OPTIONS.filter(opt => opt.value !== user?.user_type).map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
-                                    </select>
+                                    <p className="text-sm font-medium text-secondary mb-2">Current Role</p>
+                                    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300 capitalize border border-primary-200 dark:border-primary-800">
+                                        {(profileData?.user?.user_type || user?.user_type || 'student').replace(/_/g, ' ')}
+                                    </span>
+                                    <p className="text-sm text-secondary mt-3">
+                                        Need a different role to access other features?
+                                    </p>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">
-                                        Reason for Request
-                                    </label>
-                                    <textarea
-                                        value={roleChangeRequest.reason}
-                                        onChange={(e) => setRoleChangeRequest({ ...roleChangeRequest, reason: e.target.value })}
-                                        rows="3"
-                                        className="w-full px-4 py-2 border border-theme bg-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary"
-                                        placeholder="Please explain why you need this role change..."
-                                    />
-                                </div>
-                                <Button variant="primary" type="submit" disabled={loading}>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    {loading ? 'Submitting...' : 'Submit Request'}
+                                <Button variant="primary" onClick={() => window.location.href = '/role-application'}>
+                                    <UserCog className="w-4 h-4 mr-2" />
+                                    Apply for Role Change
                                 </Button>
-                            </form>
+                            </div>
                         </CardBody>
                     </Card>
 

@@ -77,51 +77,10 @@ const Dashboard = () => {
 
     const fetchUnifiedFeed = async () => {
         try {
-            let data = [];
-
-            if (activeTab === 'all' || activeTab === 'opinions') {
-                const response = await api.get('/api/opinions/feed/', {
-                    params: { type: 'opinions', limit: 30 }
-                });
-                const opinions = response.data.results || response.data || [];
-                data = data.concat(opinions.map(o => ({ ...o, content_type: 'opinion' })));
-            }
-
-            if (activeTab === 'research') {
-                const researchData = await researchService.getAllProjects({ page_size: activeTab === 'all' ? 10 : 30 }).catch(() => ({ results: [] }));
-                const projects = researchData?.results || researchData || [];
-                data = data.concat(projects.map(r => ({
-                    ...r,
-                    content_type: 'research',
-                    text: r.description || r.abstract || '',
-                    author: r.principal_investigator || r.created_by || null,
-                })));
-            }
-
-            if (activeTab === 'announcements') {
-                const announcementsData = await announcementsService.getAll({ page_size: activeTab === 'all' ? 10 : 30 }).catch(() => []);
-                const announcements = Array.isArray(announcementsData) ? announcementsData : announcementsData?.results || [];
-                data = data.concat(announcements.map(a => ({
-                    ...a,
-                    content_type: 'announcement',
-                    text: a.content || a.description || '',
-                })));
-            }
-
-            if (activeTab === 'products') {
-                const productsData = await shopService.getProducts().catch(() => ({ results: [] }));
-                const products = productsData?.results || productsData || [];
-                data = data.concat(products.map(p => ({
-                    ...p,
-                    content_type: 'product',
-                    text: p.description || '',
-                    author: p.seller || p.vendor || null,
-                })));
-            }
-
-            // Sort by created_at descending
-            data.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-            return data;
+            const response = await api.get('/api/opinions/feed/', {
+                params: { type: activeTab, limit: activeTab === 'all' ? 30 : 50 }
+            });
+            return response.data.results || response.data || [];
         } catch (error) {
             console.error('Failed to fetch feed:', error);
             return [];

@@ -185,6 +185,11 @@ export const API_ENDPOINTS = {
     PAYMENT_GROUP_DETAIL: (id) => `${API_BASE_URL}/api/payments/groups/${id}/`,
     CONTRIBUTE_TO_GROUP: (id) => `${API_BASE_URL}/api/payments/groups/${id}/contribute/`,
 
+    // Kitties (Entity Fund Pools)
+    MY_KITTIES: `${API_BASE_URL}/api/payments/groups/my_kitties/`,
+    KITTY_WITHDRAW: (id) => `${API_BASE_URL}/api/payments/groups/${id}/kitty_withdraw/`,
+    KITTY_TRANSACTIONS: (id) => `${API_BASE_URL}/api/payments/groups/${id}/kitty_transactions/`,
+
     // Group Invitations
     GROUP_INVITATIONS: `${API_BASE_URL}/api/payments/invitations/`,
     GROUP_INVITATION_DETAIL: (id) => `${API_BASE_URL}/api/payments/invitations/${id}/`,
