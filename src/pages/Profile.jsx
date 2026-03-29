@@ -196,9 +196,58 @@ const Profile = () => {
         if (isCurrentlyReposted) {
             if (!window.confirm('Undo repost?')) return;
         }
+        
+        // Optimistic UI update
+        const optimisticUpdate = (list) => list.map(op => {
+            if (op.id === opinionId) {
+                let newReposters = [...(op._reposters || [])];
+                if (!isCurrentlyReposted) {
+                    if (!newReposters.find(r => r.id === currentUser?.id)) {
+                        newReposters.unshift({
+                            id: currentUser?.id,
+                            name: currentUser?.first_name || 'You',
+                            avatar_url: currentUser?.avatar_url
+                        });
+                    }
+                } else {
+                    newReposters = newReposters.filter(r => r.id !== currentUser?.id);
+                }
+                return {
+                    ...op,
+                    is_reposted: !isCurrentlyReposted,
+                    reposts_count: isCurrentlyReposted ? Math.max(0, (op.reposts_count || 1) - 1) : (op.reposts_count || 0) + 1,
+                    _reposters: newReposters,
+                    is_repost: newReposters.length > 0 || op.is_repost
+                };
+            }
+            return op;
+        });
+        setUserPosts(optimisticUpdate);
+        setUserReposts(optimisticUpdate);
+        setUserLiked(optimisticUpdate);
+        
         try {
             const response = await opinionsService.toggleRepost(opinionId);
-            const updateList = (list) => list.map(op => op.id === opinionId ? { ...op, is_reposted: response.reposted, reposts_count: response.reposts_count } : op);
+            const updateList = (list) => list.map(op => {
+                if (op.id === opinionId) {
+                    let newReposters = [...(op._reposters || [])];
+                    if (response.reposted) {
+                        if (!newReposters.find(r => r.id === currentUser?.id)) {
+                            newReposters.unshift({ id: currentUser?.id, name: currentUser?.first_name || 'You', avatar_url: currentUser?.avatar_url });
+                        }
+                    } else {
+                        newReposters = newReposters.filter(r => r.id !== currentUser?.id);
+                    }
+                    return { 
+                        ...op, 
+                        is_reposted: response.reposted, 
+                        reposts_count: response.reposts_count,
+                        _reposters: newReposters,
+                        is_repost: newReposters.length > 0 || op.is_repost
+                    };
+                }
+                return op;
+            });
             setUserPosts(updateList);
             setUserReposts(updateList);
             setUserLiked(updateList);

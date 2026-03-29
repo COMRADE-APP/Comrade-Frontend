@@ -37,6 +37,11 @@ const fundingService = {
         return response.data.results || response.data;
     },
 
+    getOpportunityDetail: async (id) => {
+        const response = await api.get(`${API_ENDPOINTS.FUNDING.OPPORTUNITIES}${id}/`);
+        return response.data;
+    },
+
     // Specific Categories
     getCharities: async () => {
         // Charities are Business objects with is_charity=True
@@ -187,7 +192,30 @@ const fundingService = {
         const response = await api.post(`${API_ENDPOINTS.FUNDING.VENTURES}${ventureId}/sign_agreement/`, data);
         return response.data;
     },
+
+    // ==================== INVESTOR PROFILE ====================
+
+    getInvestorProfile: async () => {
+        const response = await api.get('/api/funding/investor-profile/');
+        return response.data;
+    },
+
+    createInvestorProfile: async (data) => {
+        const response = await api.post('/api/funding/investor-profile/', data);
+        return response.data;
+    },
+
+    updateInvestorProfile: async (data) => {
+        const response = await api.patch('/api/funding/investor-profile/', data);
+        return response.data;
+    },
+
+    // ==================== INVESTMENT HISTORY ====================
+
+    getInvestmentHistory: async () => {
+        const response = await api.get('/api/funding/investment-history/');
+        return response.data;
+    },
 };
 
 export default fundingService;
-

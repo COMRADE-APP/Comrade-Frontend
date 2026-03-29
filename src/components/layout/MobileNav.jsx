@@ -15,7 +15,7 @@ const MobileNav = () => {
     const navItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
         { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
-        { path: ROUTES.SHOP, label: 'Shop', icon: ShoppingBag },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         { path: ROUTES.MESSAGES, label: 'Chats', icon: MessageSquare },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
     ];

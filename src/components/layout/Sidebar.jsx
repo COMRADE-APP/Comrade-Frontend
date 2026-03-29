@@ -4,7 +4,8 @@ import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
-    Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen, Shield
+    Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen, Shield,
+    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -91,22 +92,20 @@ const Sidebar = () => {
         { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
-        { path: ROUTES.ROOMS, label: 'Rooms', icon: Users },
-        { path: ROUTES.ANNOUNCEMENTS, label: 'Announcements', icon: Megaphone },
+        { path: ROUTES.ROOMS || '/rooms', label: 'Rooms', icon: Hash },
+        { path: ROUTES.PAYMENT_GROUPS, label: 'Payment Groups', icon: Users },
+        { path: ROUTES.PIGGY_BANKS, label: 'Piggy Banks', icon: PiggyBank },
         { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
-        { path: ROUTES.TASKS, label: 'Tasks', icon: ClipboardList },
-        { path: ROUTES.RESOURCES, label: 'Resources', icon: FileText },
-        { path: ROUTES.RESEARCH, label: 'Research', icon: Search },
-        { path: ROUTES.ARTICLES, label: 'Articles', icon: BookOpen },
         { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
-        { path: ROUTES.GIGS, label: 'Gigs', icon: Sparkles },
-        { path: ROUTES.CAREERS, label: 'Careers', icon: Briefcase },
-        { path: ROUTES.SHOP, label: 'Shop', icon: ShoppingBag },
-        { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: GraduationCap },
-        { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
+        { path: ROUTES.OPPORTUNITIES, label: 'Opportunities', icon: Sparkles },
+        { path: '/my-businesses', label: 'My Businesses', icon: Briefcase },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
-        { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
-        { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
+        { path: ROUTES.BILL_PAYMENTS, label: 'Bills & Airtime', icon: Banknote },
+        { path: ROUTES.LOANS, label: 'Loans', icon: DollarSign },
+        { path: ROUTES.ESCROW, label: 'Escrow', icon: ShieldCheck },
+        { path: ROUTES.INSURANCE, label: 'Insurance', icon: Shield },
+        { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         // Admin Portal - only visible for admin/staff users
         ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
             { path: ROUTES.ADMIN_PORTAL, label: 'Admin Portal', icon: Shield },
@@ -131,7 +130,7 @@ const Sidebar = () => {
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path + '/'));
 
     const getProfileIcon = () => {
         if (activeProfile?.type === 'organisation') return Building2;

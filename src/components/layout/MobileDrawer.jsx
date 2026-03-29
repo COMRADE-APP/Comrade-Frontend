@@ -33,7 +33,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
         { path: ROUTES.GIGS, label: 'Gigs', icon: Sparkles },
         { path: ROUTES.CAREERS, label: 'Careers', icon: Briefcase },
-        { path: ROUTES.SHOP, label: 'Shop', icon: ShoppingBag },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: GraduationCap },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },

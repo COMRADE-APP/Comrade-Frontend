@@ -36,6 +36,7 @@ const FundingHub = () => {
     const [myRequests, setMyRequests] = useState([]);
     const [allVentures, setAllVentures] = useState([]);
     const [myVentures, setMyVentures] = useState([]);
+    const [investmentHistory, setInvestmentHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -68,6 +69,9 @@ const FundingHub = () => {
                 ]);
                 setMyVentures(myV);
                 setAllVentures(allV);
+            } else if (activeTab === 'history') {
+                const data = await fundingService.getInvestmentHistory();
+                setInvestmentHistory(Array.isArray(data) ? data : []);
             }
         } catch (error) {
             console.error("Error fetching funding data:", error);
@@ -89,9 +93,9 @@ const FundingHub = () => {
                 {[
                     { id: 'market', label: 'Startup Market', icon: Building },
                     { id: 'raise', label: 'Raise Capital', icon: TrendingUp },
-                    { id: 'invest', label: 'Opportunities', icon: PieChart },
                     { id: 'tracking', label: 'My Applications', icon: Clock },
-                    { id: 'ventures', label: 'Capital Ventures', icon: Building2 }
+                    { id: 'ventures', label: 'Capital Ventures', icon: Building2 },
+                    { id: 'history', label: 'Investment History', icon: Wallet }
                 ].map((tab) => {
                     const Icon = tab.icon;
                     return (
@@ -121,9 +125,9 @@ const FundingHub = () => {
                 >
                     {activeTab === 'market' && <StartupMarket businesses={businesses} loading={loading} navigate={navigate} />}
                     {activeTab === 'raise' && <FoundersHub myBusinesses={myBusinesses} loading={loading} navigate={navigate} />}
-                    {activeTab === 'invest' && <InvestmentOpportunities navigate={navigate} />}
                     {activeTab === 'tracking' && <ApplicationTracking requests={myRequests} loading={loading} navigate={navigate} />}
                     {activeTab === 'ventures' && <CapitalVenturesTab myVentures={myVentures} allVentures={allVentures} loading={loading} navigate={navigate} />}
+                    {activeTab === 'history' && <InvestmentHistoryTab history={investmentHistory} loading={loading} navigate={navigate} />}
                 </motion.div>
             </AnimatePresence>
         </div>
@@ -135,8 +139,9 @@ const StartupMarket = ({ businesses, loading, navigate }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const filtered = businesses.filter(b =>
-        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (b.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
+        !b.is_charity &&
+        (b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.industry || '').toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     return (
@@ -284,7 +289,7 @@ const InvestmentOpportunities = ({ navigate }) => (
                     <motion.div
                         key={cat.id}
                         whileHover={{ y: -4, scale: 1.01 }}
-                        onClick={() => navigate(`/funding/opportunities/${cat.id}`)}
+                        onClick={() => navigate(`/opportunities/${cat.id}`)}
                         className={`bg-gradient-to-br ${cat.color} text-white p-6 rounded-2xl cursor-pointer shadow-lg hover:shadow-xl transition-shadow`}
                     >
                         <Icon className="w-8 h-8 mb-3 opacity-80" />
@@ -488,6 +493,112 @@ const CapitalVenturesTab = ({ myVentures, allVentures, loading, navigate }) => {
                                     <span className="flex items-center gap-1 text-primary group-hover:gap-2 transition-all">
                                         View <ChevronRight className="w-3 h-3" />
                                     </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ==================== INVESTMENT HISTORY TAB ====================
+
+const InvestmentHistoryTab = ({ history, loading, navigate }) => {
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+            </div>
+        );
+    }
+
+    const getStatusColor = (status) => {
+        const colors = {
+            pending: 'bg-yellow-100 text-yellow-700',
+            completed: 'bg-green-100 text-green-700',
+            failed: 'bg-red-100 text-red-700',
+            processing: 'bg-blue-100 text-blue-700',
+        };
+        return colors[status] || 'bg-gray-100 text-gray-700';
+    };
+
+    const getTypeIcon = (type, isDonation) => {
+        if (isDonation) return <Heart className="w-4 h-4 text-pink-500" />;
+        const icons = {
+            stock: <BarChart3 className="w-4 h-4 text-green-500" />,
+            mmf: <Landmark className="w-4 h-4 text-blue-500" />,
+            bond: <Shield className="w-4 h-4 text-amber-500" />,
+            equity: <TrendingUp className="w-4 h-4 text-purple-500" />,
+            donation: <Heart className="w-4 h-4 text-pink-500" />,
+        };
+        return icons[type] || <DollarSign className="w-4 h-4 text-gray-500" />;
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Profile link */}
+            <div className="flex items-center justify-between bg-elevated p-4 rounded-2xl border border-theme">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-primary text-sm">Investor Profile</h3>
+                        <p className="text-xs text-secondary">Manage your KYC details visible to businesses</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => navigate('/funding/investor-profile')}
+                    className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors flex items-center gap-1"
+                >
+                    View Profile <ChevronRight className="w-4 h-4" />
+                </button>
+            </div>
+
+            {/* History list */}
+            {history.length === 0 ? (
+                <div className="text-center py-16 bg-elevated rounded-2xl border border-theme">
+                    <Wallet className="w-12 h-12 text-tertiary mx-auto mb-3" />
+                    <h3 className="font-bold text-primary text-lg">No Investment History</h3>
+                    <p className="text-secondary text-sm mt-1">Your past investments and donations will appear here.</p>
+                    <button
+                        onClick={() => navigate('/opportunities')}
+                        className="mt-4 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+                    >
+                        Explore Opportunities
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <h2 className="text-lg font-bold text-primary">Transaction History</h2>
+                    <div className="bg-elevated rounded-2xl border border-theme divide-y divide-theme">
+                        {history.map((item, idx) => (
+                            <div key={`${item.id}-${idx}`} className="p-4 flex items-center justify-between hover:bg-secondary/5 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                        {getTypeIcon(item.type, item.is_donation)}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-primary text-sm">{item.name}</p>
+                                        <p className="text-xs text-secondary">
+                                            {new Date(item.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            {' · '}
+                                            {item.is_donation ? 'Donation' : item.type?.charAt(0).toUpperCase() + item.type?.slice(1)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-primary text-sm">KES {Number(item.amount).toLocaleString()}</p>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                    {item.gains !== null && item.gains !== undefined && (
+                                        <p className={`text-xs mt-0.5 ${Number(item.gains) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {Number(item.gains) >= 0 ? '+' : ''}{item.gains}%
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         ))}

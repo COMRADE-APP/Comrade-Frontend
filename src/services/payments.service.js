@@ -130,6 +130,71 @@ export const paymentsService = {
         return response.data;
     },
 
+    // ========== Group Discourse & Voting ==========
+    async getPublicGroups() {
+        const response = await api.get(API_ENDPOINTS.PUBLIC_GROUPS);
+        return response.data;
+    },
+
+    async getRecommendedGroups() {
+        const response = await api.get(API_ENDPOINTS.RECOMMENDED_GROUPS);
+        return response.data;
+    },
+
+    async getMyJoinRequests() {
+        const response = await api.get(API_ENDPOINTS.JOIN_REQUESTS);
+        return response.data;
+    },
+
+    async getIncomingJoinRequests() {
+        const response = await api.get(API_ENDPOINTS.JOIN_REQUESTS_INCOMING);
+        return response.data;
+    },
+
+    async requestToJoinGroup(groupId, notes = '', applicationAnswers = {}) {
+        const response = await api.post(API_ENDPOINTS.JOIN_REQUESTS, {
+            group: groupId,
+            notes,
+            application_answers: applicationAnswers
+        });
+        return response.data;
+    },
+
+    async approveJoinRequest(requestId, notes = '') {
+        const response = await api.post(API_ENDPOINTS.JOIN_REQUEST_APPROVE(requestId), { notes });
+        return response.data;
+    },
+
+    async rejectJoinRequest(requestId, notes = '') {
+        const response = await api.post(API_ENDPOINTS.JOIN_REQUEST_REJECT(requestId), { notes });
+        return response.data;
+    },
+
+    async withdrawJoinRequest(requestId) {
+        const response = await api.post(API_ENDPOINTS.JOIN_REQUEST_WITHDRAW(requestId));
+        return response.data;
+    },
+
+    async getGroupVotes(groupId) {
+        const response = await api.get(API_ENDPOINTS.GROUP_VOTE_BY_GROUP(groupId));
+        return response.data;
+    },
+
+    async createGroupVote(voteData) {
+        const response = await api.post(API_ENDPOINTS.GROUP_VOTES, voteData);
+        return response.data;
+    },
+
+    async castGroupVote(voteId, vote) {
+        const response = await api.post(API_ENDPOINTS.GROUP_VOTE_CAST(voteId), { vote });
+        return response.data;
+    },
+
+    async getGroupPortfolio(groupId) {
+        const response = await api.get(API_ENDPOINTS.GROUP_PORTFOLIO(groupId));
+        return response.data;
+    },
+
     // ========== Group Lifecycle (Deadline / Termination) ==========
     async extendGroupDeadline(groupId, newDeadline) {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}extend_deadline/`, {
@@ -270,6 +335,38 @@ export const paymentsService = {
 
     async processGroupCheckout(data) {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${data.group_id}/group_checkout/`, data);
+        return response.data;
+    },
+
+    // --- Group Checkout Approvals ---
+    async getGroupCheckoutRequests(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/`);
+        return response.data;
+    },
+
+    async getMyCheckoutRequests() {
+        const response = await api.get('/payments/profiles/my_checkout_requests/');
+        return response.data;
+    },
+
+    async approveCheckoutRequest(groupId, requestId, payload = {}) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/${requestId}/approve/`, payload);
+        return response.data;
+    },
+
+    async rejectCheckoutRequest(groupId, requestId) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/${requestId}/reject/`);
+        return response.data;
+    },
+
+    async updateGroup(groupId, data) {
+        const formData = new FormData();
+        if (data.name) formData.append('name', data.name);
+        if (data.description !== undefined) formData.append('description', data.description);
+        if (data.cover_photo) formData.append('cover_photo', data.cover_photo);
+        const response = await api.patch(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/update_group/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     },
 

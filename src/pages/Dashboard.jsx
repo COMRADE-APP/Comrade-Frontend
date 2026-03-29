@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import Card, { CardHeader, CardBody, CardFooter } from '../components/common/Card';
 import Button from '../components/common/Button';
 import FeedItem from '../components/feed/FeedItem';
@@ -8,7 +9,7 @@ import OpinionComposer from '../components/feed/OpinionComposer';
 import {
     ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare,
     Share2, Users, ArrowRight, RefreshCw, Filter, ShoppingBag, FileText,
-    TrendingUp, Bell
+    TrendingUp, Bell, Eye, ShoppingCart, Star, Tag, Check, Plus, Clock
 } from 'lucide-react';
 import api from '../services/api';
 import announcementsService from '../services/announcements.service';
@@ -18,14 +19,146 @@ import roomsService from '../services/rooms.service';
 import opinionsService from '../services/opinions.service';
 import researchService from '../services/research.service';
 import shopService from '../services/shop.service';
+import API_ENDPOINTS from '../constants/apiEndpoints';
 import { formatTimeAgo, formatDate } from '../utils/dateFormatter';
 import PaymentGroupsFeed from '../components/payments/PaymentGroupsFeed';
 import PiggyBankFeed from '../components/payments/PiggyBankFeed';
 import StoriesBar from '../components/stories/StoriesBar';
 
+const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+const TAB_MAP = { all: 'for-you', opinions: 'opinions', research: 'research', announcements: 'announcements', products: 'shop' };
+const REVERSE_TAB_MAP = Object.fromEntries(Object.entries(TAB_MAP).map(([k, v]) => [v, k]));
+
+const ShopProductCard = ({ item }) => {
+    const nav = useNavigate();
+    const cart = useCart();
+    const price = item.price ? parseFloat(item.price) : null;
+    const [justAdded, setJustAdded] = React.useState(false);
+
+    const handleAddToCart = (e) => {
+        e.stopPropagation();
+        cart.addItem({
+            id: item.id,
+            name: item.title || item.name || 'Product',
+            price: price || 0,
+            type: item.product_type === 'service' ? 'service' : 'product',
+            image: getImageUrl(item.image_url) || getImageUrl(item.media_url),
+            is_sharable: item.is_sharable,
+            allow_group_purchase: item.allow_group_purchase
+        });
+        setJustAdded(true);
+        setTimeout(() => setJustAdded(false), 1200);
+    };
+
+    const resolvedImage = getImageUrl(item.image_url) || getImageUrl(item.media_url) || null;
+    const typeBadgeColors = {
+        physical: 'bg-emerald-500/90 text-white',
+        digital: 'bg-purple-500/90 text-white',
+        service: 'bg-indigo-500/90 text-white',
+        subscription: 'bg-amber-500/90 text-white',
+        recommendation: 'bg-rose-500/90 text-white',
+    };
+
+    return (
+        <div 
+            className="group bg-elevated rounded-2xl border border-theme overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700 flex flex-col h-full" 
+            onClick={() => nav(item.action_url || `/shop/item/${item.id}`)}
+        >
+            {/* Image Box */}
+            <div className="relative h-36 sm:h-40 lg:h-44 w-full bg-secondary/5 overflow-hidden shrink-0">
+                {resolvedImage ? (
+                    <img src={resolvedImage} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
+                        <ShoppingBag size={36} className="text-tertiary opacity-40" />
+                    </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Type badge */}
+                <div className="absolute top-2 left-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-sm ${typeBadgeColors[item.product_type] || typeBadgeColors.physical || 'bg-emerald-500/90 text-white'}`}>
+                        {item.category_label || item.product_type || 'Product'}
+                    </span>
+                </div>
+                {/* Quick view overlay on hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-800 flex items-center gap-1 shadow">
+                        <Eye size={14} /> Quick View
+                    </span>
+                </div>
+                {/* Added-to-cart overlay animation */}
+                {justAdded && (
+                    <div className="absolute inset-0 bg-green-500/20 backdrop-blur-[2px] flex items-center justify-center z-20 animate-in fade-in duration-200">
+                        <div className="bg-green-500 text-white rounded-full p-3 shadow-lg animate-in zoom-in duration-300">
+                            <Check size={28} strokeWidth={3} />
+                        </div>
+                    </div>
+                )}
+            </div>
+            {/* Content Area */}
+            <div className="p-3 sm:p-4 flex flex-col flex-1 gap-2">
+                <div className="flex-1">
+                    <h3 className="font-semibold text-primary text-sm sm:text-base leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors mb-1">
+                        {item.title}
+                    </h3>
+                    {(item.duration_minutes || item.service_mode_display) && (
+                        <div className="flex items-center gap-2 text-xs text-secondary mb-1">
+                            {item.duration_minutes && <span className="flex items-center gap-1"><Clock size={12} /> {item.duration_minutes} min</span>}
+                            {item.service_mode_display && (
+                                <>
+                                    <span className="w-1 h-1 rounded-full bg-tertiary" />
+                                    <span>{item.service_mode_display}</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    <p className="text-secondary text-xs sm:text-sm line-clamp-2 leading-relaxed mt-1">
+                        {item.content || "Discover more details about this item."}
+                    </p>
+                </div>
+                {/* Price + Action Row */}
+                <div className="flex items-center justify-between pt-2 border-t border-theme mt-auto">
+                    <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                        {price !== null ? `$${price.toFixed(2)}` : 'Pricing info'}
+                    </span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleAddToCart}
+                            className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center shadow-sm ${
+                                justAdded
+                                    ? 'bg-green-500 text-white scale-110'
+                                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 hover:bg-purple-200 dark:hover:bg-purple-800/40'
+                            }`}
+                            title={justAdded ? 'Added!' : 'Add to Cart'}
+                        >
+                            {justAdded ? <Check size={16} strokeWidth={3} /> : (
+                                <div className="relative flex items-center justify-center">
+                                    <ShoppingCart size={16} />
+                                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-purple-600 text-white rounded-full flex items-center justify-center border-2 border-purple-100 dark:border-purple-900">
+                                        <Plus size={8} strokeWidth={4} />
+                                    </div>
+                                </div>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Dashboard = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('all');
+    const cart = useCart();
+    const navigate = useNavigate();
+    const { tab: urlTab } = useParams();
+    const [activeTab, setActiveTab] = useState(() => REVERSE_TAB_MAP[urlTab] || 'all');
     const [stats, setStats] = useState({
         pendingTasks: 0,
         upcomingEvents: 0,
@@ -36,6 +169,18 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [newContentAvailable, setNewContentAvailable] = useState(false);
     const [lastFetchTime, setLastFetchTime] = useState(null);
+
+    // Sync tab with URL
+    useEffect(() => {
+        const tabFromUrl = REVERSE_TAB_MAP[urlTab] || 'all';
+        if (tabFromUrl !== activeTab) setActiveTab(tabFromUrl);
+    }, [urlTab]);
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        const slug = TAB_MAP[tabId] || 'for-you';
+        navigate(`/dashboard/${slug}`, { replace: true });
+    };
 
     useEffect(() => {
         loadDashboardData();
@@ -50,26 +195,34 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
         setLoading(true);
         try {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            console.warn("DASHBOARD STARTING FETCH. Token exists?", !!token, "Token start:", token ? token.substring(0, 15) : 'None');
+
             const [tasks, events, rooms, feedData] = await Promise.all([
-                tasksService.getAll().catch(() => []),
-                eventsService.getAll().catch(() => []),
-                roomsService.getAll().catch(() => []),
+                tasksService.getAll().catch((e) => { console.error("Tasks Error:", e); return []; }),
+                eventsService.getAllEvents().catch((e) => { console.error("Events Error:", e); return []; }),
+                roomsService.getAll().catch((e) => { console.error("Rooms Error:", e); return []; }),
                 fetchUnifiedFeed(),
             ]);
 
+            const tasksList = Array.isArray(tasks) ? tasks : tasks?.results || Object.values(tasks || {}).flat().filter(Boolean) || [];
+            const eventsList = Array.isArray(events) ? events : events?.results || Object.values(events || {}).flat().filter(Boolean) || [];
+            const roomsList = Array.isArray(rooms) ? rooms : rooms?.results || Object.values(rooms || {}).flat().filter(Boolean) || [];
+
+            console.warn("DASHBOARD DATA EXTRACTED:", { tasksCount: tasksList.length, eventsCount: eventsList.length, roomsCount: roomsList.length, feedCount: feedData?.length });
+
             setStats({
-                pendingTasks: Array.isArray(tasks) ? tasks.length : 0,
-                upcomingEvents: Array.isArray(events) ? events.length : 0,
+                pendingTasks: tasksList.length,
+                upcomingEvents: eventsList.length,
                 newMessages: 5,
             });
 
-            const roomsList = Array.isArray(rooms) ? rooms : rooms?.results || [];
             setRecommendedRooms(roomsList.slice(0, 3));
             setFeedItems(feedData);
             setLastFetchTime(new Date().toISOString());
             setNewContentAvailable(false);
         } catch (error) {
-            console.error('Error loading dashboard:', error);
+            console.error('Error loading dashboard main try/catch:', error);
         } finally {
             setLoading(false);
         }
@@ -77,9 +230,10 @@ const Dashboard = () => {
 
     const fetchUnifiedFeed = async () => {
         try {
-            const response = await api.get('/api/opinions/feed/', {
+            const response = await api.get(API_ENDPOINTS.OPINIONS_FEED, {
                 params: { type: activeTab, limit: activeTab === 'all' ? 30 : 50 }
             });
+            console.warn("Unified Feed Raw Response:", response.data);
             return response.data.results || response.data || [];
         } catch (error) {
             console.error('Failed to fetch feed:', error);
@@ -90,7 +244,7 @@ const Dashboard = () => {
     const checkForNewContent = async () => {
         if (!lastFetchTime) return;
         try {
-            const response = await api.get('/api/opinions/feed/check-new/', {
+            const response = await api.get(`${API_ENDPOINTS.OPINIONS_FEED.replace(/\/$/, '')}/check-new/`, {
                 params: { since: lastFetchTime }
             });
             if (response.data.has_new) {
@@ -198,7 +352,7 @@ const Dashboard = () => {
         { id: 'opinions', label: 'Opinions', icon: MessageSquare },
         { id: 'research', label: 'Research', icon: FileText },
         { id: 'announcements', label: 'Announcements', icon: Megaphone },
-        { id: 'products', label: 'Products', icon: ShoppingBag },
+        { id: 'products', label: 'Shop', icon: ShoppingBag },
     ];
 
     const StatCard = ({ label, value, sublabel, color = 'gray' }) => (
@@ -213,14 +367,25 @@ const Dashboard = () => {
         </Card>
     );
 
+
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-primary">
-                    Welcome back, {user?.first_name}! 👋
-                </h1>
-                <p className="text-secondary">Here's what's happening in your community today.</p>
+            <div className="flex justify-between items-start md:items-center">
+                <div className="space-y-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">
+                        Welcome back, {user?.first_name}! 👋
+                    </h1>
+                    <p className="text-secondary">Here's what's happening in your community today.</p>
+                </div>
+                <div className="hidden md:block">
+                    <Button variant="outline" size="sm" onClick={() => cart.setCartOpen(true)} className="relative">
+                        <ShoppingCart className="w-4 h-4 mr-2" /> Cart
+                        {cart.count > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{cart.count}</span>
+                        )}
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -280,7 +445,7 @@ const Dashboard = () => {
                         {feedTabs.map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => handleTabChange(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
                                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                                     : 'text-secondary hover:bg-secondary'
@@ -294,27 +459,83 @@ const Dashboard = () => {
 
                     {/* Feed Items */}
                     {loading ? (
-                        <div className="space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="bg-elevated rounded-xl border border-theme p-4 animate-pulse">
-                                    <div className="flex gap-3">
-                                        <div className="w-10 h-10 bg-secondary rounded-full" />
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-4 bg-secondary rounded w-1/4" />
-                                            <div className="h-3 bg-secondary rounded w-3/4" />
+                        activeTab === 'products' ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                    <div key={i} className="bg-elevated rounded-2xl border border-theme overflow-hidden animate-pulse">
+                                        <div className="h-36 sm:h-40 bg-secondary" />
+                                        <div className="p-3 sm:p-4 space-y-2">
+                                            <div className="h-4 bg-secondary rounded w-3/4" />
+                                            <div className="h-3 bg-secondary rounded w-full" />
                                             <div className="h-3 bg-secondary rounded w-1/2" />
+                                            <div className="flex justify-between pt-2">
+                                                <div className="h-5 bg-secondary rounded w-16" />
+                                                <div className="h-7 bg-secondary rounded w-16" />
+                                            </div>
                                         </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="bg-elevated rounded-xl border border-theme p-4 animate-pulse">
+                                        <div className="flex gap-3">
+                                            <div className="w-10 h-10 bg-secondary rounded-full" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-secondary rounded w-1/4" />
+                                                <div className="h-3 bg-secondary rounded w-3/4" />
+                                                <div className="h-3 bg-secondary rounded w-1/2" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    ) : feedItems.length === 0 ? (
+                        <div className="bg-elevated rounded-xl border border-theme p-8 text-center">
+                            {activeTab === 'products' ? (
+                                <>
+                                    <ShoppingBag size={48} className="mx-auto text-purple-300 mb-4" />
+                                    <h3 className="font-semibold text-primary mb-2">No products yet</h3>
+                                    <p className="text-secondary text-sm">Check back later for new products!</p>
+                                </>
+                            ) : (
+                                <>
+                                    <MessageSquare size={48} className="mx-auto text-tertiary mb-4" />
+                                    <h3 className="font-semibold text-primary mb-2">No posts yet</h3>
+                                    <p className="text-secondary text-sm">Be the first to share something!</p>
+                                </>
+                            )}
+                        </div>
+                    ) : activeTab === 'products' ? (
+                        /* ====== SHOP GRID VIEW ====== */
+                        <div className="space-y-8">
+                            {Object.entries(
+                                feedItems.reduce((acc, item) => {
+                                    const cat = item.category_label || item.product_type || 'Other';
+                                    if (!acc[cat]) acc[cat] = [];
+                                    acc[cat].push(item);
+                                    return acc;
+                                }, {})
+                            ).map(([category, items]) => (
+                                <div key={category} className="space-y-4">
+                                    <h3 className="text-lg font-bold text-primary uppercase tracking-wider text-sm border-b border-theme pb-2">
+                                        {category}
+                                    </h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                                        {items.map(item => (
+                                            <ShopProductCard
+                                                key={`product-${item.id}`}
+                                                item={item}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : feedItems.length === 0 ? (
-                        <div className="bg-elevated rounded-xl border border-theme p-8 text-center">
-                            <MessageSquare size={48} className="mx-auto text-tertiary mb-4" />
-                            <h3 className="font-semibold text-primary mb-2">No posts yet</h3>
-                            <p className="text-secondary text-sm">Be the first to share something!</p>
-                        </div>
                     ) : (
+                        /* ====== STANDARD FEED LIST VIEW ====== */
                         <div className="space-y-4">
                             {feedItems.map(item => (
                                 <FeedItem

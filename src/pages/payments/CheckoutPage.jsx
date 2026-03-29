@@ -17,14 +17,23 @@ const CheckoutPage = () => {
         purchaseType = 'individual',
         selectedGroupId = null,
         selectedGroup = null,
-        totalAmount = 0
+        totalAmount = 0,
+        isMultiDestination = false
     } = location.state || {};
 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('wallet');
+    const [deliveryMethod, setDeliveryMethod] = useState('delivery');
     const [walletBalance, setWalletBalance] = useState(0);
+    const [approvalPending, setApprovalPending] = useState(false);
+    const [checkoutRequestId, setCheckoutRequestId] = useState(null);
+
+    const hasPhysicalItems = cartItems.some(item => 
+        (item.type === 'product' && item.metadata?.product_type !== 'digital') ||
+        (item.type === 'service' && item.metadata?.service_mode !== 'online')
+    );
 
     // Initial load checks
     useEffect(() => {
@@ -37,7 +46,7 @@ const CheckoutPage = () => {
         if (purchaseType === 'individual') {
             paymentsService.getBalance()
                 .then(res => {
-                    setWalletBalance(res.available_balance || 0);
+                    setWalletBalance(res.balance !== undefined ? res.balance : (res.available_balance || 0));
                 })
                 .catch(err => console.error("Error fetching balance:", err));
         }
@@ -48,51 +57,124 @@ const CheckoutPage = () => {
         setError('');
 
         try {
-            const fundingItems = cartItems.filter(item => item.type === 'funding');
-            const standardItems = cartItems.filter(item => item.type !== 'funding');
+            const productIds = cartItems.filter(item => item.type === 'product').map(i => i.id);
+            const serviceIds = cartItems.filter(item => item.type === 'service').map(i => i.id);
+            const bookingIds = cartItems.filter(item => item.type === 'booking' || item.type === 'room').map(i => i.id);
+            const fundingIds = cartItems.filter(item => item.type === 'funding').map(i => i.id);
 
-            if (fundingItems.length > 0) {
-                const { default: fundingService } = await import('../../services/funding.service');
-                for (const item of fundingItems) {
-                    await fundingService.createRequest({
-                        ...item.payload,
-                        payment_method: paymentMethod
-                    });
+            const payload = {
+                product_ids: productIds,
+                service_ids: serviceIds,
+                booking_ids: bookingIds,
+                funding_ids: fundingIds,
+                items: cartItems.map(item => ({
+                    id: item.id,
+                    type: item.type,
+                    name: item.name,
+                    price: item.price,
+                    qty: item.qty || 1,
+                    delivery_method: (item.metadata?.product_type === 'digital' || item.metadata?.service_mode === 'online' || item.type === 'funding' || item.type === 'booking') ? 'online' : deliveryMethod,
+                    payload: item.payload,
+                    metadata: item.metadata,
+                })),
+                amount: totalAmount,
+                payment_method: paymentMethod,
+                delivery_method: deliveryMethod
+            };
+
+            if (purchaseType === 'group') {
+                if (!selectedGroupId) {
+                    throw new Error("No group selected for group purchase.");
                 }
-            }
-
-            if (standardItems.length > 0) {
-                const productIds = standardItems.filter(item => item.type === 'product').map(i => i.id);
-                const serviceIds = standardItems.filter(item => item.type === 'service').map(i => i.id);
-                const bookingIds = standardItems.filter(item => item.type === 'booking' || item.type === 'room').map(i => i.id);
-
-                const payload = {
-                    product_ids: productIds,
-                    service_ids: serviceIds,
-                    booking_ids: bookingIds,
-                    amount: totalAmount,
-                    payment_method: paymentMethod
-                };
-
-                if (purchaseType === 'group') {
-                    if (!selectedGroupId) {
-                        throw new Error("No group selected for group purchase.");
-                    }
-                    payload.group_id = selectedGroupId;
-                    await paymentsService.processGroupCheckout(payload);
-                } else {
-                    await paymentsService.processCheckout(payload);
+                payload.group_id = selectedGroupId;
+                if (isMultiDestination) {
+                    payload.is_multi_destination = true;
                 }
+                const response = await paymentsService.processGroupCheckout(payload);
+                if (response?.approval_pending || response?.data?.approval_pending) {
+                    const reqId = response?.checkout_request_id || response?.data?.checkout_request_id;
+                    setCheckoutRequestId(reqId);
+                    setApprovalPending(true);
+                    setLoading(false);
+                    return;
+                }
+            } else {
+                await paymentsService.processCheckout(payload);
             }
 
             setSuccess(true);
         } catch (err) {
             console.error("Checkout error:", err);
-            setError(err.response?.data?.error || err.message || "Checkout failed. Please try again.");
+            let errMsg = err.response?.data?.detail || err.response?.data?.error || err.response?.data?.message || err.message || "Checkout failed. Please try again.";
+            
+            if (typeof err.response?.data === 'object' && !err.response?.data?.detail && !err.response?.data?.error) {
+                // Parse nested validation errors (e.g. {"amount": ["Too low"], "group": ["Invalid group"]})
+                const errorValues = Object.values(err.response.data).flat();
+                if (errorValues.length > 0 && typeof errorValues[0] === 'string') {
+                    errMsg = errorValues[0];
+                }
+            }
+            
+            if (errMsg === 'Request failed with status code 400') {
+               errMsg = "Invalid request. Please check your payment details or group balance.";
+            } else if (errMsg === 'Request failed with status code 404') {
+               errMsg = "A requested item is no longer available or the payment group was not found.";
+            }
+            
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
     };
+
+    // Polling Effect for realtime checkout approval updates
+    useEffect(() => {
+        let interval;
+        if (approvalPending && checkoutRequestId && selectedGroupId) {
+            interval = setInterval(async () => {
+                try {
+                    const requests = await paymentsService.getGroupCheckoutRequests(selectedGroupId);
+                    const currentRequest = requests.find(r => r.id === checkoutRequestId);
+                    if (currentRequest) {
+                        if (currentRequest.status === 'approved') {
+                            setApprovalPending(false);
+                            setSuccess(true);
+                        } else if (currentRequest.status === 'rejected') {
+                            setApprovalPending(false);
+                            setError('Your checkout request was rejected by the group members.');
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error polling checkout status:", error);
+                }
+            }, 3000); // poll every 3 seconds
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [approvalPending, checkoutRequestId, selectedGroupId]);
+
+    if (approvalPending) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                </div>
+                <h1 className="text-3xl font-bold text-primary mb-2">Approval Pending</h1>
+                <p className="text-secondary max-w-md text-center mb-8">
+                    Your group checkout has been initiated. Waiting for other members to approve the payment.
+                </p>
+                <div className="flex gap-4">
+                    <Button variant="outline" onClick={() => navigate('/shop')}>
+                        Return to Shop
+                    </Button>
+                    <Button variant="primary" onClick={() => navigate(`/payments/groups/${selectedGroupId}?tab=approvals`)}>
+                        View Pending Approvals
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     if (success) {
         const hasFundingItem = cartItems.some(item => item.type === 'funding');
@@ -109,7 +191,7 @@ const CheckoutPage = () => {
                     <Button variant="outline" onClick={() => navigate(hasFundingItem ? '/funding' : '/shop')}>
                         {hasFundingItem ? 'Return to Funding' : 'Continue Shopping'}
                     </Button>
-                    <Button variant="primary" onClick={() => navigate(hasFundingItem ? '/funding?tab=tracking' : '/checkout/history')}>
+                    <Button variant="primary" onClick={() => navigate(hasFundingItem ? '/funding/history' : '/shop/orders')}>
                         {hasFundingItem ? 'Track Investment' : 'View Orders'}
                     </Button>
                 </div>
@@ -168,6 +250,23 @@ const CheckoutPage = () => {
                     <div className="w-full md:w-80 lg:w-96 space-y-6">
                         <Card>
                             <CardBody className="space-y-6">
+                                {/* Delivery Selection */}
+                                {hasPhysicalItems && (
+                                    <div className="mb-6 pb-6 border-b border-theme">
+                                        <h3 className="font-bold text-lg text-primary mb-4">Delivery Options</h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <label className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-colors ${deliveryMethod === 'delivery' ? 'border-primary bg-primary/5 text-primary' : 'border-theme text-secondary hover:bg-secondary/10'}`}>
+                                                <input type="radio" className="hidden" checked={deliveryMethod === 'delivery'} onChange={() => setDeliveryMethod('delivery')} />
+                                                <span className="font-medium">Delivery</span>
+                                            </label>
+                                            <label className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-colors ${deliveryMethod === 'pickup' ? 'border-primary bg-primary/5 text-primary' : 'border-theme text-secondary hover:bg-secondary/10'}`}>
+                                                <input type="radio" className="hidden" checked={deliveryMethod === 'pickup'} onChange={() => setDeliveryMethod('pickup')} />
+                                                <span className="font-medium">Pickup</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div>
                                     <h3 className="font-bold text-lg text-primary mb-4">Payment Selection</h3>
 

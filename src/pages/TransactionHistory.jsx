@@ -14,7 +14,7 @@ const TransactionHistory = () => {
         try {
             setLoading(true);
             const data = await paymentsService.getTransactions();
-            setTransactions(data);
+            setTransactions(Array.isArray(data) ? data : (data?.results || []));
         } catch (error) {
             console.error('Error fetching transactions:', error);
         } finally {

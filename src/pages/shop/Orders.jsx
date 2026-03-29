@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Package, Truck, Clock, CheckCircle, XCircle, Bell,
-    ChevronRight, Loader2, Calendar, MapPin, AlertCircle, RefreshCw
+    ChevronRight, ChevronDown, Loader2, Calendar, MapPin, AlertCircle, RefreshCw, Wallet
 } from 'lucide-react';
 import shopService from '../../services/shop.service';
 import Card, { CardBody } from '../../components/common/Card';
@@ -23,6 +23,11 @@ const Orders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('all');
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+    const toggleExpand = (id) => {
+        setExpandedOrderId(expandedOrderId === id ? null : id);
+    };
 
     const tabs = [
         { id: 'all', label: 'All Orders', icon: Package },
@@ -38,9 +43,9 @@ const Orders = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const response = await shopService.getOrders();
-            const data = response.data;
-            setOrders(Array.isArray(data) ? data : data.results || []);
+            const data = await shopService.getOrders();
+            const list = Array.isArray(data) ? data : data?.results || [];
+            setOrders(list);
         } catch (err) {
             console.error('Failed to load orders:', err);
         } finally {
@@ -90,7 +95,7 @@ const Orders = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap flex-1 justify-center ${activeTab === tab.id
-                                    ? 'bg-primary text-white shadow-sm'
+                                    ? 'bg-primary-600 text-white shadow-sm'
                                     : 'text-secondary hover:text-primary hover:bg-secondary/10'
                                     }`}
                             >
@@ -123,16 +128,27 @@ const Orders = () => {
                             const StatusIcon = statusCfg.icon;
 
                             return (
-                                <Card key={order.id} className="hover:shadow-md transition-shadow">
-                                    <CardBody>
-                                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                <Card 
+                                    key={order.id} 
+                                    className={`transition-all duration-300 overflow-hidden border ${expandedOrderId === order.id ? 'border-primary shadow-md' : 'hover:shadow-md border-theme'}`}
+                                >
+                                    <CardBody className="p-0">
+                                        <div 
+                                            className="p-5 flex flex-col md:flex-row md:items-center gap-4 cursor-pointer"
+                                            onClick={() => toggleExpand(order.id)}
+                                        >
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <h4 className="font-bold text-primary">{order.service_name || order.items?.[0]?.service_name || 'Order'}</h4>
+                                                    <h4 className="font-bold text-primary">{order.service_name || order.items?.[0]?.name || order.order_type_display || 'Order'}{order.items?.length > 1 ? ` + ${order.items.length - 1} more` : ''}</h4>
                                                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusCfg.color}`}>
                                                         <StatusIcon size={12} />
                                                         {statusCfg.label}
                                                     </span>
+                                                    {order.payment_type === 'group' && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-600 border border-purple-500/20 ml-2" title={order.group_name || 'Group Payment'}>
+                                                            <Wallet size={12} /> {order.group_name ? `${order.group_name}` : 'Group Payment'}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-wrap gap-4 text-sm text-secondary">
                                                     <span className="flex items-center gap-1">
@@ -157,17 +173,47 @@ const Orders = () => {
                                                 {order.status === 'completed' && !order.reviewed && (
                                                     <Button
                                                         variant="outline"
-                                                        onClick={() => navigate(`/shop/service/${order.service_id || order.service}`)}
+                                                        onClick={(e) => { e.stopPropagation(); navigate(`/shop/service/${order.service_id || order.service}`); }}
                                                         className="text-sm"
                                                     >
                                                         Leave Review
                                                     </Button>
                                                 )}
-                                                <button className="p-2 text-secondary hover:text-primary">
-                                                    <ChevronRight size={18} />
+                                                <button className="p-2 text-secondary hover:text-primary transition-transform">
+                                                    {expandedOrderId === order.id ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                                                 </button>
                                             </div>
                                         </div>
+                                        
+                                        {/* Expanded Details Section */}
+                                        {expandedOrderId === order.id && (
+                                            <div className="border-t border-theme bg-secondary/5 p-5 animate-in slide-in-from-top-2 duration-200">
+                                                <h5 className="font-semibold text-primary mb-3 text-sm flex items-center gap-2">
+                                                    <Package size={16} className="text-tertiary" /> Order Items
+                                                </h5>
+                                                {order.items && order.items.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {order.items.map((item, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between text-sm py-2 border-b border-theme border-opacity-50 last:border-0 last:pb-0">
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium text-primary">{item.name}</span>
+                                                                    <span className="text-xs text-secondary">Qty: {item.quantity}</span>
+                                                                </div>
+                                                                <span className="font-semibold text-primary">
+                                                                    ${(item.quantity * Number(item.unit_price)).toFixed(2)}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                        <div className="flex justify-between items-center pt-3 mt-2 border-t border-theme font-bold text-base">
+                                                            <span className="text-secondary">Total</span>
+                                                            <span className="text-green-600">${parseFloat(order.total_amount || 0).toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-secondary italic">No item details available.</div>
+                                                )}
+                                            </div>
+                                        )}
                                     </CardBody>
                                 </Card>
                             );

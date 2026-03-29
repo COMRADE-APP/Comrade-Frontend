@@ -350,7 +350,7 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                         <div>
                             <h3 className="font-semibold text-primary">{group.name}</h3>
                             <p className="text-sm text-secondary">
-                                {group.members_count || 0} members
+                                {group.member_count || 0} members
                             </p>
                         </div>
                     </div>

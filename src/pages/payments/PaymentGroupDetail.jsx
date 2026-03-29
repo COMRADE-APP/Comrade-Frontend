@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -7,7 +7,7 @@ import {
     Users, ArrowLeft, Target, DollarSign, UserPlus, Settings,
     Calendar, TrendingUp, Mail, X, Plus, Check, AlertCircle,
     PiggyBank, History, Crown, MoreVertical, Share2, MessageCircle, FileText, Calendar as CalendarIcon, Megaphone, BookOpen, EyeOff,
-    Clock, Wallet, Smartphone, CreditCard, AlertTriangle, ShieldCheck, Trash2
+    Clock, Wallet, Smartphone, CreditCard, AlertTriangle, ShieldCheck, Trash2, CheckCircle, XCircle, Edit2, Camera, Image as ImageIcon
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
@@ -15,12 +15,31 @@ import { formatDate } from '../../utils/dateFormatter';
 const PaymentGroupDetail = () => {
     const { groupId } = useParams();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [group, setGroup] = useState(null);
     const [members, setMembers] = useState([]);
     const [contributions, setContributions] = useState([]);
+    const [checkoutRequests, setCheckoutRequests] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
+    
+    const initialTab = searchParams.get('tab') || 'overview';
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+    // Sync activeTab with URL
+    useEffect(() => {
+        const currentTab = searchParams.get('tab');
+        if (currentTab !== activeTab) {
+            setSearchParams({ tab: activeTab });
+        }
+    }, [activeTab, searchParams, setSearchParams]);
+
+    // Update if URL changes externally
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && tab !== activeTab) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     // Modal states
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -29,6 +48,16 @@ const PaymentGroupDetail = () => {
 
     // New Modal States
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showApprovalModal, setShowApprovalModal] = useState(false);
+    const [approvingRequest, setApprovingRequest] = useState(null);
+    const [deliveryAccount, setDeliveryAccount] = useState('');
+    const [editGroupData, setEditGroupData] = useState({ 
+        name: '', description: '', cover_photo: null,
+        entry_fee_required: false, entry_fee_amount: 0, custom_application_questions: []
+    });
+    const [newQuestion, setNewQuestion] = useState('');
+    const [editGroupLoading, setEditGroupLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [pendingInviteEmail, setPendingInviteEmail] = useState('');
@@ -56,14 +85,16 @@ const PaymentGroupDetail = () => {
     const loadGroupData = async () => {
         setLoading(true);
         try {
-            const [groupData, membersData, contributionsData] = await Promise.all([
+            const [groupData, membersData, contributionsData, requestsData] = await Promise.all([
                 paymentsService.getPaymentGroupById(groupId),
                 paymentsService.getGroupMembers(groupId).catch(() => []),
                 paymentsService.getGroupContributions(groupId).catch(() => []),
+                paymentsService.getGroupCheckoutRequests(groupId).catch(() => [])
             ]);
             setGroup(groupData);
-            setMembers(Array.isArray(membersData) ? membersData : []);
-            setContributions(Array.isArray(contributionsData) ? contributionsData : []);
+            setMembers(Array.isArray(membersData) ? membersData : (membersData?.results || []));
+            setContributions(Array.isArray(contributionsData) ? contributionsData : (contributionsData?.results || []));
+            setCheckoutRequests(Array.isArray(requestsData) ? requestsData : (requestsData?.results || []));
         } catch (error) {
             console.error('Error loading group:', error);
         } finally {
@@ -116,6 +147,25 @@ const PaymentGroupDetail = () => {
             }
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const handleUpdateGroup = async (e) => {
+        e.preventDefault();
+        setEditGroupLoading(true);
+        try {
+            // Need to pass the custom questions as a stringified array if FormData is used, or structured if JSON
+            const payload = { ...editGroupData };
+            await paymentsService.updateGroup(groupId, payload);
+            setModalMessage('Group updated successfully!');
+            setShowSuccessModal(true);
+            setShowEditModal(false);
+            loadGroupData();
+        } catch (error) {
+            console.error('Update Group Error:', error);
+            alert('Failed to update group: ' + (error.response?.data?.error || 'Unknown error'));
+        } finally {
+            setEditGroupLoading(false);
         }
     };
 
@@ -246,6 +296,26 @@ const PaymentGroupDetail = () => {
         }
     };
 
+    const handleReviewRequest = async (requestId, actionType, payload = {}) => {
+        setActionLoading(true);
+        try {
+            let res;
+            if (actionType === 'approve') {
+                res = await paymentsService.approveCheckoutRequest(groupId, requestId, payload);
+            } else {
+                res = await paymentsService.rejectCheckoutRequest(groupId, requestId);
+            }
+            setModalMessage(res.message || `Successfully ${actionType}d request.`);
+            setShowSuccessModal(true);
+            loadGroupData(); // Refresh UI
+            loadGroupStatus(); // Refresh balance
+        } catch (error) {
+            alert(`Failed to ${actionType} request: ` + (error.response?.data?.error || 'Unknown error'));
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const getProgress = () => {
         if (!group?.target_amount || group.target_amount === 0) return 0;
         return Math.min(100, (parseFloat(group.current_amount || 0) / parseFloat(group.target_amount)) * 100);
@@ -367,75 +437,133 @@ const PaymentGroupDetail = () => {
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/payments/groups')}
-                        className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5 text-secondary" />
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-2">
+            <div className="mb-6 relative">
+                {group.cover_photo ? (
+                    <div className="h-48 md:h-64 w-full rounded-2xl overflow-hidden relative shadow-sm border border-theme">
+                        <img src={group.cover_photo} alt={group.name} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+                        <div className="absolute top-4 left-4 md:top-6 md:left-6 flex items-center gap-3 z-10">
+                            <button
+                                onClick={() => navigate('/payments/groups')}
+                                className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </button>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white shadow-sm dropdown-shadow">{group.name}</h1>
+                            {groupStatus?.is_matured && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
+                            )}
+                            <button 
+                                onClick={() => {
+                                    setEditGroupData({ 
+                                        name: group.name, 
+                                        description: group.description, 
+                                        cover_photo: null,
+                                        entry_fee_required: group.entry_fee_required || false,
+                                        entry_fee_amount: group.entry_fee_amount || 0,
+                                        custom_application_questions: group.custom_application_questions || []
+                                    });
+                                    setNewQuestion('');
+                                    setShowEditModal(true);
+                                }}
+                                className="p-1.5 rounded-full text-white/80 hover:bg-white/20 hover:text-white transition-colors"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-4 mb-4">
+                        <button
+                            onClick={() => navigate('/payments/groups')}
+                            className="p-2 rounded-lg hover:bg-secondary/10 text-secondary transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                        <div className="flex items-center gap-3">
                             <h1 className="text-2xl md:text-3xl font-bold text-primary">{group.name}</h1>
                             {groupStatus?.is_matured && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
                             )}
+                            <button 
+                                onClick={() => {
+                                    setEditGroupData({ 
+                                        name: group.name, 
+                                        description: group.description, 
+                                        cover_photo: null,
+                                        entry_fee_required: group.entry_fee_required || false,
+                                        entry_fee_amount: group.entry_fee_amount || 0,
+                                        custom_application_questions: group.custom_application_questions || []
+                                    });
+                                    setNewQuestion('');
+                                    setShowEditModal(true);
+                                }}
+                                className="p-1.5 rounded-full text-secondary hover:bg-secondary/10 hover:text-primary bg-secondary/5 border border-theme transition-colors"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
                         </div>
-                        <p className="text-secondary mt-1">{group.description || 'No description'}</p>
                     </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setShowShareModal(true)}>
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowInviteModal(true)}>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Invite
-                    </Button>
-                    {group.allow_anonymous && (
-                        <Button
-                            variant="outline"
-                            onClick={handleJoinAnonymously}
-                            disabled={joinAnonymousLoading}
-                        >
-                            <EyeOff className="w-4 h-4 mr-2" />
-                            {joinAnonymousLoading ? 'Joining...' : 'Join Anonymously'}
-                        </Button>
-                    )}
-                    <Button variant="primary" onClick={() => setShowContributeModal(true)} disabled={groupStatus?.is_terminated}>
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        Contribute
-                    </Button>
-                </div>
+                )}
+                
+                <Card className={`relative z-20 border-theme shadow-md ${group.cover_photo ? '-mt-12 mx-4 md:mx-6' : 'mt-4'}`}>
+                    <CardBody className="p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <p className="max-w-2xl text-sm md:text-base text-secondary">
+                            {group.description || 'No description'}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <Button variant="outline" onClick={() => setShowShareModal(true)}>
+                                <Share2 className="w-4 h-4 mr-2" />
+                                Share
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowInviteModal(true)}>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Invite
+                            </Button>
+                            {group.allow_anonymous && (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleJoinAnonymously}
+                                    disabled={joinAnonymousLoading}
+                                >
+                                    <EyeOff className="w-4 h-4 mr-2" />
+                                    {joinAnonymousLoading ? 'Joining...' : 'Join Anonymously'}
+                                </Button>
+                            )}
+                            <Button variant="primary" onClick={() => setShowContributeModal(true)} disabled={groupStatus?.is_terminated}>
+                                <DollarSign className="w-4 h-4 mr-2" />
+                                Contribute
+                            </Button>
+                        </div>
+                    </CardBody>
+                </Card>
             </div>
 
             {/* Progress Card */}
-            <Card className="bg-gradient-to-br from-primary to-primary/80 text-white">
+            <Card className="border-theme shadow-sm mb-6">
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="text-white/80 text-sm mb-2">Group Balance</p>
-                            <h2 className="text-4xl font-bold">
+                            <p className="text-secondary text-sm mb-2">Group Balance</p>
+                            <h2 className="text-4xl font-bold text-primary">
                                 ${parseFloat(group.current_amount || 0).toFixed(2)}
                             </h2>
                         </div>
                         <div className="text-right">
-                            <p className="text-white/80 text-sm mb-2">Target</p>
-                            <h3 className="text-2xl font-bold">
+                            <p className="text-secondary text-sm mb-2">Target</p>
+                            <h3 className="text-2xl font-bold text-primary">
                                 ${parseFloat(group.target_amount || 0).toFixed(2)}
                             </h3>
                         </div>
                     </div>
-                    <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-3 bg-secondary/20 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-white rounded-full transition-all"
+                            className="h-full bg-primary-500 rounded-full transition-all"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
-                    <div className="flex items-center justify-between mt-2 text-sm text-white/80">
-                        <span>{progress.toFixed(1)}% complete</span>
+                    <div className="flex items-center justify-between mt-2 text-sm text-secondary">
+                        <span className="font-medium text-primary-600">{progress.toFixed(1)}% complete</span>
                         <span>{members.length} members</span>
                     </div>
                 </CardBody>
@@ -448,17 +576,23 @@ const PaymentGroupDetail = () => {
                     { id: 'members', label: 'Members', icon: Users },
                     { id: 'contributions', label: 'Contributions', icon: History },
                     { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank },
+                    { id: 'approvals', label: 'Approvals', icon: CheckCircle },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 -mb-px transition-colors ${activeTab === tab.id
+                        className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 -mb-px transition-colors whitespace-nowrap ${activeTab === tab.id
                             ? 'border-primary text-primary'
                             : 'border-transparent text-secondary hover:text-primary'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
                         {tab.label}
+                        {tab.id === 'approvals' && checkoutRequests.filter(req => req.status === 'pending').length > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                {checkoutRequests.filter(req => req.status === 'pending').length}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>
@@ -667,6 +801,125 @@ const PaymentGroupDetail = () => {
                 )
             }
 
+            {
+                activeTab === 'approvals' && (
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                            <h3 className="font-semibold text-primary">Checkout Requests</h3>
+                        </CardHeader>
+                        <CardBody className="p-0">
+                            {checkoutRequests.length === 0 ? (
+                                <div className="p-8 text-center">
+                                    <CheckCircle className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                                    <p className="text-secondary">No pending checkout requests.</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y">
+                                    {checkoutRequests.map((req, idx) => (
+                                        <div key={idx} className="p-4 flex flex-col items-start md:flex-row md:items-center justify-between gap-4">
+                                            <div className="flex items-start gap-3">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                                    req.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                                                    req.status === 'approved' ? 'bg-green-100 text-green-600' :
+                                                    'bg-red-100 text-red-600'
+                                                }`}>
+                                                    {req.status === 'pending' ? <Clock className="w-5 h-5" /> :
+                                                     req.status === 'approved' ? <CheckCircle className="w-5 h-5" /> :
+                                                     <XCircle className="w-5 h-5" />}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-primary">
+                                                            KES {parseFloat(req.amount).toFixed(2)}
+                                                        </p>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                            req.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                            req.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                            'bg-red-100 text-red-700'
+                                                        }`}>
+                                                            {req.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-sm text-secondary flex items-center gap-2 mt-2 flex-wrap">
+                                                        <span>Requested by</span>
+                                                        <div className="flex items-center gap-1.5 bg-secondary/5 pr-2 rounded-full border border-theme overflow-hidden">
+                                                            {req.initiator_profile_picture ? (
+                                                                <img src={req.initiator_profile_picture} alt="profile" className="w-6 h-6 object-cover" />
+                                                            ) : (
+                                                                <div className="w-6 h-6 bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
+                                                                    {req.initiator_name.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                            {req.initiator_username ? (
+                                                                <Link to={`/profile/${req.initiator_username}`} className="font-medium text-primary hover:underline text-xs">
+                                                                    {req.initiator_name}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="font-medium text-primary text-xs">{req.initiator_name}</span>
+                                                            )}
+                                                        </div>
+                                                        <span>on {formatDate(req.created_at)}</span>
+                                                    </div>
+                                                    {req.recipient_info && (
+                                                        <div className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-secondary/5 rounded-lg border border-theme inline-flex">
+                                                            <span className="text-xs text-secondary font-medium">To:</span>
+                                                            {req.recipient_info.profile_picture ? (
+                                                                <img src={req.recipient_info.profile_picture} alt="recipient" className="w-5 h-5 rounded-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-5 h-5 rounded-full border border-theme bg-white flex items-center justify-center text-[10px] font-bold text-primary">
+                                                                    {req.recipient_info.name.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                            {req.recipient_info.type === 'funding' && req.recipient_info.id ? (
+                                                                <Link to={`/funding/business/${req.recipient_info.id}`} className="text-sm font-medium text-primary hover:underline hover:text-blue-600">
+                                                                    {req.recipient_info.name}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-sm font-medium text-primary">{req.recipient_info.name}</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    <div className="mt-2 text-xs text-secondary">
+                                                        {req.items_payload && req.items_payload.length > 0 && (
+                                                            <div className="bg-secondary/10 px-3 py-2 rounded-lg inline-block">
+                                                                <ul className="list-disc list-inside space-y-1">
+                                                                    {req.items_payload.map((item, i) => (
+                                                                        <li key={i}>{item.name} (x{item.qty || 1})</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="mt-2 text-xs font-medium text-primary">
+                                                        Approvals: <span className="text-green-600">{req.approvals_count}</span>{' / '}
+                                                        Rejections: <span className="text-red-600">{req.rejections_count}</span>{' / '}
+                                                        Required: {req.total_members}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {req.status === 'pending' && (
+                                                <div className="flex items-center gap-2 w-full md:w-auto">
+                                                    <Button variant="outline" size="sm" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50" onClick={() => handleReviewRequest(req.id, 'reject')} disabled={actionLoading}>
+                                                        <X className="w-4 h-4 mr-1.5" /> Reject
+                                                    </Button>
+                                                    <Button variant="primary" size="sm" className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white" onClick={() => {
+                                                        setApprovingRequest(req);
+                                                        setDeliveryAccount('');
+                                                        setShowApprovalModal(true);
+                                                    }} disabled={actionLoading}>
+                                                        <Check className="w-4 h-4 mr-1.5" /> Approve
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardBody>
+                    </Card>
+                )
+            }
+
             {/* Invite Modal */}
             {
                 showInviteModal && (
@@ -681,14 +934,14 @@ const PaymentGroupDetail = () => {
                                 </div>
                                 <div className="space-y-4">
                                     <Input
-                                        label="Email Address"
-                                        type="email"
+                                        label="Email Address or Username"
+                                        type="text"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
-                                        placeholder="user@example.com"
+                                        placeholder="user@example.com or username"
                                     />
                                     <p className="text-sm text-secondary">
-                                        An invitation email will be sent to this address.
+                                        An invitation will be sent to the user.
                                     </p>
                                     <div className="flex gap-2 pt-4">
                                         <Button variant="outline" className="flex-1" onClick={() => setShowInviteModal(false)}>
@@ -791,6 +1044,158 @@ const PaymentGroupDetail = () => {
                                         </Button>
                                     </div>
                                 </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
+
+            {/* Edit Group Modal */}
+            {
+                showEditModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+                        <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+                            <CardBody>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-primary">Edit Group</h2>
+                                    <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-secondary/10 rounded">
+                                        <X className="w-5 h-5 text-secondary" />
+                                    </button>
+                                </div>
+                                <form onSubmit={handleUpdateGroup} className="space-y-4">
+                                    <div className="flex flex-col items-center gap-4 mb-4">
+                                        <div className="relative w-full h-32 rounded-xl border-2 border-dashed border-theme flex flex-col items-center justify-center overflow-hidden bg-secondary/5 group transition-colors hover:border-primary/50 cursor-pointer">
+                                            {editGroupData.cover_photo && typeof editGroupData.cover_photo !== 'string' ? (
+                                                <img src={URL.createObjectURL(editGroupData.cover_photo)} alt="Cover preview" className="w-full h-full object-cover" />
+                                            ) : group.cover_photo ? (
+                                                <img src={group.cover_photo} alt="Current cover" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="flex flex-col items-center text-secondary group-hover:text-primary transition-colors">
+                                                    <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                                    <span className="text-sm font-medium">Click to upload cover</span>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                                                <Camera className="w-6 h-6 mb-1" />
+                                                <span className="text-xs font-semibold">Change Photo</span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setEditGroupData({ ...editGroupData, cover_photo: e.target.files[0] });
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <Input
+                                        label="Group Name"
+                                        value={editGroupData.name}
+                                        onChange={(e) => setEditGroupData({ ...editGroupData, name: e.target.value })}
+                                        required
+                                    />
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Description</label>
+                                        <textarea
+                                            value={editGroupData.description}
+                                            onChange={(e) => setEditGroupData({ ...editGroupData, description: e.target.value })}
+                                            rows={3}
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                                        />
+                                    </div>
+                                    
+                                    <div className="pt-2 border-t border-theme">
+                                        <h3 className="text-sm font-semibold text-primary mb-3 text-indigo-500">Joining Requirements</h3>
+                                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox"
+                                                checked={editGroupData.entry_fee_required}
+                                                onChange={(e) => setEditGroupData({ ...editGroupData, entry_fee_required: e.target.checked })}
+                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 bg-secondary/10 border-theme"
+                                            />
+                                            <span className="text-sm font-medium text-primary">Require Entry Fee</span>
+                                        </label>
+                                        
+                                        {editGroupData.entry_fee_required && (
+                                            <div className="mb-4 ml-6">
+                                                <Input
+                                                    label="Entry Fee Amount ($)"
+                                                    type="number"
+                                                    min="0.01"
+                                                    step="0.01"
+                                                    value={editGroupData.entry_fee_amount}
+                                                    onChange={(e) => setEditGroupData({ ...editGroupData, entry_fee_amount: parseFloat(e.target.value) || 0 })}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        <div className="mt-4">
+                                            <label className="block text-sm font-medium text-secondary mb-2">Custom Application Questions</label>
+                                            <div className="space-y-2 mb-3">
+                                                {editGroupData.custom_application_questions.map((question, index) => (
+                                                    <div key={index} className="flex items-center gap-2 bg-secondary/5 px-3 py-2 rounded border border-theme">
+                                                        <span className="text-sm text-primary flex-1">{question}</span>
+                                                        <button 
+                                                            type="button" 
+                                                            className="text-red-500 hover:text-red-700"
+                                                            onClick={() => {
+                                                                const newQs = [...editGroupData.custom_application_questions];
+                                                                newQs.splice(index, 1);
+                                                                setEditGroupData({ ...editGroupData, custom_application_questions: newQs });
+                                                            }}
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Add a custom question..."
+                                                    value={newQuestion}
+                                                    onChange={(e) => setNewQuestion(e.target.value)}
+                                                    className="flex-1"
+                                                />
+                                                <Button 
+                                                    type="button" 
+                                                    variant="outline" 
+                                                    onClick={() => {
+                                                        if (newQuestion.trim()) {
+                                                            setEditGroupData({
+                                                                ...editGroupData,
+                                                                custom_application_questions: [...editGroupData.custom_application_questions, newQuestion.trim()]
+                                                            });
+                                                            setNewQuestion('');
+                                                        }
+                                                    }}
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-4">
+                                        <Button type="button" variant="outline" className="flex-1" onClick={() => setShowEditModal(false)}>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            variant="primary"
+                                            className="flex-1"
+                                            disabled={!editGroupData.name || editGroupLoading}
+                                        >
+                                            {editGroupLoading ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                    </div>
+                                </form>
                             </CardBody>
                         </Card>
                     </div>
@@ -927,6 +1332,67 @@ const PaymentGroupDetail = () => {
                     </div>
                 )
             }
+            {/* Delivery Account Approval Modal */}
+            {
+                showApprovalModal && approvingRequest && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+                        <Card className="w-full max-w-md">
+                            <CardBody>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-primary">Confirm Approval Details</h2>
+                                    <button onClick={() => { setShowApprovalModal(false); setApprovingRequest(null); }} className="p-1 hover:bg-secondary/10 rounded">
+                                        <X className="w-5 h-5 text-secondary" />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-sm text-secondary">
+                                        Please confirm your delivery account and amount share for this checkout.
+                                    </p>
+                                    
+                                    <Input
+                                        label="Delivery Account"
+                                        type="text"
+                                        value={deliveryAccount}
+                                        onChange={(e) => setDeliveryAccount(e.target.value)}
+                                        placeholder="Enter account/phone number"
+                                        required
+                                    />
+
+                                    <Input
+                                        label="Confirmation Amount"
+                                        type="number"
+                                        value={parseFloat(approvingRequest.amount / (approvingRequest.total_members || 1)).toFixed(2)}
+                                        readOnly
+                                    />
+
+                                    <div className="flex gap-2 pt-4">
+                                        <Button variant="outline" className="flex-1" onClick={() => { setShowApprovalModal(false); setApprovingRequest(null); }}>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="primary"
+                                            className="flex-1"
+                                            onClick={() => {
+                                                const memberAmount = parseFloat(approvingRequest.amount / (approvingRequest.total_members || 1));
+                                                handleReviewRequest(approvingRequest.id, 'approve', { 
+                                                    member_delivery_account: deliveryAccount,
+                                                    member_amount: memberAmount
+                                                });
+                                                setShowApprovalModal(false);
+                                                setApprovingRequest(null);
+                                            }}
+                                            disabled={!deliveryAccount || actionLoading}
+                                        >
+                                            {actionLoading ? 'Approving...' : 'Confirm Approve'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
+
             {/* Deadline Extension Modal */}
             {
                 showDeadlineModal && (

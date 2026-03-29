@@ -19,8 +19,9 @@ const PiggyBankFeed = ({ limit = 5 }) => {
 
     const loadData = async () => {
         try {
-            const data = await paymentsService.getPiggyBanks().catch(() => []);
-            setPiggyBanks(Array.isArray(data) ? data.slice(0, limit) : []);
+            const raw = await paymentsService.getPiggyBanks().catch(() => []);
+            const data = Array.isArray(raw) ? raw : raw?.results || [];
+            setPiggyBanks(data.slice(0, limit));
         } catch (error) {
             console.error('Error loading piggy banks:', error);
         } finally {

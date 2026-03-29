@@ -408,7 +408,7 @@ const RoomCard = ({ room, onJoin, onLeave, onEdit, onDelete, canManage, isRecomm
             onClick={isJoined ? handleCardClick : undefined}
         >
             {/* Cover Photo Banner */}
-            <div className="h-24 w-full bg-gradient-to-r from-primary-500/20 to-purple-500/20 relative">
+            <div className="h-16 sm:h-24 w-full bg-gradient-to-r from-primary-500/20 to-purple-500/20 relative">
                 {room.cover_image ? (
                     <img src={room.cover_image} alt={room.name} className="w-full h-full object-cover" />
                 ) : (

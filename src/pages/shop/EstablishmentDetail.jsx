@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import shopService from '../../services/shop.service';
 import Button from '../../components/common/Button';
+import { useCart } from '../../contexts/CartContext';
 
 const StarRating = ({ rating, count }) => (
     <div className="flex items-center gap-1">
@@ -42,11 +43,10 @@ export default function EstablishmentDetail() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState('menu');
-    const [cart, setCart] = useState([]);
-    const [showPurchase, setShowPurchase] = useState(false);
-    const [deliveryMode, setDeliveryMode] = useState('pickup');
-    const [deliveryAddress, setDeliveryAddress] = useState('');
-    const [orderNotes, setOrderNotes] = useState('');
+    
+    // Global Cart Context
+    const { items: cart, addItem, setCartOpen, total: cartTotal } = useCart();
+
     const [submitting, setSubmitting] = useState(false);
 
     // Booking state
@@ -83,80 +83,6 @@ export default function EstablishmentDetail() {
             console.error('Error loading establishment:', e);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const addToCart = (item, type = 'menu') => {
-        setCart(prev => {
-            const key = `${type}_${item.id}`;
-            const existing = prev.find(c => c.key === key);
-            if (existing) {
-                return prev.map(c => c.key === key ? { ...c, quantity: c.quantity + 1 } : c);
-            }
-            return [...prev, { key, item, type, quantity: 1, price: parseFloat(item.price || item.price_per_night || 0) }];
-        });
-    };
-
-    const removeFromCart = (key) => {
-        setCart(prev => {
-            const item = prev.find(c => c.key === key);
-            if (item && item.quantity > 1) {
-                return prev.map(c => c.key === key ? { ...c, quantity: c.quantity - 1 } : c);
-            }
-            return prev.filter(c => c.key !== key);
-        });
-    };
-
-    const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
-
-    const handlePlaceOrder = async () => {
-        setSubmitting(true);
-        try {
-            const items = cart.map(c => ({
-                ...(c.type === 'menu' ? { menu_item_id: c.item.id } : { product_id: c.item.id }),
-                quantity: c.quantity
-            }));
-
-            await shopService.createOrder({
-                establishment_id: parseInt(id),
-                order_type: establishment.establishment_type === 'hotel' ? 'hotel_booking' : 'food',
-                delivery_mode: deliveryMode,
-                delivery_address: deliveryMode === 'delivery' ? deliveryAddress : '',
-                notes: orderNotes,
-                items
-            });
-
-            alert('Order placed successfully!');
-            setCart([]);
-            setShowPurchase(false);
-            navigate('/shop');
-        } catch (e) {
-            alert(e.response?.data?.error || 'Failed to place order');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleBookRoom = async () => {
-        if (!selectedRoom || !bookingData.check_in) return;
-        setSubmitting(true);
-        try {
-            await shopService.createBooking({
-                establishment: parseInt(id),
-                hotel_room: selectedRoom.id,
-                booking_type: selectedRoom.room_type === 'event_room' || selectedRoom.room_type === 'conference_room' ? 'event_room' : 'hotel_stay',
-                check_in: bookingData.check_in,
-                check_out: bookingData.check_out || bookingData.check_in,
-                guests: bookingData.guests,
-                total_price: parseFloat(selectedRoom.price_per_night),
-                special_requests: bookingData.special_requests
-            });
-            alert('Booking request submitted!');
-            setSelectedRoom(null);
-        } catch (e) {
-            alert(e.response?.data?.error || 'Booking failed');
-        } finally {
-            setSubmitting(false);
         }
     };
 
@@ -335,7 +261,10 @@ export default function EstablishmentDetail() {
                                                             <Clock size={12} /> {item.preparation_time} min
                                                         </div>
                                                         <button
-                                                            onClick={() => addToCart(item, 'menu')}
+                                                            onClick={e => {
+                                                                e.stopPropagation();
+                                                                addItem({ ...item, type: 'menu', price: parseFloat(item.price || 0) });
+                                                            }}
                                                             className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors"
                                                         >
                                                             <Plus size={16} />
@@ -426,7 +355,11 @@ export default function EstablishmentDetail() {
 
                                         <div className="flex items-center justify-between pt-4 border-t border-theme mt-auto">
                                             <span className="text-lg font-bold text-primary">${Number(svc.price).toFixed(2)}</span>
-                                            <Button size="sm" variant="primary">Book Appointment</Button>
+                                            <Button size="sm" variant="primary" onClick={(e) => {
+                                                e.stopPropagation();
+                                                addItem({ ...svc, type: 'service', price: parseFloat(svc.price || 0) });
+                                                setCartOpen(true);
+                                            }}>Book Appointment</Button>
                                         </div>
                                     </div>
                                 </div>
@@ -472,126 +405,18 @@ export default function EstablishmentDetail() {
             {cart.length > 0 && (
                 <div
                     className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300"
-                    onClick={() => setShowPurchase(true)}
+                    onClick={() => setCartOpen(true)}
                 >
                     <div className="bg-primary text-white pl-4 pr-6 py-3 rounded-full shadow-xl shadow-primary/30 flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform">
                         <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
                             <ShoppingCart size={20} />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-xs font-medium text-white/80">{cart.reduce((s, c) => s + c.quantity, 0)} items</span>
+                            <span className="text-xs font-medium text-white/80">{cart.reduce((s, c) => s + c.qty, 0)} items</span>
                             <span className="font-bold text-lg">${cartTotal.toFixed(2)}</span>
                         </div>
                         <div className="h-8 w-[1px] bg-white/20 mx-1"></div>
                         <span className="font-semibold text-sm">View Cart</span>
-                    </div>
-                </div>
-            )}
-
-            {/* Purchase Modal */}
-            {showPurchase && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowPurchase(false)}>
-                    <div className="w-full sm:max-w-md bg-elevated rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-10 duration-300" onClick={e => e.stopPropagation()}>
-                        <div className="p-4 border-b border-theme flex items-center justify-between bg-primary/5">
-                            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-                                <ShoppingCart size={20} /> Your Order
-                            </h2>
-                            <button onClick={() => setShowPurchase(false)} className="text-secondary hover:text-primary transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto p-4 flex-1">
-                            {/* Cart Items */}
-                            <div className="space-y-4 mb-6">
-                                {cart.map(c => (
-                                    <div key={c.key} className="flex justify-between items-center gap-3">
-                                        <div className="flex-1">
-                                            <div className="font-medium text-primary text-sm">{c.item.name}</div>
-                                            <span className="text-xs text-secondary">${c.price.toFixed(2)} each</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 bg-secondary/10 rounded-lg p-1">
-                                            <button
-                                                onClick={() => removeFromCart(c.key)}
-                                                className="w-6 h-6 rounded-md bg-background text-primary flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-                                            >
-                                                <Minus size={12} />
-                                            </button>
-                                            <span className="font-bold text-primary text-sm min-w-[16px] text-center">{c.quantity}</span>
-                                            <button
-                                                onClick={() => addToCart(c.item, c.type)}
-                                                className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center shadow-sm hover:bg-primary-light transition-colors"
-                                            >
-                                                <Plus size={12} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex justify-between items-center py-3 border-t border-dashed border-theme mb-6">
-                                <span className="text-secondary font-medium">Total Amount</span>
-                                <span className="text-xl font-bold text-primary">${cartTotal.toFixed(2)}</span>
-                            </div>
-
-                            {/* Delivery Mode */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-primary mb-3">Delivery Method</h3>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                        { key: 'pickup', label: 'Pickup', icon: Package },
-                                        { key: 'delivery', label: 'Delivery', icon: Truck },
-                                        { key: 'appointment', label: 'Dine-in', icon: UtensilsCrossed },
-                                    ].map(mode => (
-                                        <button
-                                            key={mode.key}
-                                            onClick={() => setDeliveryMode(mode.key)}
-                                            className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl text-xs font-medium border transition-all
-                                                ${deliveryMode === mode.key
-                                                    ? 'bg-primary/10 border-primary text-primary'
-                                                    : 'bg-background border-theme text-secondary hover:border-primary/30'
-                                                }`}
-                                        >
-                                            <mode.icon size={18} /> {mode.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {deliveryMode === 'delivery' && (
-                                <div className="mb-4 animate-in fade-in slide-in-from-top-2">
-                                    <label className="text-xs text-secondary font-medium mb-1.5 block">Delivery Address</label>
-                                    <input
-                                        type="text"
-                                        value={deliveryAddress}
-                                        onChange={e => setDeliveryAddress(e.target.value)}
-                                        placeholder="Enter your full address"
-                                        className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                    />
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="text-xs text-secondary font-medium mb-1.5 block">Notes (Optional)</label>
-                                <textarea
-                                    value={orderNotes}
-                                    onChange={e => setOrderNotes(e.target.value)}
-                                    placeholder="Any special requests or allergies..."
-                                    rows={2}
-                                    className="w-full px-3 py-2.5 rounded-lg bg-background border border-theme text-primary text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-theme bg-secondary/5">
-                            <Button variant="primary" className="w-full py-3 text-base shadow-lg shadow-primary/20" onClick={handlePlaceOrder} disabled={submitting}>
-                                {submitting ? (
-                                    <><Loader2 className="animate-spin mr-2" size={18} /> Processing...</>
-                                ) : (
-                                    <>Pay ${cartTotal.toFixed(2)}</>
-                                )}
-                            </Button>
-                        </div>
                     </div>
                 </div>
             )}
@@ -663,8 +488,12 @@ export default function EstablishmentDetail() {
 
                         <div className="p-5 border-t border-theme bg-secondary/5 flex gap-3">
                             <Button variant="outline" className="flex-1" onClick={() => setSelectedRoom(null)}>Cancel</Button>
-                            <Button variant="primary" className="flex-[2]" onClick={handleBookRoom} disabled={submitting || !bookingData.check_in}>
-                                {submitting ? <Loader2 className="animate-spin" /> : 'Confirm Booking'}
+                            <Button variant="primary" className="flex-[2]" onClick={() => {
+                                addItem({ ...selectedRoom, type: 'room', bookingData, price: parseFloat(selectedRoom.price_per_night || 0) });
+                                setSelectedRoom(null);
+                                setCartOpen(true);
+                            }} disabled={!bookingData.check_in}>
+                                Add to Cart
                             </Button>
                         </div>
                     </div>

@@ -31,15 +31,18 @@ export default function CreateStory({ onClose, onSuccess }) {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            setError('File size must be less than 10MB');
+        const isVideo = file.type.startsWith('video/');
+        const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
+
+        if (file.size > maxSize) {
+            setError(`File size must be less than ${isVideo ? '50MB' : '10MB'}`);
             return;
         }
 
         setError('');
         setMediaFile(file);
 
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
+        const type = isVideo ? 'video' : 'image';
         setMediaType(type);
 
         const reader = new FileReader();

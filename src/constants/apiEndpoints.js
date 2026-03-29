@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
 export const API_ENDPOINTS = {
     // Authentication
@@ -197,6 +197,22 @@ export const API_ENDPOINTS = {
     INVITATION_REJECT: (id) => `${API_BASE_URL}/api/payments/invitations/${id}/reject/`,
     INVITATION_PENDING: `${API_BASE_URL}/api/payments/invitations/pending/`,
 
+    // Group Discourse & Voting
+    PUBLIC_GROUPS: `${API_BASE_URL}/api/payments/join-requests/public_groups/`,
+    RECOMMENDED_GROUPS: `${API_BASE_URL}/api/payments/join-requests/recommended_groups/`,
+    JOIN_REQUESTS: `${API_BASE_URL}/api/payments/join-requests/`,
+    JOIN_REQUESTS_INCOMING: `${API_BASE_URL}/api/payments/join-requests/incoming/`,
+    JOIN_REQUEST_APPROVE: (id) => `${API_BASE_URL}/api/payments/join-requests/${id}/approve/`,
+    JOIN_REQUEST_REJECT: (id) => `${API_BASE_URL}/api/payments/join-requests/${id}/reject/`,
+    JOIN_REQUEST_WITHDRAW: (id) => `${API_BASE_URL}/api/payments/join-requests/${id}/withdraw/`,
+    
+    GROUP_VOTES: `${API_BASE_URL}/api/payments/group-votes/`,
+    GROUP_VOTE_BY_GROUP: (id) => `${API_BASE_URL}/api/payments/group-votes/by_group/?group_id=${id}`,
+    GROUP_VOTE_CAST: (id) => `${API_BASE_URL}/api/payments/group-votes/${id}/cast_vote/`,
+    
+    // Group Portfolio
+    GROUP_PORTFOLIO: (id) => `${API_BASE_URL}/api/payments/group-portfolio/${id}/`,
+
     // Specializations & Stacks
     SPECIALIZATIONS: `${API_BASE_URL}/api/specializations/specializations/`,
     SPECIALIZATION_DETAIL: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/`,
@@ -254,7 +270,7 @@ export const API_ENDPOINTS = {
 
     // Opinions & Social
     OPINIONS: `${API_BASE_URL}/api/opinions/opinions/`,
-    OPINIONS_FEED: `${API_BASE_URL}/api/opinions/opinions/feed/`,
+    OPINIONS_FEED: `${API_BASE_URL}/api/opinions/feed/`,
     OPINIONS_TRENDING: `${API_BASE_URL}/api/opinions/opinions/trending/`,
     OPINION_DETAIL: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/`,
     OPINION_LIKE: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/like/`,

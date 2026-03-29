@@ -20,12 +20,14 @@ const PaymentGroupsFeed = ({ limit = 5 }) => {
 
     const loadData = async () => {
         try {
-            const [groupsData, invitesData] = await Promise.all([
+            const [groupsRaw, invitesRaw] = await Promise.all([
                 paymentsService.getMyGroups().catch(() => []),
                 paymentsService.getInvitations().catch(() => []),
             ]);
-            setGroups(Array.isArray(groupsData) ? groupsData.slice(0, limit) : []);
-            setInvitations(Array.isArray(invitesData) ? invitesData.filter(i => i.status === 'pending') : []);
+            const groupsData = Array.isArray(groupsRaw) ? groupsRaw : groupsRaw?.results || [];
+            const invitesData = Array.isArray(invitesRaw) ? invitesRaw : invitesRaw?.results || [];
+            setGroups(groupsData.slice(0, limit));
+            setInvitations(invitesData.filter(i => i.status === 'pending'));
         } catch (error) {
             console.error('Error loading payment groups:', error);
         } finally {

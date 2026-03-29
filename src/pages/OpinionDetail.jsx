@@ -48,9 +48,14 @@ const OpinionDetail = () => {
             const opinionData = await opinionsService.getById(id);
             setOpinion(opinionData);
             
+            // For reposts, fetch comments from the original opinion so all discussion is visible
+            const commentsId = (opinionData.is_repost && opinionData.original_content?.id)
+                ? opinionData.original_content.id
+                : id;
+            
             // Fetch comments separately so a comment failure doesn't block the opinion
             try {
-                const commentsData = await opinionsService.getComments(id);
+                const commentsData = await opinionsService.getComments(commentsId);
                 setComments(Array.isArray(commentsData) ? commentsData : commentsData.results || []);
             } catch (commentErr) {
                 console.error('Error fetching comments:', commentErr);
@@ -274,36 +279,6 @@ const OpinionDetail = () => {
                     onFollow={handleFollow}
                 />
 
-                {/* Share & Bookmark Bar */}
-                <div className="flex items-center gap-4 px-2 py-3 border-b border-theme">
-                    <button
-                        onClick={() => handleLike(opinion.id)}
-                        className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_liked ? 'text-red-500 hover:bg-red-500/10' : 'text-secondary hover:text-red-500 hover:bg-red-500/10'}`}
-                    >
-                        <Heart className={`w-5 h-5 ${opinion.is_liked ? 'fill-current' : ''}`} />
-                        <span className="text-sm">{opinion.likes_count || ''}</span>
-                    </button>
-                    <button
-                        onClick={() => handleRepost(opinion.id)}
-                        className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${opinion.is_reposted ? 'text-green-500 hover:bg-green-500/10' : 'text-secondary hover:text-green-500 hover:bg-green-500/10'}`}
-                    >
-                        <Repeat2 className="w-5 h-5" />
-                        <span className="text-sm">{opinion.reposts_count || ''}</span>
-                    </button>
-                    <button
-                        onClick={() => handleBookmark(opinion.id)}
-                        className={`p-2 rounded-full transition-colors ${opinion.is_bookmarked ? 'text-primary-500 hover:bg-primary-500/10' : 'text-secondary hover:text-primary-500 hover:bg-primary-500/10'}`}
-                    >
-                        <Bookmark className={`w-5 h-5 ${opinion.is_bookmarked ? 'fill-current' : ''}`} />
-                    </button>
-                    <button
-                        onClick={handleShare}
-                        className="p-2 text-secondary hover:text-primary-500 hover:bg-secondary rounded-full transition-colors ml-auto"
-                    >
-                        <Send className="w-5 h-5 -rotate-12" />
-                    </button>
-                </div>
-
                 {/* Quoted Opinion */}
                 {opinion.quoted_opinion && (
                     <Link
@@ -359,6 +334,7 @@ const OpinionDetail = () => {
                                     comment={comment}
                                     onLike={handleCommentLike}
                                     onReply={handleReply}
+                                    opinionId={id}
                                     currentUser={user}
                                     depth={0}
                                     maxDepth={3}

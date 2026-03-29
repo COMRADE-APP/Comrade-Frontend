@@ -1,10 +1,11 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true,  // Send httpOnly cookies with every request
     headers: {
         'Content-Type': 'application/json',
     },

@@ -58,6 +58,9 @@ import ShopCart from './pages/shop/Cart';
 import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
 import CheckoutPage from './pages/payments/CheckoutPage';
+
+import { CartProvider } from './contexts/CartContext';
+import CartDrawer from './components/shop/CartDrawer';
 import KittyManagement from './pages/payments/KittyManagement';
 
 // Payment System Components
@@ -68,11 +71,17 @@ import GroupTargets from './pages/payments/GroupTargets';
 import CreatePaymentGroup from './pages/payments/CreatePaymentGroup';
 import PaymentGroups from './pages/payments/PaymentGroups';
 import PaymentGroupDetail from './pages/payments/PaymentGroupDetail';
+import GroupsHub from './pages/groups/GroupsHub';
+import GroupPublicProfile from './pages/groups/GroupPublicProfile';
 import VerifyAccount from './pages/payments/VerifyAccount';
 import TransactionPage from './pages/payments/TransactionPage';
 import TransactionConfirmation from './pages/payments/TransactionConfirmation';
 // import PaymentMethods from './pages/PaymentMethods';
 import BusinessRegistration from './pages/payments/BusinessRegistration';
+import BillPayments from './pages/payments/BillPayments';
+import Loans from './pages/payments/Loans';
+import Escrow from './pages/payments/Escrow';
+import Insurance from './pages/payments/Insurance';
 import RegisterAgent from './pages/payments/RegisterAgent';
 import RegisterSupplier from './pages/payments/RegisterSupplier';
 import RegisterShop from './pages/payments/RegisterShop';
@@ -80,6 +89,7 @@ import RegisterShop from './pages/payments/RegisterShop';
 // Opinions & Social
 import Opinions from './pages/Opinions';
 import OpinionDetail from './pages/OpinionDetail';
+import CommentDetail from './pages/CommentDetail';
 import Following from './pages/Following';
 import Research from './pages/Research';
 import Articles from './pages/Articles';
@@ -95,6 +105,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import CreateAnnouncement from './pages/CreateAnnouncement';
 import CreateEvent from './pages/CreateEvent';
 import EventDetail from './pages/EventDetail';
+import EventAnalytics from './pages/EventAnalytics';
 import TaskDetail from './pages/TaskDetail';
 import ResponseDetail from './pages/ResponseDetail';
 import ResourceDetail from './pages/ResourceDetail';
@@ -151,6 +162,9 @@ import CreateEnterprise from './pages/funding/CreateEnterprise';
 import InvestmentProcess from './pages/funding/InvestmentProcess';
 import RequestDetail from './pages/funding/RequestDetail';
 import FundingRequestAnalytics from './pages/funding/FundingRequestAnalytics';
+import InvestorProfilePage from './pages/funding/InvestorProfilePage';
+import OpportunityDetail from './pages/funding/OpportunityDetail';
+import BusinessPortal from './pages/funding/BusinessPortal';
 
 // Careers & Gigs
 import GigsPage from './pages/careers/GigsPage';
@@ -187,6 +201,7 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
     return (
+        <CartProvider>
         <Routes>
             {/* Public Routes */}
             <Route path={ROUTES.LOGIN} element={<Login />} />
@@ -212,7 +227,7 @@ function App() {
 
             {/* Protected Routes */}
             <Route
-                path={ROUTES.DASHBOARD}
+                path="/dashboard/:tab?"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -227,6 +242,36 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <QomAI />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.FUNDING}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <FundingHub />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={`${ROUTES.FUNDING}/:tab`}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <FundingHub />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/funding/investor-profile"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <InvestorProfilePage />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -308,6 +353,16 @@ function App() {
                 }
             />
             <Route
+                path={'/funding/opportunity/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <OpportunityDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={'/funding/enterprise/create'}
                 element={
                     <ProtectedRoute>
@@ -348,7 +403,17 @@ function App() {
                 }
             />
             <Route
-                path={'/funding/opportunities/:category?'}
+                path={'/my-businesses'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BusinessPortal />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/opportunities/:category?'}
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -475,6 +540,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Events />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/events/analytics"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <EventAnalytics />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -610,6 +685,66 @@ function App() {
                 }
             />
             <Route
+                path="/groups-rooms"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GroupsHub />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/groups/profile/:groupId"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GroupPublicProfile />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.BILL_PAYMENTS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BillPayments />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.LOANS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Loans />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.ESCROW}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Escrow />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.INSURANCE}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Insurance />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={ROUTES.ROOMS}
                 element={
                     <ProtectedRoute>
@@ -656,6 +791,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <Opinions />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/opinions/:id/comments/:commentId"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CommentDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1090,7 +1235,7 @@ function App() {
                 }
             />
             <Route
-                path={ROUTES.SHOP}
+                path="/shop/:tab?"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -1140,7 +1285,7 @@ function App() {
                 }
             />
             <Route
-                path="/shop/:id"
+                path="/shop/item/:id"
                 element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -1233,16 +1378,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
-            <Route
-                path={ROUTES.PIGGY_BANKS}
-                element={
-                    <ProtectedRoute>
-                        <MainLayout>
-                            <PiggyBanks />
-                        </MainLayout>
-                    </ProtectedRoute>
-                }
-            />
+
 
             {/* Payment Groups Routes */}
             <Route
@@ -1727,6 +1863,8 @@ function App() {
             {/* Redirect root to dashboard (ROUTES.DASHBOARD = '/dashboard') */}
             <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
         </Routes>
+        <CartDrawer />
+        </CartProvider>
     );
 }
 

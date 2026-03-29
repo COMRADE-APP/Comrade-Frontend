@@ -33,19 +33,17 @@ const CreatePaymentGroup = () => {
 
     const addMember = () => {
         setInviteError('');
-        const email = newEmail.trim().toLowerCase();
+        const identifier = newEmail.trim().toLowerCase();
 
-        if (!email) return;
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setInviteError('Please enter a valid email address');
-            return;
-        }
-        if (invitedMembers.some(m => m.email === email)) {
-            setInviteError('This email is already added');
+        if (!identifier) return;
+        // Strict email regex removed to allow usernames
+        
+        if (invitedMembers.some(m => m.email === identifier)) {
+            setInviteError('This member is already added');
             return;
         }
 
-        setInvitedMembers([...invitedMembers, { email, status: 'pending' }]);
+        setInvitedMembers([...invitedMembers, { email: identifier, status: 'pending' }]);
         setNewEmail('');
     };
 
@@ -384,7 +382,7 @@ const CreatePaymentGroup = () => {
                                     Invite Members
                                 </h3>
                                 <p className="text-sm text-secondary">
-                                    Add members by email. They'll receive an invitation to join your group.
+                                    Add members by email or username. They'll receive an invitation to join your group.
                                     You can skip this step and invite members later.
                                 </p>
 
@@ -392,10 +390,10 @@ const CreatePaymentGroup = () => {
                                 <div className="flex gap-2">
                                     <div className="flex-1">
                                         <Input
-                                            type="email"
+                                            type="text"
                                             value={newEmail}
                                             onChange={(e) => { setNewEmail(e.target.value); setInviteError(''); }}
-                                            placeholder="Enter email address"
+                                            placeholder="Enter email or username"
                                             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMember())}
                                         />
                                     </div>

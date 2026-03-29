@@ -7,8 +7,10 @@ import {
     MessageSquare, Users, Settings, ArrowLeft, Send, Paperclip, Image, File, Mic,
     UserPlus, UserMinus, Shield, Crown, MoreVertical, X, Bell, BellOff, Check, CheckCheck,
     Forward, Reply, Trash2, Calendar, ClipboardList, BookOpen, Megaphone, ChevronDown,
-    Eye, UserCheck, AlertCircle, Download, Plus, MessageCircle, Heart, Repeat2, Share2, EyeOff, User
+    Eye, UserCheck, AlertCircle, Download, Plus, MessageCircle, Heart, Repeat2, Share2, EyeOff, User, DollarSign,
+    CheckCircle, TrendingUp, TrendingDown, Target, Activity, ThumbsUp, ThumbsDown, Coins, Clock
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
 import TypingIndicator from '../components/common/TypingIndicator';
 import roomsService from '../services/rooms.service';
 import { formatTimeAgo, formatLocalTime } from '../utils/dateFormatter';
@@ -491,7 +493,7 @@ const SettingsPanel = ({ room, settings, onUpdate, isAdmin, onClose, onEditRoom,
 
 // Content Section tabs
 const ContentTabs = ({ room, activeTab, onTabChange }) => {
-    const tabs = [
+    let tabs = [
         { id: 'chat', label: 'Chat', icon: MessageSquare, count: null },
         { id: 'opinions', label: 'Opinions', icon: MessageCircle, count: room?.opinions_count || 0 },
         { id: 'resources', label: 'Resources', icon: BookOpen, count: room?.resources?.length || 0 },
@@ -499,6 +501,11 @@ const ContentTabs = ({ room, activeTab, onTabChange }) => {
         { id: 'tasks', label: 'Tasks', icon: ClipboardList, count: room?.tasks?.length || 0 },
         { id: 'announcements', label: 'Announcements', icon: Megaphone, count: room?.announcements?.length || 0 },
     ];
+
+    if (room?.linked_payment_group_id) {
+        tabs.push({ id: 'portfolio', label: 'Portfolio Analytics', icon: DollarSign, count: null });
+        tabs.push({ id: 'voting', label: 'Join Requests Voting', icon: CheckCircle, count: null });
+    }
 
     return (
         <div className="flex gap-1 p-2 bg-secondary overflow-x-auto">
@@ -1082,6 +1089,165 @@ const RoomDetail = () => {
                                             View Room Opinions
                                         </Button>
                                     </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'portfolio' && (
+                                <div className="space-y-6 animate-in fade-in duration-500">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-bold text-xl text-primary flex items-center gap-2"><Activity className="w-5 h-5 text-emerald-500"/> Portfolio Live Analytics</h3>
+                                        <Button
+                                            variant="outline" size="sm"
+                                            onClick={() => navigate(`/payments/groups/${room.linked_payment_group_id}`)}
+                                        >
+                                            View Group Settings
+                                        </Button>
+                                    </div>
+                                    
+                                    {/* Top Level Cards */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <Card className="bg-gradient-to-br from-emerald-500/10 to-transparent border-emerald-500/20 shadow-sm">
+                                            <CardBody className="p-4">
+                                                <div className="text-emerald-600 mb-2"><TrendingUp className="w-5 h-5" /></div>
+                                                <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Gains (YTD)</p>
+                                                <p className="text-xl font-bold text-primary">+14.2%</p>
+                                            </CardBody>
+                                        </Card>
+                                        <Card className="bg-gradient-to-br from-rose-500/10 to-transparent border-rose-500/20 shadow-sm">
+                                            <CardBody className="p-4">
+                                                <div className="text-rose-600 mb-2"><TrendingDown className="w-5 h-5" /></div>
+                                                <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Losses</p>
+                                                <p className="text-xl font-bold text-primary">-2.1%</p>
+                                            </CardBody>
+                                        </Card>
+                                        <Card className="bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20 shadow-sm">
+                                            <CardBody className="p-4">
+                                                <div className="text-amber-600 mb-2"><Target className="w-5 h-5" /></div>
+                                                <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Avg Return</p>
+                                                <p className="text-xl font-bold text-primary">8.5% /yr</p>
+                                            </CardBody>
+                                        </Card>
+                                        <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20 shadow-sm">
+                                            <CardBody className="p-4 flex flex-col justify-between">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="text-blue-600 mb-2"><Coins className="w-5 h-5" /></div>
+                                                    <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">ACTIVE</span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Member Loans</p>
+                                                    <p className="text-sm font-bold text-primary">Up to 40% Shares</p>
+                                                </div>
+                                            </CardBody>
+                                        </Card>
+                                    </div>
+
+                                    {/* Main Chart */}
+                                    <Card className="shadow-sm border-theme">
+                                        <CardBody className="p-6">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div>
+                                                    <h4 className="font-bold text-primary text-lg">Historical Asset Value</h4>
+                                                    <p className="text-xs text-secondary">A trailing 6-month view of the group's total stored value.</p>
+                                                </div>
+                                                <span className="px-3 py-1 bg-secondary/10 text-primary font-bold text-xs rounded-full border border-theme">
+                                                    Risk: Moderate
+                                                </span>
+                                            </div>
+                                            <div className="h-64 w-full">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <AreaChart data={[
+                                                        { month: 'Jan', value: 4000 },
+                                                        { month: 'Feb', value: 4500 },
+                                                        { month: 'Mar', value: 4200 },
+                                                        { month: 'Apr', value: 5100 },
+                                                        { month: 'May', value: 5800 },
+                                                        { month: 'Jun', value: 6500 }
+                                                    ]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                                        <defs>
+                                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" opacity={0.5} />
+                                                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} dy={10} />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} tickFormatter={(val) => `$${val}`} dx={-10} />
+                                                        <Tooltip 
+                                                            contentStyle={{ borderRadius: '12px', border: '1px solid var(--theme-border)', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                                                            itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                                                        />
+                                                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                </div>
+                            )}
+
+                            {activeTab === 'voting' && (
+                                <div className="space-y-6 animate-in fade-in duration-500">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-bold text-xl text-primary flex items-center gap-2"><CheckCircle className="w-5 h-5 text-blue-500"/> Group Voting & Consensus</h3>
+                                        <Button
+                                            variant="outline" size="sm"
+                                            onClick={() => navigate(`/payments/groups/${room.linked_payment_group_id}?tab=discourse`)}
+                                        >
+                                            View Active Applications
+                                        </Button>
+                                    </div>
+                                    
+                                    <Card className="border-theme overflow-hidden shadow-sm">
+                                        <div className="bg-primary/5 p-4 border-b border-theme flex flex-wrap justify-between items-center gap-2">
+                                            <div>
+                                                <h4 className="font-bold text-primary text-lg leading-tight">Invest $5,000 into Vanguard S&P 500</h4>
+                                                <p className="text-xs text-secondary mt-1 flex items-center gap-1"><Clock className="w-3 h-3"/> Proposed by Admin • Ends in 2 days</p>
+                                            </div>
+                                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wide">Investment Vote</span>
+                                        </div>
+                                        <CardBody className="p-6">
+                                            <div className="mb-6">
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm font-semibold text-primary">Consensus Progress</span>
+                                                    <span className="text-sm font-bold text-blue-600">65% Approved</span>
+                                                </div>
+                                                <div className="w-full h-3 bg-secondary/20 rounded-full overflow-hidden flex">
+                                                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: '65%' }}></div>
+                                                    <div className="h-full bg-rose-500 transition-all duration-1000" style={{ width: '10%' }}></div>
+                                                    <div className="h-full bg-gray-400 transition-all duration-1000" style={{ width: '25%' }}></div>
+                                                </div>
+                                                <div className="flex justify-between text-xs text-secondary mt-3">
+                                                    <span className="flex items-center gap-1 font-medium"><Check className="w-3.5 h-3.5 text-emerald-500"/> 13 Yes</span>
+                                                    <span className="flex items-center gap-1 font-medium"><X className="w-3.5 h-3.5 text-rose-500"/> 2 No</span>
+                                                    <span className="flex items-center gap-1 font-medium"><Shield className="w-3.5 h-3.5 text-gray-500"/> 5 Abstain</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-theme">
+                                                <Button variant="outline" className="flex-1 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 border-theme shadow-sm font-semibold">
+                                                    <ThumbsUp className="w-4 h-4 mr-2" /> Approve
+                                                </Button>
+                                                <Button variant="outline" className="flex-1 text-rose-600 hover:bg-rose-50 hover:border-rose-200 border-theme shadow-sm font-semibold">
+                                                    <ThumbsDown className="w-4 h-4 mr-2" /> Reject
+                                                </Button>
+                                                <Button variant="ghost" className="flex-1 text-secondary hover:bg-secondary/10 hover:text-primary">
+                                                    Abstain
+                                                </Button>
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+
+                                    <Card className="border-theme overflow-hidden opacity-75 grayscale-[20%]">
+                                        <div className="bg-secondary/5 p-4 border-b border-theme flex flex-wrap justify-between items-center gap-2">
+                                            <div>
+                                                <h4 className="font-bold text-primary line-through text-lg leading-tight">Distribute Q1 Dividends ($200/member)</h4>
+                                                <p className="text-xs text-secondary mt-1 flex items-center gap-1"><Clock className="w-3 h-3"/> Proposed by Treasurer • Ended Mar 15</p>
+                                            </div>
+                                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-200 uppercase tracking-wide flex items-center gap-1">
+                                                <Check className="w-3 h-3" /> Passed
+                                            </span>
+                                        </div>
+                                    </Card>
                                 </div>
                             )}
                         </div>

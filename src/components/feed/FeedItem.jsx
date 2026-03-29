@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-    Heart, MessageCircle, Repeat2, Share, Bookmark,
+    Heart, MessageCircle, Repeat2, Share, Bookmark, Quote, Send,
     MoreHorizontal, UserPlus, Flag, EyeOff, HelpCircle,
     Ban, ExternalLink, Image, FileText, Play, X
 } from 'lucide-react';
 import opinionsService from '../../services/opinions.service';
+import { renderContentWithMentions } from '../../utils/textFormatters';
 
 /**
  * FeedItem - Unified feed item component for opinions, research, articles, announcements, products
@@ -22,6 +23,7 @@ const FeedItem = ({
     onReport,
     onBlock,
 }) => {
+    const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [isLiked, setIsLiked] = useState(item.is_liked || false);
     const [isReposted, setIsReposted] = useState(item.is_reposted || false);
@@ -32,6 +34,21 @@ const FeedItem = ({
     const [showRepostersModal, setShowRepostersModal] = useState(false);
     const [reposters, setReposters] = useState([]);
     const [loadingReposters, setLoadingReposters] = useState(false);
+    const [goldenLikeAnim, setGoldenLikeAnim] = useState(false);
+    const lastTapRef = useRef(0);
+
+    // Double-click golden like
+    const handleDoubleClick = useCallback(() => {
+        if (!isLiked) handleLike();
+        setGoldenLikeAnim(true);
+        setTimeout(() => setGoldenLikeAnim(false), 800);
+    }, [isLiked]);
+
+    const handleTouchEnd = useCallback(() => {
+        const now = Date.now();
+        if (now - lastTapRef.current < 300) handleDoubleClick();
+        lastTapRef.current = now;
+    }, [handleDoubleClick]);
 
     const openRepostersModal = async () => {
         setShowRepostersModal(true);
@@ -113,10 +130,24 @@ const FeedItem = ({
     const isRepostItem = item.is_repost && item.reposted_by_user;
 
     return (
-        <div className={`relative rounded-xl transition-shadow hover:shadow-md ${isRepostItem
+        <div
+            className={`relative rounded-xl transition-shadow hover:shadow-md overflow-hidden ${isRepostItem
                 ? 'border-2 border-amber-400/60 bg-gradient-to-b from-amber-50/40 to-transparent dark:from-amber-900/10 dark:to-transparent'
                 : 'bg-elevated border border-theme'
-            } p-4`}>
+            } p-4`}
+            onDoubleClick={handleDoubleClick}
+            onTouchEnd={handleTouchEnd}
+        >
+            {/* Golden Like burst animation */}
+            {goldenLikeAnim && (
+                <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                    <Heart className="text-yellow-400 fill-yellow-400 drop-shadow-lg" style={{ width: 80, height: 80, animation: 'goldenLikeBurst 0.8s ease-out forwards' }} />
+                </div>
+            )}
+            {/* Faint double-click heart hint (bottom-right) */}
+            <div className="absolute right-4 bottom-4 pointer-events-none select-none opacity-[0.04] z-0">
+                <Heart className="w-16 h-16 text-red-400" />
+            </div>
             {/* Repost header – gold accent */}
             {isRepostItem && (
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm mb-3 -mt-1">
@@ -172,12 +203,17 @@ const FeedItem = ({
                                     )}
                                 </>
                             ) : (
-                                <Link
-                                    to={`/profile/${item.user?.id || item.creator?.id}`}
-                                    className="font-semibold text-primary hover:underline"
-                                >
-                                    {item.user?.full_name || item.user?.first_name || item.creator?.name || 'User'}
-                                </Link>
+                                <div className="flex flex-col">
+                                    <Link
+                                        to={`/profile/${item.user?.id || item.creator?.id}`}
+                                        className="font-semibold text-primary hover:underline"
+                                    >
+                                        {item.user?.full_name || item.user?.first_name || item.creator?.name || 'User'}
+                                    </Link>
+                                    {(item.user?.username || item.creator?.username) && (
+                                        <span className="text-secondary text-sm">@{item.user?.username || item.creator?.username}</span>
+                                    )}
+                                </div>
                             )}
 
                             {/* Follow button */}
@@ -267,7 +303,7 @@ const FeedItem = ({
             {/* Content */}
             <div className="mt-3">
                 <p className="text-primary whitespace-pre-wrap leading-relaxed">
-                    {item.content}
+                    {renderContentWithMentions(item.content, navigate)}
                 </p>
 
                 {/* Media files */}
@@ -330,9 +366,10 @@ const FeedItem = ({
                 )}
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons — Like → Comment → Repost → Quote → Save → Share */}
             {contentType === 'opinion' && (
                 <div className="mt-4 flex items-center justify-between text-secondary">
+                    {/* Like */}
                     <button
                         onClick={handleLike}
                         className={`flex items-center gap-1.5 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}`}
@@ -341,6 +378,7 @@ const FeedItem = ({
                         <span className="text-sm">{likesCount || ''}</span>
                     </button>
 
+                    {/* Comment */}
                     <button
                         onClick={() => onComment?.(item)}
                         className="flex items-center gap-1.5 hover:text-blue-500 transition-colors"
@@ -349,6 +387,7 @@ const FeedItem = ({
                         <span className="text-sm">{commentsCount || ''}</span>
                     </button>
 
+                    {/* Repost */}
                     <button
                         onClick={handleRepost}
                         className={`flex items-center gap-1.5 hover:text-green-500 transition-colors ${isReposted ? 'text-green-500' : ''}`}
@@ -364,18 +403,25 @@ const FeedItem = ({
                         ) : null}
                     </button>
 
-                    <button
-                        onClick={handleShare}
-                        className="flex items-center gap-1.5 hover:text-purple-500 transition-colors"
-                    >
-                        <Share size={18} />
+                    {/* Quote */}
+                    <button className="hover:text-purple-500 transition-colors">
+                        <Quote size={18} />
                     </button>
 
+                    {/* Save */}
                     <button
                         onClick={handleBookmark}
                         className={`flex items-center gap-1.5 hover:text-yellow-500 transition-colors ${isBookmarked ? 'text-yellow-500' : ''}`}
                     >
                         <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+                    </button>
+
+                    {/* Share */}
+                    <button
+                        onClick={handleShare}
+                        className="hover:text-primary-500 transition-colors"
+                    >
+                        <Send size={18} className="-rotate-12" />
                     </button>
                 </div>
             )}
@@ -428,6 +474,14 @@ const FeedItem = ({
                     </div>
                 </>
             )}
+            {/* Golden Like keyframes */}
+            <style>{`
+                @keyframes goldenLikeBurst {
+                    0% { transform: scale(0.3); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.9; }
+                    100% { transform: scale(1.6); opacity: 0; }
+                }
+            `}</style>
         </div>
     );
 };

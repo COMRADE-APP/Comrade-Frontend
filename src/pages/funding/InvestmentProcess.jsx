@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
+import { paymentsService } from '../../services/payments.service';
 import {
     Shield, FileText, CheckCircle, AlertTriangle, Scale, Users,
     ChevronLeft, ChevronRight, Eye, DollarSign, Lock, UserCheck,
@@ -101,6 +102,26 @@ const InvestmentProcess = () => {
         is_donation: false,
     });
 
+    // Group / Room picker state
+    const [purchaseType, setPurchaseType] = useState('individual');
+    const [paymentGroups, setPaymentGroups] = useState([]);
+    const [selectedGroupId, setSelectedGroupId] = useState('');
+    const [loadingGroups, setLoadingGroups] = useState(false);
+
+    useEffect(() => {
+        if (purchaseType === 'group' && paymentGroups.length === 0) {
+            (async () => {
+                setLoadingGroups(true);
+                try {
+                    const data = await paymentsService.getMyGroups();
+                    const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+                    setPaymentGroups(list);
+                } catch (e) { console.error('Failed to load payment groups:', e); }
+                finally { setLoadingGroups(false); }
+            })();
+        }
+    }, [purchaseType]);
+
     const [signature, setSignature] = useState('');
 
     const updateKYC = (field, value) => setKycData(prev => ({ ...prev, [field]: value }));
@@ -113,7 +134,7 @@ const InvestmentProcess = () => {
             case 2: return kycData.full_name && kycData.id_number && kycData.nationality;
             case 3: return agreements.riskAcknowledged;
             case 4: return agreements.ethicalCompliance && agreements.antiMoneyLaundering;
-            case 5: return investmentData.amount && parseFloat(investmentData.amount) > 0;
+            case 5: return investmentData.amount && parseFloat(investmentData.amount) > 0 && (purchaseType === 'individual' || (purchaseType === 'group' && selectedGroupId));
             case 6: return signature.trim() && agreements.contractSigned;
             case 7: return agreements.finalConfirmation;
             default: return false;
@@ -157,6 +178,10 @@ const InvestmentProcess = () => {
                 digital_signature: signature || 'Previously Signed via Agreement',
             };
 
+            const selectedGroup = purchaseType === 'group'
+                ? paymentGroups.find(g => String(g.id) === String(selectedGroupId))
+                : null;
+
             navigate('/payments/checkout', { 
                 state: { 
                     cartItems: [{
@@ -166,7 +191,9 @@ const InvestmentProcess = () => {
                         price: investmentData.amount,
                         payload: investmentPayload
                     }],
-                    purchaseType: 'individual',
+                    purchaseType,
+                    selectedGroupId: purchaseType === 'group' ? selectedGroupId : null,
+                    selectedGroup: selectedGroup || null,
                     totalAmount: parseFloat(investmentData.amount)
                 } 
             });
@@ -433,6 +460,65 @@ const InvestmentProcess = () => {
                                     <p className="text-sm text-pink-700 dark:text-pink-300">This is a donation. It will be treated as a non-recoverable contribution to the enterprise's mission.</p>
                                 </div>
                             )}
+
+                            {/* Pay on behalf of selector */}
+                            <div className="bg-elevated rounded-xl border border-theme p-5 space-y-4">
+                                <h3 className="font-semibold text-primary flex items-center gap-2">
+                                    <Users size={18} /> Pay on behalf of
+                                </h3>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPurchaseType('individual'); setSelectedGroupId(''); }}
+                                        className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium border transition-all ${
+                                            purchaseType === 'individual'
+                                                ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
+                                                : 'border-theme text-secondary hover:bg-secondary/10'
+                                        }`}
+                                    >
+                                        🧑 Individual
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPurchaseType('group')}
+                                        className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium border transition-all ${
+                                            purchaseType === 'group'
+                                                ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
+                                                : 'border-theme text-secondary hover:bg-secondary/10'
+                                        }`}
+                                    >
+                                        👥 Group / Room
+                                    </button>
+                                </div>
+
+                                {purchaseType === 'group' && (
+                                    <div className="space-y-3">
+                                        {loadingGroups ? (
+                                            <p className="text-sm text-secondary">Loading your groups...</p>
+                                        ) : paymentGroups.length === 0 ? (
+                                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-sm text-amber-700 dark:text-amber-300">
+                                                You don't have any payment groups yet. Create one from Payments → Groups.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <label className="block text-sm font-medium text-primary mb-1">Select a Group / Room *</label>
+                                                <select
+                                                    className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-xl text-primary"
+                                                    value={selectedGroupId}
+                                                    onChange={e => setSelectedGroupId(e.target.value)}
+                                                >
+                                                    <option value="">Choose a group...</option>
+                                                    {paymentGroups.map(g => (
+                                                        <option key={g.id} value={g.id}>
+                                                            {g.name} — Balance: ${Number(g.current_amount || 0).toFixed(2)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 

@@ -18,6 +18,67 @@ import { formatTimeAgo } from '../utils/dateFormatter';
 // Simple emoji picker data
 const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀'];
 
+/**
+ * Deduplicates the feed: if both an original opinion and its repost(s) exist,
+ * keep ONLY the repost entry (preferring the most recent), merging all
+ * reposters into a `_reposters` array for TikTok-style display.
+ */
+const deduplicateFeed = (opinions) => {
+    // Map: original opinion ID → { repostEntry, reposters[] }
+    const repostMap = new Map();
+    const originalIds = new Set();
+    const nonRepostIds = new Set();
+
+    // First pass — collect reposts grouped by original ID
+    for (const op of opinions) {
+        if (op.is_repost && op.original_content?.id) {
+            const origId = op.original_content.id;
+            if (!repostMap.has(origId)) {
+                repostMap.set(origId, { entry: op, reposters: [] });
+            }
+            const group = repostMap.get(origId);
+            // Keep the most recently created repost as the display entry
+            if (new Date(op.created_at) > new Date(group.entry.created_at)) {
+                group.entry = op;
+            }
+            if (op.reposted_by_user) {
+                group.reposters.push(op.reposted_by_user);
+            }
+        } else {
+            nonRepostIds.add(op.id);
+        }
+    }
+
+    // Mark original IDs that have repost entries
+    for (const origId of repostMap.keys()) {
+        originalIds.add(origId);
+    }
+
+    // Second pass — build final list, skipping originals that have reposts
+    const result = [];
+    const addedRepostOrigIds = new Set();
+
+    for (const op of opinions) {
+        if (op.is_repost && op.original_content?.id) {
+            const origId = op.original_content.id;
+            if (!addedRepostOrigIds.has(origId)) {
+                // Add the grouped repost entry with merged reposters
+                const group = repostMap.get(origId);
+                addedRepostOrigIds.add(origId);
+                result.push({
+                    ...group.entry,
+                    _reposters: group.reposters,
+                });
+            }
+            // Skip duplicate repost entries
+        } else if (originalIds.has(op.id)) {
+            // Skip original if a repost of it exists in the feed
+        } else {
+            result.push(op);
+        }
+    }
+    return result;
+};
 
 
 const Opinions = () => {
@@ -54,7 +115,7 @@ const Opinions = () => {
                 data = await opinionsService.getAll();
             }
             const opinionsList = Array.isArray(data) ? data : (data?.results || []);
-            setOpinions(opinionsList);
+            setOpinions(deduplicateFeed(opinionsList));
             setLastFetchTime(new Date().toISOString());
             setNewContentAvailable(false);
         } catch (error) {
@@ -125,15 +186,59 @@ const Opinions = () => {
             if (!confirmed) return;
         }
 
+        // Optimistic UI update for smooth animation
+        setOpinions(opinions.map(op => {
+            if (op.id === opinionId) {
+                let newReposters = [...(op._reposters || [])];
+                if (!isCurrentlyReposted) {
+                    if (!newReposters.find(r => r.id === user?.id)) {
+                        newReposters.unshift({
+                            id: user?.id,
+                            name: user?.full_name || user?.first_name || 'You',
+                            avatar_url: user?.avatar_url
+                        });
+                    }
+                } else {
+                    newReposters = newReposters.filter(r => r.id !== user?.id);
+                }
+
+                return { 
+                    ...op, 
+                    is_reposted: !isCurrentlyReposted, 
+                    reposts_count: isCurrentlyReposted ? Math.max(0, (op.reposts_count || 1) - 1) : (op.reposts_count || 0) + 1,
+                    _reposters: newReposters,
+                    is_repost: newReposters.length > 0 || op.is_repost
+                };
+            }
+            return op;
+        }));
+
         try {
             const response = await opinionsService.toggleRepost(opinionId);
-            setOpinions(opinions.map(op =>
-                op.id === opinionId
-                    ? { ...op, is_reposted: response.reposted, reposts_count: response.reposts_count }
-                    : op
-            ));
+            // Re-sync with server response exactly as returned
+            setOpinions(currentOpinions => currentOpinions.map(op => {
+                if (op.id === opinionId) {
+                    let newReposters = [...(op._reposters || [])];
+                    if (response.reposted) {
+                        if (!newReposters.find(r => r.id === user?.id)) {
+                            newReposters.unshift({ id: user?.id, name: user?.first_name || 'You', avatar_url: user?.avatar_url });
+                        }
+                    } else {
+                        newReposters = newReposters.filter(r => r.id !== user?.id);
+                    }
+                    return { 
+                        ...op, 
+                        is_reposted: response.reposted, 
+                        reposts_count: response.reposts_count,
+                        _reposters: newReposters,
+                        is_repost: newReposters.length > 0 || op.is_repost
+                    };
+                }
+                return op;
+            }));
         } catch (error) {
             console.error('Error reposting:', error);
+            // Could revert optimistic update on failure here
         }
     };
 

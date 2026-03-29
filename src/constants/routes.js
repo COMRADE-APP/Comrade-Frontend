@@ -55,7 +55,7 @@ export const ROUTES = {
     DEVICES: '/devices',
     PERMISSIONS: '/permissions',
     SHOP: '/shop',
-    PRODUCT_DETAILS: '/shop/:id',
+    PRODUCT_DETAILS: '/shop/item/:id',
     TIER_PLANS: '/tier-plans',
     PIGGY_BANKS: '/piggy-banks',
     KITTIES: '/payments/kitties',
@@ -75,7 +75,12 @@ export const ROUTES = {
 
     // Business Funding
     FUNDING: '/funding',
+    OPPORTUNITIES: '/opportunities',
     CREATE_BUSINESS: '/business/create',
+    BILL_PAYMENTS: '/bill-payments',
+    LOANS: '/loans',
+    ESCROW: '/escrow',
+    INSURANCE: '/insurance',
 
     // Careers & Gigs
     GIGS: '/gigs',
