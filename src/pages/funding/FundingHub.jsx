@@ -83,9 +83,45 @@ const FundingHub = () => {
     return (
         <div className="flex-1 bg-background min-h-screen p-8">
             {/* Header */}
-            <div className="mb-8">
+            <div className="mb-6">
                 <h1 className="text-3xl font-bold text-primary">Business Funding Hub</h1>
                 <p className="text-secondary mt-2">Connect with investors, raise capital, and explore opportunities.</p>
+            </div>
+
+            {/* Quick Access Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div
+                    onClick={() => navigate('/funding/donations')}
+                    className="bg-gradient-to-br from-pink-500 to-rose-600 text-white p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                >
+                    <Heart className="w-6 h-6 mb-2 opacity-80" />
+                    <h3 className="font-bold text-lg">Donations</h3>
+                    <p className="text-sm text-white/80 mt-1">Support causes & charities</p>
+                </div>
+                <div
+                    onClick={() => navigate('/funding/group-investments')}
+                    className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                >
+                    <Briefcase className="w-6 h-6 mb-2 opacity-80" />
+                    <h3 className="font-bold text-lg">Group Investments</h3>
+                    <p className="text-sm text-white/80 mt-1">Pool resources with groups</p>
+                </div>
+                <div
+                    onClick={() => navigate('/opportunities')}
+                    className="bg-gradient-to-br from-primary-500 to-primary-700 text-white p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                >
+                    <Globe className="w-6 h-6 mb-2 opacity-80" />
+                    <h3 className="font-bold text-lg">Opportunities</h3>
+                    <p className="text-sm text-white/80 mt-1">MMFs, Stocks, Bonds & more</p>
+                </div>
+                <div
+                    onClick={() => navigate('/funding/investor-profile')}
+                    className="bg-gradient-to-br from-slate-600 to-gray-700 text-white p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                >
+                    <Users className="w-6 h-6 mb-2 opacity-80" />
+                    <h3 className="font-bold text-lg">Investor Profile</h3>
+                    <p className="text-sm text-white/80 mt-1">Manage your KYC & portfolio</p>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -267,7 +303,7 @@ const OPPORTUNITY_CATEGORIES = [
     { id: 'mmf', label: 'Money Market Funds', icon: PieChart, color: 'from-blue-500 to-cyan-600', desc: 'Low risk, high liquidity savings', count: 11 },
     { id: 'stocks', label: 'Stocks & Equities', icon: BarChart3, color: 'from-green-500 to-emerald-600', desc: 'NSE listed companies', count: 11 },
     { id: 'bonds_domestic', label: 'Domestic Bonds', icon: Landmark, color: 'from-amber-500 to-orange-600', desc: 'Government & corporate bonds', count: 10 },
-    { id: 'bonds_foreign', label: 'Foreign Bonds', icon: Globe, color: 'from-violet-500 to-purple-600', desc: 'International fixed income', count: 10 },
+    { id: 'bonds_foreign', label: 'Foreign Bonds', icon: Globe, color: 'from-primary-500 to-primary-700', desc: 'International fixed income', count: 10 },
     { id: 'agency', label: 'Investment Agencies', icon: Shield, color: 'from-slate-600 to-gray-700', desc: 'Licensed brokers & wealth managers', count: 10 },
 ];
 
@@ -478,8 +514,8 @@ const CapitalVenturesTab = ({ myVentures, allVentures, loading, navigate }) => {
                                 className="bg-elevated p-5 rounded-xl border border-theme hover:shadow-md transition-shadow cursor-pointer group"
                             >
                                 <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                                        <Building2 className="w-5 h-5 text-violet-600" />
+                                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                                        <Building2 className="w-5 h-5 text-primary-600" />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-bold text-primary">{venture.name}</h3>
@@ -530,7 +566,7 @@ const InvestmentHistoryTab = ({ history, loading, navigate }) => {
             stock: <BarChart3 className="w-4 h-4 text-green-500" />,
             mmf: <Landmark className="w-4 h-4 text-blue-500" />,
             bond: <Shield className="w-4 h-4 text-amber-500" />,
-            equity: <TrendingUp className="w-4 h-4 text-purple-500" />,
+            equity: <TrendingUp className="w-4 h-4 text-primary-600" />,
             donation: <Heart className="w-4 h-4 text-pink-500" />,
         };
         return icons[type] || <DollarSign className="w-4 h-4 text-gray-500" />;

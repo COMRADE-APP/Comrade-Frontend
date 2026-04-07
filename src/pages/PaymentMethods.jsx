@@ -209,7 +209,7 @@ const PaymentMethods = () => {
 
     const getGradient = (type) => {
         const gradients = {
-            card: 'from-indigo-500 to-purple-600',
+            card: 'from-indigo-500 to-primary-700',
             mpesa: 'from-green-500 to-emerald-600',
             paypal: 'from-blue-500 to-cyan-500',
             bank_transfer: 'from-amber-500 to-orange-600',
@@ -232,7 +232,7 @@ const PaymentMethods = () => {
                     </div>
                     <button
                         onClick={() => { setShowAddModal(true); setError(''); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:opacity-90 transition-opacity font-medium shadow-lg shadow-purple-500/20"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-700 to-indigo-600 text-white rounded-xl hover:opacity-90 transition-opacity font-medium shadow-lg shadow-primary-600/20"
                     >
                         <Plus size={18} /> Add Method
                     </button>
@@ -264,7 +264,7 @@ const PaymentMethods = () => {
                 {/* Payment Methods List */}
                 {loading ? (
                     <div className="text-center py-16">
-                        <Loader2 className="w-10 h-10 animate-spin text-purple-500 mx-auto" />
+                        <Loader2 className="w-10 h-10 animate-spin text-primary-600 mx-auto" />
                         <p className="mt-4 text-secondary text-sm">Loading payment methods…</p>
                     </div>
                 ) : paymentMethods.length === 0 ? (
@@ -274,7 +274,7 @@ const PaymentMethods = () => {
                         <p className="text-secondary text-sm mb-6">Add a card, M-Pesa, PayPal, or bank account to get started.</p>
                         <button
                             onClick={() => { setShowAddModal(true); setError(''); }}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:opacity-90 transition font-medium"
+                            className="px-6 py-3 bg-gradient-to-r from-primary-700 to-indigo-600 text-white rounded-xl hover:opacity-90 transition font-medium"
                         >
                             Add Your First Payment Method
                         </button>
@@ -284,7 +284,7 @@ const PaymentMethods = () => {
                         {paymentMethods.map((method) => (
                             <div
                                 key={method.id}
-                                className={`bg-elevated rounded-2xl border transition-all hover:shadow-lg ${method.is_default ? 'border-purple-500/40 ring-1 ring-purple-500/20' : 'border-theme'}`}
+                                className={`bg-elevated rounded-2xl border transition-all hover:shadow-lg ${method.is_default ? 'border-primary-600/40 ring-1 ring-primary-600/20' : 'border-theme'}`}
                             >
                                 <div className="p-5 flex items-center justify-between gap-4">
                                     {/* Icon + Info */}
@@ -296,7 +296,7 @@ const PaymentMethods = () => {
                                             <div className="flex items-center gap-2">
                                                 <p className="font-semibold text-primary truncate">{getMethodLabel(method)}</p>
                                                 {method.is_default && (
-                                                    <span className="text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                    <span className="text-xs font-medium bg-primary-200 text-primary-900 dark:bg-primary-900/30 dark:text-primary-400 px-2 py-0.5 rounded-full whitespace-nowrap">
                                                         Default
                                                     </span>
                                                 )}
@@ -365,7 +365,7 @@ const PaymentMethods = () => {
                                     value={editForm.nickname}
                                     onChange={(e) => handleEditChange('nickname', e.target.value)}
                                     placeholder="e.g. Personal Card, Work PayPal"
-                                    className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                 />
                             </div>
 
@@ -378,7 +378,7 @@ const PaymentMethods = () => {
                                         value={editForm.phone_number}
                                         onChange={(e) => handleEditChange('phone_number', e.target.value)}
                                         placeholder="254712345678"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                     />
                                 </div>
                             )}
@@ -391,7 +391,7 @@ const PaymentMethods = () => {
                                         value={editForm.paypal_email}
                                         onChange={(e) => handleEditChange('paypal_email', e.target.value)}
                                         placeholder="you@example.com"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                     />
                                 </div>
                             )}
@@ -404,7 +404,7 @@ const PaymentMethods = () => {
                                         value={editForm.billing_zip}
                                         onChange={(e) => handleEditChange('billing_zip', e.target.value)}
                                         placeholder="00100"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                     />
                                     <p className="text-xs text-tertiary mt-1">Card number and expiry cannot be changed. Remove and re-add if needed.</p>
                                 </div>
@@ -418,7 +418,7 @@ const PaymentMethods = () => {
                                         value={editForm.bank_name}
                                         onChange={(e) => handleEditChange('bank_name', e.target.value)}
                                         placeholder="e.g. Equity Bank"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                     />
                                 </div>
                             )}
@@ -429,7 +429,7 @@ const PaymentMethods = () => {
                                     type="checkbox"
                                     checked={editForm.is_default}
                                     onChange={(e) => handleEditChange('is_default', e.target.checked)}
-                                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                                    className="w-4 h-4 rounded text-primary-700 focus:ring-primary-600"
                                 />
                                 <span className="text-sm text-primary">Set as default payment method</span>
                             </label>
@@ -445,7 +445,7 @@ const PaymentMethods = () => {
                             <button
                                 onClick={handleEditSave}
                                 disabled={saving}
-                                className="px-5 py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
+                                className="px-5 py-2 text-sm bg-gradient-to-r from-primary-700 to-indigo-600 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
                             >
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                 {saving ? 'Saving…' : 'Save Changes'}
@@ -486,8 +486,8 @@ const PaymentMethods = () => {
                                             key={opt.value}
                                             onClick={() => handleNewMethodChange('method_type', opt.value)}
                                             className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${newMethod.method_type === opt.value
-                                                ? 'border-purple-500 bg-purple-500/10 text-purple-700 dark:text-purple-300'
-                                                : 'border-theme text-secondary hover:border-purple-300'
+                                                ? 'border-primary-600 bg-primary-600/10 text-primary-800 dark:text-primary-400'
+                                                : 'border-theme text-secondary hover:border-primary-400'
                                                 }`}
                                         >
                                             {opt.icon} {opt.label}
@@ -504,7 +504,7 @@ const PaymentMethods = () => {
                                     value={newMethod.nickname}
                                     onChange={(e) => handleNewMethodChange('nickname', e.target.value)}
                                     placeholder="e.g. Personal Visa"
-                                    className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
                                 />
                             </div>
 
@@ -519,7 +519,7 @@ const PaymentMethods = () => {
                                             onChange={(e) => handleNewMethodChange('card_number', e.target.value.replace(/[^\d\s]/g, ''))}
                                             placeholder="4242 4242 4242 4242"
                                             maxLength={19}
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm font-mono"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm font-mono"
                                         />
                                     </div>
                                     <div className="grid grid-cols-3 gap-3">
@@ -531,7 +531,7 @@ const PaymentMethods = () => {
                                                 onChange={(e) => handleNewMethodChange('expiry_month', e.target.value)}
                                                 placeholder="MM"
                                                 maxLength={2}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm text-center"
+                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
                                             />
                                         </div>
                                         <div>
@@ -542,7 +542,7 @@ const PaymentMethods = () => {
                                                 onChange={(e) => handleNewMethodChange('expiry_year', e.target.value)}
                                                 placeholder="YY"
                                                 maxLength={4}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm text-center"
+                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
                                             />
                                         </div>
                                         <div>
@@ -553,7 +553,7 @@ const PaymentMethods = () => {
                                                 onChange={(e) => handleNewMethodChange('cvc', e.target.value)}
                                                 placeholder="123"
                                                 maxLength={4}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm text-center"
+                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
                                             />
                                         </div>
                                     </div>
@@ -564,7 +564,7 @@ const PaymentMethods = () => {
                                             value={newMethod.billing_zip}
                                             onChange={(e) => handleNewMethodChange('billing_zip', e.target.value)}
                                             placeholder="00100"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                         />
                                     </div>
                                 </>
@@ -579,7 +579,7 @@ const PaymentMethods = () => {
                                         value={newMethod.phone_number}
                                         onChange={(e) => handleNewMethodChange('phone_number', e.target.value)}
                                         placeholder="254712345678"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                     />
                                 </div>
                             )}
@@ -593,7 +593,7 @@ const PaymentMethods = () => {
                                         value={newMethod.paypal_email}
                                         onChange={(e) => handleNewMethodChange('paypal_email', e.target.value)}
                                         placeholder="you@example.com"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                     />
                                 </div>
                             )}
@@ -608,7 +608,7 @@ const PaymentMethods = () => {
                                             value={newMethod.account_number}
                                             onChange={(e) => handleNewMethodChange('account_number', e.target.value)}
                                             placeholder="00123456789"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                         />
                                     </div>
                                     <div>
@@ -618,7 +618,7 @@ const PaymentMethods = () => {
                                             value={newMethod.bank_name}
                                             onChange={(e) => handleNewMethodChange('bank_name', e.target.value)}
                                             placeholder="Equity Bank"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                         />
                                     </div>
                                 </>
@@ -630,7 +630,7 @@ const PaymentMethods = () => {
                                     type="checkbox"
                                     checked={newMethod.is_default}
                                     onChange={(e) => handleNewMethodChange('is_default', e.target.checked)}
-                                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                                    className="w-4 h-4 rounded text-primary-700 focus:ring-primary-600"
                                 />
                                 <span className="text-sm text-primary">Set as default</span>
                             </label>
@@ -646,7 +646,7 @@ const PaymentMethods = () => {
                             <button
                                 onClick={handleAddSave}
                                 disabled={saving}
-                                className="px-5 py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
+                                className="px-5 py-2 text-sm bg-gradient-to-r from-primary-700 to-indigo-600 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
                             >
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                                 {saving ? 'Saving…' : 'Add Method'}

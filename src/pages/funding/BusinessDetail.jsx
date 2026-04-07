@@ -191,6 +191,50 @@ const BusinessDetail = () => {
                         </div>
                     </div>
 
+                    {/* Verification Badge */}
+                    <div className={`rounded-2xl border p-5 ${business.is_verified ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                            {business.is_verified ? (
+                                <>
+                                    <Shield className="w-5 h-5 text-emerald-600" />
+                                    <h3 className="font-bold text-emerald-700">Verified Business</h3>
+                                </>
+                            ) : (
+                                <>
+                                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                                    <h3 className="font-bold text-amber-700">Not Yet Verified</h3>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-secondary mb-3">
+                            {business.is_verified
+                                ? 'This business has been verified with supporting documentation.'
+                                : 'Submit business documents and licenses to earn the verification badge.'}
+                        </p>
+                        {!business.is_verified && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await fundingService.requestBusinessVerification(business.id);
+                                        alert('Verification request submitted!');
+                                        loadBusiness();
+                                    } catch { alert('Failed to submit request.'); }
+                                }}
+                                className="w-full text-center text-sm font-bold bg-amber-500 text-white rounded-xl py-2 hover:bg-amber-600 transition-colors"
+                            >
+                                Request Verification
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Analytics Button */}
+                    <Button
+                        onClick={() => navigate(`/funding/businesses/${business.id}/analytics`)}
+                        className="w-full bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold py-3 flex items-center justify-center gap-2"
+                    >
+                        <PieChart className="w-5 h-5" /> View Analytics
+                    </Button>
+
                     <Button onClick={() => setShowInvestModal(true)} className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white font-bold py-3 flex items-center justify-center gap-2">
                         <DollarSign className="w-5 h-5" /> Invest in {business.name}
                     </Button>

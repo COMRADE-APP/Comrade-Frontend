@@ -60,7 +60,7 @@ export default function StoriesBar() {
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-4 md:px-0">
                 {/* Add Story Button / Current User */}
                 <div className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => setShowCreateModal(true)}>
-                    <div className="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-gray-600 to-gray-400 hover:from-primary hover:to-purple-500 transition-all duration-300">
+                    <div className="relative w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-gray-600 to-gray-400 hover:from-primary hover:to-primary-600 transition-all duration-300">
                         <div className="w-full h-full rounded-full border-2 border-black overflow-hidden relative">
                             <img
                                 src={user?.avatar || 'https://via.placeholder.com/60'}

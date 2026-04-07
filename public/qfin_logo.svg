@@ -1,0 +1,94 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Color Palette -->
+    <linearGradient id="violetGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5b21b6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4AF37;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F4E5B0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C9A227;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="400" cy="400" r="380" fill="url(#violetGold)" opacity="0.05"/>
+  
+  <!-- Main Q Shape formed by interlocking nodes/hands -->
+  <g id="qShape">
+    <!-- Outer Circle of Q -->
+    <path d="M 400 150 
+             A 250 250 0 1 1 399.9 150" 
+          fill="none" 
+          stroke="url(#violetGold)" 
+          stroke-width="45" 
+          stroke-linecap="round"/>
+    
+    <!-- Q Tail with node connection -->
+    <path d="M 550 550 L 650 650" 
+          stroke="url(#violetGold)" 
+          stroke-width="45" 
+          stroke-linecap="round"/>
+    
+    <!-- Interlocking Nodes (representing community/connection) -->
+    <!-- Top Node -->
+    <circle cx="400" cy="150" r="35" fill="url(#goldGradient)" filter="url(#glow)"/>
+    <circle cx="400" cy="150" r="25" fill="none" stroke="#5b21b6" stroke-width="3"/>
+    
+    <!-- Right Node -->
+    <circle cx="600" cy="400" r="35" fill="url(#goldGradient)" filter="url(#glow)"/>
+    <circle cx="600" cy="400" r="25" fill="none" stroke="#5b21b6" stroke-width="3"/>
+    
+    <!-- Bottom Node -->
+    <circle cx="400" cy="650" r="35" fill="url(#goldGradient)" filter="url(#glow)"/>
+    <circle cx="400" cy="650" r="25" fill="none" stroke="#5b21b6" stroke-width="3"/>
+    
+    <!-- Left Node -->
+    <circle cx="200" cy="400" r="35" fill="url(#goldGradient)" filter="url(#glow)"/>
+    <circle cx="200" cy="400" r="25" fill="none" stroke="#5b21b6" stroke-width="3"/>
+    
+    <!-- Tail End Node -->
+    <circle cx="650" cy="650" r="35" fill="url(#goldGradient)" filter="url(#glow)"/>
+    <circle cx="650" cy="650" r="25" fill="none" stroke="#5b21b6" stroke-width="3"/>
+  </g>
+  
+  <!-- OPTION 1: Shield at center (security, protection, trust) -->
+  <g id="centerShield" opacity="1">
+    <path d="M 400 320 
+             L 450 340 L 450 420 
+             Q 450 470 400 500 
+             Q 350 470 350 420 
+             L 350 340 Z" 
+          fill="url(#goldGradient)" 
+          stroke="#5b21b6" 
+          stroke-width="4"/>
+    <path d="M 400 360 L 400 460" stroke="#5b21b6" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="400" cy="380" r="8" fill="#5b21b6"/>
+  </g>
+  
+  <!-- Connecting Lines (subtle, representing network) -->
+  <g opacity="0.2">
+    <line x1="400" y1="150" x2="600" y2="400" stroke="#D4AF37" stroke-width="2"/>
+    <line x1="600" y1="400" x2="400" y2="650" stroke="#D4AF37" stroke-width="2"/>
+    <line x1="400" y1="650" x2="200" y2="400" stroke="#D4AF37" stroke-width="2"/>
+    <line x1="200" y1="400" x2="400" y2="150" stroke="#D4AF37" stroke-width="2"/>
+  </g>
+  
+  <!-- Typography - App Name -->
+  <text x="400" y="750" font-family="'Inter', 'Raleway', sans-serif" 
+        font-size="48" font-weight="700" fill="#5b21b6" 
+        text-anchor="middle" letter-spacing="2">QFIN</text>
+  <text x="400" y="780" font-family="'Inter', 'Raleway', sans-serif" 
+        font-size="16" font-weight="400" fill="#7c3aed" 
+        text-anchor="middle" letter-spacing="4" opacity="0.8">COMMUNITY FINANCE</text>
+</svg>

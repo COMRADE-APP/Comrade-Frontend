@@ -9,13 +9,14 @@ import authService from '../../services/auth.service';
 const VerifyEmail = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
+    const { completeLogin } = useAuth();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     // Get email from router state or params
     const email = location.state?.email || new URLSearchParams(location.search).get('email');
+    const rememberMe = location.state?.rememberMe || false;
 
     useEffect(() => {
         if (!email) {
@@ -29,24 +30,18 @@ const VerifyEmail = () => {
         setLoading(true);
 
         try {
-            const response = await authService.verifyLoginOTP(email, otp);
+            const response = await authService.verifyLoginOTP(email, otp, rememberMe);
 
             if (response.verification_required) {
                 // Next step required (e.g., 2FA)
                 if (response.next_step === 'verify_2fa_totp') {
-                    navigate(ROUTES.VERIFY_2FA, { state: { email } });
+                    navigate(ROUTES.VERIFY_2FA, { state: { email, rememberMe } });
                 } else if (response.next_step === 'verify_sms_otp') {
-                    navigate(ROUTES.VERIFY_SMS, { state: { email, phone_last_4: response.phone_last_4 } });
+                    navigate(ROUTES.VERIFY_SMS, { state: { email, phone_last_4: response.phone_last_4, rememberMe } });
                 }
             } else {
-                // Login complete - navigate to success page
-                navigate(ROUTES.LOGIN_SUCCESS, {
-                    state: {
-                        firstName: response.first_name,
-                        userType: response.user_type
-                    },
-                    replace: true
-                });
+                // Login complete - use completeLogin to update Context & DB
+                await completeLogin(response, rememberMe);
             }
         } catch (err) {
             setError(err.response?.data?.detail || 'Verification failed. Please try again.');

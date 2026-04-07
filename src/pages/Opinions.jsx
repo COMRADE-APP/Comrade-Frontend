@@ -418,7 +418,7 @@ const Opinions = () => {
                 {newContentAvailable && (
                     <button
                         onClick={loadOpinions}
-                        className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                        className="w-full py-3 bg-gradient-to-r from-primary-600 to-blue-500 text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                     >
                         <RefreshCw size={18} />
                         New posts available - tap to refresh
@@ -511,7 +511,7 @@ const Opinions = () => {
                                     comments.map((comment) => (
                                         <div key={comment.id} className="flex gap-3">
                                             <Link to={`/profile/${comment.user?.id}`} className="shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold overflow-hidden">
                                                     {comment.user?.avatar_url ? (
                                                         <img src={comment.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (
@@ -543,7 +543,7 @@ const Opinions = () => {
                             {isAuthenticated && (
                                 <div className="p-4 border-t border-theme">
                                     <div className="flex gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                                             {user?.avatar_url ? (
                                                 <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
@@ -602,7 +602,7 @@ const Opinions = () => {
                                     reposters.map((user) => (
                                         <div key={user.id} className="flex items-center gap-3">
                                             <Link to={`/profile/${user.id}`} className="shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold overflow-hidden">
                                                     {user.avatar_url ? (
                                                         <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (

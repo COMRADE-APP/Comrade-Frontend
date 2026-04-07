@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Heart, TrendingUp, Building2, Globe, Shield,
     PieChart, BarChart3, Landmark, Banknote, Search, Filter,
-    ExternalLink, Star, ChevronRight, Users, DollarSign
+    ExternalLink, Star, ChevronRight, ChevronDown, Users, DollarSign
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Button from '../../components/common/Button';
@@ -17,7 +17,7 @@ const CATEGORY_CONFIG = {
     mmf: { label: 'Money Market Funds', icon: PieChart, color: 'from-blue-500 to-cyan-600' },
     stocks: { label: 'Stocks & Equities', icon: TrendingUp, color: 'from-green-500 to-emerald-600' },
     bonds_domestic: { label: 'Domestic Bonds', icon: Landmark, color: 'from-amber-500 to-orange-600' },
-    bonds_foreign: { label: 'Foreign Bonds', icon: Globe, color: 'from-violet-500 to-purple-600' },
+    bonds_foreign: { label: 'Foreign Bonds', icon: Globe, color: 'from-primary-500 to-primary-700' },
     agency: { label: 'Investment Agencies', icon: Building2, color: 'from-slate-600 to-gray-700' },
 };
 
@@ -378,37 +378,151 @@ const OpportunitiesExplorer = () => {
     const config = CATEGORY_CONFIG[category];
 
     if (!config) {
-        // Show all categories overview
+        // Section-based overview – each category is a collapsible section
+        const NON_CHARITY_CATEGORIES = Object.entries(CATEGORY_CONFIG).filter(([key]) => key !== 'charity');
+
+        const [expandedSections, setExpandedSections] = useState(
+            Object.fromEntries(NON_CHARITY_CATEGORIES.map(([key]) => [key, true]))
+        );
+
+        const toggleSection = (key) => {
+            setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
+        };
+
+        const handleItemClick = (item, catKey) => {
+            setSelectedItem({ ...item, _category: catKey });
+        };
+
         return (
             <div className="max-w-6xl mx-auto p-4 md:p-8">
-                <button onClick={() => navigate('/opportunities')} className="flex items-center text-secondary hover:text-primary mb-6 transition-colors">
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Opportunities
+                <button onClick={() => navigate('/funding')} className="flex items-center text-secondary hover:text-primary mb-6 transition-colors">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Funding Hub
                 </button>
-                <h1 className="text-3xl font-bold text-primary mb-2">Investment Opportunities</h1>
-                <p className="text-secondary mb-8">Explore diverse investment avenues across multiple asset classes.</p>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {Object.entries(CATEGORY_CONFIG).map(([key, c]) => {
-                        const Icon = c.icon;
-                        const count = data[key]?.length || 0;
-                        return (
-                            <motion.div
-                                key={key}
-                                whileHover={{ y: -4 }}
-                                onClick={() => navigate(`/opportunities/${key}`)}
-                                className={`bg-gradient-to-br ${c.color} text-white p-6 rounded-2xl cursor-pointer shadow-lg hover:shadow-xl transition-shadow`}
-                            >
-                                <Icon className="w-8 h-8 mb-3 opacity-80" />
-                                <h3 className="text-xl font-bold mb-1">{c.label}</h3>
-                                <p className="text-sm opacity-80">
-                                    {loading ? '...' : `${count} opportunities available`}
-                                </p>
-                                <div className="flex items-center gap-1 mt-4 text-sm opacity-70">
-                                    View All <ChevronRight className="w-4 h-4" />
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-primary mb-1">Investment Opportunities</h1>
+                        <p className="text-secondary text-sm">Explore diverse investment avenues across multiple asset classes.</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => navigate('/funding/donations')} className="border-theme hover:border-pink-400 text-pink-600 flex items-center gap-2">
+                            <Heart className="w-4 h-4" /> Donations
+                        </Button>
+                        <Button onClick={() => navigate('/funding/enterprise/create')} className="bg-primary hover:bg-primary-dark text-white flex items-center gap-2">
+                            Create Enterprise
+                        </Button>
+                    </div>
                 </div>
+
+                {/* Search */}
+                <div className="relative mb-6">
+                    <Search className="absolute left-3 top-3 text-tertiary w-5 h-5" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        placeholder="Search across all opportunities..."
+                        className="w-full pl-10 pr-4 py-2.5 border border-theme rounded-xl focus:ring-2 focus:ring-primary outline-none bg-elevated text-primary"
+                    />
+                </div>
+
+                {loading ? (
+                    <div className="text-center py-12 text-secondary">Loading opportunities...</div>
+                ) : (
+                    <div className="space-y-4">
+                        {NON_CHARITY_CATEGORIES.map(([key, catConfig]) => {
+                            const Icon = catConfig.icon;
+                            const items = (data[key] || []).filter(item =>
+                                !searchQuery ||
+                                (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                (item.provider || item.issuer || '').toLowerCase().includes(searchQuery.toLowerCase())
+                            );
+                            const isExpanded = expandedSections[key];
+
+                            return (
+                                <div key={key} className="bg-elevated rounded-2xl border border-theme overflow-hidden">
+                                    {/* Section Header */}
+                                    <button
+                                        onClick={() => toggleSection(key)}
+                                        className="w-full flex items-center justify-between p-4 hover:bg-secondary/5 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${catConfig.color} flex items-center justify-center`}>
+                                                <Icon className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="font-bold text-primary">{catConfig.label}</h3>
+                                                <p className="text-xs text-secondary">{items.length} opportunities</p>
+                                            </div>
+                                        </div>
+                                        <ChevronDown className={`w-5 h-5 text-secondary transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {/* Section Items */}
+                                    {isExpanded && (
+                                        <div className="border-t border-theme divide-y divide-theme">
+                                            {items.length === 0 ? (
+                                                <div className="text-center py-6 text-tertiary text-sm">No opportunities in this category yet.</div>
+                                            ) : (
+                                                items.map(item => (
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => handleItemClick(item, key)}
+                                                        className="flex items-center justify-between p-4 hover:bg-secondary/5 transition-colors cursor-pointer"
+                                                    >
+                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h4 className="font-semibold text-primary text-sm truncate">{item.name}</h4>
+                                                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r ${catConfig.color} text-white shrink-0`}>
+                                                                        {catConfig.label.split(' ')[0]}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-xs text-secondary truncate mt-0.5">
+                                                                    {item.provider || item.issuer || item.type || ''}
+                                                                    {item.return_rate && ` · Return: ${item.return_rate}`}
+                                                                    {item.coupon && ` · Coupon: ${item.coupon}`}
+                                                                    {item.ticker && ` · ${item.ticker}`}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            {(item.min_investment || item.min_account || item.price) && (
+                                                                <span className="text-sm font-bold text-primary hidden sm:block">
+                                                                    KES {(item.min_investment || item.min_account || item.price || 0).toLocaleString()}
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); navigate(`/funding/opportunity/${item.id}`); }}
+                                                                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                                                            >
+                                                                View <ChevronRight className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Universal InvestModal for overview clicks */}
+                <InvestModal
+                    isOpen={!!selectedItem}
+                    onClose={() => setSelectedItem(null)}
+                    item={selectedItem ? {
+                        id: selectedItem.id,
+                        name: selectedItem.name,
+                        category: selectedItem._category,
+                        min_investment: selectedItem.min_investment || selectedItem.min_account || 0,
+                        investment_type: selectedItem._category === 'stocks' ? 'stock' : selectedItem._category === 'mmf' ? 'mmf' : selectedItem._category?.startsWith('bonds') ? 'bond' : 'equity',
+                    } : null}
+                    isDonation={false}
+                    categoryColor={selectedItem?._category ? CATEGORY_CONFIG[selectedItem._category]?.color : 'from-primary-600 to-indigo-600'}
+                />
             </div>
         );
     }
@@ -503,7 +617,7 @@ const OpportunitiesExplorer = () => {
                     investment_type: category === 'stocks' ? 'stock' : category === 'mmf' ? 'mmf' : category?.startsWith('bonds') ? 'bond' : 'equity',
                 } : null}
                 isDonation={category === 'charity'}
-                categoryColor={config?.color || CATEGORY_CONFIG[category]?.color || 'from-purple-500 to-indigo-600'}
+                categoryColor={config?.color || CATEGORY_CONFIG[category]?.color || 'from-primary-600 to-indigo-600'}
             />
         </div>
     );

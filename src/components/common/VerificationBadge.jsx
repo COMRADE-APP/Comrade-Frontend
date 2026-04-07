@@ -15,7 +15,7 @@ const VerificationBadge = ({ userType, isVerified = false, size = 16, className 
     // Different badge colors per user type
     const badgeColors = {
         student: 'bg-blue-500',
-        staff: 'bg-purple-500',
+        staff: 'bg-primary-600',
         lecturer: 'bg-indigo-500',
         org_admin: 'bg-green-500',
         org_staff: 'bg-emerald-500',

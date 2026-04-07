@@ -13,7 +13,7 @@ const CATEGORY_CONFIG = {
     mmf: { label: 'Money Market Fund', icon: PieChart, color: 'from-blue-500 to-cyan-600', bg: 'bg-blue-100', text: 'text-blue-600' },
     stock: { label: 'Stocks & Equities', icon: TrendingUp, color: 'from-green-500 to-emerald-600', bg: 'bg-green-100', text: 'text-green-600' },
     bond_domestic: { label: 'Domestic Bond', icon: Landmark, color: 'from-amber-500 to-orange-600', bg: 'bg-amber-100', text: 'text-amber-600' },
-    bond_foreign: { label: 'Foreign Bond', icon: Globe, color: 'from-violet-500 to-purple-600', bg: 'bg-violet-100', text: 'text-violet-600' },
+    bond_foreign: { label: 'Foreign Bond', icon: Globe, color: 'from-primary-500 to-primary-700', bg: 'bg-primary-100', text: 'text-primary-600' },
     agency: { label: 'Investment Agency', icon: Building2, color: 'from-slate-600 to-gray-700', bg: 'bg-slate-100', text: 'text-slate-600' },
     default: { label: 'Investment Opportunity', icon: Briefcase, color: 'from-primary to-primary-600', bg: 'bg-primary/10', text: 'text-primary' },
 };

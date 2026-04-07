@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
+import { getGroupTier } from '../../utils/groupUtils';
 
 const PaymentGroups = () => {
     const navigate = useNavigate();
@@ -151,8 +152,8 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                                <Target className="w-5 h-5 text-purple-600" />
+                            <div className="w-10 h-10 rounded-full bg-primary-600/10 flex items-center justify-center">
+                                <Target className="w-5 h-5 text-primary-700" />
                             </div>
                             <div>
                                 <p className="text-xs text-secondary">Target Amount</p>
@@ -349,9 +350,20 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                         </div>
                         <div>
                             <h3 className="font-semibold text-primary">{group.name}</h3>
-                            <p className="text-sm text-secondary">
-                                {group.member_count || 0} members
-                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <p className="text-sm text-secondary">
+                                    {group.member_count || 0} members
+                                </p>
+                                {(() => {
+                                    const tier = getGroupTier(group.member_count || 0);
+                                    return (
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${tier.color} flex items-center gap-1`}>
+                                            <span>{tier.emoji}</span>
+                                            <span>{tier.label}</span>
+                                        </span>
+                                    );
+                                })()}
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

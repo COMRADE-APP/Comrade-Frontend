@@ -244,7 +244,7 @@ const AnnouncementDetail = () => {
                                     {statusConfig.label}
                                 </span>
                                 {announcement.priority && (
-                                    <span className="px-3 py-1 bg-purple-500/10 text-purple-600 rounded-full text-sm font-medium">
+                                    <span className="px-3 py-1 bg-primary-600/10 text-primary-700 rounded-full text-sm font-medium">
                                         {announcement.priority}
                                     </span>
                                 )}
@@ -385,7 +385,7 @@ const AnnouncementDetail = () => {
                                     <h3 className="font-semibold mb-3 text-primary">Published by</h3>
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
+                                            className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
                                             onClick={() => {
                                                 if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);
                                             }}

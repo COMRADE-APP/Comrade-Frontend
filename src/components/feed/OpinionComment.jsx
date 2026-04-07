@@ -150,7 +150,7 @@ const OpinionComment = ({
                     {/* Header row */}
                     <div className="flex items-start gap-3 relative z-[1]">
                         <Link to={`/profile/${commentUser.id}`} className="shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold overflow-hidden">
                                 {avatarUrl ? (
                                     <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -267,7 +267,7 @@ const OpinionComment = ({
 
                                 {/* Quote */}
                                 <button
-                                    className="hover:text-purple-500 transition-colors"
+                                    className="hover:text-primary-600 transition-colors"
                                     title="Quote this comment"
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -317,7 +317,7 @@ const OpinionComment = ({
                             {/* Reply input */}
                             {showReplyInput && currentUser && (
                                 <div className="mt-3 flex gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
                                         {currentUser?.avatar_url ? (
                                             <img src={currentUser.avatar_url} alt="" className="w-full h-full object-cover" />
                                         ) : (

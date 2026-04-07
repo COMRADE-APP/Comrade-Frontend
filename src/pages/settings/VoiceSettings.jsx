@@ -163,7 +163,7 @@ const VoiceSettings = () => {
             <Card>
                 <CardHeader className="p-4 border-b border-theme">
                     <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-                        <Volume2 className="w-5 h-5 text-purple-500" />
+                        <Volume2 className="w-5 h-5 text-primary-600" />
                         Voice & Speed
                     </h2>
                 </CardHeader>
@@ -177,7 +177,7 @@ const VoiceSettings = () => {
                             id="voice-select"
                             value={selectedVoice}
                             onChange={(e) => setSelectedVoice(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-theme text-primary text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-theme text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
                             aria-label="Select assistant voice"
                         >
                             <option value="">System Default</option>
@@ -204,7 +204,7 @@ const VoiceSettings = () => {
                             step="0.1"
                             value={voiceSpeed}
                             onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
-                            className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                            className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
                             aria-label={`Speech speed: ${voiceSpeed.toFixed(1)}x`}
                         />
                         <div className="flex justify-between text-xs text-secondary">
@@ -217,7 +217,7 @@ const VoiceSettings = () => {
                     {/* Test button */}
                     <Button
                         onClick={handleTestVoice}
-                        className="bg-purple-600 text-white hover:bg-purple-700 mt-2"
+                        className="bg-primary-700 text-white hover:bg-primary-800 mt-2"
                         aria-label="Test voice"
                     >
                         <Zap className="w-4 h-4 mr-2" /> Test Voice

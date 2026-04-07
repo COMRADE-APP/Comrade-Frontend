@@ -44,7 +44,7 @@ const AccountSelectionModal = ({ isOpen, accounts = [], onSelect, userName }) =>
                 case 'organisation':
                     return 'bg-blue-600 border-blue-600';
                 case 'institution':
-                    return 'bg-purple-600 border-purple-600';
+                    return 'bg-primary-700 border-primary-700';
                 default:
                     return 'bg-emerald-600 border-emerald-600';
             }
@@ -53,7 +53,7 @@ const AccountSelectionModal = ({ isOpen, accounts = [], onSelect, userName }) =>
             case 'organisation':
                 return 'bg-blue-50 border-blue-200 hover:border-blue-400';
             case 'institution':
-                return 'bg-purple-50 border-purple-200 hover:border-purple-400';
+                return 'bg-primary-150 border-primary-300 hover:border-primary-500';
             default:
                 return 'bg-gray-50 border-gray-200 hover:border-gray-400';
         }
@@ -64,7 +64,7 @@ const AccountSelectionModal = ({ isOpen, accounts = [], onSelect, userName }) =>
             case 'organisation':
                 return 'bg-blue-100 text-blue-600';
             case 'institution':
-                return 'bg-purple-100 text-purple-600';
+                return 'bg-primary-200 text-primary-700';
             default:
                 return 'bg-emerald-100 text-emerald-600';
         }

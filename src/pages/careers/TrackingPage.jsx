@@ -88,7 +88,7 @@ const TrackingPage = () => {
                         icon={Share2}
                         label="Shares"
                         value={item.shares_count || 0}
-                        color="bg-purple-50 text-purple-600"
+                        color="bg-primary-150 text-primary-700"
                     />
                     <StatCard
                         icon={MousePointer}

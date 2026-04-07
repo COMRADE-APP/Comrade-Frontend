@@ -54,7 +54,7 @@ const PricingDashboard = () => {
                 </Button>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-primary flex items-center">
-                        <BrainCircuit className="w-8 h-8 mr-3 text-purple-600" />
+                        <BrainCircuit className="w-8 h-8 mr-3 text-primary-700" />
                         Pricing Reinforcement Agent (TD3)
                     </h1>
                     <p className="text-secondary mt-1">Deep Reinforcement Learning applied to volatile global e-commerce supply chains.</p>

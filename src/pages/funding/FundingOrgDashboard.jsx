@@ -15,7 +15,7 @@ const STATUS_COLORS = {
     submitted: 'bg-blue-100 text-blue-700',
     under_review: 'bg-yellow-100 text-yellow-700',
     due_diligence: 'bg-orange-100 text-orange-700',
-    negotiating: 'bg-purple-100 text-purple-700',
+    negotiating: 'bg-primary-200 text-primary-800',
     approved: 'bg-green-100 text-green-700',
     funded: 'bg-emerald-100 text-emerald-700',
     rejected: 'bg-red-100 text-red-700',
@@ -232,7 +232,7 @@ const VenturePublicView = ({ venture, navigate }) => {
             </div>
 
             {/* Hero */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-8 text-white">
+            <div className="bg-gradient-to-r from-primary-600 to-indigo-700 rounded-2xl p-8 text-white">
                 <div className="flex items-center gap-5 mb-6">
                     <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                         <Building2 className="w-8 h-8 text-white" />
@@ -329,7 +329,7 @@ const VenturePublicView = ({ venture, navigate }) => {
                                 </div>
                                 {venture?.is_verified && (
                                     <div className="flex items-start gap-3">
-                                        <div className="w-2 h-2 bg-violet-500 rounded-full mt-2"></div>
+                                        <div className="w-2 h-2 bg-primary-500 rounded-full mt-2"></div>
                                         <div>
                                             <p className="text-sm font-medium text-primary">Verified by platform</p>
                                             <p className="text-xs text-secondary">Passed due diligence review</p>
@@ -606,11 +606,11 @@ const FundingOrgDashboard = () => {
                                 <p className="text-3xl font-bold text-blue-600 mt-2">{requests.length * 14 + 112}</p>
                             </CardBody>
                         </Card>
-                        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200">
+                        <Card className="bg-gradient-to-br from-primary-150 to-primary-200 dark:from-primary-900/20 dark:to-primary-900/20 border-primary-300">
                             <CardBody className="text-center p-6 relative overflow-hidden">
-                                <FileText className="w-10 h-10 text-purple-500/20 absolute -bottom-2 -right-2" />
-                                <p className="text-purple-800 font-medium text-sm">Total Applications</p>
-                                <p className="text-3xl font-bold text-purple-600 mt-2">{requests.length}</p>
+                                <FileText className="w-10 h-10 text-primary-600/20 absolute -bottom-2 -right-2" />
+                                <p className="text-primary-900 font-medium text-sm">Total Applications</p>
+                                <p className="text-3xl font-bold text-primary-700 mt-2">{requests.length}</p>
                             </CardBody>
                         </Card>
                         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200">
@@ -673,7 +673,7 @@ const FundingOrgDashboard = () => {
                                             </span>
                                         </div>
                                         <div className="w-full bg-theme rounded-full h-2">
-                                            <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => r.status === 'negotiating').length / (requests.length || 1)) * 100, 5)}%` }}></div>
+                                            <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${Math.max((requests.filter(r => r.status === 'negotiating').length / (requests.length || 1)) * 100, 5)}%` }}></div>
                                         </div>
                                     </div>
 

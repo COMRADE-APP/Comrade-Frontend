@@ -418,7 +418,7 @@ const Messages = () => {
                                                 }`}
                                         >
                                             <div className="relative flex-shrink-0">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                     {other?.avatar_url ? (
                                                         <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (
@@ -467,7 +467,7 @@ const Messages = () => {
                                 requests.map((req) => (
                                     <div key={req.id} className="p-4 border-b border-theme">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                 {req.sender?.avatar_url ? (
                                                     <img src={req.sender.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
@@ -510,7 +510,7 @@ const Messages = () => {
                                         onClick={() => handleStartConversation(circle.user?.id || circle.id)}
                                         className="p-4 flex items-center gap-3 cursor-pointer hover:bg-secondary/50 border-b border-theme"
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                             {circle.user?.avatar_url || circle.avatar_url ? (
                                                 <img src={circle.user?.avatar_url || circle.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
@@ -552,7 +552,7 @@ const Messages = () => {
                                 return (
                                     <>
                                         <div className="relative">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                 {other?.avatar_url ? (
                                                     <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
@@ -809,7 +809,7 @@ const Messages = () => {
                                         <p className="text-xs text-secondary mb-2 px-1">Search Results</p>
                                         {searchResults.map((searchUser) => (
                                             <button key={searchUser.id} onClick={() => handleStartConversation(searchUser.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                     {searchUser.avatar_url ? <img src={searchUser.avatar_url} alt="" className="w-full h-full object-cover" /> : searchUser.first_name?.[0] || 'U'}
                                                 </div>
                                                 <div className="text-left">
@@ -828,7 +828,7 @@ const Messages = () => {
                                                 <p className="text-xs text-secondary mb-2 px-1 flex items-center gap-1"><UserPlus size={12} /> Your Followers</p>
                                                 {followers.slice(0, 10).map((follower) => (
                                                     <button key={follower.id} onClick={() => handleStartConversation(follower.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-semibold overflow-hidden">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                             {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="w-full h-full object-cover" /> : follower.first_name?.[0] || 'U'}
                                                         </div>
                                                         <div className="text-left">

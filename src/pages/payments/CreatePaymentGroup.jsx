@@ -29,7 +29,40 @@ const CreatePaymentGroup = () => {
         requires_approval: true,
         max_capacity: 10,
         allow_anonymous: false,
+        investment_pitch: '',
+        loan_proposition: '',
+        parent_group: '', 
+        joining_minimum: '',
+        accent_color: '#3B82F6', // Default blue
+        entry_fee_required: false,
+        entry_fee_amount: '',
+        phases_data: [],
     });
+
+    const addPhase = () => {
+        setFormData(prev => ({
+            ...prev,
+            phases_data: [
+                ...prev.phases_data,
+                { name: '', description: '', target_amount: '', proportion: '', start_date: '', end_date: '' }
+            ]
+        }));
+    };
+
+    const removePhase = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            phases_data: prev.phases_data.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updatePhase = (index, field, value) => {
+        setFormData(prev => {
+            const newPhases = [...prev.phases_data];
+            newPhases[index] = { ...newPhases[index], [field]: value };
+            return { ...prev, phases_data: newPhases };
+        });
+    };
 
     const addMember = () => {
         setInviteError('');
@@ -67,6 +100,14 @@ const CreatePaymentGroup = () => {
                 target_amount: parseFloat(formData.target_amount) || 0,
                 contribution_amount: parseFloat(formData.contribution_amount) || 0,
                 max_capacity: parseInt(formData.max_capacity) || 10,
+                joining_minimum: parseFloat(formData.joining_minimum) || null,
+                entry_fee_amount: parseFloat(formData.entry_fee_amount) || null,
+                parent_group: formData.parent_group || null,
+                phases_data: formData.phases_data.map(phase => ({
+                    ...phase,
+                    target_amount: parseFloat(phase.target_amount) || 0,
+                    proportion: parseFloat(phase.proportion) || 0,
+                })),
             };
 
             const group = await paymentsService.createPaymentGroup(payload);
@@ -222,19 +263,31 @@ const CreatePaymentGroup = () => {
                                     placeholder="10"
                                 />
 
-                                <div>
-                                    <label className="block text-sm font-medium text-secondary mb-1">Group Type</label>
-                                    <select
-                                        value={formData.group_type || 'standard'}
-                                        onChange={(e) => setFormData({ ...formData, group_type: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                    >
-                                        <option value="standard">Standard Group</option>
-                                        <option value="piggy_bank">Piggy Bank Group</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Group Type</label>
+                                        <select
+                                            value={formData.group_type || 'standard'}
+                                            onChange={(e) => setFormData({ ...formData, group_type: e.target.value })}
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                        >
+                                            <option value="standard">Standard Group</option>
+                                            <option value="piggy_bank">Piggy Bank Group</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Accent Color</label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="color"
+                                                value={formData.accent_color}
+                                                onChange={(e) => setFormData({ ...formData, accent_color: e.target.value })}
+                                                className="w-10 h-10 rounded cursor-pointer border-0 p-0"
+                                            />
+                                            <span className="text-sm text-secondary">{formData.accent_color}</span>
+                                        </div>
+                                    </div>
                                 </div>
-
-
                             </div>
 
                             {/* Financial Settings */}
@@ -244,15 +297,26 @@ const CreatePaymentGroup = () => {
                                     Financial Settings
                                 </h3>
 
-                                <Input
-                                    label="Target Amount"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={formData.target_amount}
-                                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                                    placeholder="e.g., 1000.00"
-                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input
+                                        label="Target Amount"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={formData.target_amount}
+                                        onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
+                                        placeholder="e.g., 1000.00"
+                                    />
+                                    <Input
+                                        label="Minimum Joining Requirement"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={formData.joining_minimum}
+                                        onChange={(e) => setFormData({ ...formData, joining_minimum: e.target.value })}
+                                        placeholder="e.g., 50.00"
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -281,6 +345,31 @@ const CreatePaymentGroup = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
+                                        <label className="flex items-center gap-2 mb-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.entry_fee_required}
+                                                onChange={(e) => setFormData({ ...formData, entry_fee_required: e.target.checked })}
+                                                className="w-4 h-4 text-primary rounded"
+                                            />
+                                            <span className="text-sm font-medium text-secondary">Entry Fee Required?</span>
+                                        </label>
+                                        {formData.entry_fee_required && (
+                                            <Input
+                                                label="Entry Fee Amount"
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={formData.entry_fee_amount}
+                                                onChange={(e) => setFormData({ ...formData, entry_fee_amount: e.target.value })}
+                                            />
+                                        )}
+                                    </div>
+                                    {/* Empty col for alignment if entry fee shown, or we can just leave it to flow naturally */}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
                                         <label className="block text-sm font-medium text-secondary mb-1">Frequency</label>
                                         <select
                                             value={formData.frequency}
@@ -299,6 +388,62 @@ const CreatePaymentGroup = () => {
                                         type="date"
                                         value={formData.deadline}
                                         onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Group Phases */}
+                            <div className="space-y-4 pt-4 border-t border-theme">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-primary">Contribution Phases</h3>
+                                    <Button type="button" variant="outline" size="sm" onClick={addPhase}>
+                                        + Add Phase
+                                    </Button>
+                                </div>
+                                {formData.phases_data.map((phase, idx) => (
+                                    <div key={idx} className="p-4 bg-tertiary/10 rounded-lg space-y-3 relative group">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removePhase(idx)}
+                                            className="absolute top-2 right-2 p-1 text-red-500 hover:bg-red-50 rounded"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Input label="Phase Name" value={phase.name} onChange={(e) => updatePhase(idx, 'name', e.target.value)} placeholder="e.g. Initial Funding" />
+                                            <Input label="Target Amount" type="number" value={phase.target_amount} onChange={(e) => updatePhase(idx, 'target_amount', e.target.value)} />
+                                            <Input label="Proportion (%)" type="number" max="100" value={phase.proportion} onChange={(e) => updatePhase(idx, 'proportion', e.target.value)} />
+                                            <Input label="Start Date" type="date" value={phase.start_date} onChange={(e) => updatePhase(idx, 'start_date', e.target.value)} />
+                                            <Input label="End Date" type="date" value={phase.end_date} onChange={(e) => updatePhase(idx, 'end_date', e.target.value)} />
+                                        </div>
+                                    </div>
+                                ))}
+                                {formData.phases_data.length === 0 && (
+                                    <p className="text-sm text-secondary italic">No phases added. Progress will be tracked against the main target.</p>
+                                )}
+                            </div>
+
+                            {/* Additional Information (Pitches) */}
+                            <div className="space-y-4 pt-4 border-t border-theme">
+                                <h3 className="text-lg font-semibold text-primary">Propositions & Purpose</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Investment/Donation Pitch</label>
+                                    <textarea
+                                        value={formData.investment_pitch}
+                                        onChange={(e) => setFormData({ ...formData, investment_pitch: e.target.value })}
+                                        rows={2}
+                                        placeholder="Pitch your goal to potential members/investors..."
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Loan Proposition</label>
+                                    <textarea
+                                        value={formData.loan_proposition}
+                                        onChange={(e) => setFormData({ ...formData, loan_proposition: e.target.value })}
+                                        rows={2}
+                                        placeholder="Terms or proposition if raising loans..."
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                                     />
                                 </div>
                             </div>

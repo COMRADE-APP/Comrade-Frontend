@@ -337,7 +337,7 @@ const TaskDetail = () => {
                             </span>
                         )}
                         {task.is_activity && (
-                            <span className="px-2 py-0.5 bg-purple-500/10 text-purple-600 rounded-full font-medium">Activity</span>
+                            <span className="px-2 py-0.5 bg-primary-600/10 text-primary-700 rounded-full font-medium">Activity</span>
                         )}
                         {task.question_count > 0 && <span>{task.question_count} questions</span>}
                     </div>
@@ -367,7 +367,7 @@ const TaskDetail = () => {
                         {task.settings?.timer_enabled && <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs flex items-center gap-1"><Timer size={12} /> Timed</span>}
                         {task.settings?.no_tab_leaving && <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-xs flex items-center gap-1"><Shield size={12} /> Proctored</span>}
                         {task.settings?.one_take && <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs">One Take</span>}
-                        {task.settings?.record_video && <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs flex items-center gap-1"><Video size={12} /> Recording</span>}
+                        {task.settings?.record_video && <span className="px-3 py-1 rounded-full bg-primary-600/10 text-primary-500 text-xs flex items-center gap-1"><Video size={12} /> Recording</span>}
                     </div>
 
                     {/* Progress */}
@@ -543,7 +543,7 @@ const TaskDetail = () => {
                                                 {task.settings.timer_enabled && <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs">⏱ Timed</span>}
                                                 {task.settings.no_tab_leaving && <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-xs">🔒 Proctored</span>}
                                                 {task.settings.one_take && <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs">☝️ One Take</span>}
-                                                {task.settings.record_video && <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs">📹 Recording</span>}
+                                                {task.settings.record_video && <span className="px-3 py-1 rounded-full bg-primary-600/10 text-primary-500 text-xs">📹 Recording</span>}
                                                 {task.settings.shuffle_questions && <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs">🔀 Shuffled</span>}
                                                 {task.settings.auto_save && <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs">💾 Auto-save</span>}
                                                 {task.settings.passing_score > 0 && <span className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 text-xs">🎯 Pass: {task.settings.passing_score}%</span>}

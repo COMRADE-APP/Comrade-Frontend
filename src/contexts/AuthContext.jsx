@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../services/auth.service';
 import organizationsService from '../services/organizations.service';
 import institutionsService from '../services/institutions.service';
+import fundingService from '../services/funding.service';
 import { ROUTES } from '../constants/routes';
 
 const AuthContext = createContext(null);
@@ -86,6 +87,23 @@ export const AuthProvider = ({ children }) => {
             console.log('Could not fetch institutions:', err);
         }
 
+        // Fetch businesses
+        try {
+            const businesses = await fundingService.getMyBusinesses();
+            if (Array.isArray(businesses)) {
+                const businessAccounts = businesses.map(b => ({
+                    id: b.id,
+                    name: b.name,
+                    type: 'business',
+                    avatar: b.logo,
+                    has_portal_password: b.has_portal_password
+                }));
+                accounts.push(...businessAccounts);
+            }
+        } catch (err) {
+            console.log('Could not fetch businesses:', err);
+        }
+
         setAvailableAccounts(accounts);
 
         // Check if we should show account selection (on login with multiple accounts)
@@ -146,15 +164,8 @@ export const AuthProvider = ({ children }) => {
                         const freshProfileStatus = freshUser?.profile_completed !== false;
                         setProfileComplete(freshProfileStatus);
 
-                        // Redirect to profile setup if profile is incomplete
-                        if (!freshProfileStatus && !isExemptRoute()) {
-                            navigate(ROUTES.PROFILE_SETUP || '/profile-setup', {
-                                state: {
-                                    email: freshUser.email,
-                                    userType: freshUser.user_type,
-                                }
-                            });
-                        }
+                        // Profile completion check removed for standard logins
+                        // Social logins are handled by OAuthCallback.jsx
 
                         // Fetch available accounts for switching
                         await fetchAvailableAccounts(freshUser);
@@ -171,17 +182,8 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []); // Only run on mount
 
-    // Effect to handle profile completion redirects when route changes
-    useEffect(() => {
-        if (!loading && user && !profileComplete && !isExemptRoute()) {
-            navigate(ROUTES.PROFILE_SETUP || '/profile-setup', {
-                state: {
-                    email: user.email,
-                    userType: user.user_type,
-                }
-            });
-        }
-    }, [location.pathname, loading, user, profileComplete]);
+    // Effect to handle profile completion redirects when route changes has been removed
+    // to strictly enforce that ONLY social logins prompt for profile setup.
 
     // Heartbeat for activity status
     useEffect(() => {
@@ -208,61 +210,64 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, otpMethod, rememberMe = false) => {
         try {
-            const data = await authService.login(email, password, otpMethod);
+            const data = await authService.login(email, password, otpMethod, rememberMe);
 
             if (data.verification_required) {
-                navigate(ROUTES.VERIFY_EMAIL_OTP, { state: { email: data.email } });
+                navigate(ROUTES.VERIFY_EMAIL_OTP, { state: { email: data.email, rememberMe } });
                 return data;
             }
 
-            // Choose storage: persistent (localStorage) or session-only (sessionStorage)
-            const storage = rememberMe ? localStorage : sessionStorage;
-            localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
-
-            // If authService stored tokens in localStorage, move them to the correct storage
-            const accessToken = localStorage.getItem('access_token');
-            const refreshToken = localStorage.getItem('refresh_token');
-            if (!rememberMe && accessToken) {
-                sessionStorage.setItem('access_token', accessToken);
-                sessionStorage.setItem('refresh_token', refreshToken);
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-            }
-
-            const userData = data.user || authService.getStoredUser();
-            setUser(userData);
-
-            // Store user data in the chosen storage
-            storage.setItem('user', JSON.stringify(userData));
-
-            // NOTE: Initialize SpeechSynthesis in the context of the user's click event
-            // This bypasses browser auto-play policies that block the greeting on the next page
-            if (window.speechSynthesis) {
-                const initUtterance = new SpeechSynthesisUtterance('');
-                initUtterance.volume = 0;
-                window.speechSynthesis.speak(initUtterance);
-            }
-
-            setJustLoggedIn(true);
-
-            const isProfileComplete = userData?.profile_completed !== false;
-            setProfileComplete(isProfileComplete);
-
-            // Redirect based on profile completion
-            if (!isProfileComplete) {
-                navigate(ROUTES.PROFILE_SETUP || '/profile-setup', {
-                    state: { email: userData.email, userType: userData.user_type }
-                });
-            } else {
-                // Fetch accounts and check if we need to show selection
-                await fetchAvailableAccounts(userData, true);
-                navigate(ROUTES.DASHBOARD);
-            }
-
-            return data;
+            return await completeLogin(data, rememberMe);
         } catch (error) {
             throw error;
         }
+    };
+
+    const completeLogin = async (data, rememberMe = false) => {
+        // Choose storage: persistent (localStorage) or session-only (sessionStorage)
+        const storage = rememberMe ? localStorage : sessionStorage;
+        localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
+
+        // If authService stored tokens in localStorage by default from Axios interceptor, move them
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!rememberMe && accessToken) {
+            sessionStorage.setItem('access_token', accessToken);
+            sessionStorage.setItem('refresh_token', refreshToken);
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+        }
+
+        const userData = data.user || data;
+        setUser(userData);
+
+        // Store user data in the chosen storage
+        storage.setItem('user', JSON.stringify(userData));
+
+        // NOTE: Initialize SpeechSynthesis in the context of the user's click event
+        if (window.speechSynthesis) {
+            const initUtterance = new SpeechSynthesisUtterance('');
+            initUtterance.volume = 0;
+            window.speechSynthesis.speak(initUtterance);
+        }
+
+        setJustLoggedIn(true);
+
+        const isProfileComplete = userData?.profile_completed !== false;
+        setProfileComplete(isProfileComplete);
+
+        // Redirect based on onboarding completion
+        // Only show onboarding for brand-new registrations (next_step === 'profile_setup')
+        // Returning users (standard logins) always go straight to dashboard
+        if (data.next_step === 'profile_setup' && userData?.onboarding_completed === false) {
+            navigate(ROUTES.ONBOARDING || '/onboarding');
+        } else {
+            // Fetch accounts and check if we need to show selection
+            await fetchAvailableAccounts(userData, true);
+            navigate(ROUTES.DASHBOARD);
+        }
+
+        return data;
     };
 
     const register = async (userData) => {
@@ -306,13 +311,13 @@ export const AuthProvider = ({ children }) => {
     const completeProfile = async (profileData) => {
         try {
             // Call API to update profile
-            await authService.updateProfile?.({ ...profileData, profile_completed: true });
+            await authService.updateProfile?.({ ...profileData, profile_completed: true, onboarding_completed: true });
 
             // Update local state
-            updateUser({ ...profileData, profile_completed: true });
+            updateUser({ ...profileData, profile_completed: true, onboarding_completed: true });
             setProfileComplete(true);
 
-            // Navigate to dashboard
+            // Always go to dashboard after profile completion
             navigate(ROUTES.DASHBOARD);
         } catch (error) {
             console.error('Error completing profile:', error);
@@ -408,6 +413,7 @@ export const AuthProvider = ({ children }) => {
         profileComplete,
         updateUser,
         completeProfile,
+        completeLogin,
         // Account switching
         activeProfile,
         availableAccounts,

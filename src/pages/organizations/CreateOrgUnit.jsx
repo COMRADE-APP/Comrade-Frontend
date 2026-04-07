@@ -96,8 +96,8 @@ const CreateOrgUnit = ({ isOpen, onClose, organizationId, organizationName, onUn
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-violet-500/20 rounded-xl">
-                            <Building2 className="w-5 h-5 text-violet-400" />
+                        <div className="p-2 bg-primary-500/20 rounded-xl">
+                            <Building2 className="w-5 h-5 text-primary-400" />
                         </div>
                         <div>
                             <h2 className="text-xl font-semibold text-white">Add Unit</h2>
@@ -123,7 +123,7 @@ const CreateOrgUnit = ({ isOpen, onClose, organizationId, organizationName, onUn
                             value={unitType}
                             onChange={(e) => setUnitType(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 
-                                     text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent
+                                     text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent
                                      transition-all duration-200"
                         >
                             {unitTypes.map(type => (
@@ -190,8 +190,8 @@ const CreateOrgUnit = ({ isOpen, onClose, organizationId, organizationName, onUn
                         </Button>
                         <Button
                             type="submit"
-                            className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 
-                                     hover:from-violet-500 hover:to-purple-500"
+                            className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 
+                                     hover:from-primary-500 hover:to-primary-600"
                             disabled={loading}
                         >
                             {loading ? (

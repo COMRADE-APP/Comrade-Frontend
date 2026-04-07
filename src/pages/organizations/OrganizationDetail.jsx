@@ -683,7 +683,7 @@ const OrganizationDetail = () => {
                                                     </div>
                                                 </div>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                                                    role === 'admin' || role === 'creator' ? 'bg-violet-500/10 text-violet-500' :
+                                                    role === 'admin' || role === 'creator' ? 'bg-primary-500/10 text-primary-500' :
                                                     role === 'moderator' ? 'bg-blue-500/10 text-blue-500' :
                                                     role === 'staff' ? 'bg-green-500/10 text-green-500' :
                                                     'bg-secondary text-secondary'

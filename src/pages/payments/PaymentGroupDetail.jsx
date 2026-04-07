@@ -11,8 +11,12 @@ import {
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
+import { getGroupTier } from '../../utils/groupUtils';
+import { useAuth } from '../../contexts/AuthContext';
+import GroupDiscourse from '../../components/payments/GroupDiscourse';
 
 const PaymentGroupDetail = () => {
+    const { user } = useAuth();
     const { groupId } = useParams();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -450,6 +454,15 @@ const PaymentGroupDetail = () => {
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
                             <h1 className="text-2xl md:text-3xl font-bold text-white shadow-sm dropdown-shadow">{group.name}</h1>
+                            {(() => {
+                                const tier = getGroupTier(members.length);
+                                return (
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tier.color} border border-white/20 backdrop-blur-md shadow-sm flex items-center gap-1`}>
+                                        <span>{tier.emoji}</span>
+                                        <span>{tier.label}</span>
+                                    </span>
+                                );
+                            })()}
                             {groupStatus?.is_matured && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
                             )}
@@ -482,6 +495,15 @@ const PaymentGroupDetail = () => {
                         </button>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl md:text-3xl font-bold text-primary">{group.name}</h1>
+                            {(() => {
+                                const tier = getGroupTier(members.length);
+                                return (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${tier.color} flex items-center gap-1.5`}>
+                                        <span>{tier.emoji}</span>
+                                        <span>{tier.label}</span>
+                                    </span>
+                                );
+                            })()}
                             {groupStatus?.is_matured && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
                             )}
@@ -577,6 +599,7 @@ const PaymentGroupDetail = () => {
                     { id: 'contributions', label: 'Contributions', icon: History },
                     { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank },
                     { id: 'approvals', label: 'Approvals', icon: CheckCircle },
+                    { id: 'discourse', label: 'Discourse', icon: MessageCircle },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -622,7 +645,15 @@ const PaymentGroupDetail = () => {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-secondary">Tier</span>
-                                <span className="font-medium text-primary capitalize">{group.tier || 'Free'}</span>
+                                {(() => {
+                                    const tier = getGroupTier(members.length);
+                                    return (
+                                        <span className="font-medium text-primary flex items-center gap-1.5">
+                                            <span>{tier.emoji}</span>
+                                            <span>{tier.label}</span>
+                                        </span>
+                                    );
+                                })()}
                             </div>
                             {group.expiry_date && (
                                 <div className="flex justify-between">
@@ -665,6 +696,71 @@ const PaymentGroupDetail = () => {
                             )}
                         </CardBody>
                     </Card>
+
+                    {/* Pitches & Propositions */}
+                    {(group.investment_pitch || group.loan_proposition) && (
+                        <Card className="md:col-span-2">
+                            <CardHeader className="p-4 border-b border-theme">
+                                <h3 className="font-semibold text-primary">Propositions</h3>
+                            </CardHeader>
+                            <CardBody className="p-4 space-y-4 bg-tertiary/5">
+                                {group.investment_pitch && (
+                                    <div>
+                                        <h4 className="text-sm font-bold text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                            <Target className="w-4 h-4"/> Investment/Donation Pitch
+                                        </h4>
+                                        <p className="text-sm text-primary leading-relaxed whitespace-pre-wrap">{group.investment_pitch}</p>
+                                    </div>
+                                )}
+                                {group.loan_proposition && (
+                                    <div>
+                                        <h4 className="text-sm font-bold text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                            <Target className="w-4 h-4"/> Loan Proposition
+                                        </h4>
+                                        <p className="text-sm text-primary leading-relaxed whitespace-pre-wrap">{group.loan_proposition}</p>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    )}
+
+                    {/* Group Phases */}
+                    {group.phases && group.phases.length > 0 && (
+                        <Card className="md:col-span-2">
+                            <CardHeader className="p-4 border-b border-theme">
+                                <h3 className="font-semibold text-primary">Contribution Phases</h3>
+                            </CardHeader>
+                            <CardBody className="p-4 space-y-4">
+                                {group.phases.map((phase) => {
+                                    const pProgress = parseFloat(phase.target_amount) > 0 
+                                        ? Math.min(100, (parseFloat(group.current_amount || 0) / parseFloat(phase.target_amount)) * 100)
+                                        : 0;
+                                    return (
+                                        <div key={phase.id} className="p-4 border border-theme rounded-xl bg-elevated">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h4 className="font-bold text-primary">{phase.name}</h4>
+                                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">
+                                                    {phase.proportion}% of Total
+                                                </span>
+                                            </div>
+                                            {phase.description && <p className="text-sm text-secondary mb-3">{phase.description}</p>}
+                                            <div className="flex justify-between items-end mb-1">
+                                                <span className="text-lg font-bold text-primary">${parseFloat(phase.target_amount || 0).toFixed(2)} Target</span>
+                                                <span className="text-sm font-medium text-primary-600">{pProgress.toFixed(1)}%</span>
+                                            </div>
+                                            <div className="h-2 bg-secondary/20 rounded-full overflow-hidden">
+                                                <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: `${pProgress}%` }} />
+                                            </div>
+                                            <div className="flex justify-between mt-2 text-[10px] text-tertiary">
+                                                <span>{phase.start_date ? formatDate(phase.start_date) : 'Start'}</span>
+                                                <span>{phase.end_date ? formatDate(phase.end_date) : 'End'}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </CardBody>
+                        </Card>
+                    )}
                 </div>
             )}
 
@@ -919,6 +1015,18 @@ const PaymentGroupDetail = () => {
                     </Card>
                 )
             }
+
+            {/* Discourse Tab */}
+            {activeTab === 'discourse' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <GroupDiscourse 
+                        groupId={groupId} 
+                        isAdmin={members.some(m => 
+                            (m.user === user?.id || m.payment_profile?.user?.id === user?.id) && m.is_admin
+                        )} 
+                    />
+                </div>
+            )}
 
             {/* Invite Modal */}
             {
@@ -1294,7 +1402,7 @@ const PaymentGroupDetail = () => {
                                     <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
                                         onClick={() => navigate('/opinions', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                                        <div className="w-10 h-10 rounded-full bg-primary-200 flex items-center justify-center text-primary-700">
                                             <Megaphone className="w-5 h-5" />
                                         </div>
                                         <span className="text-sm font-medium text-primary">Attach to Opinion</span>

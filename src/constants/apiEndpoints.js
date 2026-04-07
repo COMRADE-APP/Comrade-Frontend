@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     LOGIN_VERIFY: `${API_BASE_URL}/auth/login-verify/`,
     RESEND_OTP: `${API_BASE_URL}/auth/resend-otp/`,
     LOGOUT: `${API_BASE_URL}/auth/logout/`,
+    LOGOUT_ALL: `${API_BASE_URL}/auth/logout-all/`,
     REGISTER: `${API_BASE_URL}/auth/register/`,
     REGISTER_VERIFY: `${API_BASE_URL}/auth/register-verify/`,
     VERIFY_EMAIL: `${API_BASE_URL}/auth/verify/`, // Initial email verification link (GET)
@@ -209,6 +210,13 @@ export const API_ENDPOINTS = {
     GROUP_VOTES: `${API_BASE_URL}/api/payments/group-votes/`,
     GROUP_VOTE_BY_GROUP: (id) => `${API_BASE_URL}/api/payments/group-votes/by_group/?group_id=${id}`,
     GROUP_VOTE_CAST: (id) => `${API_BASE_URL}/api/payments/group-votes/${id}/cast_vote/`,
+
+    // Group Discourse Posts & Phases
+    GROUP_POSTS: `${API_BASE_URL}/api/payments/group-posts/`,
+    GROUP_POST_REPLIES: `${API_BASE_URL}/api/payments/group-post-replies/`,
+    GROUP_POST_REACT: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/react/`,
+    GROUP_POST_PIN: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/pin/`,
+    GROUP_PHASES: `${API_BASE_URL}/api/payments/group-phases/`,
     
     // Group Portfolio
     GROUP_PORTFOLIO: (id) => `${API_BASE_URL}/api/payments/group-portfolio/${id}/`,
@@ -217,10 +225,39 @@ export const API_ENDPOINTS = {
     SPECIALIZATIONS: `${API_BASE_URL}/api/specializations/specializations/`,
     SPECIALIZATION_DETAIL: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/`,
     SPECIALIZATION_JOIN: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/join/`,
+    SPECIALIZATION_ENROLL: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/enroll/`,
+    SPECIALIZATION_PROGRESS: (id) => `${API_BASE_URL}/api/specializations/specializations/${id}/progress/`,
+    MY_ENROLLMENTS: `${API_BASE_URL}/api/specializations/specializations/my_enrollments/`,
     STACKS: `${API_BASE_URL}/api/specializations/stacks/`,
     STACK_DETAIL: (id) => `${API_BASE_URL}/api/specializations/stacks/${id}/`,
-    STACK_COMPLETE: (id) => `${API_BASE_URL}/api/specializations/stacks/${id}/complete/`,
+    STACK_COMPLETE: (id) => `${API_BASE_URL}/api/specializations/stacks/${id}/mark_as_complete/`,
+
+    // Lessons
+    LESSONS: `${API_BASE_URL}/api/specializations/lessons/`,
+    LESSON_DETAIL: (id) => `${API_BASE_URL}/api/specializations/lessons/${id}/`,
+    LESSON_COMPLETE: (id) => `${API_BASE_URL}/api/specializations/lessons/${id}/complete/`,
+
+    // Quizzes
+    QUIZZES: `${API_BASE_URL}/api/specializations/quizzes/`,
+    QUIZ_DETAIL: (id) => `${API_BASE_URL}/api/specializations/quizzes/${id}/`,
+    QUIZ_SUBMIT: (id) => `${API_BASE_URL}/api/specializations/quizzes/${id}/submit_attempt/`,
+    QUIZ_MY_ATTEMPTS: (id) => `${API_BASE_URL}/api/specializations/quizzes/${id}/my_attempts/`,
+    QUIZ_QUESTIONS: `${API_BASE_URL}/api/specializations/quiz-questions/`,
+
+    // Enrollments
+    ENROLLMENTS: `${API_BASE_URL}/api/specializations/enrollments/`,
+    ENROLLMENT_DETAIL: (id) => `${API_BASE_URL}/api/specializations/enrollments/${id}/`,
+    ENROLLMENT_DROP: (id) => `${API_BASE_URL}/api/specializations/enrollments/${id}/drop/`,
+    ENROLLMENT_UNLOCK: (id) => `${API_BASE_URL}/api/specializations/enrollments/${id}/unlock/`,
+
+    // Progress
+    LEARNER_PROGRESS: `${API_BASE_URL}/api/specializations/progress/`,
+
+    // Certificates
     CERTIFICATES: `${API_BASE_URL}/api/specializations/certificates/`,
+    ISSUED_CERTIFICATES: `${API_BASE_URL}/api/specializations/issued_certificates/`,
+    VERIFY_CERTIFICATE: `${API_BASE_URL}/api/specializations/issued_certificates/verify/`,
+
 
     // Shop & Products
     PRODUCTS: `${API_BASE_URL}/api/payments/products/`,
@@ -231,6 +268,16 @@ export const API_ENDPOINTS = {
     GROUP_TARGETS: `${API_BASE_URL}/api/payments/targets/`,
     GROUP_TARGET_DETAIL: (id) => `${API_BASE_URL}/api/payments/targets/${id}/`,
     CONTRIBUTE_TARGET: (id) => `${API_BASE_URL}/api/payments/targets/${id}/contribute/`,
+
+    // Donations & Charity
+    DONATIONS: `${API_BASE_URL}/api/payments/donations/`,
+    DONATION_DETAIL: (id) => `${API_BASE_URL}/api/payments/donations/${id}/`,
+    CONTRIBUTE_DONATION: (id) => `${API_BASE_URL}/api/payments/donations/${id}/contribute/`,
+
+    // Group Investments
+    GROUP_INVESTMENTS: `${API_BASE_URL}/api/payments/group-investments/`,
+    GROUP_INVESTMENT_DETAIL: (id) => `${API_BASE_URL}/api/payments/group-investments/${id}/`,
+    QUOTE_INVESTMENT: (id) => `${API_BASE_URL}/api/payments/group-investments/${id}/quote/`,
 
     // Subscriptions
     User_SUBSCRIPTIONS: `${API_BASE_URL}/api/payments/subscriptions/`,

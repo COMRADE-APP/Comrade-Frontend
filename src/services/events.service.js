@@ -24,6 +24,13 @@ const eventsService = {
     },
 
     /**
+     * Get user's created events
+     */
+    getMyEvents: () => {
+        return api.get(`${BASE_URL}/event/my_events/`);
+    },
+
+    /**
      * Create new event
      */
     createEvent: (eventData) => {

@@ -181,7 +181,7 @@ const AnnouncementCard = ({ announcement }) => {
                 <div className="flex items-start justify-between">
                     <div className="flex gap-4">
                         <div
-                            className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white shrink-0 overflow-hidden cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (announcement.user?.id) navigate(`/profile/${announcement.user.id}`);

@@ -11,7 +11,7 @@ import Button from '../../components/common/Button';
 const STATUS_CONFIG = {
     pending: { label: 'Pending', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Clock },
     confirmed: { label: 'Confirmed', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: CheckCircle },
-    in_progress: { label: 'In Progress', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20', icon: RefreshCw },
+    in_progress: { label: 'In Progress', color: 'bg-primary-600/10 text-primary-700 border-primary-600/20', icon: RefreshCw },
     completed: { label: 'Completed', color: 'bg-green-500/10 text-green-600 border-green-500/20', icon: CheckCircle },
     cancelled: { label: 'Cancelled', color: 'bg-red-500/10 text-red-600 border-red-500/20', icon: XCircle },
     ready_for_pickup: { label: 'Ready for Pickup', color: 'bg-teal-500/10 text-teal-600 border-teal-500/20', icon: Package },
@@ -145,7 +145,7 @@ const Orders = () => {
                                                         {statusCfg.label}
                                                     </span>
                                                     {order.payment_type === 'group' && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-600 border border-purple-500/20 ml-2" title={order.group_name || 'Group Payment'}>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-primary-600/10 text-primary-700 border border-primary-600/20 ml-2" title={order.group_name || 'Group Payment'}>
                                                             <Wallet size={12} /> {order.group_name ? `${order.group_name}` : 'Group Payment'}
                                                         </span>
                                                     )}

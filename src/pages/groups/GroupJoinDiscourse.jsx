@@ -28,6 +28,7 @@ const GroupJoinDiscourse = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('discover'); // discover, recommended, my_requests, approvals
+    const [filterType, setFilterType] = useState('all'); // all, standard, piggy_bank
     
     // Modal State
     const [requestModalOpen, setRequestModalOpen] = useState(false);
@@ -136,17 +137,22 @@ const GroupJoinDiscourse = () => {
         
         const isGain = parseFloat(avgReturn) > 5;
         const sparklineData = generateMockSparklineData(isGain);
-        const sparkColor = isGain ? '#10b981' : '#f59e0b';
+        const sparkColor = group.accent_color || (isGain ? '#10b981' : '#f59e0b');
+        const accent = group.accent_color || 'var(--color-primary)';
 
         return (
-            <div onClick={() => navigate(`/groups/profile/${group.id}`)} className={`relative overflow-hidden group bg-elevated border transition-all duration-300 rounded-2xl flex flex-col h-full hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isRecommended ? 'border-amber-400/50 shadow-amber-500/10' : 'border-theme hover:border-primary-500'}`}>
+            <div 
+                onClick={() => navigate(`/groups/profile/${group.id}`)} 
+                className={`relative overflow-hidden group bg-elevated border transition-all duration-300 rounded-2xl flex flex-col h-full hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isRecommended ? 'border-amber-400/50 shadow-amber-500/10' : 'border-theme hover:shadow-primary-500/10'}`}
+                style={{ borderTop: `4px solid ${accent}` }}
+            >
                 {isRecommended && (
                     <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 z-10" />
                 )}
                 <div className="p-5 flex-grow flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                         <div className="pr-4">
-                            <h3 className="font-bold text-lg text-primary leading-tight mb-1">{group.name}</h3>
+                            <h3 className="font-bold text-lg leading-tight mb-1" style={{ color: accent }}>{group.name}</h3>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-theme">
                                     {group.group_type || 'Standard Phase'}
@@ -228,10 +234,12 @@ const GroupJoinDiscourse = () => {
         );
     };
 
-    const filteredGroups = Array.isArray(publicGroups) ? publicGroups.filter(g => 
-        g.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        g.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) : [];
+    const filteredGroups = Array.isArray(publicGroups) ? publicGroups.filter(g => {
+        const matchesSearch = g.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            g.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'all' || g.group_type === filterType;
+        return matchesSearch && matchesType;
+    }) : [];
 
     if (loading) return <div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
 
@@ -241,7 +249,7 @@ const GroupJoinDiscourse = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-theme pb-6">
                 <div>
                     <h2 className="text-2xl font-bold text-primary mb-2 flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-purple-600" />
+                        <Shield className="w-6 h-6 text-primary-700" />
                         Group Discourse
                     </h2>
                     <p className="text-secondary max-w-xl">
@@ -282,15 +290,32 @@ const GroupJoinDiscourse = () => {
             {/* 1. DISCOVER */}
             {activeTab === 'discover' && (
                 <div className="space-y-6">
-                    <div className="relative max-w-xl">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
-                        <input
-                            type="text"
-                            placeholder="Search portfolios by name, keyword, or asset class..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-elevated border border-theme rounded-2xl text-primary font-medium outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm transition-all"
-                        />
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
+                            <input
+                                type="text"
+                                placeholder="Search portfolios by name, keyword, or asset class..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-elevated border border-theme rounded-2xl text-primary font-medium outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm transition-all"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            {['all', 'standard', 'piggy_bank'].map(type => (
+                                <button
+                                    key={type}
+                                    onClick={() => setFilterType(type)}
+                                    className={`px-4 py-2 text-sm font-semibold rounded-xl border transition-colors ${
+                                        filterType === type 
+                                            ? 'bg-primary border-primary text-white' 
+                                            : 'bg-elevated border-theme text-secondary hover:bg-secondary/10'
+                                    }`}
+                                >
+                                    {type === 'all' ? 'All Types' : type === 'standard' ? 'Groups' : 'Piggy Banks'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     
                     {filteredGroups.length === 0 ? (
@@ -418,7 +443,7 @@ const GroupJoinDiscourse = () => {
                                             {/* Left side: Requester Info */}
                                             <div className="p-6 md:w-1/3 bg-secondary/5">
                                                 <div className="flex items-center gap-3 mb-4">
-                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-inner">
+                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-600 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-inner">
                                                         {(req.requester_name || req.requester || 'U')[0].toUpperCase()}
                                                     </div>
                                                     <div>

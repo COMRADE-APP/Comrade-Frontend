@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ShoppingBag, CreditCard, Users } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
@@ -118,20 +119,63 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-base">
-            <div className="w-full max-w-md">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-primary mb-2">Create your account</h2>
-                    <p className="text-secondary">Join Qomrade and start collaborating</p>
-                </div>
-
-                {generalError && (
-                    <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                        {generalError}
+        <div className="h-[100svh] w-full flex overflow-hidden bg-base">
+            {/* Left Side - Branding */}
+            <div className="hidden lg:flex lg:w-1/2 relative bg-primary-900 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-700/90 via-primary-800/90 to-primary-900 flex flex-col justify-between" />
+                <img src="/qomrade_growth_emblem.png" alt="Platform" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-110" />
+                
+                <div className="relative z-10 p-12 xl:p-16 flex flex-col h-full text-white w-full">
+                    <div className="flex flex-col gap-3">
+                        <img src="/qomrade_svg.svg" alt="Qomrade Logo" className="w-14 h-14 object-contain drop-shadow-lg" />
+                        <h1 className="text-4xl xl:text-5xl font-extrabold mt-4 tracking-tight">Join <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-100">Qomrade</span> Today</h1>
+                        <p className="text-lg opacity-90 max-w-md font-medium mt-2">Become part of the most comprehensive platform for finance, marketplace, and community.</p>
                     </div>
-                )}
+                    <div className="space-y-8 mt-16 mb-auto">
+                        <div className="flex items-start gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-xl border border-white/20 shrink-0"><ShoppingBag size={24} /></div>
+                            <div>
+                                <h3 className="text-lg font-bold mb-1">Unified Marketplace</h3>
+                                <p className="text-sm text-primary-100 max-w-sm leading-relaxed">Shop globally, order from local restaurants, and book professional services seamlessly.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-xl border border-white/20 shrink-0"><CreditCard size={24} /></div>
+                            <div>
+                                <h3 className="text-lg font-bold mb-1">Group Financial Services</h3>
+                                <p className="text-sm text-primary-100 max-w-sm leading-relaxed">Pool funds, manage group kitties, split bills, and handle escrow transactions seamlessly.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white shadow-xl border border-white/20 shrink-0"><Users size={24} /></div>
+                            <div>
+                                <h3 className="text-lg font-bold mb-1">Thriving Community</h3>
+                                <p className="text-sm text-primary-100 max-w-sm leading-relaxed">Connect with peers, organize events, find opportunities, and grow your network.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-xs text-primary-200/60 font-medium">
+                        &copy; {new Date().getFullYear()} Qomrade. All rights reserved.
+                    </div>
+                </div>
+            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Right Side - Register Form */}
+            <div className="flex-1 overflow-y-auto bg-base w-full lg:w-1/2 relative">
+                <div className="min-h-full flex flex-col p-4 sm:p-8">
+                    <div className="w-full max-w-md mx-auto my-auto py-4">
+                        <div className="text-center mb-6">
+                            <h2 className="text-3xl font-bold text-primary mb-2">Create your account</h2>
+                            <p className="text-secondary font-medium text-sm">Join Qomrade and start connecting</p>
+                        </div>
+
+                        {generalError && (
+                            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 font-medium text-sm">
+                                {generalError}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Input
                             label="First Name"
@@ -240,18 +284,20 @@ const Register = () => {
                         type="submit"
                         variant="primary"
                         disabled={loading}
-                        className="w-full"
+                        className="w-full text-base py-3 mt-2"
                     >
                         {loading ? 'Creating account...' : 'Create account'}
                     </Button>
                 </form>
 
-                <p className="mt-8 text-center text-sm text-secondary">
+                <p className="mt-6 text-center text-sm font-medium text-secondary">
                     Already have an account?{' '}
-                    <Link to={ROUTES.LOGIN} className="text-primary-600 hover:text-primary-700 font-medium">
+                    <Link to={ROUTES.LOGIN} className="text-primary-600 font-bold hover:text-primary-700">
                         Sign in
                     </Link>
                 </p>
+                    </div>
+                </div>
             </div>
         </div>
     );

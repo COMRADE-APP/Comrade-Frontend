@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import eventsService from '../../services/events.service';
 
-const EventActions = ({ event, onUpdate, onOpenReminders }) => {
+const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => {
     const [showShareMenu, setShowShareMenu] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [userReaction, setUserReaction] = useState(event?.user_reaction || null);
@@ -129,6 +129,36 @@ const EventActions = ({ event, onUpdate, onOpenReminders }) => {
         }
     };
 
+    if (compact) {
+        return (
+            <div className="flex items-center gap-1 pt-2 border-t border-theme/20">
+                {reactions.map(({ type, icon: Icon, label, color, activeBg }) => (
+                    <button
+                        key={type}
+                        onClick={(e) => handleReaction(type, e)}
+                        className={`flex items-center gap-0.5 px-2 py-1 rounded-md transition-all text-xs ${userReaction === type
+                            ? `${color} ${activeBg}`
+                            : 'text-tertiary hover:bg-secondary/40'
+                            }`}
+                        title={label}
+                    >
+                        <Icon className={`w-3.5 h-3.5 ${userReaction === type ? 'fill-current' : ''}`} />
+                    </button>
+                ))}
+                <button
+                    onClick={handleInterested}
+                    className={`ml-auto flex items-center gap-0.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${isInterested
+                        ? 'bg-primary-600 text-white'
+                        : 'text-tertiary hover:bg-secondary/40'
+                        }`}
+                >
+                    <Star className={`w-3.5 h-3.5 ${isInterested ? 'fill-current' : ''}`} />
+                    <span className="hidden sm:inline">Interested</span>
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center justify-between py-3 border-t border-b border-theme/30">
             {/* Reactions */}
@@ -187,7 +217,7 @@ const EventActions = ({ event, onUpdate, onOpenReminders }) => {
                         <div className="absolute right-0 mt-2 w-48 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-10">
                             <button
                                 onClick={() => handleShare('facebook')}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
                                 <Facebook className="w-4 h-4 text-blue-600" />
                                 <span>Facebook</span>
@@ -227,7 +257,7 @@ const EventActions = ({ event, onUpdate, onOpenReminders }) => {
                     </button>
 
                     {showMoreMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-10">
                             <button
                                 onClick={handleReport}
                                 className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2 text-orange-500"

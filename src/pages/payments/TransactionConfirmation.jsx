@@ -29,7 +29,7 @@ const TYPE_COLORS = {
     deposit: 'from-green-500 to-emerald-600',
     withdraw: 'from-orange-500 to-amber-600',
     send: 'from-blue-500 to-indigo-600',
-    checkout: 'from-purple-500 to-violet-600',
+    checkout: 'from-primary-600 to-primary-600',
 };
 
 const TransactionConfirmation = () => {
@@ -57,7 +57,7 @@ const TransactionConfirmation = () => {
 
     const TypeIcon = TYPE_ICONS[type] || ShoppingBag;
     const MethodIcon = METHOD_ICONS[selectedMethod?.method_type] || CreditCard;
-    const gradient = TYPE_COLORS[type] || 'from-purple-500 to-violet-600';
+    const gradient = TYPE_COLORS[type] || 'from-primary-600 to-primary-600';
 
     const getMethodDisplayName = () => {
         if (selectedMethod?.method_type === 'comrade_balance') return 'Qomrade Balance';
@@ -186,7 +186,7 @@ const TransactionConfirmation = () => {
                                 <DetailRow
                                     label="Payment Method"
                                     value={getMethodDisplayName()}
-                                    icon={<MethodIcon className="w-4 h-4 text-purple-500" />}
+                                    icon={<MethodIcon className="w-4 h-4 text-primary-600" />}
                                 />
                                 {type === 'send' && recipient && (
                                     <DetailRow label="Recipient" value={recipient} />
@@ -221,7 +221,7 @@ const TransactionConfirmation = () => {
                     {/* CTA */}
                     <Button
                         variant="primary"
-                        className="w-full py-4 text-base bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-500/20 rounded-2xl font-semibold"
+                        className="w-full py-4 text-base bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 shadow-lg shadow-primary-600/20 rounded-2xl font-semibold"
                         onClick={handleConfirm}
                     >
                         {config.confirmLabel}
@@ -237,8 +237,8 @@ const TransactionConfirmation = () => {
             {/* ─── Processing Step ─────────────────────────────────── */}
             {step === 'processing' && (
                 <div className="text-center py-20 space-y-6">
-                    <div className="w-20 h-20 mx-auto rounded-full bg-purple-500/10 flex items-center justify-center">
-                        <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                    <div className="w-20 h-20 mx-auto rounded-full bg-primary-600/10 flex items-center justify-center">
+                        <Loader2 className="w-10 h-10 text-primary-700 animate-spin" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-primary">Processing Transaction</h2>
@@ -249,7 +249,7 @@ const TransactionConfirmation = () => {
                             {[0, 1, 2].map(i => (
                                 <div
                                     key={i}
-                                    className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+                                    className="w-2 h-2 rounded-full bg-primary-600 animate-bounce"
                                     style={{ animationDelay: `${i * 0.15}s` }}
                                 />
                             ))}
@@ -313,7 +313,7 @@ const TransactionConfirmation = () => {
                         </Button>
                         <Button
                             variant="primary"
-                            className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600"
+                            className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary-700 to-primary-600"
                             onClick={() => navigate('/')}
                         >
                             Done
@@ -344,7 +344,7 @@ const TransactionConfirmation = () => {
                         </Button>
                         <Button
                             variant="primary"
-                            className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600"
+                            className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-primary-700 to-primary-600"
                             onClick={() => navigate(-2)}
                         >
                             Try Again

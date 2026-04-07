@@ -43,7 +43,7 @@ const OpinionCard = ({
     const getUserTypeBadge = (userType) => {
         const badges = {
             student: { label: 'Student', color: 'bg-blue-100 text-blue-700' },
-            staff: { label: 'Staff', color: 'bg-purple-100 text-purple-700' },
+            staff: { label: 'Staff', color: 'bg-primary-200 text-primary-800' },
             org_staff: { label: 'Org Staff', color: 'bg-green-100 text-green-700' },
             org_admin: { label: 'Org Admin', color: 'bg-emerald-100 text-emerald-700' },
             inst_admin: { label: 'Inst Admin', color: 'bg-orange-100 text-orange-700' },
@@ -213,7 +213,7 @@ const OpinionCard = ({
                         </Link>
                     ) : (
                         <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                                 {opinion.user?.avatar_url ? (
                                     <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -240,7 +240,7 @@ const OpinionCard = ({
                                                 </svg>
                                             </span>
                                         </Link>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full ${entityAuthor.type === 'organisation' ? 'bg-blue-100 text-blue-700' : entityAuthor.type === 'establishment' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${entityAuthor.type === 'organisation' ? 'bg-blue-100 text-blue-700' : entityAuthor.type === 'establishment' ? 'bg-green-100 text-green-700' : 'bg-primary-200 text-primary-800'}`}>
                                             {entityAuthor.type === 'organisation' ? 'Organization' : entityAuthor.type === 'establishment' ? 'Shop' : 'Institution'}
                                         </span>
                                     </>
@@ -395,7 +395,7 @@ const OpinionCard = ({
                         {opinion.quoted_opinion && (
                             <Link to={`/opinions/${opinion.quoted_opinion.id}`} className="block mt-3 p-3 border border-theme rounded-xl hover:bg-secondary/30 transition-colors">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold overflow-hidden flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden flex-shrink-0">
                                         {opinion.quoted_opinion.user?.avatar_url ? (
                                             <img src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                         ) : (
@@ -459,7 +459,7 @@ const OpinionCard = ({
                             {onQuote && (
                                 <button
                                     onClick={() => onQuote(opinion)}
-                                    className="p-2 text-secondary hover:text-purple-500 hover:bg-purple-500/10 rounded-full transition-colors"
+                                    className="p-2 text-secondary hover:text-primary-600 hover:bg-primary-600/10 rounded-full transition-colors"
                                     title="Quote this opinion"
                                 >
                                     <Quote className="w-5 h-5" />

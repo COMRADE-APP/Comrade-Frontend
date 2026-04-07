@@ -108,7 +108,7 @@ const NotificationBell = () => {
                             {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
-                                    className="text-sm text-purple-600 hover:text-purple-700"
+                                    className="text-sm text-primary-700 hover:text-primary-800"
                                 >
                                     Mark all read
                                 </button>
@@ -129,7 +129,7 @@ const NotificationBell = () => {
                                     <div
                                         key={notification.id}
                                         onClick={() => !notification.is_read && markAsRead(notification.id)}
-                                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-purple-50/50' : ''}`}
+                                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-primary-150/50' : ''}`}
                                     >
                                         <div className="flex gap-3">
                                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">
@@ -155,7 +155,7 @@ const NotificationBell = () => {
                                                 </p>
                                             </div>
                                             {!notification.is_read && (
-                                                <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0 mt-2" />
+                                                <div className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0 mt-2" />
                                             )}
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@ const NotificationBell = () => {
                         <Link
                             to="/notifications"
                             onClick={() => setIsOpen(false)}
-                            className="block p-3 text-center text-sm text-purple-600 hover:bg-gray-50 border-t border-gray-100"
+                            className="block p-3 text-center text-sm text-primary-700 hover:bg-gray-50 border-t border-gray-100"
                         >
                             View all notifications
                         </Link>

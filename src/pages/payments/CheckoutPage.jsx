@@ -99,7 +99,16 @@ const CheckoutPage = () => {
                     return;
                 }
             } else {
-                await paymentsService.processCheckout(payload);
+                const donationItem = cartItems.find(item => item.type === 'donation');
+                const investItem = cartItems.find(item => item.type === 'investment_quote');
+                
+                if (donationItem) {
+                    await paymentsService.contributeToDonation(donationItem.id, totalAmount);
+                } else if (investItem) {
+                    await paymentsService.quoteGroupInvestment(investItem.id, totalAmount);
+                } else {
+                    await paymentsService.processCheckout(payload);
+                }
             }
 
             setSuccess(true);

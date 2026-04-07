@@ -4,7 +4,7 @@ import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
-    Sparkles, X, User
+    Sparkles, X, User, Heart, PieChart, PiggyBank
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -37,6 +37,9 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: GraduationCap },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
+        { path: ROUTES.PIGGY_BANKS, label: 'Piggy Banks', icon: PiggyBank },
+        { path: ROUTES.DONATIONS, label: 'Donations', icon: Heart },
+        { path: ROUTES.GROUP_INVESTMENTS, label: 'Group Investments', icon: PieChart },
         { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
         { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
@@ -81,8 +84,8 @@ const MobileDrawer = ({ isOpen, onClose }) => {
             >
                 {/* Header */}
                 <div className="p-4 flex items-center justify-between border-b border-theme">
-                    <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
-                        <Zap className="w-6 h-6" />
+                    <div className="flex items-center gap-2 text-primary-700 font-bold text-xl">
+                        <img src="/qomrade_svg.svg" alt="Qomrade Logo" className="w-8 h-8 flex-shrink-0 object-contain" />
                         Qomrade
                     </div>
                     <button

@@ -8,12 +8,13 @@ import authService from '../../services/auth.service';
 const VerifySMS = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { completeLogin } = useAuth();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     // Get email and phone info from router state
-    const { email, phone_last_4 } = location.state || {};
+    const { email, phone_last_4, rememberMe } = location.state || {};
 
     useEffect(() => {
         if (!email) {
@@ -27,9 +28,8 @@ const VerifySMS = () => {
         setLoading(true);
 
         try {
-            await authService.verifySMSOTP(email, otp);
-            // Login success
-            window.location.href = ROUTES.DASHBOARD;
+            const response = await authService.verifySMSOTP(email, otp, rememberMe);
+            await completeLogin(response, rememberMe);
         } catch (err) {
             setError(err.response?.data?.detail || 'Verification failed. Invalid SMS code.');
         } finally {

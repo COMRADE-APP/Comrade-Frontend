@@ -162,7 +162,7 @@ export default function InventoryManager() {
                                         <input
                                             type="text"
                                             placeholder="e.g. PRD-8234"
-                                            className="w-full bg-secondary/10 border border-theme rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                            className="w-full bg-secondary/10 border border-theme rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                             value={row.sku}
                                             onChange={(e) => handleManualChange(idx, 'sku', e.target.value)}
                                         />
@@ -172,7 +172,7 @@ export default function InventoryManager() {
                                             type="number"
                                             placeholder="0"
                                             min="0"
-                                            className="w-full bg-secondary/10 border border-theme rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                            className="w-full bg-secondary/10 border border-theme rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
                                             value={row.stock_quantity}
                                             onChange={(e) => handleManualChange(idx, 'stock_quantity', e.target.value)}
                                         />

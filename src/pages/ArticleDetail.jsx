@@ -132,7 +132,7 @@ const ArticleDetail = () => {
     const tierConfig = {
         free: { label: 'Free', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: null },
         standard: { label: 'Standard', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: Shield },
-        premium: { label: 'Premium', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', icon: Crown },
+        premium: { label: 'Premium', color: 'bg-primary-600/10 text-primary-600 border-primary-600/20', icon: Crown },
         gold: { label: 'Gold', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Crown },
     };
     const accessTier = article.access_tier || 'free';

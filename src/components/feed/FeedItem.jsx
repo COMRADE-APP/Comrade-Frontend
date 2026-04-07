@@ -118,7 +118,7 @@ const FeedItem = ({
     // Category badge color mapping
     const categoryColors = {
         opinion: 'bg-blue-100 text-blue-800',
-        research: 'bg-purple-100 text-purple-800',
+        research: 'bg-primary-200 text-primary-900',
         article: 'bg-indigo-100 text-indigo-800',
         announcement: 'bg-yellow-100 text-yellow-800',
         product: 'bg-green-100 text-green-800',
@@ -166,7 +166,7 @@ const FeedItem = ({
                 <div className="flex items-start gap-3">
                     {/* Avatar – use entity avatar when available */}
                     <Link to={item.entity_author ? `/${item.entity_author.type}s/${item.entity_author.id}` : `/profile/${item.user?.id || item.creator?.id}`}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-blue-500 flex items-center justify-center text-white font-medium overflow-hidden">
                             {item.entity_author?.avatar ? (
                                 <img
                                     src={item.entity_author.avatar}
@@ -197,7 +197,7 @@ const FeedItem = ({
                                         {item.entity_author.name}
                                     </Link>
                                     {item.entity_author.poster_role_display && (
-                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-200 text-primary-800 dark:bg-primary-900/40 dark:text-primary-400">
                                             {item.entity_author.poster_role_display.icon} {item.entity_author.poster_role_display.label}
                                         </span>
                                     )}
@@ -220,7 +220,7 @@ const FeedItem = ({
                             {item.user?.is_following === false && onFollow && (
                                 <button
                                     onClick={() => onFollow(item.user?.id)}
-                                    className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                                    className="text-xs text-primary-700 hover:text-primary-800 font-medium flex items-center gap-1"
                                 >
                                     <UserPlus size={12} />
                                     Follow
@@ -404,7 +404,7 @@ const FeedItem = ({
                     </button>
 
                     {/* Quote */}
-                    <button className="hover:text-purple-500 transition-colors">
+                    <button className="hover:text-primary-600 transition-colors">
                         <Quote size={18} />
                     </button>
 
@@ -431,7 +431,7 @@ const FeedItem = ({
                 <div className="mt-4">
                     <Link
                         to={item.action_url}
-                        className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium text-sm"
+                        className="inline-flex items-center gap-2 text-primary-700 hover:text-primary-800 font-medium text-sm"
                     >
                         View {categoryLabel}
                         <ExternalLink size={14} />
@@ -460,7 +460,7 @@ const FeedItem = ({
                                         onClick={() => setShowRepostersModal(false)}
                                         className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors"
                                     >
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                                             {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.first_name?.[0] || 'U').toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">

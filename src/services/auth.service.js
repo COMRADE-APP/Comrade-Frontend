@@ -32,27 +32,18 @@ const authService = {
         return response.data;
     },
 
-    verifyLoginOTP: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.LOGIN_VERIFY, { email, otp });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
+    verifyLoginOTP: async (email, otp, remember_me = false) => {
+        const response = await api.post(API_ENDPOINTS.LOGIN_VERIFY, { email, otp, remember_me });
         return response.data;
     },
 
-    verify2FA: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.VERIFY_2FA, { email, otp });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
+    verify2FA: async (email, otp, remember_me = false) => {
+        const response = await api.post(API_ENDPOINTS.VERIFY_2FA, { email, otp, remember_me });
         return response.data;
     },
 
-    verifySMSOTP: async (email, otp) => {
-        const response = await api.post(API_ENDPOINTS.VERIFY_SMS_OTP, { email, otp });
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
+    verifySMSOTP: async (email, otp, remember_me = false) => {
+        const response = await api.post(API_ENDPOINTS.VERIFY_SMS_OTP, { email, otp, remember_me });
         return response.data;
     },
 
@@ -68,10 +59,6 @@ const authService = {
 
     verifyRegistrationOTP: async (email, otp) => {
         const response = await api.post(API_ENDPOINTS.REGISTER_VERIFY, { email, otp });
-        // Store tokens so user is logged in after verification
-        if (response.data.access_token) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-        }
         return response.data;
     },
 
@@ -85,6 +72,12 @@ const authService = {
             }
         }
         localStorage.removeItem('user');
+    },
+
+    logoutAllDevices: async () => {
+        const response = await api.post(API_ENDPOINTS.LOGOUT_ALL);
+        localStorage.removeItem('user');
+        return response.data;
     },
 
     getCurrentUser: async () => {

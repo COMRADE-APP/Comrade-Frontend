@@ -317,7 +317,7 @@ const LogisticsSection = ({ event, onUpdate }) => {
                             <div className="space-y-3">
                                 {research.map((item) => (
                                     <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                                        <FlaskConical className="w-8 h-8 text-purple-600" />
+                                        <FlaskConical className="w-8 h-8 text-primary-700" />
                                         <div className="flex-1">
                                             <p className="font-medium">{item.research_title}</p>
                                             <p className="text-sm text-gray-500">

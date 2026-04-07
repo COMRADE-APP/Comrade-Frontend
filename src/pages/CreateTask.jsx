@@ -317,10 +317,10 @@ const CreateTask = () => {
                     <h2 className="text-lg font-semibold text-primary mb-2">Basic Information</h2>
 
                     {/* Document Auto-fill */}
-                    <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl">
+                    <div className="p-4 bg-gradient-to-r from-primary-600/10 to-blue-500/10 border border-primary-600/20 rounded-xl">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                <Wand2 size={20} className="text-purple-400" />
+                            <div className="w-10 h-10 rounded-xl bg-primary-600/20 flex items-center justify-center">
+                                <Wand2 size={20} className="text-primary-500" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-medium text-primary">Auto-fill from Document</h3>
@@ -667,7 +667,7 @@ const CreateTask = () => {
                     <div className="p-4 bg-secondary/30 rounded-lg border border-theme/50 space-y-3">
                         <h4 className="font-medium text-primary">Display & Features</h4>
                         {[
-                            { key: 'record_video', label: 'Record video during task', icon: <Video size={16} className="text-purple-400" /> },
+                            { key: 'record_video', label: 'Record video during task', icon: <Video size={16} className="text-primary-500" /> },
                             { key: 'shuffle_questions', label: 'Shuffle question order', icon: <Shuffle size={16} className="text-teal-400" /> },
                             { key: 'show_results_immediately', label: 'Show results immediately', icon: <Eye size={16} className="text-green-400" /> },
                             { key: 'auto_save', label: 'Auto-save progress', icon: <ClipboardList size={16} className="text-blue-400" /> },
@@ -818,7 +818,7 @@ const CreateTask = () => {
                             {settings.timer_enabled && <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs">⏱ Timer: {settings.timer_duration}min</span>}
                             {settings.no_tab_leaving && <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 text-xs">🔒 No Tab Leaving</span>}
                             {settings.one_take && <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs">☝️ One Take</span>}
-                            {settings.record_video && <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs">📹 Video Recording</span>}
+                            {settings.record_video && <span className="px-3 py-1 rounded-full bg-primary-600/10 text-primary-500 text-xs">📹 Video Recording</span>}
                             {settings.shuffle_questions && <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs">🔀 Shuffle</span>}
                             {settings.auto_save && <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs">💾 Auto-Save</span>}
                             <span className="px-3 py-1 rounded-full bg-secondary text-secondary text-xs">📄 {settings.questions_per_page} per page</span>

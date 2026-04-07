@@ -216,7 +216,7 @@ const Loans = () => {
                                         { label: 'Repayment History', score: creditScore.repayment_score, color: 'bg-emerald-500' },
                                         { label: 'Savings Consistency', score: creditScore.savings_score, color: 'bg-blue-500' },
                                         { label: 'Transaction Volume', score: creditScore.transaction_score, color: 'bg-indigo-500' },
-                                        { label: 'Group Participation', score: creditScore.group_score, color: 'bg-purple-500' },
+                                        { label: 'Group Participation', score: creditScore.group_score, color: 'bg-primary-600' },
                                         { label: 'Platform Tenure', score: creditScore.tenure_score, color: 'bg-amber-500' },
                                     ].map((f, i) => (
                                         <div key={i} className="space-y-1">

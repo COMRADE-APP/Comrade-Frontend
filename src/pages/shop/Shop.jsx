@@ -83,12 +83,12 @@ const EstablishmentCard = ({ establishment, onClick }) => {
     const resolvedBanner = getImageUrl(banner) || getImageUrl(image_url) || getImageUrl(cover_image) || getImageUrl(image);
     const resolvedLogo = getImageUrl(logo) || getImageUrl(image_url) || getImageUrl(image);
     return (
-        <div className="group bg-elevated border border-theme rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700" onClick={onClick}>
+        <div className="group bg-elevated border border-theme rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-1 hover:border-primary-400 dark:hover:border-primary-800" onClick={onClick}>
             <div className="h-36 sm:h-40 lg:h-44 w-full bg-secondary/10 relative overflow-hidden shrink-0">
                 {resolvedBanner ? (
                     <img src={resolvedBanner} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 ) : null}
-                <div className="w-full h-full bg-gradient-to-br from-purple-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center" style={{ display: resolvedBanner ? 'none' : 'flex' }}>
+                <div className="w-full h-full bg-gradient-to-br from-primary-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center" style={{ display: resolvedBanner ? 'none' : 'flex' }}>
                     <Store className="text-tertiary opacity-30" size={48} />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -107,7 +107,7 @@ const EstablishmentCard = ({ establishment, onClick }) => {
             <div className="p-4 pt-8 flex flex-col flex-1">
                 <div className="mb-2">
                     <div className="flex justify-between items-start gap-2 mb-1">
-                        <h3 className="font-semibold text-lg text-primary leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors">
+                        <h3 className="font-semibold text-lg text-primary leading-tight line-clamp-1 group-hover:text-primary-700 transition-colors">
                             {name} {is_verified && <Check size={14} className="text-blue-500 inline ml-0.5" />}
                         </h3>
                     </div>
@@ -118,7 +118,7 @@ const EstablishmentCard = ({ establishment, onClick }) => {
                                     establishment_type === 'coffee_shop' ? 'bg-amber-600/10 text-amber-700' :
                                         establishment_type === 'supermarket' ? 'bg-emerald-500/10 text-emerald-600' :
                                             establishment_type === 'service_provider' ? 'bg-indigo-500/10 text-indigo-600 border border-indigo-200 dark:border-indigo-800' :
-                                                'bg-purple-500/10 text-purple-600'
+                                                'bg-primary-600/10 text-primary-700'
                             }`}>
                             {establishment_type_display || establishment_type}
                         </span>
@@ -156,7 +156,7 @@ const ProductCard = ({ product, onClick, onAddToCart, onBookNow }) => {
     const [justAdded, setJustAdded] = React.useState(false);
     const typeBadge = {
         service: 'bg-indigo-500/90 text-white',
-        digital: 'bg-purple-500/90 text-white',
+        digital: 'bg-primary-600/90 text-white',
         subscription: 'bg-amber-500/90 text-white',
         physical: 'bg-emerald-500/90 text-white',
         recommendation: 'bg-rose-500/90 text-white',
@@ -176,7 +176,7 @@ const ProductCard = ({ product, onClick, onAddToCart, onBookNow }) => {
 
     return (
         <div 
-            className="group bg-elevated rounded-2xl border border-theme overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700 flex flex-col h-full" 
+            className="group bg-elevated rounded-2xl border border-theme overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary-400 dark:hover:border-primary-800 flex flex-col h-full" 
             onClick={onClick}
         >
             {/* Image Box */}
@@ -184,7 +184,7 @@ const ProductCard = ({ product, onClick, onAddToCart, onBookNow }) => {
                 {product.image_url ? (
                     <img src={getImageUrl(product.image_url)} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-primary-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
                         <Package size={36} className="text-tertiary opacity-40" />
                     </div>
                 )}
@@ -222,7 +222,7 @@ const ProductCard = ({ product, onClick, onAddToCart, onBookNow }) => {
             {/* Content Area */}
             <div className="p-3 sm:p-4 flex flex-col flex-1 gap-2">
                 <div className="flex-1">
-                    <h3 className="font-semibold text-primary text-sm sm:text-base leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors mb-1">
+                    <h3 className="font-semibold text-primary text-sm sm:text-base leading-tight line-clamp-1 group-hover:text-primary-700 transition-colors mb-1">
                         {product.name}
                     </h3>
                     {(product.duration_minutes || product.service_mode_display) && (
@@ -251,14 +251,14 @@ const ProductCard = ({ product, onClick, onAddToCart, onBookNow }) => {
                             className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center shadow-sm ${
                                 justAdded
                                     ? 'bg-green-500 text-white scale-110'
-                                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 hover:bg-purple-200 dark:hover:bg-purple-800/40'
+                                    : 'bg-primary-200 dark:bg-primary-900/30 text-primary-700 hover:bg-primary-300 dark:hover:bg-primary-900/40'
                             }`}
                             title={justAdded ? 'Added!' : 'Add to Cart'}
                         >
                             {justAdded ? <Check size={16} strokeWidth={3} /> : (
                                     <div className="relative flex items-center justify-center">
                                         <ShoppingCart size={16} />
-                                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-purple-600 text-white rounded-full flex items-center justify-center border-2 border-purple-100 dark:border-purple-900">
+                                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-primary-700 text-white rounded-full flex items-center justify-center border-2 border-primary-200 dark:border-primary-900">
                                             <Plus size={8} strokeWidth={4} />
                                         </div>
                                     </div>
@@ -309,7 +309,7 @@ const OrdersTab = () => {
         pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
         confirmed: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
         processing: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-        shipped: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+        shipped: 'bg-primary-600/10 text-primary-700 border-primary-600/20',
         delivered: 'bg-green-500/10 text-green-600 border-green-500/20',
         ready_for_pickup: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
         completed: 'bg-green-500/10 text-green-600 border-green-500/20',
@@ -343,7 +343,7 @@ const OrdersTab = () => {
                                         </p>
                                     </div>
                                     {order.status === 'shipped' && (
-                                        <div className="flex items-center gap-1 text-xs text-purple-600 bg-purple-500/10 px-3 py-1 rounded-full">
+                                        <div className="flex items-center gap-1 text-xs text-primary-700 bg-primary-600/10 px-3 py-1 rounded-full">
                                             <Truck size={14} /> In Transit
                                         </div>
                                     )}
@@ -394,6 +394,7 @@ const MyServicesTab = ({ navigate }) => {
     const [myEstablishments, setMyEstablishments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddService, setShowAddService] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [serviceForm, setServiceForm] = useState({
         name: '', description: '', category: '', price: '', duration_minutes: '60',
         service_mode: 'in_person', delay_time_minutes: '0', max_slots: '5',
@@ -516,12 +517,27 @@ const MyServicesTab = ({ navigate }) => {
             {/* Service Categories Browse */}
             <Card>
                 <CardBody>
-                    <h4 className="font-semibold text-primary mb-3">Service Categories</h4>
+                    <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-primary">Service Categories</h4>
+                        {selectedCategory && (
+                            <button onClick={() => setSelectedCategory(null)} className="text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded-md">
+                                Clear Filter
+                            </button>
+                        )}
+                    </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                         {SERVICE_CATEGORIES.map(cat => (
-                            <div key={cat.key} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 cursor-pointer transition-colors border border-transparent hover:border-theme text-center">
+                            <div key={cat.key} 
+                                onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)}
+                                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-pointer transition-colors border text-center ${
+                                    selectedCategory === cat.key 
+                                        ? 'bg-primary-100 border-primary-500 shadow-sm' 
+                                        : 'bg-secondary/20 hover:bg-secondary/40 border-transparent hover:border-theme'
+                                }`}>
                                 <span className="text-2xl">{cat.icon}</span>
-                                <span className="text-xs font-medium text-primary leading-tight">{cat.label}</span>
+                                <span className={`text-xs font-medium leading-tight ${selectedCategory === cat.key ? 'text-primary-900' : 'text-primary'}`}>
+                                    {cat.label}
+                                </span>
                             </div>
                         ))}
                     </div>
@@ -600,7 +616,7 @@ const DashboardTab = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                     <CardBody className="p-5 flex flex-col items-center text-center">
-                        <span className="p-3 bg-purple-500/10 text-purple-600 rounded-xl mb-3"><ShoppingCart size={24} /></span>
+                        <span className="p-3 bg-primary-600/10 text-primary-700 rounded-xl mb-3"><ShoppingCart size={24} /></span>
                         <h4 className="text-secondary text-sm font-medium mb-1">Total Sales</h4>
                         <span className="text-3xl font-bold text-primary">${Number(analytics.total_revenue || 0).toFixed(2)}</span>
                     </CardBody>
@@ -721,6 +737,7 @@ export default function Shop() {
     const [products, setProducts] = useState([]);
     const [establishments, setEstablishments] = useState([]);
     const [services, setServices] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [loading, setLoading] = useState(true);
     // Cart open/close is managed by CartContext (cart.setCartOpen)
 
@@ -759,7 +776,14 @@ export default function Shop() {
         else if (activeTab === 'shops') list = list.filter(e => STORE_TYPES.includes(e.establishment_type));
         return list;
     }, [establishments, search, activeTab]);
-    const filteredServices = useMemo(() => services.filter(s => (s.name || '').toLowerCase().includes(search) || (s.description || '').toLowerCase().includes(search)), [services, search]);
+    const filteredServices = useMemo(() => {
+        let list = services.filter(s => (s.name || '').toLowerCase().includes(search) || (s.description || '').toLowerCase().includes(search));
+        if (selectedCategory) {
+            list = list.filter(s => s.category === selectedCategory);
+        }
+        return list;
+    }, [services, search, selectedCategory]);
+    
     const serviceEstablishments = useMemo(() => establishments.filter(e => SERVICE_TYPES.includes(e.establishment_type) && ((e.name || '').toLowerCase().includes(search) || (e.description || '').toLowerCase().includes(search))), [establishments, search]);
 
     const foodCount = establishments.filter(e => FOOD_TYPES.includes(e.establishment_type)).length;
@@ -781,8 +805,10 @@ export default function Shop() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-2 text-primary">🛍️ Marketplace</h1>
-                    <p className="text-secondary mt-1 max-w-2xl">Shop products, order food, book hotels, and find services — all in one place.</p>
+                    <h1 className="text-3xl font-bold flex items-center gap-3 text-primary">
+                        <ShoppingBag className="w-8 h-8 text-primary-600" strokeWidth={2.5} /> Marketplace
+                    </h1>
+                    <p className="text-secondary mt-2 max-w-2xl">Shop products, order food, book hotels, and find services — all in one place.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => cart.setCartOpen(true)} className="relative">
@@ -947,7 +973,7 @@ export default function Shop() {
                         {showStores && (
                             <section>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-bold text-primary flex items-center gap-2"><Store className="text-purple-500" size={20} /> Supermarkets & Stores</h2>
+                                    <h2 className="text-xl font-bold text-primary flex items-center gap-2"><Store className="text-primary-600" size={20} /> Supermarkets & Stores</h2>
                                 </div>
                                 {(() => {
                                     const items = activeTab === 'all'

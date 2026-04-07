@@ -282,7 +282,7 @@ const InstitutionDetail = () => {
             <Card className="overflow-hidden">
                 <div className="relative">
                     <div
-                        className="h-48 md:h-64 bg-gradient-to-r from-violet-900 via-purple-800 to-indigo-900 relative"
+                        className="h-48 md:h-64 bg-gradient-to-r from-primary-900 via-primary-900 to-indigo-900 relative"
                         style={coverUrl ? {
                             backgroundImage: `url(${coverUrl})`,
                             backgroundSize: 'cover',
@@ -319,8 +319,8 @@ const InstitutionDetail = () => {
                                         className="w-full h-full rounded-lg object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center border-2 border-violet-500/30">
-                                        <Building2 className="w-12 h-12 text-violet-400" />
+                                    <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary-500/20 to-primary-600/20 flex items-center justify-center border-2 border-primary-500/30">
+                                        <Building2 className="w-12 h-12 text-primary-400" />
                                     </div>
                                 )}
                             </div>
@@ -487,7 +487,7 @@ const InstitutionDetail = () => {
                                             <p className="text-2xl font-bold text-primary">{followersCount}</p>
                                             <p className="text-xs text-secondary">Followers</p>
                                         </div>
-                                        <div className="p-3 bg-violet-500/10 rounded-lg border border-violet-500/20 text-center">
+                                        <div className="p-3 bg-primary-500/10 rounded-lg border border-primary-500/20 text-center">
                                             <p className="text-2xl font-bold text-primary">{Object.values(units).reduce((s, a) => s + a.length, 0)}</p>
                                             <p className="text-xs text-secondary">Units</p>
                                         </div>
@@ -729,7 +729,7 @@ const InstitutionDetail = () => {
                                                     </div>
                                                 </div>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                                                    role === 'admin' || role === 'creator' ? 'bg-violet-500/10 text-violet-500' :
+                                                    role === 'admin' || role === 'creator' ? 'bg-primary-500/10 text-primary-500' :
                                                     role === 'moderator' ? 'bg-blue-500/10 text-blue-500' :
                                                     role === 'staff' ? 'bg-green-500/10 text-green-500' :
                                                     'bg-secondary text-secondary'

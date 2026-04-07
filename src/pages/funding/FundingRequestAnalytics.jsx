@@ -115,12 +115,12 @@ const FundingRequestAnalytics = () => {
                     </CardBody>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                <Card className="bg-gradient-to-br from-primary-150 to-primary-200 dark:from-primary-900/20 dark:to-primary-900/20 border-primary-300 dark:border-primary-900">
                     <CardBody className="p-5 relative overflow-hidden">
-                        <Heart className="w-10 h-10 text-purple-500/20 absolute -bottom-2 -right-2" />
-                        <p className="text-purple-800 dark:text-purple-300 font-medium text-sm">Interests Shown</p>
-                        <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">{interests.length}</p>
-                        <p className="text-xs text-purple-700/70 mt-1">{interestRate}% conversion</p>
+                        <Heart className="w-10 h-10 text-primary-600/20 absolute -bottom-2 -right-2" />
+                        <p className="text-primary-900 dark:text-primary-400 font-medium text-sm">Interests Shown</p>
+                        <p className="text-3xl font-bold text-primary-700 dark:text-primary-500 mt-2">{interests.length}</p>
+                        <p className="text-xs text-primary-800/70 mt-1">{interestRate}% conversion</p>
                     </CardBody>
                 </Card>
 
@@ -243,13 +243,13 @@ const FundingRequestAnalytics = () => {
                                 </div>
 
                                 <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-full border border-purple-200 bg-purple-50 text-purple-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-full border border-primary-300 bg-primary-150 text-primary-700 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                                         <Heart className="w-4 h-4" />
                                     </div>
                                     <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] p-3 rounded-xl border border-theme bg-secondary/20 scale-100 shadow-sm">
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-bold text-primary">Consideration</h4>
-                                            <span className="text-sm font-bold text-purple-600">{interests.length}</span>
+                                            <span className="text-sm font-bold text-primary-700">{interests.length}</span>
                                         </div>
                                         <p className="text-xs text-secondary mt-1">Tracked interests</p>
                                     </div>

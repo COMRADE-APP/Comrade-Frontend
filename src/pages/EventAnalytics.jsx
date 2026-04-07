@@ -25,7 +25,7 @@ const EventAnalytics = () => {
     const loadEvents = async () => {
         try {
             setLoading(true);
-            const response = await eventsService.getAllEvents();
+            const response = await eventsService.getMyEvents();
             let data = [];
             if (response?.data?.results) {
                 data = response.data.results;
@@ -104,7 +104,7 @@ const EventAnalytics = () => {
                     </Card>
                     <Card>
                         <CardBody className="flex items-center gap-3 py-4">
-                            <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-500">
+                            <div className="p-2.5 bg-primary-600/10 rounded-xl text-primary-600">
                                 <Ticket size={22} />
                             </div>
                             <div>
@@ -172,7 +172,7 @@ const EventAnalytics = () => {
                                 className="w-full flex items-center justify-between p-4 text-left hover:bg-secondary/30 transition-colors"
                             >
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-primary-600/20 flex items-center justify-center flex-shrink-0">
                                         <Calendar className="w-6 h-6 text-primary-600" />
                                     </div>
                                     <div className="flex-1 min-w-0">

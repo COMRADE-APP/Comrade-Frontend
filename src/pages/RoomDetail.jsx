@@ -1054,7 +1054,7 @@ const RoomDetail = () => {
                                         <div className="grid gap-3">
                                             {room.announcements.map((announcement, idx) => (
                                                 <div key={idx} className="bg-elevated p-3 rounded-lg border border-theme flex items-center gap-3 hover:shadow-sm transition-shadow">
-                                                    <Megaphone className="w-5 h-5 text-purple-500" />
+                                                    <Megaphone className="w-5 h-5 text-primary-600" />
                                                     <div className="flex-1">
                                                         <p className="font-medium text-primary line-clamp-1">{announcement.message || 'Announcement'}</p>
                                                         <p className="text-sm text-secondary">{announcement.created_on ? formatTimeAgo(announcement.created_on) : 'Recent'}</p>

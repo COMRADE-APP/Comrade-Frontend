@@ -190,6 +190,47 @@ export const paymentsService = {
         return response.data;
     },
 
+    // ========== Group Discourse Posts & Phases ==========
+    async getGroupPosts(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_POSTS}?group=${groupId}`);
+        return response.data;
+    },
+
+    async createGroupPost(data) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POSTS, data);
+        return response.data;
+    },
+
+    async reactToGroupPost(postId, emoji) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POST_REACT(postId), { emoji });
+        return response.data;
+    },
+
+    async pinGroupPost(postId) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POST_PIN(postId));
+        return response.data;
+    },
+
+    async getGroupPostReplies(postId) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_POST_REPLIES}?post=${postId}`);
+        return response.data;
+    },
+
+    async createGroupPostReply(data) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POST_REPLIES, data);
+        return response.data;
+    },
+
+    async getGroupPhases(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_PHASES}?group=${groupId}`);
+        return response.data;
+    },
+
+    async createGroupPhase(data) {
+        const response = await api.post(API_ENDPOINTS.GROUP_PHASES, data);
+        return response.data;
+    },
+
     async getGroupPortfolio(groupId) {
         const response = await api.get(API_ENDPOINTS.GROUP_PORTFOLIO(groupId));
         return response.data;
@@ -316,6 +357,48 @@ export const paymentsService = {
                 features: ['Unlimited group members', 'Unlimited purchases', 'Unlimited notifications', 'Dedicated support', 'API access']
             }
         };
+    },
+
+    // ========== Donations & Charity ==========
+    async getDonations() {
+        const response = await api.get(API_ENDPOINTS.DONATIONS);
+        return response.data;
+    },
+
+    async createDonation(data) {
+        const response = await api.post(API_ENDPOINTS.DONATIONS, data);
+        return response.data;
+    },
+
+    async getDonationById(id) {
+        const response = await api.get(API_ENDPOINTS.DONATION_DETAIL(id));
+        return response.data;
+    },
+
+    async contributeToDonation(donationId, amount) {
+        const response = await api.post(API_ENDPOINTS.CONTRIBUTE_DONATION(donationId), { amount });
+        return response.data;
+    },
+
+    // ========== Group Investments ==========
+    async getGroupInvestments() {
+        const response = await api.get(API_ENDPOINTS.GROUP_INVESTMENTS);
+        return response.data;
+    },
+
+    async createGroupInvestment(data) {
+        const response = await api.post(API_ENDPOINTS.GROUP_INVESTMENTS, data);
+        return response.data;
+    },
+
+    async getGroupInvestmentById(id) {
+        const response = await api.get(API_ENDPOINTS.GROUP_INVESTMENT_DETAIL(id));
+        return response.data;
+    },
+
+    async quoteGroupInvestment(investmentId, amount) {
+        const response = await api.post(API_ENDPOINTS.QUOTE_INVESTMENT(investmentId), { amount });
+        return response.data;
     },
 
     // ========== Products ==========

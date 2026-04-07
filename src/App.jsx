@@ -17,11 +17,17 @@ import VerifyRegistration from './pages/auth/VerifyRegistration';
 import RegistrationSuccess from './pages/auth/RegistrationSuccess';
 import LoginSuccess from './pages/auth/LoginSuccess';
 import ProfileSetup from './pages/auth/ProfileSetup';
+import Onboarding from './pages/auth/Onboarding';
+import SocialPasswordVerify from './pages/auth/SocialPasswordVerify';
 import ResetPassword from './pages/auth/ResetPassword';
 import Setup2FA from './pages/auth/Setup2FA';
 import Verify2FA from './pages/auth/Verify2FA';
 import VerifySMS from './pages/auth/VerifySMS';
 import TOTPSetup from './pages/auth/TOTPSetup';
+import Landing from './pages/Landing';
+import LegalPrivacy from './pages/public/LegalPrivacy';
+import LegalTerms from './pages/public/LegalTerms';
+import HelpCenter from './pages/public/HelpCenter';
 
 // Main Pages
 import Dashboard from './pages/Dashboard';
@@ -41,6 +47,7 @@ import OrganizationVerification from './pages/organizations/OrganizationVerifica
 import Payments from './pages/Payments';
 import PaymentMethods from './pages/PaymentMethods';
 import Specializations from './pages/Specializations';
+import SpecializationDetail from './pages/SpecializationDetail';
 import SpecializationAnalytics from './pages/SpecializationAnalytics';
 import Settings from './pages/Settings';
 
@@ -57,6 +64,8 @@ import ServiceDetail from './pages/shop/ServiceDetail';
 import ShopCart from './pages/shop/Cart';
 import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
+import Donations from './pages/payments/Donations';
+import GroupInvestments from './pages/payments/GroupInvestments';
 import CheckoutPage from './pages/payments/CheckoutPage';
 
 import { CartProvider } from './contexts/CartContext';
@@ -165,6 +174,7 @@ import FundingRequestAnalytics from './pages/funding/FundingRequestAnalytics';
 import InvestorProfilePage from './pages/funding/InvestorProfilePage';
 import OpportunityDetail from './pages/funding/OpportunityDetail';
 import BusinessPortal from './pages/funding/BusinessPortal';
+import BusinessAnalytics from './pages/funding/BusinessAnalytics';
 
 // Careers & Gigs
 import GigsPage from './pages/careers/GigsPage';
@@ -204,6 +214,10 @@ function App() {
         <CartProvider>
         <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/privacy" element={<LegalPrivacy />} />
+            <Route path="/terms" element={<LegalTerms />} />
+            <Route path="/help" element={<HelpCenter />} />
             <Route path={ROUTES.LOGIN} element={<Login />} />
             <Route path={ROUTES.REGISTER} element={<Register />} />
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
@@ -213,6 +227,8 @@ function App() {
             <Route path={ROUTES.REGISTRATION_SUCCESS} element={<RegistrationSuccess />} />
             <Route path={ROUTES.LOGIN_SUCCESS} element={<LoginSuccess />} />
             <Route path={ROUTES.PROFILE_SETUP} element={<ProfileSetup />} />
+            <Route path={ROUTES.ONBOARDING} element={<Onboarding />} />
+            <Route path={ROUTES.SOCIAL_PASSWORD_VERIFY} element={<SocialPasswordVerify />} />
             <Route path={ROUTES.VERIFY_2FA} element={<Verify2FA />} />
             <Route path={ROUTES.VERIFY_SMS} element={<VerifySMS />} />
             <Route path={ROUTES.SETUP_2FA} element={<Setup2FA />} />
@@ -328,6 +344,36 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <CreateBusiness />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/businesses/:id/analytics'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <BusinessAnalytics />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/donations'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Donations />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/group-investments'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GroupInvestments />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1175,6 +1221,16 @@ function App() {
                 }
             />
             <Route
+                path="/specializations/:id"
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <SpecializationDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/specializations/:id/analytics"
                 element={
                     <ProtectedRoute>
@@ -1260,6 +1316,26 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <PiggyBanks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.DONATIONS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <Donations />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={ROUTES.GROUP_INVESTMENTS}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GroupInvestments />
                         </MainLayout>
                     </ProtectedRoute>
                 }

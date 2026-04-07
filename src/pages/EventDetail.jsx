@@ -282,7 +282,7 @@ const EventDetail = () => {
                             if (locType === 'online' || locText.includes('virtual') || locText.includes('online') || locText.includes('zoom') || locText.includes('meet') || locText.includes('teams')) {
                                 badge = 'Virtual'; badgeClass = 'bg-green-500/20 text-green-400 border border-green-500/30';
                             } else if (locType === 'hybrid' || locText.includes('hybrid')) {
-                                badge = 'Hybrid'; badgeClass = 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
+                                badge = 'Hybrid'; badgeClass = 'bg-primary-600/20 text-primary-500 border border-primary-600/30';
                             }
                             return <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm backdrop-blur-sm ${badgeClass}`}>{badge}</span>;
                         })()}
@@ -481,7 +481,7 @@ const EventDetail = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {event.speakers.map((spk, idx) => (
                                             <div key={idx} className="flex items-start gap-3 p-3 bg-secondary/30 rounded-lg border border-theme/30">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-pink-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
                                                     {(spk.speaker_name || spk.user_name || 'S')[0].toUpperCase()}
                                                 </div>
                                                 <div>
@@ -672,7 +672,7 @@ const EventDetail = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {event.speakers.map((spk, idx) => (
                                             <div key={idx} className="flex items-start gap-3 p-4 bg-secondary/20 rounded-lg border border-theme/30">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-lg font-bold shrink-0">
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-600 to-pink-500 flex items-center justify-center text-white text-lg font-bold shrink-0">
                                                     {(spk.speaker_name || spk.user_name || 'S')[0].toUpperCase()}
                                                 </div>
                                                 <div>
@@ -707,14 +707,14 @@ const EventDetail = () => {
                                 {/* Printable Ticket Card */}
                                 <div id="ticket-download-card" className="max-w-md mx-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
                                     {/* Ticket header */}
-                                    <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+                                    <div className="bg-gradient-to-r from-primary-700 to-indigo-600 px-6 py-4">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-purple-200 text-xs font-medium tracking-widest uppercase">Event Ticket</p>
+                                                <p className="text-primary-300 text-xs font-medium tracking-widest uppercase">Event Ticket</p>
                                                 <h4 className="text-white text-lg font-bold mt-1">{event.name || event.title}</h4>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-purple-200 text-xs">Ticket #</p>
+                                                <p className="text-primary-300 text-xs">Ticket #</p>
                                                 <p className="text-white font-mono font-bold text-sm">{myBooking.ticket_number}</p>
                                             </div>
                                         </div>
@@ -822,9 +822,9 @@ const EventDetail = () => {
                                         <p className="text-sm text-secondary">Slots Remaining</p>
                                         <p className="text-2xl font-bold text-green-400 mt-1">{event.slots_remaining ?? (event.capacity - (event.attendees?.length || 0))}</p>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                                    <div className="p-4 rounded-xl bg-primary-600/10 border border-primary-600/20">
                                         <p className="text-sm text-secondary">Tickets Available</p>
-                                        <p className="text-2xl font-bold text-purple-400 mt-1">{tickets.length || 'Auto'}</p>
+                                        <p className="text-2xl font-bold text-primary-500 mt-1">{tickets.length || 'Auto'}</p>
                                     </div>
                                 </div>
 

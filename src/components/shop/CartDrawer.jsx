@@ -37,7 +37,7 @@ export default function CartDrawer() {
     const getItemIcon = (type) => {
         switch (type) {
             case 'service': return <Briefcase size={18} className="text-indigo-400" />;
-            case 'product': return <ShoppingBag size={18} className="text-purple-400" />;
+            case 'product': return <ShoppingBag size={18} className="text-primary-500" />;
             default: return <Package size={18} className="text-tertiary" />;
         }
     };
@@ -101,7 +101,7 @@ export default function CartDrawer() {
                                 <button
                                     onClick={() => cart.setPurchaseType?.('individual')}
                                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium border transition-all ${cart.purchaseType !== 'group'
-                                        ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
+                                        ? 'bg-primary-600/10 border-primary-600/30 text-primary-500'
                                         : 'border-theme text-secondary hover:bg-secondary/20'
                                         }`}
                                 >

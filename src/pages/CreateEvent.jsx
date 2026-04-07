@@ -245,6 +245,7 @@ const CreateEvent = () => {
             if (roomId) submitData.room = roomId;
             if (activeProfile?.type === 'organisation') submitData.organisation = activeProfile.id;
             else if (activeProfile?.type === 'institution') submitData.institution = activeProfile.id;
+            else if (activeProfile?.type === 'business') submitData.event_organizer = activeProfile.id;
 
             // Note: coverImage upload handling would normally go here (FormData driven service)
             // Wait, original code `const response = await eventsService.createEvent(submitData);`

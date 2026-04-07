@@ -5,7 +5,7 @@ import {
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
     Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen, Shield,
-    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash
+    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash, Heart, PieChart, Target
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -95,6 +95,8 @@ const Sidebar = () => {
         { path: ROUTES.ROOMS || '/rooms', label: 'Rooms', icon: Hash },
         { path: ROUTES.PAYMENT_GROUPS, label: 'Payment Groups', icon: Users },
         { path: ROUTES.PIGGY_BANKS, label: 'Piggy Banks', icon: PiggyBank },
+        { path: ROUTES.DONATIONS, label: 'Donations', icon: Heart },
+        { path: ROUTES.GROUP_INVESTMENTS, label: 'Group Investments', icon: PieChart },
         { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
         { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
         { path: ROUTES.OPPORTUNITIES, label: 'Opportunities', icon: Sparkles },
@@ -105,6 +107,9 @@ const Sidebar = () => {
         { path: ROUTES.LOANS, label: 'Loans', icon: DollarSign },
         { path: ROUTES.ESCROW, label: 'Escrow', icon: ShieldCheck },
         { path: ROUTES.INSURANCE, label: 'Insurance', icon: Shield },
+        { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: BookOpen },
+        { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
+        { path: ROUTES.GIGS, label: 'Gigs & Tasks', icon: ClipboardList },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         // Admin Portal - only visible for admin/staff users
         ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
@@ -151,8 +156,8 @@ const Sidebar = () => {
                 {/* Logo + Collapse Toggle */}
                 <div className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                     {!isCollapsed && (
-                        <div className="flex items-center gap-2 text-primary-600 font-bold text-xl">
-                            <Zap className="w-6 h-6 flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-primary-700 font-bold text-xl">
+                            <img src="/qomrade_svg.svg" alt="Qomrade Logo" className="w-8 h-8 flex-shrink-0 object-contain" />
                             Qomrade
                         </div>
                     )}

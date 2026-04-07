@@ -162,7 +162,7 @@ const Articles = () => {
                                         <div className="mt-auto pt-2">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                                                         {article.author?.avatar ? (
                                                             <img src={article.author.avatar} alt={article.author?.name} className="w-full h-full object-cover" />
                                                         ) : (

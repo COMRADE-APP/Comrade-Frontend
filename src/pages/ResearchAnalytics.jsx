@@ -118,8 +118,8 @@ const ResearchAnalytics = () => {
                                 <p className="text-sm font-medium text-secondary">Positions</p>
                                 <h3 className="text-3xl font-bold text-primary mt-1">{analytics?.positions_count || 0}</h3>
                             </div>
-                            <div className="p-3 bg-purple-100 rounded-lg">
-                                <TrendingUp className="w-6 h-6 text-purple-600" />
+                            <div className="p-3 bg-primary-200 rounded-lg">
+                                <TrendingUp className="w-6 h-6 text-primary-700" />
                             </div>
                         </div>
                     </CardBody>

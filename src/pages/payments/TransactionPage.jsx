@@ -47,7 +47,7 @@ const TRANSACTION_CONFIG = {
         title: 'Checkout',
         subtitle: 'Complete your purchase',
         icon: ShoppingBag,
-        color: 'from-purple-500 to-violet-600',
+        color: 'from-primary-600 to-primary-600',
         amountLabel: 'Amount',
         showBalance: true,
         confirmLabel: 'Confirm Purchase',
@@ -180,8 +180,8 @@ const TransactionPage = () => {
             {balance !== null && (
                 <Card>
                     <CardBody className="p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                            <Wallet className="w-5 h-5 text-purple-600" />
+                        <div className="w-10 h-10 rounded-xl bg-primary-600/10 flex items-center justify-center">
+                            <Wallet className="w-5 h-5 text-primary-700" />
                         </div>
                         <div>
                             <p className="text-xs text-secondary">Qomrade Balance</p>
@@ -240,7 +240,7 @@ const TransactionPage = () => {
                                 onChange={(e) => { setAmount(e.target.value); setError(''); }}
                                 placeholder="0.00"
                                 readOnly={type === 'checkout' && product}
-                                className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-primary bg-elevated border-2 border-theme rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                                className="w-full pl-10 pr-4 py-4 text-2xl font-bold text-primary bg-elevated border-2 border-theme rounded-2xl focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all"
                             />
                         </div>
 
@@ -253,8 +253,8 @@ const TransactionPage = () => {
                                         type="button"
                                         onClick={() => setAmount(String(qa))}
                                         className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-all ${parseFloat(amount) === qa
-                                            ? 'border-purple-500 bg-purple-500/10 text-purple-600'
-                                            : 'border-theme text-secondary hover:border-purple-300 hover:bg-purple-500/5'
+                                            ? 'border-primary-600 bg-primary-600/10 text-primary-700'
+                                            : 'border-theme text-secondary hover:border-primary-400 hover:bg-primary-600/5'
                                             }`}
                                     >
                                         {getCurrencySymbol(user?.preferred_currency)}{qa.toLocaleString()}
@@ -321,7 +321,7 @@ const TransactionPage = () => {
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Add a note..."
-                                className="w-full px-4 py-3 bg-elevated border border-theme rounded-2xl text-primary text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
+                                className="w-full px-4 py-3 bg-elevated border border-theme rounded-2xl text-primary text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none resize-none"
                                 rows={2}
                             />
                         </div>
@@ -373,7 +373,7 @@ const TransactionPage = () => {
 
                     <Button
                         variant="primary"
-                        className="w-full py-4 text-base bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-500/20 rounded-2xl"
+                        className="w-full py-4 text-base bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 shadow-lg shadow-primary-600/20 rounded-2xl"
                         onClick={handleReviewAndConfirm}
                         disabled={!isFormValid()}
                     >

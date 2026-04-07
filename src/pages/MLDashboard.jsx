@@ -105,11 +105,11 @@ const MLDashboard = () => {
                         )}
                     </CardBody>
                 </Card>
-                <Card className="border-l-4 border-l-purple-500">
+                <Card className="border-l-4 border-l-primary-600">
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                                <Server className="w-5 h-5 text-purple-600" />
+                            <div className="w-10 h-10 rounded-full bg-primary-600/10 flex items-center justify-center">
+                                <Server className="w-5 h-5 text-primary-700" />
                             </div>
                             <div>
                                 <p className="text-xs text-secondary font-bold uppercase">Storage Sync Status</p>
@@ -127,20 +127,20 @@ const MLDashboard = () => {
                 {/* Pricing RL Card */}
                 <div
                     onClick={() => navigate('/admin/ml/pricing')}
-                    className="cursor-pointer group relative overflow-hidden rounded-xl border border-theme bg-elevated p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-purple-500/50"
+                    className="cursor-pointer group relative overflow-hidden rounded-xl border border-theme bg-elevated p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-primary-600/50"
                 >
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <BrainCircuit className="w-24 h-24 text-purple-600" />
+                        <BrainCircuit className="w-24 h-24 text-primary-700" />
                     </div>
                     <div className="relative z-10">
-                        <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4 text-purple-600">
+                        <div className="w-12 h-12 rounded-lg bg-primary-600/10 flex items-center justify-center mb-4 text-primary-700">
                             <BrainCircuit className="w-6 h-6" />
                         </div>
                         <h3 className="text-lg font-bold text-primary mb-2">Pricing RL Agent</h3>
                         <p className="text-sm text-secondary mb-4 line-clamp-2">
                             Deep Reinforcement Learning applied to volatile global e-commerce supply chains tracking Q-Values and Reward trajectories.
                         </p>
-                        <span className="text-sm font-semibold text-purple-600 group-hover:text-purple-500 flex items-center">
+                        <span className="text-sm font-semibold text-primary-700 group-hover:text-primary-600 flex items-center">
                             View Analytics &rarr;
                         </span>
                     </div>

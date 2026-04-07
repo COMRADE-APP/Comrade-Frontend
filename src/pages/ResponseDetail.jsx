@@ -23,7 +23,7 @@ const REVIEW_STATUSES = [
     { value: 'received', label: 'Received', icon: Eye, color: 'blue', bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400' },
     { value: 'under_review', label: 'Under Review', icon: Clock, color: 'yellow', bg: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' },
     { value: 'complete', label: 'Complete', icon: CheckCircle, color: 'green', bg: 'bg-green-500/10 border-green-500/30 text-green-400' },
-    { value: 'confirmed', label: 'Confirmed', icon: Shield, color: 'purple', bg: 'bg-purple-500/10 border-purple-500/30 text-purple-400' },
+    { value: 'confirmed', label: 'Confirmed', icon: Shield, color: 'purple', bg: 'bg-primary-600/10 border-primary-600/30 text-primary-500' },
     { value: 'graded', label: 'Graded', icon: Award, color: 'emerald', bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' },
 ];
 
@@ -287,7 +287,7 @@ const ResponseDetail = () => {
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-primary-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                                             {(resp.user_name || resp.user_email || 'U')[0].toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -322,7 +322,7 @@ const ResponseDetail = () => {
                             <Card><CardBody>
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg">
                                             {(selectedResponse.user_name || 'U')[0].toUpperCase()}
                                         </div>
                                         <div>

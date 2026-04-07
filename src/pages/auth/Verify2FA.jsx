@@ -9,13 +9,14 @@ import authService from '../../services/auth.service';
 const Verify2FA = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
+    const { completeLogin } = useAuth();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Get email from router state
+    // Get email and rememberMe from router state
     const email = location.state?.email;
+    const rememberMe = location.state?.rememberMe || false;
 
     useEffect(() => {
         if (!email) {
@@ -29,9 +30,8 @@ const Verify2FA = () => {
         setLoading(true);
 
         try {
-            await authService.verify2FA(email, otp);
-            // Login success - storage updated in service
-            window.location.href = ROUTES.DASHBOARD;
+            const response = await authService.verify2FA(email, otp, rememberMe);
+            await completeLogin(response, rememberMe);
         } catch (err) {
             setError(err.response?.data?.detail || 'Verification failed. Invalid code.');
         } finally {

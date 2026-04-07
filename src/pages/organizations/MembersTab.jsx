@@ -6,7 +6,7 @@ import {
 import Button from '../../components/common/Button';
 
 const ROLES = [
-    { value: 'admin', label: 'Admin', icon: ShieldCheck, color: 'text-purple-500' },
+    { value: 'admin', label: 'Admin', icon: ShieldCheck, color: 'text-primary-600' },
     { value: 'moderator', label: 'Moderator', icon: Shield, color: 'text-blue-500' },
     { value: 'member', label: 'Member', icon: User, color: 'text-gray-400' },
 ];

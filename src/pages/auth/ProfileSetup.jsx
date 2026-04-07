@@ -149,10 +149,10 @@ const ProfileSetup = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-primary-50 via-purple-50 to-pink-50">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-primary-50 via-primary-150 to-pink-50">
             <div className="w-full max-w-lg bg-elevated rounded-2xl shadow-xl overflow-hidden">
                 {/* Progress Header */}
-                <div className="bg-gradient-to-r from-primary-600 to-purple-600 p-6 text-white">
+                <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
                     <h2 className="text-xl font-bold mb-4">Complete Your Profile</h2>
 
                     {/* Step Indicators */}

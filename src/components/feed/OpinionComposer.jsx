@@ -304,8 +304,8 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
             {/* User avatar and input */}
             <div className="flex gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden ${activeProfile?.type === 'organisation' ? 'bg-blue-500' :
-                    activeProfile?.type === 'institution' ? 'bg-purple-500' :
-                        'bg-gradient-to-br from-purple-400 to-blue-500'
+                    activeProfile?.type === 'institution' ? 'bg-primary-600' :
+                        'bg-gradient-to-br from-primary-500 to-blue-500'
                     }`}>
                     {getAvatarDisplay()}
                 </div>
@@ -336,7 +336,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                                         className={`w-full px-3 py-2 text-left flex items-center gap-3 hover:bg-secondary transition-colors ${idx === mentionIndex ? 'bg-secondary' : ''
                                             }`}
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                                             {u.avatar_url ? (
                                                 <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
@@ -437,7 +437,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                         )}
                     </div>
                     <div className="flex items-start gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
                             {quotedOpinion.user?.avatar_url ? (
                                 <img src={quotedOpinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -471,7 +471,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={mediaFiles.length >= 4}
-                        className="p-2 rounded-full hover:bg-secondary text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 rounded-full hover:bg-secondary text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Add media"
                     >
                         <Image size={20} />
@@ -560,7 +560,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                                         <button
                                             key={opt.value}
                                             onClick={() => { setVisibility(opt.value); setShowVisibility(false); }}
-                                            className={`w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-3 ${visibility === opt.value ? 'text-purple-600' : 'text-primary'}`}
+                                            className={`w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-3 ${visibility === opt.value ? 'text-primary-700' : 'text-primary'}`}
                                         >
                                             <opt.icon size={16} />
                                             <div>
@@ -596,7 +596,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                     <button
                         onClick={handleSubmit}
                         disabled={!content.trim() || content.length > characterLimit || isSubmitting}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-4 py-2 bg-primary-700 text-white rounded-full font-medium hover:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isSubmitting ? 'Posting...' : (
                             <>

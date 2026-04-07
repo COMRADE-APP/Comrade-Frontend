@@ -662,7 +662,7 @@ const TaskCard = ({ task, submission, statusIcon, onViewDetails, onDelete, canDe
                                     </span>
                                 )}
                                 {task.is_activity && (
-                                    <span className="px-2 py-0.5 rounded text-xs font-semibold bg-purple-500/10 text-purple-600 capitalize">
+                                    <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary-600/10 text-primary-700 capitalize">
                                         Activity
                                     </span>
                                 )}

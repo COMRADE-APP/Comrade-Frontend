@@ -917,7 +917,7 @@ const ResourceDetail = () => {
                             )}
                             {isAud && (
                                 <div className="text-center">
-                                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-6">
+                                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/20 to-primary-600/20 flex items-center justify-center mx-auto mb-6">
                                         <Music className="w-16 h-16 text-indigo-400" />
                                     </div>
                                     <p className="text-white font-medium mb-4">{viewerFile.name}</p>

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Check, X } from 'lucide-react';
 import shopService from '../../services/shop.service';
+import Button from '../../components/common/Button';
 import './Shop.css';
 
 const ESTABLISHMENT_TYPES = [
@@ -116,11 +117,16 @@ export default function RegisterEstablishment() {
             const formData = new FormData();
             Object.entries(form).forEach(([key, val]) => {
                 if (key === 'categories') {
-                    let cats = val;
+                    // Build a proper JSON array for the JSONField
+                    let catsArray = val ? val.split(',').map(c => c.trim()).filter(Boolean) : [];
                     if (form.establishment_type === 'service_provider' && form.service_categories?.length > 0) {
-                        cats = cats ? `${cats},${form.service_categories.join(',')}` : form.service_categories.join(',');
+                        catsArray = [...new Set([...catsArray, ...form.service_categories])];
                     }
-                    if (cats) formData.append(key, cats);
+                    formData.append(key, JSON.stringify(catsArray));
+                } else if (key === 'opening_hours') {
+                    // Backend expects a JSON object, wrap the text value
+                    if (val) formData.append(key, JSON.stringify({ schedule: val }));
+                    else formData.append(key, JSON.stringify({}));
                 } else if (key === 'service_categories') {
                     // Handled within categories
                 } else if (typeof val === 'boolean') {
@@ -161,15 +167,14 @@ export default function RegisterEstablishment() {
     const sectionTitle = (text) => <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem' }}>{text}</h2>;
 
     const filteredSuggestions = SERVICE_SUGGESTIONS.filter(s =>
-        s.toLowerCase().includes(categoryInput.toLowerCase()) && !form.service_categories.includes(s)
+        s.toLowerCase().includes(categoryInput.toLowerCase())
     );
 
     const addCategory = (cat) => {
         if (cat && !form.service_categories.includes(cat)) {
             updateForm('service_categories', [...form.service_categories, cat]);
         }
-        setCategoryInput('');
-        setShowSuggestions(false);
+        // DO NOT close dropdown or clear input immediately to allow multiple selections
     };
 
     const removeCategory = (cat) => {
@@ -186,12 +191,42 @@ export default function RegisterEstablishment() {
                 <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Register Business</h1>
             </div>
 
-            {/* Steps Indicator */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '1rem' }}>
-                {Array.from({ length: totalSteps }, (_, i) => i + 1).map(s => (
-                    <div key={s} style={{ width: s === step ? 48 : 12, height: 6, borderRadius: 3, background: s <= step ? 'var(--accent-primary)' : 'var(--border-color)', transition: 'all 0.3s' }} />
-                ))}
-            </div>
+            {/* Steps Indicator — numbered circles with labels */}
+            {(() => {
+                const stepLabels = form.establishment_type === 'service_provider'
+                    ? (hasFundingCategories
+                        ? ['Type', 'Details', 'Operations', 'Services', 'Finance']
+                        : ['Type', 'Details', 'Operations', 'Services'])
+                    : ['Type', 'Details', 'Operations'];
+                return (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem', padding: '1rem 0.5rem' }}>
+                        {stepLabels.map((label, i) => {
+                            const s = i + 1;
+                            const done = s < step;
+                            const active = s === step;
+                            return (
+                                <React.Fragment key={s}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', minWidth: 44 }}>
+                                        <div style={{
+                                            width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.3s',
+                                            background: done ? 'var(--accent-primary)' : active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                                            color: done || active ? '#fff' : 'var(--text-secondary)',
+                                            border: active ? '2px solid var(--accent-primary)' : done ? 'none' : '1.5px solid var(--border-color)',
+                                        }}>
+                                            {done ? <Check size={14} /> : s}
+                                        </div>
+                                        <span style={{ fontSize: '0.65rem', color: active ? 'var(--text-primary)' : 'var(--text-tertiary)', fontWeight: active ? 600 : 400 }}>{label}</span>
+                                    </div>
+                                    {s < stepLabels.length && (
+                                        <div style={{ flex: 1, height: 2, background: done ? 'var(--accent-primary)' : 'var(--border-color)', borderRadius: 1, minWidth: 20, marginBottom: '1.1rem' }} />
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+                );
+            })()}
 
             <form onSubmit={handleSubmit} style={{ maxWidth: 560, margin: '0 auto', padding: '0 1.5rem 2rem' }}>
 
@@ -216,7 +251,7 @@ export default function RegisterEstablishment() {
                                 </div>
                             ))}
                         </div>
-                        <button type="button" className="btn-primary w-full py-3" onClick={() => form.establishment_type && setStep(2)} disabled={!form.establishment_type}>Continue</button>
+                        <Button variant="primary" className="w-full" onClick={() => form.establishment_type && setStep(2)} disabled={!form.establishment_type}>Continue</Button>
                     </>
                 )}
 
@@ -262,21 +297,35 @@ export default function RegisterEstablishment() {
                                     {/* Suggestions dropdown */}
                                     {showSuggestions && categoryInput.trim() && (
                                         <div style={{ position: 'absolute', left: 0, right: 0, top: '100%', background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: '0 0 0.5rem 0.5rem', maxHeight: '180px', overflowY: 'auto', zIndex: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                                            {filteredSuggestions.map((suggestion, idx) => (
+                                            {filteredSuggestions.map((suggestion, idx) => {
+                                                const isSelected = form.service_categories.includes(suggestion);
+                                                return (
                                                 <div 
                                                     key={idx} 
-                                                    style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '0.85rem', borderBottom: '1px solid var(--border-color)' }}
-                                                    onClick={() => addCategory(suggestion)}
-                                                    onMouseOver={e => e.target.style.background = 'var(--border-color)'}
-                                                    onMouseOut={e => e.target.style.background = 'transparent'}
+                                                    style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '0.85rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isSelected ? 'var(--bg-active, rgba(99,102,241,0.05))' : 'transparent' }}
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault(); // Prevent onBlur
+                                                        if (isSelected) {
+                                                            removeCategory(suggestion);
+                                                        } else {
+                                                            addCategory(suggestion);
+                                                        }
+                                                    }}
+                                                    onMouseOver={e => e.currentTarget.style.background = 'var(--border-color)'}
+                                                    onMouseOut={e => e.currentTarget.style.background = isSelected ? 'var(--bg-active, rgba(99,102,241,0.05))' : 'transparent'}
                                                 >
                                                     {suggestion}
+                                                    {isSelected && <Check size={14} color="var(--accent-primary)" />}
                                                 </div>
-                                            ))}
+                                            )})}
                                             {filteredSuggestions.length === 0 && (
                                                 <div 
                                                     style={{ padding: '0.5rem 1rem', cursor: 'pointer', color: 'var(--accent-primary)', fontSize: '0.85rem' }}
-                                                    onClick={() => addCategory(categoryInput.trim())}
+                                                    onMouseDown={e => {
+                                                        e.preventDefault();
+                                                        addCategory(categoryInput.trim());
+                                                        setCategoryInput('');
+                                                    }}
                                                     onMouseOver={e => e.target.style.background = 'var(--border-color)'}
                                                     onMouseOut={e => e.target.style.background = 'transparent'}
                                                 >
@@ -345,14 +394,14 @@ export default function RegisterEstablishment() {
                         <input style={inputStyle} value={form.opening_hours} onChange={e => updateForm('opening_hours', e.target.value)} placeholder="e.g. Mon-Fri 8am-10pm" />
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(1)}>Back</button>
-                            <button type="button" className="btn-primary flex-[2] py-3" onClick={() => {
+                            <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
+                            <Button variant="primary" className="flex-[2]" onClick={() => {
                                 if (!form.name) return;
                                 if (form.establishment_type === 'service_provider' && form.service_categories.length === 0) {
                                     return alert('Please select at least one service category.');
                                 }
                                 setStep(3);
-                            }} disabled={!form.name}>Continue</button>
+                            }} disabled={!form.name}>Continue</Button>
                         </div>
                     </>
                 )}
@@ -406,13 +455,13 @@ export default function RegisterEstablishment() {
                         ))}
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(2)}>Back</button>
+                            <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>Back</Button>
                             {isFinalStep ? (
-                                <button type="submit" className="btn-primary flex-[2] py-3" disabled={loading}>
+                                <Button type="submit" variant="primary" className="flex-[2]" disabled={loading}>
                                     {loading ? 'Registering...' : 'Register Business'}
-                                </button>
+                                </Button>
                             ) : (
-                                <button type="button" className="btn-primary flex-[2] py-3" onClick={() => setStep(4)}>Continue</button>
+                                <Button variant="primary" className="flex-[2]" onClick={() => setStep(4)}>Continue</Button>
                             )}
                         </div>
                     </>
@@ -465,13 +514,13 @@ export default function RegisterEstablishment() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(3)}>Back</button>
+                            <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>Back</Button>
                             {isFinalStep ? (
-                                <button type="submit" className="btn-primary flex-[2] py-3" disabled={loading}>
+                                <Button type="submit" variant="primary" className="flex-[2]" disabled={loading}>
                                     {loading ? 'Registering...' : 'Register Business'}
-                                </button>
+                                </Button>
                             ) : (
-                                <button type="button" className="btn-primary flex-[2] py-3" onClick={() => setStep(5)}>Continue to Financial Details</button>
+                                <Button variant="primary" className="flex-[2]" onClick={() => setStep(5)}>Continue to Financial Details</Button>
                             )}
                         </div>
                     </>
@@ -519,10 +568,10 @@ export default function RegisterEstablishment() {
                         </select>
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button type="button" className="btn-outline flex-1 py-3" onClick={() => setStep(4)}>Back</button>
-                            <button type="submit" className="btn-primary flex-[2] py-3" disabled={loading}>
+                            <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>Back</Button>
+                            <Button type="submit" variant="primary" className="flex-[2]" disabled={loading}>
                                 {loading ? 'Registering...' : 'Register Business'}
-                            </button>
+                            </Button>
                         </div>
                     </>
                 )}

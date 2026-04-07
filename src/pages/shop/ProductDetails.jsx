@@ -143,7 +143,7 @@ const ProductDetails = () => {
                         />
                     ) : (
                         <div className="flex flex-col items-center gap-4">
-                            <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-purple-900/20 to-indigo-900/20 flex items-center justify-center">
+                            <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-primary-900/20 to-indigo-900/20 flex items-center justify-center">
                                 <Package className="w-16 h-16 text-tertiary opacity-40" />
                             </div>
                         </div>
@@ -154,7 +154,7 @@ const ProductDetails = () => {
                 <div className="space-y-6">
                     {/* Badges */}
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider ${product.product_type === 'digital' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                        <span className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider ${product.product_type === 'digital' ? 'bg-primary-600/10 text-primary-500 border border-primary-600/20' :
                             product.product_type === 'service' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
                                 product.product_type === 'subscription' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
                                     'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
@@ -202,7 +202,7 @@ const ProductDetails = () => {
                                 <button
                                     onClick={() => setPurchaseType('individual')}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border-2 transition-all ${purchaseType === 'individual'
-                                        ? 'bg-purple-500/10 border-purple-500/40 text-purple-400'
+                                        ? 'bg-primary-600/10 border-primary-600/40 text-primary-500'
                                         : 'border-theme text-secondary hover:bg-secondary/20'
                                         }`}
                                 >
@@ -256,7 +256,7 @@ const ProductDetails = () => {
                         </Button>
                         <Button
                             variant="primary"
-                            className="flex-1 py-4 text-base bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-500/20"
+                            className="flex-1 py-4 text-base bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 shadow-lg shadow-primary-600/20"
                             onClick={handlePurchase}
                             disabled={purchaseType === 'group' && !selectedGroupId}
                         >

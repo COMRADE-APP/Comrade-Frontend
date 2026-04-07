@@ -447,7 +447,7 @@ const Profile = () => {
                 <div className="relative">
                     {/* Cover Photo */}
                     <div
-                        className="h-48 md:h-64 bg-gradient-to-r from-primary-600 via-purple-600 to-primary-700 relative"
+                        className="h-48 md:h-64 bg-gradient-to-r from-primary-600 via-primary-700 to-primary-700 relative"
                         style={profile.cover_url ? {
                             backgroundImage: `url(${profile.cover_url})`,
                             backgroundSize: 'cover',
@@ -484,7 +484,7 @@ const Profile = () => {
                                         className="w-full h-full rounded-full object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-3xl">
+                                    <div className="w-full h-full rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl">
                                         {profile.first_name?.[0]}{profile.last_name?.[0]}
                                     </div>
                                 )}
@@ -1037,7 +1037,7 @@ const Profile = () => {
                                         <div className="flex items-start gap-3">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold ${item._type === 'event' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' :
                                                     item._type === 'task' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
-                                                        'bg-gradient-to-br from-purple-500 to-violet-600'
+                                                        'bg-gradient-to-br from-primary-600 to-primary-600'
                                                 }`}>
                                                 {item._type === 'event' ? <Calendar size={18} /> :
                                                     item._type === 'task' ? <ClipboardList size={18} /> :
@@ -1047,7 +1047,7 @@ const Profile = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${item._type === 'event' ? 'bg-blue-100 text-blue-700' :
                                                             item._type === 'task' ? 'bg-green-100 text-green-700' :
-                                                                'bg-purple-100 text-purple-700'
+                                                                'bg-primary-200 text-primary-800'
                                                         }`}>
                                                         {item._type.charAt(0).toUpperCase() + item._type.slice(1)}
                                                     </span>
@@ -1112,7 +1112,7 @@ const Profile = () => {
                             {followSuggestions.map((user) => (
                                 <div key={user.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-medium text-sm">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-medium text-sm">
                                             {user.first_name?.[0]}{user.last_name?.[0]}
                                         </div>
                                         <div>

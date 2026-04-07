@@ -37,7 +37,7 @@ export default function PaymentTypeSelector({
                     onClick={() => setPurchaseType('individual')}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border transition-all ${
                         purchaseType === 'individual'
-                            ? 'bg-purple-500/10 border-purple-500/30 text-purple-500'
+                            ? 'bg-primary-600/10 border-primary-600/30 text-primary-600'
                             : 'border-theme text-secondary hover:bg-secondary/20'
                     }`}
                 >

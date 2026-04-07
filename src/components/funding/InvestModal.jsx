@@ -24,7 +24,7 @@ const InvestModal = ({
     onClose,
     item,           // { id, name, type, category, min_investment, ... }
     isDonation = false,
-    categoryColor = 'from-purple-500 to-indigo-600',
+    categoryColor = 'from-primary-600 to-indigo-600',
 }) => {
     const navigate = useNavigate();
 

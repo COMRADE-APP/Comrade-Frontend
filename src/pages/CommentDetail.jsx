@@ -132,7 +132,7 @@ const CommentDetail = () => {
                     className="block border-b border-theme px-4 py-3 hover:bg-secondary/30 transition-colors"
                 >
                     <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold overflow-hidden shrink-0">
                             {opinion.user?.avatar_url ? (
                                 <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -164,7 +164,7 @@ const CommentDetail = () => {
                     <div className="absolute left-[34px] top-12 bottom-0 w-0.5 bg-primary-200 dark:bg-primary-800"></div>
                     
                     <Link to={`/opinions/${opinionId}/comments/${anc.id}`} className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold overflow-hidden shrink-0 relative z-10 ring-4 ring-elevated">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold overflow-hidden shrink-0 relative z-10 ring-4 ring-elevated">
                             {anc.user?.avatar_url ? (
                                 <img src={anc.user.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -195,7 +195,7 @@ const CommentDetail = () => {
                 <div className="border-b border-theme px-4 py-4">
                     <div className="flex items-start gap-3">
                         <Link to={`/profile/${commentUser.id}`} className="shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                                 {commentUser.avatar_url ? (
                                     <img src={commentUser.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -252,7 +252,7 @@ const CommentDetail = () => {
                                 <button className="hover:text-green-500 transition-colors">
                                     <Repeat2 size={20} />
                                 </button>
-                                <button className="hover:text-purple-500 transition-colors">
+                                <button className="hover:text-primary-600 transition-colors">
                                     <Quote size={20} />
                                 </button>
                                 <button className="hover:text-yellow-500 transition-colors">
@@ -276,7 +276,7 @@ const CommentDetail = () => {
             {isAuthenticated && comment && (
                 <div className="px-4 py-3 border-b border-theme">
                     <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                             {user?.avatar_url ? (
                                 <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (

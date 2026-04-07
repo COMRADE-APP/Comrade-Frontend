@@ -43,6 +43,12 @@ const portalService = {
         api.post(`/api/institutions/institutions/${instId}/verify_portal_password/`, data),
     getMyInstitutions: () =>
         api.get('/api/institutions/institutions/my_institutions/'),
+
+    // Business portal password
+    setBusinessPortalPassword: (busId, data) =>
+        api.post(`/api/funding/businesses/${busId}/setup_portal/`, data),
+    verifyBusinessPortalPassword: (busId, data) =>
+        api.post(`/api/funding/businesses/${busId}/verify_portal_password/`, data),
 };
 
 export default portalService;

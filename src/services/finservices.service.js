@@ -6,6 +6,17 @@ export const billsService = {
     getProviders: (category) => api.get(`${BASE}/bill-providers/`, { params: category ? { category } : {} }),
     getPaymentHistory: () => api.get(`${BASE}/bill-payments/`),
     payBill: (data) => api.post(`${BASE}/bill-payments/`, data),
+
+    // Service Provider Management
+    getMyServiceProviders: () => api.get(`${BASE}/service-providers/`),
+    addServiceProvider: (data) => api.post(`${BASE}/service-providers/`, data),
+    updateServiceProvider: (id, data) => api.put(`${BASE}/service-providers/${id}/`, data),
+    deleteServiceProvider: (id) => api.delete(`${BASE}/service-providers/${id}/`),
+
+    // Standing Orders
+    getStandingOrders: () => api.get(`${BASE}/standing-orders/`),
+    createStandingOrder: (data) => api.post(`${BASE}/standing-orders/`, data),
+    cancelStandingOrder: (id) => api.post(`${BASE}/standing-orders/${id}/cancel/`),
 };
 
 export const loansService = {

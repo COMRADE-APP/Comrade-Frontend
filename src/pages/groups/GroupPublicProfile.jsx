@@ -111,7 +111,7 @@ const GroupPublicProfile = () => {
             mmf: <PieChart className="w-4 h-4 text-blue-500" />,
             real_estate: <Building2 className="w-4 h-4 text-red-500" />,
             donation: <Heart className="w-4 h-4 text-pink-500" />,
-            fund: <Briefcase className="w-4 h-4 text-purple-500" />,
+            fund: <Briefcase className="w-4 h-4 text-primary-600" />,
         };
         return icons[type] || <DollarSign className="w-4 h-4 text-gray-500" />;
     };
@@ -124,7 +124,7 @@ const GroupPublicProfile = () => {
             </button>
 
             {/* Hero Header */}
-            <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-3xl p-8 md:p-10 text-white overflow-hidden">
+            <div className="relative bg-gradient-to-br from-indigo-600 via-primary-700 to-pink-500 rounded-3xl p-8 md:p-10 text-white overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
                 <div className="relative z-10">

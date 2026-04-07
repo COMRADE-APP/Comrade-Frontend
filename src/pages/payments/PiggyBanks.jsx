@@ -32,6 +32,8 @@ const PiggyBanks = () => {
         locking_status: 'unlocked',
         piggy_type: 'individual', // individual or group
         payment_group: null,
+        savings_type: 'normal',
+        contribution_mode: 'equal',
     });
     const [contributionAmount, setContributionAmount] = useState('');
     const [createLoading, setCreateLoading] = useState(false);
@@ -80,6 +82,8 @@ const PiggyBanks = () => {
                 target_amount: parseFloat(formData.target_amount) || 0,
                 maturity_date: formData.maturity_date || null,
                 locking_status: formData.locking_status,
+                savings_type: formData.savings_type,
+                contribution_mode: formData.piggy_type === 'group' ? formData.contribution_mode : 'equal',
             };
 
             if (formData.piggy_type === 'group' && formData.payment_group) {
@@ -122,6 +126,8 @@ const PiggyBanks = () => {
             locking_status: 'unlocked',
             piggy_type: 'individual',
             payment_group: null,
+            savings_type: 'normal',
+            contribution_mode: 'equal',
         });
         setCreateStep(1);
     };
@@ -207,8 +213,8 @@ const PiggyBanks = () => {
                                 <p className="text-secondary text-xs mb-1">Avg. Progress</p>
                                 <h2 className="text-2xl font-bold text-primary">{avgCompletion.toFixed(0)}%</h2>
                             </div>
-                            <div className="bg-purple-500/10 p-2 rounded-full">
-                                <CheckCircle className="w-5 h-5 text-purple-600" />
+                            <div className="bg-primary-600/10 p-2 rounded-full">
+                                <CheckCircle className="w-5 h-5 text-primary-700" />
                             </div>
                         </div>
                     </CardBody>
@@ -448,10 +454,63 @@ const PiggyBanks = () => {
                                             </div>
                                             <p className="text-xs text-secondary mt-1">
                                                 {formData.locking_status === 'locked'
-                                                    ? 'Funds cannot be withdrawn until the target date'
-                                                    : 'You can withdraw funds at any time'}
+                                                    ? 'Funds cannot be withdrawn until the target date or goal is reached.'
+                                                    : 'You can withdraw funds at any time.'}
                                             </p>
                                         </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Savings Type</label>
+                                            <div className="flex gap-2 text-sm flex-col">
+                                                <label className="flex items-center gap-2 p-3 rounded-lg border-2 border-theme hover:bg-secondary/5 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                                    <input type="radio" name="savings_type" value="normal" checked={formData.savings_type === 'normal'} onChange={(e) => setFormData({ ...formData, savings_type: e.target.value })} className="text-primary focus:ring-primary" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-primary">Normal Piggy Bank</p>
+                                                        <p className="text-xs text-secondary mt-0.5">Standard savings with flexible deposits and withdrawals.</p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center gap-2 p-3 rounded-lg border-2 border-theme hover:bg-secondary/5 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                                    <input type="radio" name="savings_type" value="locked" checked={formData.savings_type === 'locked'} onChange={(e) => setFormData({ ...formData, savings_type: e.target.value, locking_status: 'locked' })} className="text-primary focus:ring-primary" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-primary">Locked Savings</p>
+                                                        <p className="text-xs text-secondary mt-0.5">Save strictly until maturity. No early withdrawals.</p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center gap-2 p-3 rounded-lg border-2 border-theme hover:bg-secondary/5 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                                    <input type="radio" name="savings_type" value="fixed_deposit" checked={formData.savings_type === 'fixed_deposit'} onChange={(e) => {
+                                                        const fdState = { ...formData, savings_type: e.target.value, locking_status: 'locked' };
+                                                        // Require maturity date to be at least 1 year in the future for fixed deposits (handled by validation or default logic)
+                                                        setFormData(fdState);
+                                                    }} className="text-primary focus:ring-primary" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-primary">Fixed Deposit</p>
+                                                        <p className="text-xs text-secondary mt-0.5">Earn annual interest. 2% penalty and loss of interest for early withdrawal.</p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {formData.piggy_type === 'group' && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-secondary mb-1">Contribution Mode</label>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, contribution_mode: 'equal' })}
+                                                        className={`flex-1 p-3 rounded-lg border-2 text-center text-sm font-medium ${formData.contribution_mode === 'equal' ? 'border-primary bg-primary/10 text-primary' : 'border-theme text-secondary hover:bg-secondary/10'}`}
+                                                    >
+                                                        Equal Split
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, contribution_mode: 'proportional' })}
+                                                        className={`flex-1 p-3 rounded-lg border-2 text-center text-sm font-medium ${formData.contribution_mode === 'proportional' ? 'border-primary bg-primary/10 text-primary' : 'border-theme text-secondary hover:bg-secondary/10'}`}
+                                                    >
+                                                        Custom Proportions
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </>
                                 )}
 
@@ -540,9 +599,13 @@ const PiggyBanks = () => {
 
 const PiggyBankCard = ({ piggy, progress, onContribute }) => {
     const isAchieved = progress >= 100;
+    const navigate = useNavigate();
 
     return (
-        <Card className="group hover:shadow-lg transition-shadow duration-300">
+        <Card 
+            className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer" 
+            onClick={() => navigate(`/payments/groups/${piggy.id}`)}
+        >
             <CardBody className="p-6 space-y-4">
                 <div className="flex justify-between items-start">
                     <div className="flex gap-4">
@@ -561,12 +624,22 @@ const PiggyBankCard = ({ piggy, progress, onContribute }) => {
                                 Group
                             </div>
                         )}
-                        {piggy.locking_status === 'locked' ? (
+                        {piggy.savings_type === 'fixed_deposit' && (
+                            <div className="flex items-center text-xs font-medium text-primary-700 bg-primary-150 px-2 py-1 rounded-full">
+                                Fixed Deposit
+                            </div>
+                        )}
+                        {piggy.savings_type === 'locked' && (
+                            <div className="flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                                Locked Savings
+                            </div>
+                        )}
+                        {piggy.locking_status === 'locked' && piggy.savings_type !== 'locked' && piggy.savings_type !== 'fixed_deposit' ? (
                             <div className="flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
                                 <Lock className="w-3 h-3 mr-1" />
                                 Locked
                             </div>
-                        ) : (
+                        ) : piggy.locking_status === 'unlocked' && (
                             <div className="flex items-center text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
                                 <Unlock className="w-3 h-3 mr-1" />
                                 Unlocked
@@ -574,6 +647,22 @@ const PiggyBankCard = ({ piggy, progress, onContribute }) => {
                         )}
                     </div>
                 </div>
+
+                {piggy.savings_type === 'fixed_deposit' && (
+                    <div className="bg-primary-150 p-2 rounded-lg border border-primary-200 mt-2">
+                        <div className="flex justify-between items-center text-xs text-primary-800">
+                            <span className="font-semibold">Interest Rate (Annual)</span>
+                            <span>{piggy.interest_rate}%</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-primary-800 mt-1">
+                            <span>Accrued Interest</span>
+                            <span>+${parseFloat(piggy.accrued_interest || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="text-[10px] text-primary-600 mt-2 border-t border-primary-200 pt-1">
+                            * 2% penalty (+ loss of interest) on early withdrawal
+                        </div>
+                    </div>
+                )}
 
                 {/* Progress Bar */}
                 <div className="space-y-2">
@@ -601,7 +690,10 @@ const PiggyBankCard = ({ piggy, progress, onContribute }) => {
                     <Button
                         size="sm"
                         variant={isAchieved ? "outline" : "primary"}
-                        onClick={onContribute}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onContribute();
+                        }}
                         disabled={isAchieved}
                     >
                         {isAchieved ? 'Goal Reached!' : 'Contribute'}

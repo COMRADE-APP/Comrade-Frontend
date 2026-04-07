@@ -146,23 +146,23 @@ const CreateSpecialization = () => {
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-fade-in">
 
-                                    <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-6 mb-6">
+                                    <div className="bg-primary-150/50 border border-primary-200 rounded-xl p-6 mb-6">
                                         <div className="flex items-start gap-4">
-                                            <div className="p-3 bg-purple-100 rounded-lg text-purple-600">
+                                            <div className="p-3 bg-primary-200 rounded-lg text-primary-700">
                                                 <Target size={24} />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="text-lg font-semibold text-purple-900 mb-1">AI Path Builder</h3>
-                                                <p className="text-sm text-purple-700 mb-4">Upload documents, presentations, or books and we'll automatically generate a complete curriculum with corresponding stacks.</p>
+                                                <h3 className="text-lg font-semibold text-primary-900 mb-1">AI Path Builder</h3>
+                                                <p className="text-sm text-primary-800 mb-4">Upload documents, presentations, or books and we'll automatically generate a complete curriculum with corresponding stacks.</p>
 
-                                                <label className="flex items-center gap-3 p-3 bg-white w-full rounded-lg border border-purple-200 cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                                                <label className="flex items-center gap-3 p-3 bg-white w-full rounded-lg border border-primary-300 cursor-pointer shadow-sm hover:border-primary-400 transition-all">
                                                     <input
                                                         type="checkbox"
                                                         checked={useAI}
                                                         onChange={(e) => setUseAI(e.target.checked)}
-                                                        className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                                        className="w-5 h-5 text-primary-700 rounded border-gray-300 focus:ring-primary-600"
                                                     />
-                                                    <span className="font-medium text-purple-900">Use AI to generate from files</span>
+                                                    <span className="font-medium text-primary-900">Use AI to generate from files</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -328,10 +328,10 @@ const CreateSpecialization = () => {
                                     </h2>
 
                                     {useAI ? (
-                                        <div className="bg-purple-50 rounded-xl p-8 border border-purple-200 text-center">
-                                            <Target className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                                            <h3 className="text-xl font-bold text-purple-900 mb-2">Ready to Auto-Generate</h3>
-                                            <p className="text-purple-700 max-w-md mx-auto">We'll process your {aiFiles.length} uploaded file(s) and instantly create a structured curriculum, breaking it down into individual stacks.</p>
+                                        <div className="bg-primary-150 rounded-xl p-8 border border-primary-300 text-center">
+                                            <Target className="w-16 h-16 text-primary-500 mx-auto mb-4" />
+                                            <h3 className="text-xl font-bold text-primary-900 mb-2">Ready to Auto-Generate</h3>
+                                            <p className="text-primary-800 max-w-md mx-auto">We'll process your {aiFiles.length} uploaded file(s) and instantly create a structured curriculum, breaking it down into individual stacks.</p>
                                         </div>
                                     ) : (
                                         <div className="bg-secondary/5 rounded-xl p-6 space-y-4 border border-theme">

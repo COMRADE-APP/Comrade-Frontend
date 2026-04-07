@@ -8,6 +8,7 @@ import authService from '../../services/auth.service';
 const VerifyRegistration = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { completeLogin } = useAuth();
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -30,18 +31,10 @@ const VerifyRegistration = () => {
         try {
             const response = await authService.verifyRegistrationOTP(email, otp);
 
-            if (response.next_step === 'profile_setup') {
-                setSuccess(true);
-                // Navigate to registration success page
-                setTimeout(() => {
-                    navigate(ROUTES.REGISTRATION_SUCCESS, {
-                        state: {
-                            email,
-                            userType: response.user_type
-                        }
-                    });
-                }, 1000);
-            }
+            setSuccess(true);
+            setTimeout(() => {
+                completeLogin(response);
+            }, 1000);
         } catch (err) {
             setError(err.response?.data?.detail || 'Verification failed. Please try again.');
         } finally {

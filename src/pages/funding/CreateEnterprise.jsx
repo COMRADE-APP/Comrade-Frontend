@@ -21,7 +21,7 @@ const ENTERPRISE_CATEGORIES = [
     { id: 'mmf', label: 'Money Market Funds', icon: DollarSign, color: 'from-blue-500 to-cyan-600', description: 'Money market fund management and operations' },
     { id: 'stock', label: 'Stocks & Equities', icon: TrendingUp, color: 'from-green-500 to-emerald-600', description: 'Stock brokerages and equity trading firms' },
     { id: 'bond_domestic', label: 'Domestic Bonds', icon: Landmark, color: 'from-orange-500 to-amber-600', description: 'Domestic bond issuance and management' },
-    { id: 'bond_foreign', label: 'Foreign Bonds', icon: Globe, color: 'from-purple-500 to-violet-600', description: 'Foreign bond and international fixed income' },
+    { id: 'bond_foreign', label: 'Foreign Bonds', icon: Globe, color: 'from-primary-600 to-primary-600', description: 'Foreign bond and international fixed income' },
     { id: 'agency', label: 'Investment Agency', icon: Shield, color: 'from-slate-500 to-gray-600', description: 'Licensed investment agencies and wealth managers' },
     { id: 'venture_capital', label: 'Venture Capital', icon: Briefcase, color: 'from-indigo-500 to-blue-600', description: 'Venture capital and startup funding' },
     { id: 'private_equity', label: 'Private Equity', icon: BarChart2, color: 'from-teal-500 to-cyan-600', description: 'Private equity and buyout firms' },

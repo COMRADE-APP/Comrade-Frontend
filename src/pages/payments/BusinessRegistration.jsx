@@ -33,7 +33,7 @@ const BusinessRegistration = () => {
             description: 'Open your own digital storefront.',
             icon: Store,
             path: '/payments/register-shop',
-            color: 'bg-purple-500/10 text-purple-600'
+            color: 'bg-primary-600/10 text-primary-700'
         }
     ];
 

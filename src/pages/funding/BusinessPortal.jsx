@@ -97,19 +97,19 @@ const BusinessPortal = () => {
                                         whileHover={{ y: -4 }}
                                         className="bg-elevated border border-theme rounded-2xl p-6 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all group"
                                     >
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                        <div className="flex justify-between items-start mb-4 gap-2">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
                                                     <Store size={24} />
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-bold text-primary text-lg truncate w-32 md:w-40">{biz.name}</h3>
-                                                    <span className="text-xs font-semibold px-2 py-0.5 bg-secondary/10 rounded-full text-secondary capitalize">
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="font-bold text-primary text-lg truncate" title={biz.name}>{biz.name}</h3>
+                                                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-secondary/10 rounded-full text-secondary capitalize inline-block mt-0.5 max-w-full truncate">
                                                         {biz.industry}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded-lg uppercase tracking-wider">
+                                            <span className="shrink-0 text-[10px] font-bold px-2 py-1 bg-blue-500/10 text-blue-600 rounded-lg uppercase tracking-widest text-center whitespace-nowrap">
                                                 {biz.stage.replace('_', ' ')}
                                             </span>
                                         </div>
@@ -129,27 +129,52 @@ const BusinessPortal = () => {
                                             </div>
                                             <div className="bg-secondary/5 rounded-xl p-3 border border-theme/50">
                                                 <div className="flex items-center gap-1.5 text-xs text-secondary mb-1">
-                                                    <CheckCircle size={12} className="text-emerald-500" /> Verification
+                                                    <CheckCircle size={12} className={biz.is_verified ? "text-emerald-500" : "text-gray-400"} /> Verification
                                                 </div>
-                                                <p className="font-bold text-emerald-600 text-sm">Active</p>
+                                                {biz.is_verified ? (
+                                                    <p className="font-bold text-emerald-600 text-sm">Verified ✓</p>
+                                                ) : (
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            try {
+                                                                await fundingService.requestBusinessVerification(biz.id);
+                                                                alert('Verification request submitted successfully!');
+                                                            } catch (err) {
+                                                                alert('Failed to submit verification request.');
+                                                            }
+                                                        }}
+                                                        className="font-bold text-amber-600 text-xs hover:underline"
+                                                    >
+                                                        Request Verification →
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                             <Button 
                                                 variant="outline" 
                                                 onClick={() => navigate(`/funding/business/${biz.id}`)} 
-                                                className="flex-1 border-theme hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-colors text-sm py-2"
+                                                className="flex-1 border-theme hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-colors text-xs py-1.5 px-2 flex items-center justify-center min-w-[30%]"
                                             >
-                                                Dashboard <Activity size={14} className="ml-1 inline" />
+                                                Dashboard <Activity size={12} className="ml-1 shrink-0" />
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                onClick={() => navigate(`/funding/businesses/${biz.id}/analytics`)} 
+                                                className="flex-1 border-theme hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors text-xs py-1.5 px-2 flex items-center justify-center min-w-[30%]"
+                                                title="View Analytics"
+                                            >
+                                                Analytics <PieChart size={12} className="ml-1 shrink-0" />
                                             </Button>
                                             <Button 
                                                 variant="outline" 
                                                 onClick={() => navigate(ROUTES.KITTIES)} 
-                                                className="px-3 border-theme hover:bg-secondary/10 text-secondary"
+                                                className="px-2.5 py-1.5 border-theme hover:bg-secondary/10 text-secondary flex items-center justify-center"
                                                 title="View Kitties"
                                             >
-                                                <Wallet size={16} />
+                                                <Wallet size={14} />
                                             </Button>
                                         </div>
                                     </motion.div>
@@ -162,18 +187,18 @@ const BusinessPortal = () => {
                     {ventures.length > 0 && (
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-primary flex items-center gap-2 pt-6 border-t border-theme">
-                                <Building2 className="w-5 h-5 text-violet-500" /> Investment Enterprises
+                                <Building2 className="w-5 h-5 text-primary-500" /> Investment Enterprises
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {ventures.map((ven) => (
                                     <motion.div 
                                         key={ven.id} 
                                         whileHover={{ y: -4 }}
-                                        className="bg-elevated border border-theme rounded-2xl p-6 hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all group"
+                                        className="bg-elevated border border-theme rounded-2xl p-6 hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/10 transition-all group"
                                     >
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-600 flex items-center justify-center">
+                                                <div className="w-12 h-12 rounded-xl bg-primary-500/10 text-primary-600 flex items-center justify-center">
                                                     <Building2 size={24} />
                                                 </div>
                                                 <div>
@@ -186,7 +211,7 @@ const BusinessPortal = () => {
                                             </div>
                                         </div>
                                         
-                                        <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl p-4 text-white mb-6">
+                                        <div className="bg-gradient-to-r from-primary-600 to-indigo-600 rounded-xl p-4 text-white mb-6">
                                             <p className="text-white/70 text-xs mb-1">Available Fund Pool (Kitty)</p>
                                             <p className="font-bold text-2xl">KES {parseFloat(ven.available_fund).toLocaleString()}</p>
                                             <div className="mt-3 flex items-center justify-between text-xs text-white/80 border-t border-white/20 pt-2">
@@ -199,7 +224,7 @@ const BusinessPortal = () => {
                                             <Button 
                                                 variant="outline" 
                                                 onClick={() => navigate(`/funding/ventures/${ven.id}`)} 
-                                                className="flex-1 border-theme hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-colors text-sm py-2"
+                                                className="flex-1 border-theme hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors text-sm py-2"
                                             >
                                                 Analytics & History <PieChart size={14} className="ml-1 inline" />
                                             </Button>

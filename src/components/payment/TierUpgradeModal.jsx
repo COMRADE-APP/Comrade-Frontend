@@ -34,7 +34,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
             name: 'Premium',
             icon: Sparkles,
             color: 'purple',
-            gradient: 'from-purple-500 to-purple-600',
+            gradient: 'from-primary-600 to-primary-700',
             price: 19.99,
             priceAnnual: 199.99,
             popular: true,
@@ -76,7 +76,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-auto shadow-2xl animate-in zoom-in-95 duration-300">
                 {/* Header */}
-                <div className="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-8 text-white rounded-t-3xl">
+                <div className="relative bg-gradient-to-r from-primary-700 via-indigo-600 to-blue-600 p-8 text-white rounded-t-3xl">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -85,7 +85,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                     </button>
                     <div className="text-center">
                         <h2 className="text-3xl font-bold mb-2">Upgrade Your Plan</h2>
-                        <p className="text-purple-100">Unlock more features and grow without limits</p>
+                        <p className="text-primary-200">Unlock more features and grow without limits</p>
                     </div>
 
                     {/* Billing Toggle */}
@@ -94,7 +94,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                             <button
                                 onClick={() => setBillingCycle('monthly')}
                                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly'
-                                    ? 'bg-white text-purple-600 shadow-lg'
+                                    ? 'bg-white text-primary-700 shadow-lg'
                                     : 'text-white hover:bg-white/10'
                                     }`}
                             >
@@ -103,7 +103,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                             <button
                                 onClick={() => setBillingCycle('annual')}
                                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${billingCycle === 'annual'
-                                    ? 'bg-white text-purple-600 shadow-lg'
+                                    ? 'bg-white text-primary-700 shadow-lg'
                                     : 'text-white hover:bg-white/10'
                                     }`}
                             >
@@ -135,17 +135,17 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                                     key={tier.id}
                                     onClick={() => !isCurrentTier && !isDowngrade && setSelectedTier(tier.id)}
                                     className={`relative rounded-2xl border-2 p-6 transition-all cursor-pointer ${isSelected
-                                        ? 'border-purple-500 bg-purple-50 shadow-lg scale-105'
+                                        ? 'border-primary-600 bg-primary-150 shadow-lg scale-105'
                                         : isCurrentTier
                                             ? 'border-green-500 bg-green-50'
                                             : isDowngrade
                                                 ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                                                : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
+                                                : 'border-gray-200 hover:border-primary-400 hover:shadow-md'
                                         }`}
                                 >
                                     {tier.popular && (
                                         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                            <span className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                            <span className="bg-gradient-to-r from-primary-600 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                                                 MOST POPULAR
                                             </span>
                                         </div>
@@ -177,7 +177,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                                     <ul className="space-y-2 text-sm">
                                         {limits?.features?.map((feature, i) => (
                                             <li key={i} className="flex items-start gap-2">
-                                                <Check className={`w-4 h-4 mt-0.5 ${isSelected ? 'text-purple-500' : 'text-green-500'}`} />
+                                                <Check className={`w-4 h-4 mt-0.5 ${isSelected ? 'text-primary-600' : 'text-green-500'}`} />
                                                 <span className="text-gray-600">{feature}</span>
                                             </li>
                                         ))}
@@ -194,7 +194,7 @@ const TierUpgradeModal = ({ isOpen, onClose, currentTier = 'free', onUpgradeSucc
                             size="lg"
                             disabled={!selectedTier || selectedTier === currentTier || loading}
                             onClick={handleUpgrade}
-                            className="px-12 py-4 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500"
+                            className="px-12 py-4 text-lg bg-gradient-to-r from-primary-700 to-indigo-600 hover:from-primary-800 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500"
                         >
                             {loading ? 'Processing...' : selectedTier ? `Upgrade to ${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)}` : 'Select a Plan'}
                         </Button>

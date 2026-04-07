@@ -59,7 +59,7 @@ const ShopProductCard = ({ item }) => {
     const resolvedImage = getImageUrl(item.image_url) || getImageUrl(item.media_url) || null;
     const typeBadgeColors = {
         physical: 'bg-emerald-500/90 text-white',
-        digital: 'bg-purple-500/90 text-white',
+        digital: 'bg-primary-600/90 text-white',
         service: 'bg-indigo-500/90 text-white',
         subscription: 'bg-amber-500/90 text-white',
         recommendation: 'bg-rose-500/90 text-white',
@@ -67,7 +67,7 @@ const ShopProductCard = ({ item }) => {
 
     return (
         <div 
-            className="group bg-elevated rounded-2xl border border-theme overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-700 flex flex-col h-full" 
+            className="group bg-elevated rounded-2xl border border-theme overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary-400 dark:hover:border-primary-800 flex flex-col h-full" 
             onClick={() => nav(item.action_url || `/shop/item/${item.id}`)}
         >
             {/* Image Box */}
@@ -75,7 +75,7 @@ const ShopProductCard = ({ item }) => {
                 {resolvedImage ? (
                     <img src={resolvedImage} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-primary-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
                         <ShoppingBag size={36} className="text-tertiary opacity-40" />
                     </div>
                 )}
@@ -104,7 +104,7 @@ const ShopProductCard = ({ item }) => {
             {/* Content Area */}
             <div className="p-3 sm:p-4 flex flex-col flex-1 gap-2">
                 <div className="flex-1">
-                    <h3 className="font-semibold text-primary text-sm sm:text-base leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors mb-1">
+                    <h3 className="font-semibold text-primary text-sm sm:text-base leading-tight line-clamp-1 group-hover:text-primary-700 transition-colors mb-1">
                         {item.title}
                     </h3>
                     {(item.duration_minutes || item.service_mode_display) && (
@@ -133,14 +133,14 @@ const ShopProductCard = ({ item }) => {
                             className={`p-2 rounded-full transition-all duration-300 flex items-center justify-center shadow-sm ${
                                 justAdded
                                     ? 'bg-green-500 text-white scale-110'
-                                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 hover:bg-purple-200 dark:hover:bg-purple-800/40'
+                                    : 'bg-primary-200 dark:bg-primary-900/30 text-primary-700 hover:bg-primary-300 dark:hover:bg-primary-900/40'
                             }`}
                             title={justAdded ? 'Added!' : 'Add to Cart'}
                         >
                             {justAdded ? <Check size={16} strokeWidth={3} /> : (
                                 <div className="relative flex items-center justify-center">
                                     <ShoppingCart size={16} />
-                                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-purple-600 text-white rounded-full flex items-center justify-center border-2 border-purple-100 dark:border-purple-900">
+                                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-primary-700 text-white rounded-full flex items-center justify-center border-2 border-primary-200 dark:border-primary-900">
                                         <Plus size={8} strokeWidth={4} />
                                     </div>
                                 </div>
@@ -388,33 +388,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
-                    label="Pending Tasks"
-                    value={stats.pendingTasks}
-                    sublabel="2 Due Today"
-                    color="red"
-                />
-                <StatCard
-                    label="Upcoming Events"
-                    value={stats.upcomingEvents}
-                    sublabel="Next: Coding Bootcamp"
-                    color="green"
-                />
-                <StatCard
-                    label="New Messages"
-                    value={stats.newMessages}
-                    sublabel="3 Unread"
-                    color="blue"
-                />
-                <StatCard
-                    label="Following"
-                    value={user?.following_count || 0}
-                    sublabel="Active creators"
-                    color="purple"
-                />
-            </div>
+
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -433,7 +407,7 @@ const Dashboard = () => {
                     {newContentAvailable && (
                         <button
                             onClick={handleRefresh}
-                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                            className="w-full py-3 bg-gradient-to-r from-primary-600 to-blue-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                         >
                             <RefreshCw size={18} />
                             New posts available - tap to refresh
@@ -447,7 +421,7 @@ const Dashboard = () => {
                                 key={tab.id}
                                 onClick={() => handleTabChange(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
-                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                    ? 'bg-primary-200 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400'
                                     : 'text-secondary hover:bg-secondary'
                                     }`}
                             >
@@ -496,7 +470,7 @@ const Dashboard = () => {
                         <div className="bg-elevated rounded-xl border border-theme p-8 text-center">
                             {activeTab === 'products' ? (
                                 <>
-                                    <ShoppingBag size={48} className="mx-auto text-purple-300 mb-4" />
+                                    <ShoppingBag size={48} className="mx-auto text-primary-400 mb-4" />
                                     <h3 className="font-semibold text-primary mb-2">No products yet</h3>
                                     <p className="text-secondary text-sm">Check back later for new products!</p>
                                 </>
@@ -562,7 +536,7 @@ const Dashboard = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-2">
-                                <Calendar size={18} className="text-purple-600" />
+                                <Calendar size={18} className="text-primary-700" />
                                 <h3 className="font-semibold text-primary">Upcoming Events</h3>
                             </div>
                         </CardHeader>
@@ -576,7 +550,7 @@ const Dashboard = () => {
                             )}
                         </CardBody>
                         <CardFooter className="border-t border-theme p-3">
-                            <Link to="/events" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                            <Link to="/events" className="text-sm text-primary-700 hover:text-primary-800 flex items-center gap-1">
                                 View all events <ArrowRight size={14} />
                             </Link>
                         </CardFooter>
@@ -586,7 +560,7 @@ const Dashboard = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-2">
-                                <ClipboardList size={18} className="text-purple-600" />
+                                <ClipboardList size={18} className="text-primary-700" />
                                 <h3 className="font-semibold text-primary">Your Tasks</h3>
                             </div>
                         </CardHeader>
@@ -600,7 +574,7 @@ const Dashboard = () => {
                             )}
                         </CardBody>
                         <CardFooter className="border-t border-theme p-3">
-                            <Link to="/tasks" className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                            <Link to="/tasks" className="text-sm text-primary-700 hover:text-primary-800 flex items-center gap-1">
                                 View all tasks <ArrowRight size={14} />
                             </Link>
                         </CardFooter>
@@ -610,7 +584,7 @@ const Dashboard = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-2">
-                                <Users size={18} className="text-purple-600" />
+                                <Users size={18} className="text-primary-700" />
                                 <h3 className="font-semibold text-primary">Suggested Communities</h3>
                             </div>
                         </CardHeader>
@@ -625,7 +599,7 @@ const Dashboard = () => {
                                             to={`/rooms/${room.id}`}
                                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary"
                                         >
-                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-medium">
+                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-blue-500 flex items-center justify-center text-white font-medium">
                                                 {room.name?.[0]?.toUpperCase() || 'R'}
                                             </div>
                                             <div className="flex-1 min-w-0">

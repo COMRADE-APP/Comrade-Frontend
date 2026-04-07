@@ -41,7 +41,7 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
             case 'organisation':
                 return 'bg-blue-100 text-blue-700';
             case 'institution':
-                return 'bg-purple-100 text-purple-700';
+                return 'bg-primary-200 text-primary-800';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
@@ -76,7 +76,7 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                     onClose();
                                 }}
                                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeAccountId === account.id
-                                    ? 'bg-purple-50 border-2 border-purple-500'
+                                    ? 'bg-primary-150 border-2 border-primary-600'
                                     : 'hover:bg-gray-50 border-2 border-transparent'
                                     }`}
                             >
@@ -90,7 +90,7 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                         />
                                     ) : (
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${account.type === 'organisation' ? 'bg-blue-100 text-blue-600' :
-                                            account.type === 'institution' ? 'bg-purple-100 text-purple-600' :
+                                            account.type === 'institution' ? 'bg-primary-200 text-primary-700' :
                                                 'bg-gray-100 text-gray-600'
                                             }`}>
                                             {getIcon(account.type)}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { useTheme } from '../contexts/ThemeContext';
@@ -13,7 +13,7 @@ import activityLogService from '../services/activityLog.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
     UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail,
-    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil, HelpCircle, MonitorSmartphone
+    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil, HelpCircle, MonitorSmartphone, UserCheck
 } from 'lucide-react';
 
 
@@ -32,6 +32,7 @@ const XLogo = ({ className }) => (
 
 const Settings = () => {
     const { user, logout, updateUser } = useAuth();
+    const navigate = useNavigate();
     const { theme, setTheme: changeTheme, isDark } = useTheme();
     const [activeTab, setActiveTab] = useState('account');
     const [showPassword, setShowPassword] = useState(false);
@@ -242,6 +243,7 @@ const Settings = () => {
     const tabs = [
         { id: 'account', label: 'Account Center', icon: UserCog },
         { id: 'security', label: 'Privacy & Security', icon: Shield },
+        { id: 'verification', label: 'Verification & KYC', icon: UserCheck },
         { id: 'notifications', label: 'Notifications', icon: Bell },
         { id: 'appearance', label: 'Display & Accessibility', icon: MonitorSmartphone },
         { id: 'activity', label: 'Activity Log', icon: Activity },
@@ -628,7 +630,14 @@ const Settings = () => {
                                     <span className="text-xs text-green-600 font-medium">Active</span>
                                 </div>
                             </div>
-                            <Button variant="outline" className="w-full mt-4">
+                            <Button variant="outline" className="w-full mt-4" onClick={async () => {
+                                try {
+                                    await authService.logoutAllDevices?.();
+                                    showMessage('success', 'Attempted to sign out from all devices');
+                                } catch (error) {
+                                    showMessage('error', 'Failed to sign out from all devices');
+                                }
+                            }}>
                                 Sign Out All Devices
                             </Button>
                         </CardBody>
@@ -707,8 +716,25 @@ const Settings = () => {
                                         <h4 className="font-medium text-primary">Public Profile</h4>
                                         <p className="text-sm text-secondary">Allow others to view your profile</p>
                                     </div>
-                                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-secondary">
-                                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !user?.user_profile?.public_profile;
+                                                await authService.updateProfile({ public_profile: newStatus });
+                                                updateUser({
+                                                    user_profile: {
+                                                        ...user?.user_profile,
+                                                        public_profile: newStatus,
+                                                    }
+                                                });
+                                                showMessage('success', 'Privacy setting updated');
+                                            } catch (error) {
+                                                showMessage('error', 'Failed to update setting');
+                                            }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.public_profile ? 'bg-primary-600' : 'bg-secondary'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.public_profile ? 'translate-x-6' : 'translate-x-1'}`} />
                                     </button>
                                 </div>
                             </div>
@@ -1035,6 +1061,106 @@ const Settings = () => {
                                     </div>
                                     <ExternalLink className="w-4 h-4 text-tertiary" />
                                 </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
+            {/* Verification Tab */}
+            {activeTab === 'verification' && (
+                <div className="space-y-6">
+                    {/* Level Card */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <UserCheck className="w-5 h-5" />
+                                Account Verification Status
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-full border-4 border-blue-500 bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <Shield className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-primary">Level 1: Basic</h2>
+                                    <p className="text-sm text-secondary">Complete phone and identity verification to unlock higher transaction limits.</p>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Email Verification */}
+                    <Card>
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-primary">Email Verification</h4>
+                                        <p className="text-sm text-secondary">Your email address is verified.</p>
+                                    </div>
+                                </div>
+                                <span className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">Verified</span>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Phone Verification */}
+                    <Card>
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                                        <MonitorSmartphone className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-primary">Phone Verification</h4>
+                                        <p className="text-sm text-secondary">Add a phone number for extra security.</p>
+                                    </div>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => showMessage('success', 'Phone verification coming soon!')}>Verify</Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* ID Verification */}
+                    <Card>
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                                        <FileText className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-primary">Identity Verification</h4>
+                                        <p className="text-sm text-secondary">Upload a government-issued ID to reach Level 2.</p>
+                                    </div>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => showMessage('success', 'KYC integration coming soon!')}>Start KYC</Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                    
+                    {/* Business Verification */}
+                    <Card>
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                                        <Globe className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-primary">Business Verification</h4>
+                                        <p className="text-sm text-secondary">Required to create and manage enterprise or funding accounts on the platform.</p>
+                                    </div>
+                                </div>
+                                <Link to={ROUTES.FUNDING || '/funding'}>
+                                    <Button variant="outline" size="sm">Go to Portal</Button>
+                                </Link>
                             </div>
                         </CardBody>
                     </Card>

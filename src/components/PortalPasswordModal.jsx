@@ -35,9 +35,10 @@ const PortalPasswordModal = ({ isOpen, onClose, account, onVerified, mode = 'ver
         setError('');
 
         try {
-            const verifyFn = account.type === 'organisation'
-                ? portalService.verifyOrgPortalPassword
-                : portalService.verifyInstPortalPassword;
+            let verifyFn;
+            if (account.type === 'organisation') verifyFn = portalService.verifyOrgPortalPassword;
+            else if (account.type === 'business') verifyFn = portalService.verifyBusinessPortalPassword;
+            else verifyFn = portalService.verifyInstPortalPassword;
 
             const response = await verifyFn(account.id, { password });
 
@@ -79,9 +80,10 @@ const PortalPasswordModal = ({ isOpen, onClose, account, onVerified, mode = 'ver
         setError('');
 
         try {
-            const setFn = account.type === 'organisation'
-                ? portalService.setOrgPortalPassword
-                : portalService.setInstPortalPassword;
+            let setFn;
+            if (account.type === 'organisation') setFn = portalService.setOrgPortalPassword;
+            else if (account.type === 'business') setFn = portalService.setBusinessPortalPassword;
+            else setFn = portalService.setInstPortalPassword;
 
             await setFn(account.id, { password, password_type: passwordType });
 
@@ -116,7 +118,7 @@ const PortalPasswordModal = ({ isOpen, onClose, account, onVerified, mode = 'ver
                 {/* Header with gradient */}
                 <div className={`p-6 pb-4 ${account.type === 'organisation'
                     ? 'bg-gradient-to-br from-blue-600 to-indigo-700'
-                    : 'bg-gradient-to-br from-purple-600 to-violet-700'
+                    : 'bg-gradient-to-br from-primary-700 to-primary-700'
                     } text-white relative`}>
                     <button
                         onClick={handleClose}
@@ -242,7 +244,7 @@ const PortalPasswordModal = ({ isOpen, onClose, account, onVerified, mode = 'ver
                         disabled={loading || !password || success}
                         className={`w-full py-3 rounded-xl font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${account.type === 'organisation'
                             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                            : 'bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700'
+                            : 'bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700'
                             }`}
                     >
                         {loading ? (

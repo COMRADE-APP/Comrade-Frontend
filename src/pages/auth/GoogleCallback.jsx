@@ -21,20 +21,37 @@ const GoogleCallback = () => {
                 return;
             }
 
+            const hasPassword = searchParams.get('has_password') === 'true';
+            const email = searchParams.get('email');
+
             if (accessToken && refreshToken) {
-                // Store tokens separately for API interceptor
+                if (hasPassword) {
+                    // Redirect to password verification before granting access
+                    navigate(ROUTES.SOCIAL_PASSWORD_VERIFY || '/social-verify', { 
+                        state: { 
+                            email: email,
+                            message: "An account with this email already exists. Enter your password to confirm linking your social login."
+                        } 
+                    });
+                    return;
+                }
+
+                // New social account (no password exists) - log them in directly
                 localStorage.setItem('access_token', accessToken);
                 localStorage.setItem('refresh_token', refreshToken);
 
-                // Also store user object for AuthContext
                 const user = {
                     access_token: accessToken,
                     refresh_token: refreshToken,
                 };
                 localStorage.setItem('user', JSON.stringify(user));
 
-                // Redirect to dashboard - AuthContext will fetch full user data
-                window.location.href = ROUTES.DASHBOARD;
+                const profileCompleted = searchParams.get('profile_completed') === 'true';
+                if (!profileCompleted) {
+                    window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup?fromSocial=true';
+                } else {
+                    window.location.href = ROUTES.DASHBOARD;
+                }
                 return;
             }
 
@@ -53,6 +70,17 @@ const GoogleCallback = () => {
                         localStorage.setItem('access_token', data.access_token);
                         localStorage.setItem('refresh_token', data.refresh_token);
 
+                        // If they have a password, redirect to verification (from our internal callback, although less common)
+                        if (data.has_password) {
+                            navigate(ROUTES.SOCIAL_PASSWORD_VERIFY || '/social-verify', { 
+                                state: { 
+                                    email: data.email,
+                                    message: "An account with this email already exists. Enter your password to confirm linking your social login."
+                                } 
+                            });
+                            return;
+                        }
+
                         // Store full user object for AuthContext
                         const user = {
                             access_token: data.access_token,
@@ -67,7 +95,7 @@ const GoogleCallback = () => {
 
                         // Check if profile needs to be completed
                         if (data.profile_completed === false) {
-                            window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup';
+                            window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup?fromSocial=true';
                         } else {
                             window.location.href = ROUTES.DASHBOARD;
                         }

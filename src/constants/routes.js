@@ -10,6 +10,8 @@ export const ROUTES = {
     REGISTRATION_SUCCESS: '/registration-success',
     LOGIN_SUCCESS: '/login-success',
     PROFILE_SETUP: '/profile-setup',
+    ONBOARDING: '/onboarding',
+    SOCIAL_PASSWORD_VERIFY: '/social-verify',
     VERIFY_2FA: '/verify-2fa',
     VERIFY_SMS: '/verify-sms',
     SETUP_2FA: '/settings/security/2fa',
@@ -58,6 +60,8 @@ export const ROUTES = {
     PRODUCT_DETAILS: '/shop/item/:id',
     TIER_PLANS: '/tier-plans',
     PIGGY_BANKS: '/piggy-banks',
+    DONATIONS: '/donations',
+    GROUP_INVESTMENTS: '/group-investments',
     KITTIES: '/payments/kitties',
 
     // Opinions & Social

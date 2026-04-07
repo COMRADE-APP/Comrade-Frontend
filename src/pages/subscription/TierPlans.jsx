@@ -56,8 +56,8 @@ const TierPlans = () => {
             description: 'For power users',
             icon: Sparkles,
             color: 'purple',
-            gradient: 'from-purple-500 to-purple-600',
-            bgGradient: 'from-purple-50 to-purple-100',
+            gradient: 'from-primary-600 to-primary-700',
+            bgGradient: 'from-primary-150 to-primary-200',
             price: 19.99,
             priceAnnual: 199.99,
             popular: true,
@@ -83,7 +83,7 @@ const TierPlans = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full"></div>
             </div>
         );
     }
@@ -128,10 +128,10 @@ const TierPlans = () => {
                         <Card
                             key={tier.id}
                             className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isCurrent ? 'ring-2 ring-green-500' : ''
-                                } ${tier.popular ? 'ring-2 ring-purple-500' : ''}`}
+                                } ${tier.popular ? 'ring-2 ring-primary-600' : ''}`}
                         >
                             {tier.popular && (
-                                <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                                <div className="absolute top-0 right-0 bg-gradient-to-r from-primary-600 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
                                     POPULAR
                                 </div>
                             )}

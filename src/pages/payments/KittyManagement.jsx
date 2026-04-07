@@ -21,7 +21,7 @@ import { API_ENDPOINTS } from '../../constants/apiEndpoints';
 // ==================== TYPE BADGES ====================
 const TYPE_CONFIG = {
     enterprise: { icon: Heart, color: 'from-pink-500 to-rose-600', bg: 'bg-pink-500/10', text: 'text-pink-600' },
-    venture: { icon: Building2, color: 'from-violet-500 to-purple-600', bg: 'bg-violet-500/10', text: 'text-violet-600' },
+    venture: { icon: Building2, color: 'from-primary-500 to-primary-700', bg: 'bg-primary-500/10', text: 'text-primary-600' },
     shop: { icon: Store, color: 'from-emerald-500 to-green-600', bg: 'bg-emerald-500/10', text: 'text-emerald-600' },
     business: { icon: Briefcase, color: 'from-blue-500 to-cyan-600', bg: 'bg-blue-500/10', text: 'text-blue-600' },
 };
@@ -401,8 +401,8 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                     <p className="text-xs text-secondary mt-0.5">Link bank or M-PESA</p>
                                 </button>
                                 <button className="p-4 bg-secondary/5 rounded-xl border border-theme hover:bg-secondary/10 transition-colors text-left group">
-                                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mb-3">
-                                        <Download size={18} className="text-purple-600" />
+                                    <div className="w-10 h-10 bg-primary-600/10 rounded-lg flex items-center justify-center mb-3">
+                                        <Download size={18} className="text-primary-700" />
                                     </div>
                                     <p className="font-semibold text-primary text-sm">Generate Statement</p>
                                     <p className="text-xs text-secondary mt-0.5">Download PDF report</p>
@@ -751,7 +751,7 @@ const KittyManagement = () => {
             </div>
 
             {/* Overview Card */}
-            <Card className="bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white border-0">
+            <Card className="bg-gradient-to-br from-primary-600 via-indigo-600 to-primary-800 text-white border-0">
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">

@@ -290,7 +290,7 @@ const OpinionDetail = () => {
                             Quoted Opinion
                         </div>
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                                 {opinion.quoted_opinion.user?.avatar_url ? (
                                     <img src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -369,7 +369,7 @@ const OpinionDetail = () => {
                         )}
 
                         <div className="flex gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                                 {user?.avatar ? (
                                     <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                                 ) : user?.avatar_url ? (

@@ -12,7 +12,7 @@ import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
 
 const ESCROW_TYPES = [
     { id: 'marketplace', label: 'Marketplace Purchase', icon: Package, color: 'from-blue-500 to-indigo-600', desc: 'Buy products or services securely' },
-    { id: 'gig', label: 'Gig / Freelance', icon: Users, color: 'from-purple-500 to-violet-600', desc: 'Secure payments for freelance work' },
+    { id: 'gig', label: 'Gig / Freelance', icon: Users, color: 'from-primary-600 to-primary-600', desc: 'Secure payments for freelance work' },
     { id: 'p2p', label: 'Peer-to-Peer', icon: ArrowRightLeft, color: 'from-emerald-500 to-green-600', desc: 'Safe transactions between individuals' },
     { id: 'group_investment', label: 'Group Investment', icon: ShieldCheck, color: 'from-amber-500 to-orange-600', desc: 'Protect group investment funds' },
 ];
@@ -24,7 +24,7 @@ const STATUS_CONFIG = {
     delivered: { color: 'bg-amber-500/15 text-amber-500', icon: Package },
     released: { color: 'bg-emerald-500/15 text-emerald-500', icon: CheckCircle },
     disputed: { color: 'bg-rose-500/15 text-rose-500', icon: AlertTriangle },
-    refunded: { color: 'bg-purple-500/15 text-purple-500', icon: ArrowRightLeft },
+    refunded: { color: 'bg-primary-600/15 text-primary-600', icon: ArrowRightLeft },
     cancelled: { color: 'bg-secondary/10 text-tertiary', icon: XCircle },
 };
 

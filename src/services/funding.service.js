@@ -14,6 +14,11 @@ const fundingService = {
         return response.data;
     },
 
+    setupFundingDestination: async (id, data) => {
+        const response = await api.post(`${API_ENDPOINTS.FUNDING.BUSINESSES}${id}/setup_destination/`, data);
+        return response.data;
+    },
+
     getAllBusinesses: async () => {
         const response = await api.get(API_ENDPOINTS.FUNDING.BUSINESSES);
         // ModelViewSet list returns paginated object { results: [...] }
@@ -99,6 +104,18 @@ const fundingService = {
     // Get business detail
     getBusinessDetail: async (id) => {
         const response = await api.get(`${API_ENDPOINTS.FUNDING.BUSINESSES}${id}/`);
+        return response.data;
+    },
+
+    // Get business analytics
+    getBusinessAnalytics: async (id) => {
+        const response = await api.get(`${API_ENDPOINTS.FUNDING.BUSINESSES}${id}/analytics/`);
+        return response.data;
+    },
+
+    // Request business verification
+    requestBusinessVerification: async (id) => {
+        const response = await api.post(`${API_ENDPOINTS.FUNDING.BUSINESSES}${id}/request_verification/`);
         return response.data;
     },
 

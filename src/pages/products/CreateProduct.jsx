@@ -65,7 +65,7 @@ const CreateProduct = () => {
                     {/* Product Image */}
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-secondary mb-2">Product Image</label>
-                        <div className="border-2 border-dashed border-theme rounded-xl p-6 text-center hover:border-purple-500 transition-colors">
+                        <div className="border-2 border-dashed border-theme rounded-xl p-6 text-center hover:border-primary-600 transition-colors">
                             {productImage ? (
                                 <div className="relative">
                                     <img src={URL.createObjectURL(productImage)} alt="" className="max-h-48 mx-auto rounded-lg" />
@@ -76,7 +76,7 @@ const CreateProduct = () => {
                             ) : (
                                 <>
                                     <ImageIcon className="w-12 h-12 mx-auto text-tertiary mb-2" />
-                                    <label className="cursor-pointer text-purple-500 hover:text-purple-400 hover:underline font-medium">
+                                    <label className="cursor-pointer text-primary-600 hover:text-primary-500 hover:underline font-medium">
                                         Upload product image
                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => setProductImage(e.target.files?.[0])} />
                                     </label>
@@ -92,7 +92,7 @@ const CreateProduct = () => {
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary-600 outline-none"
                             placeholder="Enter product name"
                             required
                         />
@@ -105,7 +105,7 @@ const CreateProduct = () => {
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows={4}
-                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary-600 outline-none resize-none"
                             placeholder="Describe your product..."
                             required
                         />
@@ -122,7 +122,7 @@ const CreateProduct = () => {
                                 step="0.01"
                                 value={formData.price}
                                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary-600 outline-none"
                                 placeholder="0.00"
                                 required
                             />
@@ -134,7 +134,7 @@ const CreateProduct = () => {
                             <select
                                 value={formData.product_type}
                                 onChange={(e) => setFormData({ ...formData, product_type: e.target.value })}
-                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary-600 outline-none"
                             >
                                 {PRODUCT_TYPES.map(type => (
                                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -231,7 +231,7 @@ const CreateProduct = () => {
                                 type="number"
                                 value={formData.duration_days}
                                 onChange={(e) => setFormData({ ...formData, duration_days: parseInt(e.target.value) })}
-                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary-600 outline-none"
                             />
                         </div>
                     )}
@@ -247,7 +247,7 @@ const CreateProduct = () => {
                         <button
                             onClick={() => setShowConfirmation(true)}
                             disabled={loading || !formData.name || !formData.price}
-                            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 flex items-center gap-2 disabled:opacity-50 font-medium shadow-lg shadow-purple-500/20 transition-all"
+                            className="px-6 py-2.5 bg-gradient-to-r from-primary-700 to-primary-600 text-white rounded-lg hover:from-primary-800 hover:to-primary-700 flex items-center gap-2 disabled:opacity-50 font-medium shadow-lg shadow-primary-600/20 transition-all"
                         >
                             <Send size={18} /> Create Product
                         </button>
@@ -279,7 +279,7 @@ const CreateProduct = () => {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 font-medium disabled:opacity-50 transition-all"
+                                className="px-4 py-2 bg-gradient-to-r from-primary-700 to-primary-600 text-white rounded-lg hover:from-primary-800 hover:to-primary-700 font-medium disabled:opacity-50 transition-all"
                             >
                                 {loading ? 'Creating...' : 'Confirm'}
                             </button>

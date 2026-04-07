@@ -297,11 +297,11 @@ const QomAI = () => {
     };
 
     return (
-        <div className={`flex h-screen ${isFullscreen ? 'fixed inset-0 z-50' : ''} bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950`}>
+        <div className={`flex h-screen ${isFullscreen ? 'fixed inset-0 z-50' : ''} bg-gradient-to-br from-gray-950 via-primary-950/20 to-gray-950`}>
             {/* Sidebar */}
             <div className={`${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-300 overflow-hidden bg-gray-900/80 border-r border-gray-800 flex flex-col`}>
                 <div className="p-4 border-b border-gray-800">
-                    <Button onClick={startNewChat} className="w-full bg-violet-600 hover:bg-violet-700 flex items-center justify-center gap-2">
+                    <Button onClick={startNewChat} className="w-full bg-primary-600 hover:bg-primary-700 flex items-center justify-center gap-2">
                         <Plus className="w-4 h-4" /> New Chat
                     </Button>
                 </div>
@@ -313,7 +313,7 @@ const QomAI = () => {
                             <h3 className="text-xs font-semibold text-gray-500 uppercase px-2 mb-2">{group}</h3>
                             {convs.map(conv => (
                                 <button key={conv.id} onClick={() => loadConversation(conv.id)}
-                                    className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 group transition-colors flex items-center gap-2 ${currentConversationId === conv.id ? 'bg-violet-600/20 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+                                    className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 group transition-colors flex items-center gap-2 ${currentConversationId === conv.id ? 'bg-primary-600/20 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
                                     <MessageSquare className="w-4 h-4 flex-shrink-0" />
                                     <span className="flex-1 truncate text-sm">{conv.title || 'New Chat'}</span>
                                     <Trash2 onClick={(e) => { e.stopPropagation(); qomaiService.deleteConversation(conv.id).then(() => loadConversations()); }} className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 hover:text-red-400" />
@@ -333,7 +333,7 @@ const QomAI = () => {
                             {sidebarOpen ? <ChevronLeft className="w-5 h-5 text-gray-400" /> : <Menu className="w-5 h-5 text-gray-400" />}
                         </button>
                         <div className="flex items-center gap-2">
-                            <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
                                 <Brain className="w-5 h-5 text-white" />
                             </div>
                             <h1 className="text-lg font-semibold text-white flex items-center gap-1">QomAI <Sparkles className="w-4 h-4 text-yellow-400" /></h1>
@@ -384,11 +384,11 @@ const QomAI = () => {
                                             <div className="px-3 py-2 bg-gray-900/50 text-xs font-semibold text-gray-500 uppercase">{category.category}</div>
                                             {category.models.map(model => (
                                                 <button key={model.id} onClick={() => { setSelectedModel(model.id); setShowModelSelector(false); qomaiService.setPreferredModel(model.id); }}
-                                                    className={`w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3 border-b border-gray-700/50 last:border-0 ${selectedModel === model.id ? 'bg-violet-600/10' : ''}`}>
+                                                    className={`w-full text-left px-4 py-3 hover:bg-gray-700 flex items-center gap-3 border-b border-gray-700/50 last:border-0 ${selectedModel === model.id ? 'bg-primary-600/10' : ''}`}>
                                                     <div className="flex-1">
                                                         <div className="text-sm text-white font-medium flex items-center justify-between">
                                                             {model.name}
-                                                            {selectedModel === model.id && <Check className="w-4 h-4 text-violet-400" />}
+                                                            {selectedModel === model.id && <Check className="w-4 h-4 text-primary-400" />}
                                                         </div>
                                                         <div className="text-xs text-gray-400 mt-0.5">{model.description}</div>
                                                     </div>
@@ -410,16 +410,16 @@ const QomAI = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.length === 0 && (
                         <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                            <Sparkles className="w-12 h-12 text-violet-500/50 mb-4" />
+                            <Sparkles className="w-12 h-12 text-primary-500/50 mb-4" />
                             <p>Select a mode and start chatting!</p>
                         </div>
                     )}
                     {messages.map((message, index) => (
                         <div key={index} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-violet-500' : 'bg-gradient-to-br from-violet-500 to-purple-600'}`}>
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-primary-500' : 'bg-gradient-to-br from-primary-500 to-primary-700'}`}>
                                 {message.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                             </div>
-                            <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${message.role === 'user' ? 'bg-violet-600 text-white' : message.isError ? 'bg-red-900/90 border border-red-500/50 text-white' : 'bg-gray-800 text-gray-100'}`}>
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${message.role === 'user' ? 'bg-primary-600 text-white' : message.isError ? 'bg-red-900/90 border border-red-500/50 text-white' : 'bg-gray-800 text-gray-100'}`}>
                                 <div className="prose prose-invert prose-sm max-w-none">
                                     <ReactMarkdown>{message.content}</ReactMarkdown>
                                 </div>
@@ -442,7 +442,7 @@ const QomAI = () => {
                     ))}
                     {isLoading && (
                         <div className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div>
                             <div className="bg-gray-800 rounded-2xl px-4 py-3 flex items-center gap-2 text-gray-400">
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 <span className="text-sm">
@@ -487,7 +487,7 @@ const QomAI = () => {
                             <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 hover:bg-gray-800 rounded-xl text-gray-400 hover:text-white" title="Upload File">
                                 <Paperclip className="w-5 h-5" />
                             </button>
-                            <button type="button" onClick={handleGenerateImage} className="p-3 hover:bg-gray-800 rounded-xl text-gray-400 hover:text-purple-400" title="Generate Image">
+                            <button type="button" onClick={handleGenerateImage} className="p-3 hover:bg-gray-800 rounded-xl text-gray-400 hover:text-primary-500" title="Generate Image">
                                 <ImagePlus className="w-5 h-5" />
                             </button>
                         </div>
@@ -504,7 +504,7 @@ const QomAI = () => {
                                 className={`w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-white focus:outline-none transition-all resize-none max-h-32 ${isRecording ? 'border-red-500 animate-pulse' :
                                         currentMode === 'reasoning' ? 'border-pink-500/30 focus:border-pink-500' :
                                             currentMode === 'research' ? 'border-cyan-500/30 focus:border-cyan-500' :
-                                                'border-gray-700 focus:border-violet-500'
+                                                'border-gray-700 focus:border-primary-500'
                                     }`}
                                 disabled={isLoading}
                                 style={{ height: 'auto', minHeight: '48px' }}
@@ -523,7 +523,7 @@ const QomAI = () => {
                         <Button type="submit" disabled={(!input.trim() && attachments.length === 0) || isLoading}
                             className={`p-3 rounded-xl transition-all ${currentMode === 'reasoning' ? 'bg-pink-600 hover:bg-pink-700' :
                                     currentMode === 'research' ? 'bg-cyan-600 hover:bg-cyan-700' :
-                                        'bg-violet-600 hover:bg-violet-700'
+                                        'bg-primary-600 hover:bg-primary-700'
                                 }`}>
                             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                         </Button>

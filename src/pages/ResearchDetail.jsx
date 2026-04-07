@@ -254,7 +254,7 @@ const ResearchDetail = () => {
                         <h4 className="font-medium text-primary mb-3">Allocation Overview</h4>
                         <div className="w-full h-6 bg-secondary rounded-full overflow-hidden flex">
                             {personas.map((p, i) => {
-                                const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'];
+                                const colors = ['bg-blue-500', 'bg-green-500', 'bg-primary-600', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'];
                                 return (
                                     <div
                                         key={p.id}
@@ -269,7 +269,7 @@ const ResearchDetail = () => {
                         </div>
                         <div className="flex flex-wrap gap-3 mt-3">
                             {personas.map((p, i) => {
-                                const colors = ['text-blue-500', 'text-green-500', 'text-purple-500', 'text-orange-500', 'text-pink-500', 'text-teal-500'];
+                                const colors = ['text-blue-500', 'text-green-500', 'text-primary-600', 'text-orange-500', 'text-pink-500', 'text-teal-500'];
                                 return (
                                     <span key={p.id} className={`text-xs font-medium ${colors[i % colors.length]}`}>
                                         ● {p.name} ({p.percentage}%)
