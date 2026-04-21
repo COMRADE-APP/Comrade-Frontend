@@ -4,7 +4,6 @@ import Header from './Header';
 import MobileNav from './MobileNav';
 import MobileDrawer from './MobileDrawer';
 import AccountSelectionModal from '../AccountSelectionModal';
-import VoiceAssistantWidget from '../common/VoiceAssistantWidget';
 import { useAuth } from '../../contexts/AuthContext';
 
 import { Toaster } from 'react-hot-toast';
@@ -66,9 +65,6 @@ const MainLayout = ({ children }) => {
                 onSelect={handleAccountSelected}
                 userName={user?.first_name}
             />
-
-            {/* Voice Assistant Floating Widget */}
-            <VoiceAssistantWidget />
         </div>
     );
 };

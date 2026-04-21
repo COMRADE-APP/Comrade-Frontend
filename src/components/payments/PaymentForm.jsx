@@ -1,65 +1,57 @@
 /**
- * PaymentForm — Custom card inputs with real-time brand detection,
- * saved payment methods dropdown, M-Pesa phone field, PayPal selection,
- * and a "save payment details" checkbox.
+ * PaymentForm — PCI-compliant card capture with Stripe Elements,
+ * M-Pesa phone field, PayPal, Flutterwave/Pesapal redirect,
+ * and saved payment methods selector.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useStripeContext } from '../../contexts/StripeProvider';
 import paymentProcessingService from '../../services/paymentProcessing.service';
 import './PaymentForm.css';
 
-// ── Card brand detection (client-side, mirrors backend) ──────────
-const detectCardBrand = (num) => {
-    const n = num.replace(/\s|-/g, '');
-    if (!n || !/^\d+$/.test(n)) return null;
-    if (/^4/.test(n)) return 'visa';
-    if (/^5[1-5]/.test(n) || /^2(2[2-9][1-9]|2[3-9]\d|[3-6]\d{2}|7[0-1]\d|720)/.test(n)) return 'mastercard';
-    if (/^3[47]/.test(n)) return 'amex';
-    if (/^6011|^65|^64[4-9]/.test(n)) return 'discover';
-    if (/^35(2[89]|[3-8]\d)/.test(n)) return 'jcb';
-    if (/^3(0[0-5]|[68])/.test(n)) return 'diners_club';
-    if (/^62/.test(n)) return 'unionpay';
-    if (/^(5018|5020|5038|6304|6759|676[1-3])/.test(n)) return 'maestro';
-    return null;
+// Stripe CardElement styling (matches dark theme)
+const CARD_ELEMENT_OPTIONS = {
+    style: {
+        base: {
+            fontSize: '16px',
+            color: '#e2e8f0',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            '::placeholder': { color: '#64748b' },
+            iconColor: '#6366f1',
+        },
+        invalid: {
+            color: '#ef4444',
+            iconColor: '#ef4444',
+        },
+    },
+    hidePostalCode: false,
 };
 
-const BRAND_LABELS = {
-    visa: '💳 Visa',
-    mastercard: '💳 Mastercard',
-    amex: '💳 Amex',
-    discover: '💳 Discover',
-    jcb: '💳 JCB',
-    diners_club: "💳 Diner's Club",
-    unionpay: '💳 UnionPay',
-    maestro: '💳 Maestro',
-};
-
-const formatCardNumber = (val) => {
-    const digits = val.replace(/\D/g, '').slice(0, 19);
-    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-};
-
-// ── Component ────────────────────────────────────────────────────
 const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCancel }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const { gatewayConfig } = useStripeContext();
+
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
-    const [methodType, setMethodType] = useState('card'); // card | mpesa | paypal | saved
+    const [methodType, setMethodType] = useState('card');
     const [savedMethods, setSavedMethods] = useState([]);
     const [selectedSavedId, setSelectedSavedId] = useState('');
     const [saveDetails, setSaveDetails] = useState(false);
-
-    // Card fields
-    const [cardNumber, setCardNumber] = useState('');
-    const [cardBrand, setCardBrand] = useState(null);
-    const [expiryMonth, setExpiryMonth] = useState('');
-    const [expiryYear, setExpiryYear] = useState('');
-    const [cvc, setCvc] = useState('');
-    const [billingZip, setBillingZip] = useState('');
 
     // M-Pesa
     const [phoneNumber, setPhoneNumber] = useState('');
 
     // PayPal
     const [paypalEmail, setPaypalEmail] = useState('');
+
+    // Available gateways
+    const gateways = gatewayConfig?.gateways || {};
+    const hasStripe = gateways.stripe?.available;
+    const hasMpesa = gateways.mpesa?.available;
+    const hasPaypal = gateways.paypal?.available;
+    const hasFlutterwave = gateways.flutterwave?.available;
+    const hasPesapal = gateways.pesapal?.available;
 
     // Load saved payment methods
     useEffect(() => {
@@ -72,11 +64,6 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
         };
         loadSaved();
     }, []);
-
-    // Real-time brand detection while typing
-    useEffect(() => {
-        setCardBrand(detectCardBrand(cardNumber));
-    }, [cardNumber]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -99,35 +86,76 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     saved_method_id: selectedSavedId,
                     description,
                 });
+
             } else if (methodType === 'card') {
-                // If user wants to save details, save the method first
-                let savedMethodId;
-                if (saveDetails) {
-                    try {
-                        const saved = await paymentProcessingService.savePaymentMethod({
-                            method_type: 'card',
-                            card_number: cardNumber.replace(/\s/g, ''),
-                            expiry_month: parseInt(expiryMonth),
-                            expiry_year: parseInt(expiryYear),
-                            cvc,
-                            billing_zip: billingZip,
-                            is_default: savedMethods.length === 0,
-                        });
-                        savedMethodId = saved.id;
-                    } catch (saveErr) {
-                        // Non-blocking: continue processing even if save fails
-                        console.warn('Could not save payment method:', saveErr);
-                    }
+                // PCI-compliant: use Stripe Elements to create a PaymentMethod
+                if (!stripe || !elements) {
+                    setError('Payment system is loading. Please wait a moment.');
+                    setProcessing(false);
+                    return;
                 }
 
+                const cardElement = elements.getElement(CardElement);
+                if (!cardElement) {
+                    setError('Card input not available.');
+                    setProcessing(false);
+                    return;
+                }
+
+                // Create PaymentMethod using Stripe.js (card data never touches our server)
+                const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                });
+
+                if (stripeError) {
+                    setError(stripeError.message);
+                    setProcessing(false);
+                    return;
+                }
+
+                // Send only the tokenized PM ID to our backend
                 response = await paymentProcessingService.processPayment({
                     amount: parseFloat(amount),
                     currency,
                     payment_method: 'stripe',
-                    ...(savedMethodId ? { saved_method_id: savedMethodId } : {}),
+                    payment_method_id: paymentMethod.id,
                     description,
                 });
+
+                // If backend returns client_secret, confirm on client
+                if (response?.provider_response?.client_secret) {
+                    const { error: confirmError } = await stripe.confirmCardPayment(
+                        response.provider_response.client_secret
+                    );
+                    if (confirmError) {
+                        setError(confirmError.message);
+                        setProcessing(false);
+                        return;
+                    }
+                }
+
+                // Save method for future use if requested
+                if (saveDetails && paymentMethod?.id) {
+                    try {
+                        await paymentProcessingService.savePaymentMethod({
+                            method_type: 'card',
+                            provider_token: paymentMethod.id,
+                            provider: 'stripe',
+                            last_four: paymentMethod.card?.last4 || '',
+                            card_brand: paymentMethod.card?.brand || '',
+                            is_default: savedMethods.length === 0,
+                            nickname: `${paymentMethod.card?.brand || 'Card'} •••• ${paymentMethod.card?.last4 || ''}`,
+                        });
+                    } catch { /* non-blocking */ }
+                }
+
             } else if (methodType === 'mpesa') {
+                if (!phoneNumber) {
+                    setError('Phone number is required for M-Pesa.');
+                    setProcessing(false);
+                    return;
+                }
                 if (saveDetails) {
                     try {
                         await paymentProcessingService.savePaymentMethod({
@@ -143,21 +171,41 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     phone_number: phoneNumber,
                     description,
                 });
+
             } else if (methodType === 'paypal') {
-                if (saveDetails) {
-                    try {
-                        await paymentProcessingService.savePaymentMethod({
-                            method_type: 'paypal',
-                            paypal_email: paypalEmail,
-                        });
-                    } catch { /* non-blocking */ }
-                }
                 response = await paymentProcessingService.processPayment({
                     amount: parseFloat(amount),
                     currency,
                     payment_method: 'paypal',
                     description,
                 });
+                // PayPal returns an approval URL — redirect user
+                if (response?.provider_response?.approve_url) {
+                    window.location.href = response.provider_response.approve_url;
+                    return;
+                }
+
+            } else if (methodType === 'flutterwave') {
+                response = await paymentProcessingService.initiateFlutterwavePayment({
+                    amount: parseFloat(amount),
+                    currency: currency === 'USD' ? 'KES' : currency,
+                    description,
+                });
+                if (response?.provider_response?.payment_link) {
+                    window.location.href = response.provider_response.payment_link;
+                    return;
+                }
+
+            } else if (methodType === 'pesapal') {
+                response = await paymentProcessingService.initiatePesapalPayment({
+                    amount: parseFloat(amount),
+                    currency: currency === 'USD' ? 'KES' : currency,
+                    description,
+                });
+                if (response?.provider_response?.redirect_url) {
+                    window.location.href = response.provider_response.redirect_url;
+                    return;
+                }
             }
 
             if (response && onSuccess) {
@@ -173,6 +221,21 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
             setProcessing(false);
         }
     };
+
+    // Build method tabs dynamically based on available gateways
+    const methodTabs = [];
+    if (hasStripe) methodTabs.push({ val: 'card', label: '💳 Card', icon: '💳' });
+    if (hasMpesa || hasFlutterwave) methodTabs.push({ val: 'mpesa', label: '📱 M-Pesa', icon: '📱' });
+    if (hasPaypal) methodTabs.push({ val: 'paypal', label: '🅿️ PayPal', icon: '🅿️' });
+    if (hasFlutterwave) methodTabs.push({ val: 'flutterwave', label: '🏦 Bank', icon: '🏦' });
+    if (hasPesapal && !hasFlutterwave) methodTabs.push({ val: 'pesapal', label: '🏦 Pesapal', icon: '🏦' });
+    if (savedMethods.length > 0) methodTabs.push({ val: 'saved', label: '⭐ Saved', icon: '⭐' });
+
+    // Fallback if no gateways loaded yet
+    if (methodTabs.length === 0) {
+        methodTabs.push({ val: 'card', label: '💳 Card', icon: '💳' });
+        methodTabs.push({ val: 'mpesa', label: '📱 M-Pesa', icon: '📱' });
+    }
 
     return (
         <div className="payment-form">
@@ -192,12 +255,7 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
             <form onSubmit={handleSubmit}>
                 {/* ─── Method Selector ─── */}
                 <div className="payment-method-selector">
-                    {[
-                        { val: 'card', label: '💳 Card' },
-                        { val: 'mpesa', label: '📱 M-Pesa' },
-                        { val: 'paypal', label: '🅿️ PayPal' },
-                        ...(savedMethods.length > 0 ? [{ val: 'saved', label: '⭐ Saved' }] : []),
-                    ].map(({ val, label }) => (
+                    {methodTabs.map(({ val, label }) => (
                         <label key={val} className={methodType === val ? 'active' : ''}>
                             <input
                                 type="radio" name="methodType" value={val}
@@ -209,72 +267,15 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     ))}
                 </div>
 
-                {/* ─── Card Inputs ─── */}
+                {/* ─── Stripe Card Element (PCI Compliant) ─── */}
                 {methodType === 'card' && (
                     <div className="card-fields">
-                        <div className="card-number-row">
-                            <input
-                                id="card-number"
-                                type="text"
-                                placeholder="Card number"
-                                className="form-input"
-                                value={cardNumber}
-                                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                                maxLength={23}
-                                required
-                                autoComplete="cc-number"
-                            />
-                            {cardBrand && (
-                                <span className="card-brand-badge">{BRAND_LABELS[cardBrand] || '💳'}</span>
-                            )}
+                        <div className="stripe-card-element-wrapper">
+                            <CardElement options={CARD_ELEMENT_OPTIONS} />
                         </div>
-                        <div className="card-row">
-                            <select
-                                id="expiry-month"
-                                className="form-input"
-                                value={expiryMonth}
-                                onChange={(e) => setExpiryMonth(e.target.value)}
-                                required
-                            >
-                                <option value="">Month</option>
-                                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                                    <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                                ))}
-                            </select>
-                            <select
-                                id="expiry-year"
-                                className="form-input"
-                                value={expiryYear}
-                                onChange={(e) => setExpiryYear(e.target.value)}
-                                required
-                            >
-                                <option value="">Year</option>
-                                {Array.from({ length: 12 }, (_, i) => new Date().getFullYear() + i).map(y => (
-                                    <option key={y} value={y}>{y}</option>
-                                ))}
-                            </select>
-                            <input
-                                id="cvc"
-                                type="text"
-                                placeholder="CVC"
-                                className="form-input"
-                                value={cvc}
-                                onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                maxLength={4}
-                                required
-                                autoComplete="cc-csc"
-                            />
-                        </div>
-                        <input
-                            id="billing-zip"
-                            type="text"
-                            placeholder="Billing ZIP code"
-                            className="form-input"
-                            value={billingZip}
-                            onChange={(e) => setBillingZip(e.target.value)}
-                            maxLength={10}
-                            autoComplete="postal-code"
-                        />
+                        <p className="help-text">
+                            🔒 Card details are securely processed by Stripe. We never see your card number.
+                        </p>
                     </div>
                 )}
 
@@ -297,16 +298,27 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                 {/* ─── PayPal ─── */}
                 {methodType === 'paypal' && (
                     <div className="paypal-input">
-                        <input
-                            id="paypal-email"
-                            type="email"
-                            placeholder="PayPal email address"
-                            className="form-input"
-                            value={paypalEmail}
-                            onChange={(e) => setPaypalEmail(e.target.value)}
-                            required
-                        />
-                        <p className="help-text">You'll be redirected to PayPal to complete payment</p>
+                        <p className="help-text" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                            🅿️ You'll be redirected to PayPal to complete your payment securely.
+                        </p>
+                    </div>
+                )}
+
+                {/* ─── Flutterwave (Bank/M-Pesa/Card via hosted page) ─── */}
+                {methodType === 'flutterwave' && (
+                    <div className="flutterwave-input">
+                        <p className="help-text" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                            🏦 You'll be redirected to a secure payment page supporting banks (Equity, KCB, DTB, Absa, NCBA, Ecobank, Family Bank), M-Pesa, and cards.
+                        </p>
+                    </div>
+                )}
+
+                {/* ─── Pesapal ─── */}
+                {methodType === 'pesapal' && (
+                    <div className="pesapal-input">
+                        <p className="help-text" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                            🏦 You'll be redirected to Pesapal to pay via M-Pesa, Airtel Money, or bank transfer.
+                        </p>
                     </div>
                 )}
 
@@ -331,7 +343,7 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                 )}
 
                 {/* ─── Save Details Checkbox ─── */}
-                {methodType !== 'saved' && (
+                {(methodType === 'card' || methodType === 'mpesa') && (
                     <label className="save-details-check">
                         <input
                             type="checkbox"
@@ -342,12 +354,12 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     </label>
                 )}
 
-                <button type="submit" className="btn-pay" disabled={processing}>
+                <button type="submit" className="btn-pay" disabled={processing || (methodType === 'card' && !stripe)}>
                     {processing ? 'Processing...' : `Pay ${currency} ${parseFloat(amount).toFixed(2)}`}
                 </button>
             </form>
 
-            <div className="payment-secure">🔒 Secure payment — details are encrypted</div>
+            <div className="payment-secure">🔒 Secure payment — PCI Level 1 compliant</div>
         </div>
     );
 };

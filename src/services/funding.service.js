@@ -47,6 +47,11 @@ const fundingService = {
         return response.data;
     },
 
+    createOpportunity: async (data) => {
+        const response = await api.post(API_ENDPOINTS.FUNDING.OPPORTUNITIES, data);
+        return response.data;
+    },
+
     // Specific Categories
     getCharities: async () => {
         // Charities are Business objects with is_charity=True

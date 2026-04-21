@@ -126,7 +126,4 @@ export const ROUTES = {
     ML_RECOMMENDATION: '/admin/ml/recommendation',
     ML_DISTRIBUTION: '/admin/ml/distribution',
     ML_SCRAPING: '/admin/ml/scraping',
-
-    // Voice Assistant
-    VOICE_SETTINGS: '/settings/voice',
 };

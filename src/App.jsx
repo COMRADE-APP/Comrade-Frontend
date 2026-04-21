@@ -64,9 +64,13 @@ import ServiceDetail from './pages/shop/ServiceDetail';
 import ShopCart from './pages/shop/Cart';
 import ShopOrders from './pages/shop/Orders';
 import PiggyBanks from './pages/payments/PiggyBanks';
+import PiggyBankDetail from './pages/payments/PiggyBankDetail';
 import Donations from './pages/payments/Donations';
+import DonationDetail from './pages/payments/DonationDetail';
 import GroupInvestments from './pages/payments/GroupInvestments';
+import GroupInvestmentDetail from './pages/payments/GroupInvestmentDetail';
 import CheckoutPage from './pages/payments/CheckoutPage';
+import StripeProvider from './contexts/StripeProvider';
 
 import { CartProvider } from './contexts/CartContext';
 import CartDrawer from './components/shop/CartDrawer';
@@ -147,9 +151,6 @@ import AdminVerifications from './pages/admin/AdminVerifications';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminSettings from './pages/admin/AdminSettings';
 
-// Voice Assistant
-import VoiceSettings from './pages/settings/VoiceSettings';
-
 // Role-Specific Portals
 import StaffPortal from './pages/portals/StaffPortal';
 import AuthorPortal from './pages/portals/AuthorPortal';
@@ -173,6 +174,7 @@ import RequestDetail from './pages/funding/RequestDetail';
 import FundingRequestAnalytics from './pages/funding/FundingRequestAnalytics';
 import InvestorProfilePage from './pages/funding/InvestorProfilePage';
 import OpportunityDetail from './pages/funding/OpportunityDetail';
+import CreateOpportunity from './pages/funding/CreateOpportunity';
 import BusinessPortal from './pages/funding/BusinessPortal';
 import BusinessAnalytics from './pages/funding/BusinessAnalytics';
 
@@ -369,11 +371,31 @@ function App() {
                 }
             />
             <Route
+                path={'/payments/donations/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <DonationDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path={'/funding/group-investments'}
                 element={
                     <ProtectedRoute>
                         <MainLayout>
                             <GroupInvestments />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/payments/group-investments/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <GroupInvestmentDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -404,6 +426,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <OpportunityDetail />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/funding/opportunity/create/:businessId?'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <CreateOpportunity />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1194,9 +1226,11 @@ function App() {
                 path={ROUTES.PAYMENT_METHODS}
                 element={
                     <ProtectedRoute>
-                        <MainLayout>
-                            <PaymentMethods />
-                        </MainLayout>
+                        <StripeProvider>
+                            <MainLayout>
+                                <PaymentMethods />
+                            </MainLayout>
+                        </StripeProvider>
                     </ProtectedRoute>
                 }
             />
@@ -1316,6 +1350,16 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <PiggyBanks />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path={'/payments/piggy-banks/:id'}
+                element={
+                    <ProtectedRoute>
+                        <MainLayout>
+                            <PiggyBankDetail />
                         </MainLayout>
                     </ProtectedRoute>
                 }
@@ -1534,9 +1578,11 @@ function App() {
                 path="/payments/checkout"
                 element={
                     <ProtectedRoute>
-                        <MainLayout>
-                            <CheckoutPage />
-                        </MainLayout>
+                        <StripeProvider>
+                            <MainLayout>
+                                <CheckoutPage />
+                            </MainLayout>
+                        </StripeProvider>
                     </ProtectedRoute>
                 }
             />
@@ -1596,9 +1642,11 @@ function App() {
                 path="/payment-methods"
                 element={
                     <ProtectedRoute>
-                        <MainLayout>
-                            <PaymentMethods />
-                        </MainLayout>
+                        <StripeProvider>
+                            <MainLayout>
+                                <PaymentMethods />
+                            </MainLayout>
+                        </StripeProvider>
                     </ProtectedRoute>
                 }
             />
@@ -1919,18 +1967,6 @@ function App() {
                     <ProtectedRoute>
                         <MainLayout>
                             <ScrapingDashboard />
-                        </MainLayout>
-                    </ProtectedRoute>
-                }
-            />
-
-            {/* Voice Assistant Settings */}
-            <Route
-                path={ROUTES.VOICE_SETTINGS}
-                element={
-                    <ProtectedRoute>
-                        <MainLayout>
-                            <VoiceSettings />
                         </MainLayout>
                     </ProtectedRoute>
                 }

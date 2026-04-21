@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
 import { CreditCard, Smartphone, Mail, Building2, Edit2, Trash2, Star, X, Save, Loader2, Plus, Shield } from 'lucide-react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const PaymentMethods = () => {
     const [paymentMethods, setPaymentMethods] = useState([]);
@@ -12,14 +13,13 @@ const PaymentMethods = () => {
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
+    const stripe = useStripe();
+    const elements = useElements();
+
     // New method form
     const [newMethod, setNewMethod] = useState({
         method_type: 'card',
         nickname: '',
-        card_number: '',
-        expiry_month: '',
-        expiry_year: '',
-        cvc: '',
         billing_zip: '',
         phone_number: '',
         paypal_email: '',
@@ -128,10 +128,31 @@ const PaymentMethods = () => {
 
             switch (newMethod.method_type) {
                 case 'card':
-                    payload.card_number = newMethod.card_number;
-                    payload.expiry_month = newMethod.expiry_month ? parseInt(newMethod.expiry_month) : undefined;
-                    payload.expiry_year = newMethod.expiry_year ? parseInt(newMethod.expiry_year) : undefined;
-                    payload.cvc = newMethod.cvc;
+                    if (!stripe || !elements) {
+                        setError('Stripe has not loaded yet. Please try again or refresh the page.');
+                        setSaving(false);
+                        return;
+                    }
+
+                    const cardElement = elements.getElement(CardElement);
+                    
+                    const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement,
+                        billing_details: {
+                            address: {
+                                postal_code: newMethod.billing_zip || undefined,
+                            }
+                        }
+                    });
+
+                    if (stripeError) {
+                        setError(stripeError.message);
+                        setSaving(false);
+                        return;
+                    }
+
+                    payload.provider_token = paymentMethod.id;
                     if (newMethod.billing_zip) payload.billing_zip = newMethod.billing_zip;
                     break;
                 case 'mpesa':
@@ -153,7 +174,12 @@ const PaymentMethods = () => {
             await paymentProcessingService.savePaymentMethod(payload);
             setSuccessMsg('Payment method added!');
             setShowAddModal(false);
-            setNewMethod({ method_type: 'card', nickname: '', card_number: '', expiry_month: '', expiry_year: '', cvc: '', billing_zip: '', phone_number: '', paypal_email: '', account_number: '', bank_name: '', is_default: false });
+            setNewMethod({ method_type: 'card', nickname: '', billing_zip: '', phone_number: '', paypal_email: '', account_number: '', bank_name: '', is_default: false });
+            // Clear the CardElement explicitly
+            if (elements) {
+                const cardElement = elements.getElement(CardElement);
+                if (cardElement) cardElement.clear();
+            }
             fetchPaymentMethods();
         } catch (err) {
             const errData = err?.response?.data;
@@ -511,51 +537,32 @@ const PaymentMethods = () => {
                             {/* Card fields */}
                             {newMethod.method_type === 'card' && (
                                 <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Card Number</label>
-                                        <input
-                                            type="text"
-                                            value={newMethod.card_number}
-                                            onChange={(e) => handleNewMethodChange('card_number', e.target.value.replace(/[^\d\s]/g, ''))}
-                                            placeholder="4242 4242 4242 4242"
-                                            maxLength={19}
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm font-mono"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-medium text-secondary mb-1">Month</label>
-                                            <input
-                                                type="text"
-                                                value={newMethod.expiry_month}
-                                                onChange={(e) => handleNewMethodChange('expiry_month', e.target.value)}
-                                                placeholder="MM"
-                                                maxLength={2}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
+                                    <div className="bg-primary/50 border border-theme rounded-xl p-4">
+                                        <label className="block text-sm font-medium text-secondary mb-3">Card Details</label>
+                                        <div className="bg-white px-3 py-3 rounded-lg border border-gray-200 shadow-sm">
+                                            <CardElement
+                                                options={{
+                                                    style: {
+                                                        base: {
+                                                            fontSize: '15px',
+                                                            color: '#32325d',
+                                                            fontFamily: '"Inter", "Helvetica Neue", Helvetica, sans-serif',
+                                                            '::placeholder': {
+                                                                color: '#aab7c4',
+                                                            },
+                                                        },
+                                                        invalid: {
+                                                            color: '#ef4444',
+                                                            iconColor: '#ef4444',
+                                                        },
+                                                    },
+                                                    hidePostalCode: true,
+                                                }}
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-secondary mb-1">Year</label>
-                                            <input
-                                                type="text"
-                                                value={newMethod.expiry_year}
-                                                onChange={(e) => handleNewMethodChange('expiry_year', e.target.value)}
-                                                placeholder="YY"
-                                                maxLength={4}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-secondary mb-1">CVC</label>
-                                            <input
-                                                type="text"
-                                                value={newMethod.cvc}
-                                                onChange={(e) => handleNewMethodChange('cvc', e.target.value)}
-                                                placeholder="123"
-                                                maxLength={4}
-                                                className="w-full px-3 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm text-center"
-                                            />
-                                        </div>
+                                        <p className="text-xs text-secondary mt-3">
+                                            Your card details are securely tokenized and processed by Stripe. We do not store your raw card information.
+                                        </p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-secondary mb-1">Billing Zip</label>

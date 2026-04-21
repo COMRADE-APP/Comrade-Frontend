@@ -401,6 +401,48 @@ export const paymentsService = {
         return response.data;
     },
 
+    async joinPublicPitch(investmentId) {
+        const response = await api.post(`/payments/group-investments/${investmentId}/join_public_pitch/`);
+        return response.data;
+    },
+
+    async withdrawContribution(investmentId, amount) {
+        const response = await api.post(`/payments/group-investments/${investmentId}/withdraw_contribution/`, { amount });
+        return response.data;
+    },
+
+    async withdrawGains(investmentId, amount, preference) {
+        const response = await api.post(`/payments/group-investments/${investmentId}/withdraw_gains/`, { amount, preference });
+        return response.data;
+    },
+
+    async getPublicPitches() {
+        const response = await api.get('/payments/group-investments/public_pitches/');
+        return response.data;
+    },
+
+    // ========== Group Votes ==========
+    async getGroupVotes(groupId) {
+        let url = '/payments/group-votes/';
+        if (groupId) {
+            url = `/payments/group-votes/by_group/?group_id=${groupId}`;
+        }
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    async createVote(data) {
+        const response = await api.post('/payments/group-votes/', data);
+        return response.data;
+    },
+
+    async castVote(voteId, choice) {
+        // choice: 'for', 'against', 'abstain'
+        const response = await api.post(`/payments/group-votes/${voteId}/cast_vote/`, { vote: choice });
+        return response.data;
+    },
+
+
     // ========== Products ==========
     async getProducts() {
         const response = await api.get(API_ENDPOINTS.PRODUCTS);

@@ -1,46 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    ArrowLeft, PieChart, TrendingUp, Landmark, Building2,
-    Shield, Briefcase, Globe, Target, AlertCircle
-} from 'lucide-react';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import fundingService from '../../services/funding.service';
-import InvestModal from '../../components/funding/InvestModal';
-
-const CATEGORY_CONFIG = {
-    mmf: { label: 'Money Market Fund', icon: PieChart, color: 'from-blue-500 to-cyan-600', bg: 'bg-blue-100', text: 'text-blue-600' },
-    stock: { label: 'Stocks & Equities', icon: TrendingUp, color: 'from-green-500 to-emerald-600', bg: 'bg-green-100', text: 'text-green-600' },
-    bond_domestic: { label: 'Domestic Bond', icon: Landmark, color: 'from-amber-500 to-orange-600', bg: 'bg-amber-100', text: 'text-amber-600' },
-    bond_foreign: { label: 'Foreign Bond', icon: Globe, color: 'from-primary-500 to-primary-700', bg: 'bg-primary-100', text: 'text-primary-600' },
-    agency: { label: 'Investment Agency', icon: Building2, color: 'from-slate-600 to-gray-700', bg: 'bg-slate-100', text: 'text-slate-600' },
-    default: { label: 'Investment Opportunity', icon: Briefcase, color: 'from-primary to-primary-600', bg: 'bg-primary/10', text: 'text-primary' },
-};
+import {
+    Building, ArrowLeft, Target, TrendingUp, AlertCircle, ShieldCheck, Link2
+} from 'lucide-react';
+import api from '../../services/api';
 
 const OpportunityDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-
     const [opportunity, setOpportunity] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
-    // InvestModal state
-    const [showInvestModal, setShowInvestModal] = useState(false);
 
     useEffect(() => {
-        loadOpportunity();
+        loadData();
     }, [id]);
 
-    const loadOpportunity = async () => {
+    const loadData = async () => {
         setLoading(true);
         try {
-            const data = await fundingService.getOpportunityDetail(id);
-            setOpportunity(data);
+            // Assume the API matches the generic ViewSet for Funding/investment-opportunities
+            const res = await api.get(`/funding/investment-opportunities/${id}/`);
+            setOpportunity(res.data);
         } catch (err) {
-            console.error('Error loading opportunity:', err);
-            setError('Opportunity not found or you do not have permission to view it.');
+            console.error('Error loading config:', err);
+            setError('Could not load opportunity details.');
         } finally {
             setLoading(false);
         }
@@ -49,153 +35,100 @@ const OpportunityDetail = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
             </div>
         );
     }
 
     if (error || !opportunity) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-                <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-                <h2 className="text-2xl font-bold text-primary mb-2">Not Found</h2>
-                <p className="text-secondary mb-6">{error || 'The requested opportunity could not be found.'}</p>
-                <Button variant="primary" onClick={() => navigate('/funding')}>
-                    Back to Funding Hub
+            <div className="text-center py-12">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-primary mb-2">{error || 'Not found'}</h3>
+                <Button variant="primary" onClick={() => navigate('/funding/group-investments')}>
+                    Go Back
                 </Button>
             </div>
         );
     }
 
-    const config = CATEGORY_CONFIG[opportunity.type] || CATEGORY_CONFIG.default;
-    const Icon = config.icon;
-
-    // We manually adapt the `opportunity` so the InvestModal can process it correctly
-    // Since InvestModal expects item.name, item.businessId, etc.
-    const adaptedForInvest = {
-        ...opportunity,
-        id: opportunity.id,
-        name: opportunity.title,
-        businessId: null, // Since it's not a Business
-        desc: opportunity.description,
-        goal: opportunity.min_investment, // For lack of a better target
-        raised: 0,
-        provider: opportunity.provider,
-        category: config.label
-    };
-
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-20">
-            {/* Navigation & Header */}
-            <div className="flex items-center gap-4">
+        <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4">
+            <div className="flex items-center gap-4 pt-8">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 hover:bg-secondary/10 rounded-lg text-secondary transition-colors"
+                    className="p-2.5 rounded-xl bg-elevated hover:bg-secondary/10 border border-theme transition-all"
                 >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-5 h-5 text-secondary" />
                 </button>
-                <h1 className="text-2xl font-bold text-primary">Opportunity Details</h1>
+                <div className="flex items-center gap-2 text-sm font-medium text-secondary">
+                    <span>Back</span>
+                </div>
             </div>
 
-            {/* Hero Cover */}
-            <div className={`w-full rounded-2xl overflow-hidden shadow-md bg-gradient-to-br ${config.color} text-white p-8 relative`}>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                    <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shrink-0">
-                        <Icon className="w-10 h-10 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-2">
-                            <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold backdrop-blur-md">
-                                {config.label}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase backdrop-blur-md ${
-                                opportunity.risk_level === 'low' ? 'bg-green-500/30 text-green-50' :
-                                opportunity.risk_level === 'medium' ? 'bg-yellow-500/30 text-yellow-50' :
-                                'bg-red-500/30 text-red-50'
-                            }`}>
-                                {opportunity.risk_level} Risk
-                            </span>
+            <Card className="rounded-3xl overflow-hidden shadow-lg border-theme">
+                <div className="h-4 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+                <CardBody className="p-8">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h1 className="text-4xl font-black text-primary mb-2">{opportunity.title}</h1>
+                            <p className="text-xl text-secondary flex items-center gap-2">
+                                <Building className="w-6 h-6 text-indigo-500" />
+                                {opportunity.provider}
+                            </p>
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-bold mb-2">{opportunity.title}</h2>
-                        <p className="text-white/80 text-lg flex items-center gap-2">
-                            <Shield className="w-5 h-5" /> Provided by {opportunity.provider}
-                        </p>
+                        {opportunity.is_verified && (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full font-bold text-sm">
+                                <ShieldCheck className="w-5 h-5" />
+                                Verified Offering
+                            </span>
+                        )}
                     </div>
-                </div>
-            </div>
+                    
+                    <p className="text-lg text-secondary leading-relaxed mb-8">
+                        {opportunity.description}
+                    </p>
 
-            {/* Main Content Details */}
-            <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 space-y-6">
-                    <Card className="shadow-sm border-theme">
-                        <CardBody className="p-6 md:p-8">
-                            <h3 className="font-bold text-xl text-primary mb-4 flex items-center gap-2">
-                                <Target className="w-5 h-5 text-primary-600" /> About this Opportunity
-                            </h3>
-                            <div className="prose dark:prose-invert max-w-none text-secondary whitespace-pre-line leading-relaxed">
-                                {opportunity.description || 'No description provided.'}
-                            </div>
-                            
-                            {opportunity.link && (
-                                <div className="mt-8 pt-6 border-t border-theme">
-                                    <h4 className="font-semibold text-primary mb-2">External Reference</h4>
-                                    <a 
-                                        href={opportunity.link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-primary-600 hover:text-primary-700 underline flex items-center gap-1"
-                                    >
-                                        Visit Platform <Globe className="w-4 h-4" />
-                                    </a>
-                                </div>
-                            )}
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Sidebar Details */}
-                <div className="space-y-6">
-                    <Card className="shadow-sm border-theme sticky top-24">
-                        <CardBody className="p-6">
-                            <div className="space-y-6">
-                                <div className="p-4 bg-secondary/5 rounded-xl border border-theme">
-                                    <p className="text-secondary text-sm mb-1">Expected Return</p>
-                                    <p className="text-2xl font-bold text-green-600">{opportunity.expected_return}</p>
-                                </div>
-
-                                <div>
-                                    <p className="text-secondary text-sm mb-1">Minimum Investment</p>
-                                    <p className="text-xl font-bold text-primary">
-                                        KES {parseFloat(opportunity.min_investment || 0).toLocaleString()}
-                                    </p>
-                                </div>
-
-                                <Button 
-                                    variant="primary" 
-                                    className="w-full py-3 text-lg"
-                                    onClick={() => setShowInvestModal(true)}
-                                >
-                                    Invest Now
-                                </Button>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-            </div>
-
-            {/* Invest Modal Instance */}
-            {showInvestModal && (
-                <InvestModal
-                    isOpen={showInvestModal}
-                    onClose={() => setShowInvestModal(false)}
-                    opportunity={adaptedForInvest}
-                    onSuccess={() => {
-                        // After success, they can view their investment in the payments hub
-                        navigate('/payments?tab=investments');
-                    }}
-                />
-            )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-theme">
+                            <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-2">Target Returns</h4>
+                            <p className="text-2xl font-black text-green-600">{opportunity.expected_return}</p>
+                            {opportunity.potential_gains && <p className="text-sm text-secondary mt-1">{opportunity.potential_gains}</p>}
+                        </div>
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-theme">
+                            <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-2">Risk Factor</h4>
+                            <p className="text-2xl font-black text-amber-600 capitalize">{opportunity.risk_level} Risk</p>
+                        </div>
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-theme">
+                            <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-2">Min Individual Entry</h4>
+                            <p className="text-2xl font-black text-primary">${parseFloat(opportunity.min_individual_entry || opportunity.min_investment).toLocaleString()}</p>
+                        </div>
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-theme">
+                            <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-2">Min Group Entry</h4>
+                            <p className="text-2xl font-black text-primary">${parseFloat(opportunity.min_group_entry).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    
+                    {opportunity.group_benefit_summary && (
+                        <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl mb-8">
+                            <h4 className="flex items-center gap-2 font-bold text-indigo-900 mb-2">
+                                <Target className="w-5 h-5 text-indigo-600" />
+                                Syndicate Group Edge
+                            </h4>
+                            <p className="text-indigo-800">{opportunity.group_benefit_summary}</p>
+                        </div>
+                    )}
+                    
+                    {opportunity.link && (
+                        <div className="flex gap-4 pt-4 border-t border-theme">
+                            <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition">
+                                <Link2 className="w-5 h-5 mr-2" />
+                                View External Offering
+                            </a>
+                        </div>
+                    )}
+                </CardBody>
+            </Card>
         </div>
     );
 };

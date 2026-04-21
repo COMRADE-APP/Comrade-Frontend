@@ -1,15 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, ShieldCheck, Loader2, CheckCircle, Package } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShieldCheck, Loader2, CheckCircle, Package, Smartphone, Building2, Globe } from 'lucide-react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAuth } from '../../contexts/AuthContext';
+import { useStripeContext } from '../../contexts/StripeProvider';
 import { paymentsService } from '../../services/payments.service';
+import paymentProcessingService from '../../services/paymentProcessing.service';
 import Button from '../../components/common/Button';
 import Card, { CardBody } from '../../components/common/Card';
+
+// Stripe CardElement styling
+const CARD_ELEMENT_OPTIONS = {
+    style: {
+        base: {
+            fontSize: '16px',
+            color: '#e2e8f0',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            '::placeholder': { color: '#64748b' },
+            iconColor: '#6366f1',
+        },
+        invalid: { color: '#ef4444', iconColor: '#ef4444' },
+    },
+    hidePostalCode: false,
+};
 
 const CheckoutPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const stripe = useStripe();
+    const elements = useElements();
+    const { gatewayConfig } = useStripeContext();
 
     // State coming from cart navigation
     const {
@@ -29,20 +50,25 @@ const CheckoutPage = () => {
     const [walletBalance, setWalletBalance] = useState(0);
     const [approvalPending, setApprovalPending] = useState(false);
     const [checkoutRequestId, setCheckoutRequestId] = useState(null);
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     const hasPhysicalItems = cartItems.some(item => 
         (item.type === 'product' && item.metadata?.product_type !== 'digital') ||
         (item.type === 'service' && item.metadata?.service_mode !== 'online')
     );
 
-    // Initial load checks
+    // Available gateways
+    const gateways = gatewayConfig?.gateways || {};
+    const hasStripe = gateways.stripe?.available;
+    const hasMpesa = gateways.mpesa?.available || gateways.flutterwave?.available;
+    const hasPaypal = gateways.paypal?.available;
+    const hasFlutterwave = gateways.flutterwave?.available;
+
     useEffect(() => {
         if (!location.state || cartItems.length === 0) {
             navigate('/shop');
             return;
         }
-
-        // Fetch wallet balance if individual purchase
         if (purchaseType === 'individual') {
             paymentsService.getBalance()
                 .then(res => {
@@ -82,14 +108,12 @@ const CheckoutPage = () => {
                 delivery_method: deliveryMethod
             };
 
+            // ── GROUP PURCHASE ──
             if (purchaseType === 'group') {
-                if (!selectedGroupId) {
-                    throw new Error("No group selected for group purchase.");
-                }
+                if (!selectedGroupId) throw new Error("No group selected for group purchase.");
                 payload.group_id = selectedGroupId;
-                if (isMultiDestination) {
-                    payload.is_multi_destination = true;
-                }
+                if (isMultiDestination) payload.is_multi_destination = true;
+
                 const response = await paymentsService.processGroupCheckout(payload);
                 if (response?.approval_pending || response?.data?.approval_pending) {
                     const reqId = response?.checkout_request_id || response?.data?.checkout_request_id;
@@ -98,7 +122,78 @@ const CheckoutPage = () => {
                     setLoading(false);
                     return;
                 }
-            } else {
+            }
+            // ── STRIPE CARD PAYMENT ──
+            else if (paymentMethod === 'stripe') {
+                if (!stripe || !elements) {
+                    throw new Error('Stripe not loaded. Please wait and try again.');
+                }
+                const cardElement = elements.getElement(CardElement);
+                if (!cardElement) throw new Error('Card input not ready.');
+
+                // Create PaymentMethod (tokenized — PCI compliant)
+                const { error: pmError, paymentMethod: pm } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                });
+                if (pmError) throw new Error(pmError.message);
+
+                // Create PaymentIntent on backend
+                const intentResult = await paymentProcessingService.processPayment({
+                    amount: totalAmount,
+                    currency: 'USD',
+                    payment_method: 'stripe',
+                    payment_method_id: pm.id,
+                    description: `Checkout: ${cartItems.length} items`,
+                });
+
+                // Confirm on client if needed
+                if (intentResult?.provider_response?.client_secret) {
+                    const { error: confirmError } = await stripe.confirmCardPayment(
+                        intentResult.provider_response.client_secret
+                    );
+                    if (confirmError) throw new Error(confirmError.message);
+                }
+            }
+            // ── M-PESA ──
+            else if (paymentMethod === 'mpesa') {
+                if (!phoneNumber) throw new Error('Phone number is required for M-Pesa.');
+                await paymentProcessingService.processPayment({
+                    amount: totalAmount,
+                    currency: 'KES',
+                    payment_method: 'mpesa',
+                    phone_number: phoneNumber,
+                    description: `Checkout: ${cartItems.length} items`,
+                });
+            }
+            // ── PAYPAL (redirect) ──
+            else if (paymentMethod === 'paypal') {
+                const result = await paymentProcessingService.processPayment({
+                    amount: totalAmount,
+                    currency: 'USD',
+                    payment_method: 'paypal',
+                    description: `Checkout: ${cartItems.length} items`,
+                });
+                if (result?.provider_response?.approve_url) {
+                    window.location.href = result.provider_response.approve_url;
+                    return;
+                }
+            }
+            // ── FLUTTERWAVE (redirect) ──
+            else if (paymentMethod === 'flutterwave') {
+                const result = await paymentProcessingService.initiateFlutterwavePayment({
+                    amount: totalAmount,
+                    currency: 'KES',
+                    email: user?.email || '',
+                    description: `Checkout: ${cartItems.length} items`,
+                });
+                if (result?.provider_response?.payment_link) {
+                    window.location.href = result.provider_response.payment_link;
+                    return;
+                }
+            }
+            // ── WALLET (existing flow) ──
+            else {
                 const donationItem = cartItems.find(item => item.type === 'donation');
                 const investItem = cartItems.find(item => item.type === 'investment_quote');
                 
@@ -117,7 +212,6 @@ const CheckoutPage = () => {
             let errMsg = err.response?.data?.detail || err.response?.data?.error || err.response?.data?.message || err.message || "Checkout failed. Please try again.";
             
             if (typeof err.response?.data === 'object' && !err.response?.data?.detail && !err.response?.data?.error) {
-                // Parse nested validation errors (e.g. {"amount": ["Too low"], "group": ["Invalid group"]})
                 const errorValues = Object.values(err.response.data).flat();
                 if (errorValues.length > 0 && typeof errorValues[0] === 'string') {
                     errMsg = errorValues[0];
@@ -136,7 +230,7 @@ const CheckoutPage = () => {
         }
     };
 
-    // Polling Effect for realtime checkout approval updates
+    // Polling for group checkout approval
     useEffect(() => {
         let interval;
         if (approvalPending && checkoutRequestId && selectedGroupId) {
@@ -156,11 +250,9 @@ const CheckoutPage = () => {
                 } catch (error) {
                     console.error("Error polling checkout status:", error);
                 }
-            }, 3000); // poll every 3 seconds
+            }, 3000);
         }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
+        return () => { if (interval) clearInterval(interval); };
     }, [approvalPending, checkoutRequestId, selectedGroupId]);
 
     if (approvalPending) {
@@ -174,12 +266,8 @@ const CheckoutPage = () => {
                     Your group checkout has been initiated. Waiting for other members to approve the payment.
                 </p>
                 <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => navigate('/shop')}>
-                        Return to Shop
-                    </Button>
-                    <Button variant="primary" onClick={() => navigate(`/payments/groups/${selectedGroupId}?tab=approvals`)}>
-                        View Pending Approvals
-                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/shop')}>Return to Shop</Button>
+                    <Button variant="primary" onClick={() => navigate(`/payments/groups/${selectedGroupId}?tab=approvals`)}>View Pending Approvals</Button>
                 </div>
             </div>
         );
@@ -209,6 +297,21 @@ const CheckoutPage = () => {
     }
 
     const isGroupPurchase = purchaseType === 'group';
+
+    // Payment options for individual checkout
+    const paymentOptions = [];
+    paymentOptions.push({ val: 'wallet', label: 'Personal Wallet', icon: <CreditCard className="w-4 h-4" />, sub: `Balance: $${walletBalance.toFixed(2)}` });
+    if (hasStripe) paymentOptions.push({ val: 'stripe', label: 'Card / Apple Pay', icon: <CreditCard className="w-4 h-4 text-indigo-400" />, sub: 'Visa, Mastercard, Amex' });
+    if (hasMpesa) paymentOptions.push({ val: 'mpesa', label: 'M-Pesa', icon: <Smartphone className="w-4 h-4 text-green-400" />, sub: 'Safaricom STK Push' });
+    if (hasFlutterwave) paymentOptions.push({ val: 'flutterwave', label: 'Bank Transfer', icon: <Building2 className="w-4 h-4 text-amber-400" />, sub: 'Equity, KCB, DTB, Absa & more' });
+    if (hasPaypal) paymentOptions.push({ val: 'paypal', label: 'PayPal', icon: <Globe className="w-4 h-4 text-blue-400" />, sub: 'PayPal / Venmo' });
+
+    const canPay = isGroupPurchase ||
+        paymentMethod === 'stripe' ||
+        paymentMethod === 'mpesa' ||
+        paymentMethod === 'paypal' ||
+        paymentMethod === 'flutterwave' ||
+        (paymentMethod === 'wallet' && walletBalance >= totalAmount);
 
     return (
         <div className="min-h-screen bg-background p-4 md:p-8">
@@ -289,21 +392,51 @@ const CheckoutPage = () => {
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
-                                            <label className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === 'wallet' ? 'border-primary bg-primary/5' : 'border-theme hover:bg-secondary/10'}`}>
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'wallet' ? 'border-primary' : 'border-secondary'}`}>
-                                                        {paymentMethod === 'wallet' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                            {paymentOptions.map(opt => (
+                                                <label key={opt.val} className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${paymentMethod === opt.val ? 'border-indigo-500 bg-indigo-500/5 shadow-sm shadow-indigo-500/10' : 'border-theme hover:bg-secondary/10'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === opt.val ? 'border-indigo-500' : 'border-secondary'}`}>
+                                                            {paymentMethod === opt.val && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-primary flex items-center gap-2">
+                                                                {opt.icon} {opt.label}
+                                                            </p>
+                                                            <p className="text-xs text-secondary">{opt.sub}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-primary">Personal Wallet</p>
-                                                        <p className="text-xs text-secondary">Balance: ${walletBalance.toFixed(2)}</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                            {/* Could add Stripe / PayPal here later */}
+                                                    <input type="radio" className="hidden" checked={paymentMethod === opt.val} onChange={() => setPaymentMethod(opt.val)} />
+                                                </label>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Stripe Card Element */}
+                                {paymentMethod === 'stripe' && !isGroupPurchase && (
+                                    <div className="p-4 bg-secondary/5 rounded-xl border border-theme">
+                                        <p className="text-xs text-secondary mb-3 font-medium">Enter card details</p>
+                                        <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                            <CardElement options={CARD_ELEMENT_OPTIONS} />
+                                        </div>
+                                        <p className="text-xs text-tertiary mt-2">🔒 Secured by Stripe — we never see your card number</p>
+                                    </div>
+                                )}
+
+                                {/* M-Pesa Phone Input */}
+                                {paymentMethod === 'mpesa' && !isGroupPurchase && (
+                                    <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20">
+                                        <p className="text-xs text-green-400 mb-3 font-medium">M-Pesa Phone Number</p>
+                                        <input
+                                            type="tel"
+                                            placeholder="e.g. 0712345678"
+                                            value={phoneNumber}
+                                            onChange={e => setPhoneNumber(e.target.value)}
+                                            className="w-full px-4 py-3 bg-secondary/10 border border-theme rounded-lg text-primary placeholder:text-tertiary focus:outline-none focus:border-green-500 transition-colors"
+                                        />
+                                        <p className="text-xs text-tertiary mt-2">📱 You'll receive an STK push on your phone</p>
+                                    </div>
+                                )}
 
                                 <div className="border-t border-theme pt-4 space-y-3">
                                     <div className="flex justify-between text-secondary">
@@ -330,7 +463,7 @@ const CheckoutPage = () => {
                                     className="w-full flex justify-center items-center py-3"
                                     variant="primary"
                                     onClick={handleCheckout}
-                                    disabled={loading || (!isGroupPurchase && walletBalance < totalAmount && paymentMethod === 'wallet')}
+                                    disabled={loading || !canPay}
                                 >
                                     {loading ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -343,7 +476,7 @@ const CheckoutPage = () => {
                                 </Button>
 
                                 {!isGroupPurchase && paymentMethod === 'wallet' && walletBalance < totalAmount && (
-                                    <p className="text-xs text-red-400 text-center">Insufficient wallet balance. Please top up your wallet.</p>
+                                    <p className="text-xs text-red-400 text-center">Insufficient wallet balance. Please top up or select another payment method.</p>
                                 )}
                             </CardBody>
                         </Card>

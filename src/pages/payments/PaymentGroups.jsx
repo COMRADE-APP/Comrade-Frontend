@@ -367,7 +367,14 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.is_active ? 'bg-green-500/10 text-green-700' : 'bg-secondary/10 text-secondary'
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold capitalize ${
+                            group.group_type === 'piggy_bank' ? 'bg-pink-50 text-pink-700' :
+                            group.group_type === 'kitty' ? 'bg-indigo-50 text-indigo-700' :
+                            'bg-blue-50 text-blue-700'
+                        }`}>
+                            {group.group_type === 'piggy_bank' ? 'Piggy Bank' : group.group_type === 'kitty' ? 'Kitty' : 'Standard'}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${group.is_active ? 'bg-green-500/10 text-green-700 border border-green-500/20' : 'bg-secondary/10 text-secondary'
                             }`}>
                             {group.is_active ? 'Active' : 'Completed'}
                         </span>

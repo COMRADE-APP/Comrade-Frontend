@@ -234,6 +234,14 @@ const BusinessDetail = () => {
                     >
                         <PieChart className="w-5 h-5" /> View Analytics
                     </Button>
+                    
+                    <Button
+                        onClick={() => navigate(`/funding/opportunity/create/${business.id}`)}
+                        variant="outline"
+                        className="w-full border-indigo-200 text-indigo-700 font-bold py-3 flex items-center justify-center gap-2 hover:bg-indigo-50"
+                    >
+                        Offer Investment Opportunity
+                    </Button>
 
                     <Button onClick={() => setShowInvestModal(true)} className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white font-bold py-3 flex items-center justify-center gap-2">
                         <DollarSign className="w-5 h-5" /> Invest in {business.name}

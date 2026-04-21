@@ -1,25 +1,76 @@
 /**
  * Payment Processing Service
- * Frontend API integration for payments, saved methods, and method detection.
+ * Frontend API integration for payments, saved methods, method detection,
+ * and multi-gateway support (Stripe, Flutterwave, Pesapal, PayPal, M-Pesa).
  */
 import api from './api';
 
 const PAYMENT_BASE_URL = '/api/payments';
 
 export const paymentProcessingService = {
+    // ── Gateway Configuration ────────────────────────────────
+    
     /**
-     * Process a payment
-     * @param {Object} paymentData
-     * @param {number} paymentData.amount
-     * @param {string} paymentData.currency - e.g. 'USD', 'KES'
-     * @param {string} paymentData.payment_method - 'stripe' | 'mpesa' | 'paypal'
-     * @param {string} [paymentData.payment_method_id] - Stripe PM id
-     * @param {string} [paymentData.saved_method_id] - Saved method UUID
-     * @param {string} [paymentData.description]
-     * @returns {Promise}
+     * Fetch available payment gateways and their public keys.
+     * Used to determine which payment buttons to show and
+     * to initialize Stripe Elements with the correct publishable key.
+     */
+    async getGatewayConfig() {
+        const response = await api.get(`${PAYMENT_BASE_URL}/gateway-config/`);
+        return response.data;
+    },
+
+    // ── Payment Processing ───────────────────────────────────
+
+    /**
+     * Create a Stripe PaymentIntent (backend returns client_secret).
+     * The frontend then confirms it using stripe.confirmPayment().
+     */
+    async createPaymentIntent(amount, currency = 'USD', method = 'stripe', metadata = {}) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/process/`, {
+            amount,
+            currency,
+            payment_method: method,
+            metadata,
+        });
+        return response.data;
+    },
+
+    /**
+     * Process a payment (generic — routes to correct provider on backend)
      */
     async processPayment(paymentData) {
         const response = await api.post(`${PAYMENT_BASE_URL}/process/`, paymentData);
+        return response.data;
+    },
+
+    /**
+     * Initiate a Flutterwave payment (returns redirect URL to hosted page)
+     */
+    async initiateFlutterwavePayment({ amount, currency = 'KES', email = '', phone = '', description = '' }) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/process/`, {
+            amount,
+            currency,
+            payment_method: 'flutterwave',
+            email,
+            phone_number: phone,
+            description,
+        });
+        return response.data;
+    },
+
+    /**
+     * Initiate a Pesapal payment (returns redirect URL to hosted page)
+     */
+    async initiatePesapalPayment({ amount, currency = 'KES', email = '', phone = '', description = '' }) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/process/`, {
+            amount,
+            currency,
+            payment_method: 'pesapal',
+            email,
+            phone_number: phone,
+            description,
+        });
         return response.data;
     },
 
@@ -32,6 +83,18 @@ export const paymentProcessingService = {
             amount,
             reason,
         });
+        return response.data;
+    },
+
+    // ── Deposits & Withdrawals ───────────────────────────────
+
+    async deposit(data) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/deposit/`, data);
+        return response.data;
+    },
+
+    async withdraw(data) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/withdraw/`, data);
         return response.data;
     },
 
@@ -71,11 +134,25 @@ export const paymentProcessingService = {
     /**
      * Detect payment method type from a raw input value
      * (card number, phone number, or email).
-     * @param {string} value
-     * @returns {Promise<{method_type, brand, icon, is_valid, display}>}
      */
     async detectPaymentMethod(value) {
         const response = await api.post(`${PAYMENT_BASE_URL}/detect-method/`, { value });
+        return response.data;
+    },
+
+    // ── Escrow ────────────────────────────────────────────────
+
+    /**
+     * Fund an escrow with an external payment gateway
+     * @param {string} escrowId
+     * @param {string} paymentMethod - 'wallet' | 'stripe' | 'flutterwave' | 'pesapal'
+     * @param {string} currency
+     */
+    async fundEscrow(escrowId, paymentMethod = 'wallet', currency = 'USD') {
+        const response = await api.post(`${PAYMENT_BASE_URL}/escrow/${escrowId}/fund/`, {
+            payment_method: paymentMethod,
+            currency,
+        });
         return response.data;
     },
 
