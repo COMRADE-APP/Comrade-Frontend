@@ -47,8 +47,19 @@ const OAuthCallback = ({ provider }) => {
                 };
                 storage.setItem('user', JSON.stringify(userData));
 
-                // Redirect based on profile completion and password status
-                if (!isProfileComplete || !hasPassword) {
+                // Redirect based on password status and profile completion
+                if (hasPassword) {
+                    // Redirect to password verification before granting access
+                    navigate(ROUTES.SOCIAL_PASSWORD_VERIFY || '/social-verify', { 
+                        state: { 
+                            email: email,
+                            message: `An account with this email already exists. Enter your password to confirm linking your ${provider} login.`
+                        } 
+                    });
+                    return;
+                }
+
+                if (!isProfileComplete) {
                     // Redirect to profile setup with social flag
                     window.location.href = `${ROUTES.PROFILE_SETUP || '/profile-setup'}?fromSocial=true&hasPassword=${hasPassword}`;
                 } else {
