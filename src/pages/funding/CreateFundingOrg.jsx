@@ -186,7 +186,7 @@ const CreateFundingOrg = () => {
                         <div className="space-y-4 pt-4 border-t border-theme">
                             <h3 className="font-semibold text-primary flex items-center gap-2">
                                 <DollarSign className="w-5 h-5" />
-                                Fund Details (KES)
+                                Fund Details (USD)
                             </h3>
 
                             <div className="grid grid-cols-2 gap-4">

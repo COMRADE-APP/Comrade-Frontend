@@ -9,6 +9,7 @@ import {
 import { loansService } from '../../services/finservices.service';
 import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const Loans = () => {
     const navigate = useNavigate();
@@ -109,7 +110,7 @@ const Loans = () => {
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-secondary">Range</span>
-                                                <span className="font-medium text-primary">KES {parseInt(p.min_amount).toLocaleString()} - {parseInt(p.max_amount).toLocaleString()}</span>
+                                                <span className="font-medium text-primary">{formatMoneySimple(p.min_amount)} - {formatMoneySimple(p.max_amount)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-secondary">Tenure</span>
@@ -139,7 +140,7 @@ const Loans = () => {
                                     <div><h3 className="font-bold text-lg text-primary">{selectedProduct.name}</h3><p className="text-xs text-tertiary">{selectedProduct.interest_rate}% monthly interest</p></div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-secondary mb-2">Loan Amount (KES)</label>
+                                    <label className="block text-sm font-medium text-secondary mb-2">Loan Amount (USD)</label>
                                     <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={`${parseInt(selectedProduct.min_amount).toLocaleString()} - ${parseInt(selectedProduct.max_amount).toLocaleString()}`}
                                         className="w-full px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary text-2xl font-bold placeholder:text-tertiary placeholder:text-base focus:ring-2 focus:ring-primary/30 outline-none" />
                                 </div>
@@ -164,14 +165,14 @@ const Loans = () => {
                                 <h4 className="font-bold text-primary flex items-center gap-2"><Calculator className="w-5 h-5" /> Loan Calculator</h4>
                                 {amount ? (
                                     <div className="space-y-3">
-                                        <div className="flex justify-between text-sm"><span className="text-secondary">Principal</span><span className="font-bold text-primary">KES {parseFloat(amount).toLocaleString()}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-secondary">Principal</span><span className="font-bold text-primary">{formatMoneySimple(amount)}</span></div>
                                         <div className="flex justify-between text-sm"><span className="text-secondary">Interest Rate</span><span className="text-primary">{selectedProduct.interest_rate}% / mo</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-secondary">Processing Fee</span><span className="text-primary">KES {(parseFloat(amount) * parseFloat(selectedProduct.processing_fee) / 100).toLocaleString()}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-secondary">Processing Fee</span><span className="text-primary">{formatMoneySimple(parseFloat(amount) * parseFloat(selectedProduct.processing_fee) / 100)}</span></div>
                                         <div className="flex justify-between text-sm"><span className="text-secondary">Tenure</span><span className="text-primary">{tenure} months</span></div>
                                         <div className="border-t border-theme pt-3 space-y-2">
-                                            <div className="flex justify-between"><span className="text-secondary text-sm">Monthly Payment</span><span className="font-bold text-lg text-primary">KES {parseFloat(monthlyPayment).toLocaleString()}</span></div>
-                                            <div className="flex justify-between"><span className="text-secondary text-sm">Total Repayment</span><span className="font-bold text-primary">KES {parseFloat(totalRepayment).toLocaleString()}</span></div>
-                                            <div className="flex justify-between"><span className="text-secondary text-sm">Total Interest</span><span className="font-medium text-amber-500">KES {(totalRepayment - parseFloat(amount)).toLocaleString()}</span></div>
+                                            <div className="flex justify-between"><span className="text-secondary text-sm">Monthly Payment</span><span className="font-bold text-lg text-primary">{formatMoneySimple(monthlyPayment)}</span></div>
+                                            <div className="flex justify-between"><span className="text-secondary text-sm">Total Repayment</span><span className="font-bold text-primary">{formatMoneySimple(totalRepayment)}</span></div>
+                                            <div className="flex justify-between"><span className="text-secondary text-sm">Total Interest</span><span className="font-medium text-amber-500">{formatMoneySimple(totalRepayment - parseFloat(amount))}</span></div>
                                         </div>
                                     </div>
                                 ) : <p className="text-tertiary text-sm text-center py-6">Enter an amount to see calculations</p>}
@@ -259,7 +260,7 @@ const Loans = () => {
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-primary">{loan.product_name || loan.loan_product?.name || 'Loan'}</h4>
-                                                <p className="text-xs text-tertiary">KES {parseFloat(loan.amount).toLocaleString()} • {loan.tenure_months} months</p>
+                                                <p className="text-xs text-tertiary">{formatMoneySimple(loan.amount)} • {loan.tenure_months} months</p>
                                             </div>
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-blue-500/15 text-blue-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
@@ -278,15 +279,15 @@ const Loans = () => {
                                             <div className="flex justify-between text-xs sm:text-sm">
                                                 <div>
                                                     <p className="text-tertiary mb-0.5">Total Paid</p>
-                                                    <p className="font-bold text-emerald-500">KES {totalPaid.toLocaleString()}</p>
+                                                    <p className="font-bold text-emerald-500">{formatMoneySimple(totalPaid)}</p>
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-tertiary mb-0.5">Total Cost (incl. Interest)</p>
-                                                    <p className="font-bold text-primary">KES {totalDue.toLocaleString()}</p>
+                                                    <p className="font-bold text-primary">{formatMoneySimple(totalDue)}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-tertiary mb-0.5">Remaining Balance</p>
-                                                    <p className="font-bold text-amber-500">KES {(totalDue - totalPaid).toLocaleString()}</p>
+                                                    <p className="font-bold text-amber-500">{formatMoneySimple(totalDue - totalPaid)}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -300,7 +301,7 @@ const Loans = () => {
                                                         {r.status === 'paid' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : r.status === 'due' || r.status === 'overdue' ? <Clock className="w-4 h-4 text-amber-500" /> : <Clock className="w-4 h-4 text-tertiary" />}
                                                         <span className="text-secondary">Installment {r.installment_number}</span>
                                                     </div>
-                                                    <span className="text-primary font-medium">KES {parseFloat(r.amount_due).toLocaleString()}</span>
+                                                    <span className="text-primary font-medium">{formatMoneySimple(r.amount_due)}</span>
                                                     <span className="text-tertiary text-xs">{r.due_date}</span>
                                                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'paid' ? 'bg-emerald-500/15 text-emerald-500' : r.status === 'due' || r.status === 'overdue' ? 'bg-amber-500/15 text-amber-500' : 'bg-secondary/10 text-tertiary'}`}>{r.status}</span>
                                                 </div>

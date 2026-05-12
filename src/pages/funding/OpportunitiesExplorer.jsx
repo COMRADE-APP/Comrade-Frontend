@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import Button from '../../components/common/Button';
 import fundingService from '../../services/funding.service';
 import InvestModal from '../../components/funding/InvestModal';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 // ==================== CONFIGURATION ====================
 
@@ -108,8 +109,8 @@ const CharityCard = ({ item, onClick, onViewDetails }) => {
                 <p className="text-xs text-tertiary mb-2">{item.provider}</p>
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                        <span className="text-green-600 font-bold">KES {(item.raised / 1000000).toFixed(1)}M raised</span>
-                        <span className="text-secondary">of KES {(item.goal / 1000000).toFixed(1)}M</span>
+                        <span className="text-green-600 font-bold">{formatMoneySimple(item.raised / 1000000)}M raised</span>
+                        <span className="text-secondary">of {formatMoneySimple(item.goal / 1000000)}M</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
                         <div className="bg-gradient-to-r from-pink-400 to-rose-500 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
@@ -153,12 +154,12 @@ const MMFCard = ({ item, onClick, onViewDetails }) => (
                     <p className="text-[10px] text-green-500">Annual Return</p>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-2 text-center">
-                    <p className="text-sm font-bold text-blue-600">KES {item.min_investment.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-blue-600">{formatMoneySimple(item.min_investment)}</p>
                     <p className="text-[10px] text-blue-500">Min Investment</p>
                 </div>
             </div>
             <div className="flex justify-between text-xs text-secondary">
-                <span>AUM: KES {item.aum}</span>
+                <span>AUM: {formatMoneySimple(item.aum)}</span>
                 <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">Low Risk</span>
             </div>
         </div>
@@ -195,7 +196,7 @@ const StockCard = ({ item, onClick, onViewDetails }) => (
             <p className="text-xs text-secondary mb-3">{item.sector}</p>
             <div className="flex justify-between items-end">
                 <div>
-                    <p className="text-2xl font-bold text-primary">KES {item.price.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-primary">{formatMoneySimple(item.price)}</p>
                     <p className="text-[10px] text-tertiary">P/E: {item.pe_ratio}</p>
                 </div>
                 <div className={`w-16 h-8 flex items-end gap-px ${item.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -241,7 +242,7 @@ const BondCard = ({ item, onClick, onViewDetails }) => (
                     <p className="text-[10px] text-tertiary">Maturity</p>
                 </div>
                 <div>
-                    <p className="text-xs font-bold text-primary">KES {(item.min_investment / 1000).toFixed(0)}K</p>
+                    <p className="text-xs font-bold text-primary">{formatMoneySimple(item.min_investment / 1000)}K</p>
                     <p className="text-[10px] text-tertiary">Min</p>
                 </div>
             </div>
@@ -285,7 +286,7 @@ const AgencyCard = ({ item, onClick, onViewDetails }) => (
                 ))}
             </div>
             <div className="flex justify-between items-center text-xs border-t border-theme pt-2">
-                <span className="text-secondary">Min: KES {item.min_account.toLocaleString()}</span>
+                <span className="text-secondary">Min: {formatMoneySimple(item.min_account)}</span>
                 <div className="flex items-center gap-0.5">
                     <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                     <span className="text-primary font-bold">{item.rating}</span>
@@ -488,7 +489,7 @@ const OpportunitiesExplorer = () => {
                                                         <div className="flex items-center gap-3">
                                                             {(item.min_investment || item.min_account || item.price) && (
                                                                 <span className="text-sm font-bold text-primary hidden sm:block">
-                                                                    KES {(item.min_investment || item.min_account || item.price || 0).toLocaleString()}
+                                                                    {formatMoneySimple(item.min_investment || item.min_account || item.price || 0)}
                                                                 </span>
                                                             )}
                                                             <button

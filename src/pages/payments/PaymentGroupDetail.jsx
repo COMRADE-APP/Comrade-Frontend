@@ -5,18 +5,38 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import {
     Users, ArrowLeft, Target, DollarSign, UserPlus, Settings,
-    Calendar, TrendingUp, Mail, X, Plus, Check, AlertCircle,
+    TrendingUp, Mail, X, Plus, Check, AlertCircle,
     PiggyBank, History, Crown, MoreVertical, Share2, MessageCircle, FileText, Calendar as CalendarIcon, Megaphone, BookOpen, EyeOff,
-    Clock, Wallet, Smartphone, CreditCard, AlertTriangle, ShieldCheck, Trash2, CheckCircle, XCircle, Edit2, Camera, Image as ImageIcon
+    Clock, Wallet, Smartphone, CreditCard, AlertTriangle, ShieldCheck, Trash2, CheckCircle, XCircle, Edit2, Camera, Image as ImageIcon, Lock, BadgeCheck,
+    Diamond, Shield, Circle as CircleIcon, Landmark, Globe, HeartHandshake, Download, Percent, Briefcase, Coins, Zap
 } from 'lucide-react';
+
+const TIER_ICONS = { Diamond, Shield, Circle: CircleIcon, Landmark, Globe };
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
 import { getGroupTier } from '../../utils/groupUtils';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import GroupDiscourse from '../../components/payments/GroupDiscourse';
+import GroupKittiesTab from '../../components/payments/GroupKittiesTab';
+import GroupDonationsTab from '../../components/payments/GroupDonationsTab';
+import GroupInvestmentsTab from '../../components/payments/GroupInvestmentsTab';
+import GroupBusinessesTab from '../../components/payments/GroupBusinessesTab';
+import GroupLoansTab from '../../components/payments/GroupLoansTab';
+import GroupAutomationsTab from '../../components/payments/GroupAutomationsTab';
+import GroupRoundsTab from '../../components/payments/GroupRoundsTab';
+import GroupGovernanceTab from '../../components/payments/GroupGovernanceTab';
+import GroupWithdrawalsTab from '../../components/payments/GroupWithdrawalsTab';
+import GroupSettingsTab from '../../components/payments/GroupSettingsTab';
+import GroupBenefitRulesTab from '../../components/payments/GroupBenefitRulesTab';
+import GroupVenturesTab from '../../components/payments/GroupVenturesTab';
+import GroupPiggyBanksTab from '../../components/payments/GroupPiggyBanksTab';
+import GroupInviteModal from '../../components/payments/GroupInviteModal';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const PaymentGroupDetail = () => {
     const { user } = useAuth();
+    const toast = useToast();
     const { groupId } = useParams();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -25,25 +45,26 @@ const PaymentGroupDetail = () => {
     const [contributions, setContributions] = useState([]);
     const [checkoutRequests, setCheckoutRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     
     const initialTab = searchParams.get('tab') || 'overview';
     const [activeTab, setActiveTab] = useState(initialTab);
 
-    // Sync activeTab with URL
+    // Sync activeTab to URL when activeTab changes
     useEffect(() => {
         const currentTab = searchParams.get('tab');
-        if (currentTab !== activeTab) {
-            setSearchParams({ tab: activeTab });
+        if (activeTab !== currentTab) {
+            setSearchParams({ tab: activeTab }, { replace: true });
         }
-    }, [activeTab, searchParams, setSearchParams]);
+    }, [activeTab]); // Only depend on activeTab
 
-    // Update if URL changes externally
+    // Sync URL to activeTab when URL changes (e.g. back button)
     useEffect(() => {
-        const tab = searchParams.get('tab');
-        if (tab && tab !== activeTab) {
-            setActiveTab(tab);
+        const currentTab = searchParams.get('tab');
+        if (currentTab && currentTab !== activeTab) {
+            setActiveTab(currentTab);
         }
-    }, [searchParams]);
+    }, [searchParams.get('tab')]); // Only depend on the 'tab' value
 
     // Modal states
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -55,6 +76,10 @@ const PaymentGroupDetail = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showApprovalModal, setShowApprovalModal] = useState(false);
     const [approvingRequest, setApprovingRequest] = useState(null);
+    const [approvalNotes, setApprovalNotes] = useState('');
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectingRequest, setRejectingRequest] = useState(null);
+    const [rejectNotes, setRejectNotes] = useState('');
     const [deliveryAccount, setDeliveryAccount] = useState('');
     const [editGroupData, setEditGroupData] = useState({ 
         name: '', description: '', cover_photo: null,
@@ -64,9 +89,6 @@ const PaymentGroupDetail = () => {
     const [editGroupLoading, setEditGroupLoading] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
-    const [pendingInviteEmail, setPendingInviteEmail] = useState('');
-
-    const [inviteEmail, setInviteEmail] = useState('');
     const [contributeAmount, setContributeAmount] = useState('');
     const [contributeNotes, setContributeNotes] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
@@ -80,27 +102,56 @@ const PaymentGroupDetail = () => {
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
     const [newDeadline, setNewDeadline] = useState('');
 
+    // Sprint 4: Group Settings & Role Management
+    const [groupSettings, setGroupSettings] = useState({
+        requires_approval: false,
+        allow_anonymous: false,
+        transaction_trigger_role: 'any',
+        approval_threshold: 100,
+        hierarchy_mode: 'flat',
+        accent_color: '#6366f1',
+        joining_minimum: 0,
+    });
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [roleMenuMember, setRoleMenuMember] = useState(null);
+
+    // Sprint 5: Analytics, Rules, Piggy Banks Isolation
+    const [groupAnalytics, setGroupAnalytics] = useState(null);
+    const [groupRules, setGroupRules] = useState('');
+    const [groupPiggyBanks, setGroupPiggyBanks] = useState([]);
+    const [isEditingRules, setIsEditingRules] = useState(false);
+    const [editRulesText, setEditRulesText] = useState('');
+
     useEffect(() => {
+        if (!groupId) return;
         loadGroupData();
         loadGroupStatus();
         checkPendingInvitation();
     }, [groupId]);
 
     const loadGroupData = async () => {
+        if (!groupId) return;
         setLoading(true);
         try {
-            const [groupData, membersData, contributionsData, requestsData] = await Promise.all([
+            const [groupData, membersData, contributionsData, requestsData, analyticsData, rulesData, piggyBanksData] = await Promise.all([
                 paymentsService.getPaymentGroupById(groupId),
                 paymentsService.getGroupMembers(groupId).catch(() => []),
                 paymentsService.getGroupContributions(groupId).catch(() => []),
-                paymentsService.getGroupCheckoutRequests(groupId).catch(() => [])
+                paymentsService.getGroupCheckoutRequests(groupId).catch(() => []),
+                paymentsService.getGroupAnalytics(groupId).catch(() => null),
+                paymentsService.getGroupRules(groupId).catch(() => ({ rules_text: '' })),
+                paymentsService.getGroupPiggyBanks(groupId).catch(() => [])
             ]);
             setGroup(groupData);
             setMembers(Array.isArray(membersData) ? membersData : (membersData?.results || []));
             setContributions(Array.isArray(contributionsData) ? contributionsData : (contributionsData?.results || []));
             setCheckoutRequests(Array.isArray(requestsData) ? requestsData : (requestsData?.results || []));
+            setGroupAnalytics(analyticsData);
+            setGroupRules(rulesData?.rules_text || '');
+            setGroupPiggyBanks(piggyBanksData);
         } catch (error) {
             console.error('Error loading group:', error);
+            setError('Failed to load group details. It might not exist or you might not have permission.');
         } finally {
             setLoading(false);
         }
@@ -118,39 +169,13 @@ const PaymentGroupDetail = () => {
     const checkPendingInvitation = async () => {
         try {
             const invitations = await paymentsService.getInvitations();
-            if (Array.isArray(invitations)) {
-                const matching = invitations.find(inv =>
-                    inv.payment_group === groupId || inv.payment_group?.id === groupId
-                );
-                if (matching) setPendingInvitation(matching);
-            }
+            const invList = Array.isArray(invitations) ? invitations : (invitations?.results || []);
+            const matching = invList.find(inv => 
+                inv.payment_group === groupId || inv.payment_group?.id === groupId
+            );
+            if (matching) setPendingInvitation(matching);
         } catch (error) {
             console.error('Error checking invitations:', error);
-        }
-    };
-
-    const handleInvite = async () => {
-        if (!inviteEmail) return;
-        setActionLoading(true);
-        try {
-            await paymentsService.inviteToGroup(groupId, inviteEmail);
-            setModalMessage('Invitation sent successfully!');
-            setShowSuccessModal(true);
-            setShowInviteModal(false);
-            setInviteEmail('');
-        } catch (error) {
-            console.error('Invite Error:', error);
-            if (error.response && error.response.status === 404 && error.response.data.requires_confirmation) {
-                // User not found, show custom confirmation modal
-                setModalMessage(error.response.data.message);
-                setPendingInviteEmail(inviteEmail);
-                setShowConfirmModal(true);
-                setShowInviteModal(false); // Close the initial invite modal
-            } else {
-                alert('Failed to send invitation: ' + (error.response?.data?.error || 'Unknown error'));
-            }
-        } finally {
-            setActionLoading(false);
         }
     };
 
@@ -167,27 +192,46 @@ const PaymentGroupDetail = () => {
             loadGroupData();
         } catch (error) {
             console.error('Update Group Error:', error);
-            alert('Failed to update group: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Failed to update group');
         } finally {
             setEditGroupLoading(false);
         }
     };
 
-    const handleConfirmInvite = async () => {
-        if (!pendingInviteEmail) return;
+    const handleApplyCertificate = async () => {
         setActionLoading(true);
         try {
-            await paymentsService.inviteToGroup(groupId, pendingInviteEmail, true); // true for force_external
-            setModalMessage('Invitation sent to external email successfully!');
-            setShowSuccessModal(true);
-            setShowConfirmModal(false);
-            setPendingInviteEmail('');
-            setInviteEmail('');
-        } catch (retryError) {
-            console.error('Retry Invite Error:', retryError);
-            alert('Failed to send external invitation');
+            await paymentsService.applyCertificate(groupId);
+            toast.success("Certificate application submitted!");
+            loadGroupData();
+        } catch (error) {
+            toast.error(error.response?.data?.error || "Failed to apply for certificate");
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const handleUpdateSettings = async () => {
+        setSettingsLoading(true);
+        try {
+            await paymentsService.updateGroupSettings(groupId, groupSettings);
+            toast.success('Group settings updated successfully');
+            loadGroupData();
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to update settings');
+        } finally {
+            setSettingsLoading(false);
+        }
+    };
+
+    const handleUpdateMemberRole = async (memberId, newRole) => {
+        try {
+            await paymentsService.updateMemberRole(groupId, memberId, newRole);
+            toast.success(`Role updated to ${newRole}`);
+            setRoleMenuMember(null);
+            loadGroupData();
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to update role');
         }
     };
 
@@ -217,7 +261,7 @@ const PaymentGroupDetail = () => {
             loadGroupData();
             loadGroupStatus();
         } catch (error) {
-            alert('Failed to make contribution: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Failed to make contribution');
         } finally {
             setActionLoading(false);
         }
@@ -234,7 +278,7 @@ const PaymentGroupDetail = () => {
             loadGroupData();
             loadGroupStatus();
         } catch (error) {
-            alert('Failed to accept invitation: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Failed to accept invitation');
         } finally {
             setActionLoading(false);
         }
@@ -248,7 +292,7 @@ const PaymentGroupDetail = () => {
             setPendingInvitation(null);
             navigate('/payments/groups');
         } catch (error) {
-            alert('Failed to decline invitation');
+            toast.error('Failed to decline invitation');
         } finally {
             setActionLoading(false);
         }
@@ -266,7 +310,7 @@ const PaymentGroupDetail = () => {
             loadGroupData();
             loadGroupStatus();
         } catch (error) {
-            alert('Failed to extend deadline: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Failed to extend deadline');
         } finally {
             setActionLoading(false);
         }
@@ -280,7 +324,7 @@ const PaymentGroupDetail = () => {
             setShowSuccessModal(true);
             loadGroupStatus();
         } catch (error) {
-            alert('Failed: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Request failed');
         } finally {
             setActionLoading(false);
         }
@@ -294,7 +338,7 @@ const PaymentGroupDetail = () => {
             setShowSuccessModal(true);
             loadGroupData();
         } catch (error) {
-            alert('Failed to join anonymously: ' + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || 'Failed to join anonymously');
         } finally {
             setJoinAnonymousLoading(false);
         }
@@ -314,7 +358,7 @@ const PaymentGroupDetail = () => {
             loadGroupData(); // Refresh UI
             loadGroupStatus(); // Refresh balance
         } catch (error) {
-            alert(`Failed to ${actionType} request: ` + (error.response?.data?.error || 'Unknown error'));
+            toast.error(error.response?.data?.error || `Failed to ${actionType} request`);
         } finally {
             setActionLoading(false);
         }
@@ -327,20 +371,67 @@ const PaymentGroupDetail = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-secondary">Loading group...</p>
+            <div className="space-y-6 max-w-5xl mx-auto lg:p-4">
+                {/* Header Skeleton */}
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 skeleton-shimmer" />
+                    <div className="w-48 h-8 rounded-lg bg-secondary/10 skeleton-shimmer" />
+                </div>
+                
+                {/* Main Card Skeleton */}
+                <Card className="border-theme overflow-hidden">
+                    <div className="h-24 bg-secondary/5 skeleton-shimmer" />
+                    <CardBody className="p-6 relative pt-12">
+                        <div className="absolute -top-10 left-6 w-20 h-20 rounded-full border-4 border-white dark:border-gray-900 bg-secondary/10 skeleton-shimmer" />
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-2">
+                                <div className="w-64 h-6 rounded bg-secondary/10 skeleton-shimmer" />
+                                <div className="w-32 h-4 rounded bg-secondary/10 skeleton-shimmer" />
+                            </div>
+                            <div className="w-24 h-8 rounded-lg bg-secondary/10 skeleton-shimmer" />
+                        </div>
+                        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="space-y-2">
+                                    <div className="w-16 h-3 rounded bg-secondary/10 skeleton-shimmer" />
+                                    <div className="w-24 h-6 rounded bg-secondary/10 skeleton-shimmer" />
+                                </div>
+                            ))}
+                        </div>
+                    </CardBody>
+                </Card>
+
+                {/* Tabs Skeleton */}
+                <div className="flex gap-2 overflow-x-auto pb-2 border-b border-theme">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="w-24 h-10 rounded-t-xl bg-secondary/10 skeleton-shimmer flex-shrink-0" />
+                    ))}
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                        <Card key={i} className="border-theme">
+                            <CardBody className="p-4 flex gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-secondary/10 skeleton-shimmer shrink-0" />
+                                <div className="space-y-2 flex-1">
+                                    <div className="w-1/3 h-4 rounded bg-secondary/10 skeleton-shimmer" />
+                                    <div className="w-full h-3 rounded bg-secondary/10 skeleton-shimmer" />
+                                </div>
+                            </CardBody>
+                        </Card>
+                    ))}
                 </div>
             </div>
         );
     }
 
-    if (!group) {
+    if (error || !group) {
         return (
-            <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-tertiary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-primary mb-2">Group not found</h3>
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+                <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+                <h1 className="text-2xl font-bold text-primary mb-2">Error Loading Group</h1>
+                <p className="text-secondary text-center mb-6 max-w-md">{error || 'Group not found'}</p>
                 <Button variant="primary" onClick={() => navigate('/payments/groups')}>
                     Back to Groups
                 </Button>
@@ -349,6 +440,10 @@ const PaymentGroupDetail = () => {
     }
 
     const progress = getProgress();
+
+    const isAdmin = (members || []).some(m => 
+        m && (m.user === user?.id || m.payment_profile?.user?.id === user?.id) && m.is_admin
+    ) || group?.creator?.user?.id === user?.id;
 
     return (
         <div className="space-y-6">
@@ -458,13 +553,34 @@ const PaymentGroupDetail = () => {
                                 const tier = getGroupTier(members.length);
                                 return (
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tier.color} border border-white/20 backdrop-blur-md shadow-sm flex items-center gap-1`}>
-                                        <span>{tier.emoji}</span>
+                                        {(() => { const TierIcon = TIER_ICONS[tier.icon]; return TierIcon ? <TierIcon className="w-3.5 h-3.5" /> : null; })()}
                                         <span>{tier.label}</span>
                                     </span>
                                 );
                             })()}
                             {groupStatus?.is_matured && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
+                            )}
+                            {group.certificate?.status === 'approved' && (
+                                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-100 border border-emerald-500/30 backdrop-blur-md shadow-sm flex items-center gap-1">
+                                    <BadgeCheck className="w-4 h-4 text-emerald-400" />
+                                    Certified
+                                </span>
+                            )}
+                            {group.certificate?.status === 'pending' && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-100 border border-blue-500/30 backdrop-blur-md shadow-sm">
+                                    Verification Pending
+                                </span>
+                            )}
+                            {!group.certificate && isAdmin && (
+                                <button 
+                                    onClick={handleApplyCertificate}
+                                    className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 hover:bg-white/30 backdrop-blur-md transition-colors shadow-sm flex items-center gap-1"
+                                    disabled={actionLoading}
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    Get Certified
+                                </button>
                             )}
                             <button 
                                 onClick={() => {
@@ -475,6 +591,15 @@ const PaymentGroupDetail = () => {
                                         entry_fee_required: group.entry_fee_required || false,
                                         entry_fee_amount: group.entry_fee_amount || 0,
                                         custom_application_questions: group.custom_application_questions || []
+                                    });
+                                    setGroupSettings({
+                                        requires_approval: group.requires_approval || false,
+                                        allow_anonymous: group.allow_anonymous || false,
+                                        transaction_trigger_role: group.transaction_trigger_role || 'any',
+                                        approval_threshold: group.approval_threshold || 100,
+                                        hierarchy_mode: group.hierarchy_mode || 'flat',
+                                        accent_color: group.accent_color || '#6366f1',
+                                        joining_minimum: group.joining_minimum || 0,
                                     });
                                     setNewQuestion('');
                                     setShowEditModal(true);
@@ -507,6 +632,27 @@ const PaymentGroupDetail = () => {
                             {groupStatus?.is_matured && (
                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Matured</span>
                             )}
+                            {group.certificate?.status === 'approved' && (
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                                    <BadgeCheck className="w-4 h-4" />
+                                    Certified
+                                </span>
+                            )}
+                            {group.certificate?.status === 'pending' && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                    Verification Pending
+                                </span>
+                            )}
+                            {!group.certificate && isAdmin && (
+                                <button 
+                                    onClick={handleApplyCertificate}
+                                    className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1 border border-indigo-200"
+                                    disabled={actionLoading}
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    Get Certified
+                                </button>
+                            )}
                             <button 
                                 onClick={() => {
                                     setEditGroupData({ 
@@ -516,6 +662,15 @@ const PaymentGroupDetail = () => {
                                         entry_fee_required: group.entry_fee_required || false,
                                         entry_fee_amount: group.entry_fee_amount || 0,
                                         custom_application_questions: group.custom_application_questions || []
+                                    });
+                                    setGroupSettings({
+                                        requires_approval: group.requires_approval || false,
+                                        allow_anonymous: group.allow_anonymous || false,
+                                        transaction_trigger_role: group.transaction_trigger_role || 'any',
+                                        approval_threshold: group.approval_threshold || 100,
+                                        hierarchy_mode: group.hierarchy_mode || 'flat',
+                                        accent_color: group.accent_color || '#6366f1',
+                                        joining_minimum: group.joining_minimum || 0,
                                     });
                                     setNewQuestion('');
                                     setShowEditModal(true);
@@ -595,11 +750,25 @@ const PaymentGroupDetail = () => {
             <div className="flex gap-2 border-b border-theme overflow-x-auto">
                 {[
                     { id: 'overview', label: 'Overview', icon: Target },
+                    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
                     { id: 'members', label: 'Members', icon: Users },
                     { id: 'contributions', label: 'Contributions', icon: History },
-                    { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank },
                     { id: 'approvals', label: 'Approvals', icon: CheckCircle },
+                    { id: 'withdrawals', label: 'Withdrawals', icon: Download },
+                    { id: 'kitties', label: 'Kitties', icon: Wallet },
+                    { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank },
+                    { id: 'donations', label: 'Donations', icon: HeartHandshake },
                     { id: 'discourse', label: 'Discourse', icon: MessageCircle },
+                    { id: 'rounds', label: 'Rounds', icon: CalendarIcon },
+                    { id: 'investments', label: 'Investments', icon: TrendingUp },
+                    { id: 'ventures', label: 'Ventures', icon: Zap },
+                    { id: 'businesses', label: 'Businesses', icon: BookOpen },
+                    { id: 'loans', label: 'Loans', icon: CreditCard },
+                    { id: 'automations', label: 'Automations', icon: Smartphone },
+                    { id: 'benefits', label: 'Benefits', icon: Percent },
+                    { id: 'governance', label: 'Governance', icon: ShieldCheck },
+                    { id: 'rules', label: 'Rules', icon: Shield },
+                    { id: 'settings', label: 'Settings', icon: Settings },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -649,7 +818,7 @@ const PaymentGroupDetail = () => {
                                     const tier = getGroupTier(members.length);
                                     return (
                                         <span className="font-medium text-primary flex items-center gap-1.5">
-                                            <span>{tier.emoji}</span>
+                                            {(() => { const TierIcon = TIER_ICONS[tier.icon]; return TierIcon ? <TierIcon className="w-3.5 h-3.5" /> : null; })()}
                                             <span>{tier.label}</span>
                                         </span>
                                     );
@@ -781,7 +950,11 @@ const PaymentGroupDetail = () => {
                             </div>
                         ) : (
                             <div className="divide-y">
-                                {members.map((member, idx) => (
+                                {members.map((member, idx) => {
+                                    const isCurrentUserAdmin = members.some(m =>
+                                        (m.user === user?.id || m.payment_profile?.user?.id === user?.id) && m.is_admin
+                                    );
+                                    return (
                                     <div key={idx} className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${member.is_anonymous
@@ -800,6 +973,15 @@ const PaymentGroupDetail = () => {
                                                     {member.is_admin && (
                                                         <Crown className="w-4 h-4 text-yellow-500" />
                                                     )}
+                                                    {member.role && member.role !== 'member' && (
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                            member.role === 'admin' ? 'bg-yellow-100 text-yellow-700' :
+                                                            member.role === 'moderator' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                            {member.role}
+                                                        </span>
+                                                    )}
                                                     {member.is_anonymous && (
                                                         <span className="px-2 py-0.5 rounded-full text-xs bg-gray-500/10 text-gray-600 font-medium">
                                                             Anonymous
@@ -811,14 +993,48 @@ const PaymentGroupDetail = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-medium text-primary">
-                                                ${parseFloat(member.total_contributed || 0).toFixed(2)}
-                                            </p>
-                                            <p className="text-xs text-secondary">contributed</p>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="font-medium text-primary">
+                                                    ${parseFloat(member.total_contributed || 0).toFixed(2)}
+                                                </p>
+                                                <p className="text-xs text-secondary">contributed</p>
+                                            </div>
+                                            {isCurrentUserAdmin && !member.is_anonymous && (
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setRoleMenuMember(roleMenuMember === member.id ? null : member.id)}
+                                                        className="p-1.5 rounded-lg hover:bg-secondary/10 transition-colors"
+                                                    >
+                                                        <MoreVertical className="w-4 h-4 text-secondary" />
+                                                    </button>
+                                                    {roleMenuMember === member.id && (
+                                                        <div className="absolute right-0 top-full mt-1 w-40 bg-elevated border border-theme rounded-xl shadow-lg z-20 overflow-hidden">
+                                                            {['admin', 'moderator', 'member'].map(role => (
+                                                                <button
+                                                                    key={role}
+                                                                    onClick={() => handleUpdateMemberRole(member.id, role)}
+                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${
+                                                                        member.role === role
+                                                                            ? 'bg-primary/10 text-primary font-medium'
+                                                                            : 'text-secondary hover:bg-secondary/5'
+                                                                    }`}
+                                                                >
+                                                                    {role === 'admin' && <Crown className="w-3.5 h-3.5" />}
+                                                                    {role === 'moderator' && <ShieldCheck className="w-3.5 h-3.5" />}
+                                                                    {role === 'member' && <Users className="w-3.5 h-3.5" />}
+                                                                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                                                                    {member.role === role && <Check className="w-3 h-3 ml-auto" />}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </CardBody>
@@ -872,30 +1088,152 @@ const PaymentGroupDetail = () => {
                     </Card>
                 )
             }
+            {activeTab === 'piggybanks' && <GroupPiggyBanksTab groupId={groupId} />}
 
             {
-                activeTab === 'piggybanks' && (
+                activeTab === 'analytics' && groupAnalytics && (
+                    <div className="space-y-4">
+                        <Card className="border-theme bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+                            <CardBody className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-xl bg-primary-600 text-white flex items-center justify-center">
+                                        <TrendingUp className="w-7 h-7" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-primary">Group Financial Analytics</h3>
+                                        <p className="text-sm text-secondary mt-1">View charts, contribution trends, and member activity.</p>
+                                    </div>
+                                </div>
+                                <Button variant="primary" onClick={() => navigate(`/payments/groups/${groupId}/analytics`)}>
+                                    <TrendingUp className="w-4 h-4 mr-2" />
+                                    Open Full Analytics
+                                </Button>
+                            </CardBody>
+                        </Card>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card>
+                                <CardBody className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                        <TrendingUp className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-secondary">Total Raised</p>
+                                        <h3 className="text-xl font-bold text-primary">{formatMoneySimple(groupAnalytics.total_contributed)}</h3>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                            <Card>
+                                <CardBody className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                        <Target className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-secondary">Progress</p>
+                                        <h3 className="text-xl font-bold text-primary">{groupAnalytics.progress}%</h3>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                            <Card>
+                                <CardBody className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-secondary">Members</p>
+                                        <h3 className="text-xl font-bold text-primary">{groupAnalytics.total_members}</h3>
+                                        <p className="text-xs text-secondary mt-1 capitalize">{groupAnalytics.capacity_category} Tier</p>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </div>
+                        
+                        <Card>
+                            <CardHeader className="p-4 border-b border-theme">
+                                <h3 className="font-semibold text-primary">Top Contributors</h3>
+                            </CardHeader>
+                            <CardBody className="p-0">
+                                <div className="divide-y divide-theme">
+                                    {groupAnalytics.top_contributors.map((user, idx) => (
+                                        <div key={idx} className="p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-primary font-bold">
+                                                    {idx + 1}
+                                                </div>
+                                                <span className="font-medium text-primary">{user.name}</span>
+                                            </div>
+                                            <span className="font-semibold text-emerald-600">{formatMoneySimple(user.contributed)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
+
+            {
+                activeTab === 'rules' && (
                     <Card>
-                        <CardHeader className="p-4 border-b flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Group Piggy Banks</h3>
-                            <Button variant="primary" size="sm" onClick={() => navigate('/piggy-banks')}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Create Piggy Bank
-                            </Button>
+                        <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-indigo-500" /> Group Rules & Guidelines
+                            </h3>
+                            {isAdmin && !isEditingRules && (
+                                <Button variant="outline" size="sm" onClick={() => {
+                                    setEditRulesText(groupRules);
+                                    setIsEditingRules(true);
+                                }}>
+                                    <Edit2 className="w-4 h-4 mr-2" />
+                                    Edit Rules
+                                </Button>
+                            )}
                         </CardHeader>
-                        <CardBody className="p-8 text-center">
-                            <PiggyBank className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h4 className="font-medium text-gray-900 mb-2">No piggy banks yet</h4>
-                            <p className="text-gray-500 mb-4">
-                                Create savings goals for specific items or targets within this group.
-                            </p>
-                            <Button variant="outline" onClick={() => navigate('/piggy-banks')}>
-                                View All Piggy Banks
-                            </Button>
+                        <CardBody className="p-6">
+                            {isEditingRules ? (
+                                <div className="space-y-4">
+                                    <textarea
+                                        value={editRulesText}
+                                        onChange={(e) => setEditRulesText(e.target.value)}
+                                        placeholder="Enter the rules and guidelines for this group..."
+                                        className="w-full h-48 px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="outline" onClick={() => setIsEditingRules(false)}>Cancel</Button>
+                                        <Button variant="primary" onClick={async () => {
+                                            try {
+                                                const res = await paymentsService.updateGroupRules(groupId, editRulesText);
+                                                setGroupRules(res.rules_text);
+                                                setIsEditingRules(false);
+                                                toast.success('Rules updated successfully');
+                                            } catch (error) {
+                                                toast.error('Failed to update rules');
+                                            }
+                                        }}>Save Rules</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="prose dark:prose-invert max-w-none text-secondary whitespace-pre-wrap">
+                                    {groupRules || "No rules have been set for this group yet."}
+                                </div>
+                            )}
                         </CardBody>
                     </Card>
                 )
             }
+
+            {activeTab === 'kitties' && <GroupKittiesTab groupId={groupId} />}
+            {activeTab === 'rounds' && <GroupRoundsTab groupId={groupId} />}
+            {activeTab === 'withdrawals' && <GroupWithdrawalsTab groupId={groupId} isAdmin={isAdmin} />}
+            {activeTab === 'donations' && <GroupDonationsTab groupId={groupId} />}
+            {activeTab === 'investments' && <GroupInvestmentsTab groupId={groupId} />}
+            {activeTab === 'ventures' && <GroupVenturesTab groupId={groupId} />}
+            {activeTab === 'businesses' && <GroupBusinessesTab groupId={groupId} />}
+            {activeTab === 'loans' && <GroupLoansTab groupId={groupId} />}
+            {activeTab === 'automations' && <GroupAutomationsTab groupId={groupId} />}
+            {activeTab === 'settings' && <GroupSettingsTab groupId={groupId} isAdmin={isAdmin} groupData={group} onUpdate={loadGroupData} />}
+            {activeTab === 'benefits' && <GroupBenefitRulesTab groupId={groupId} isAdmin={isAdmin} />}
+            {activeTab === 'governance' && <GroupGovernanceTab groupId={groupId} />}
 
             {
                 activeTab === 'approvals' && (
@@ -926,7 +1264,7 @@ const PaymentGroupDetail = () => {
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <p className="font-semibold text-primary">
-                                                            KES {parseFloat(req.amount).toFixed(2)}
+                                                            {formatMoneySimple(req.amount)}
                                                         </p>
                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                                                             req.status === 'pending' ? 'bg-amber-100 text-amber-700' :
@@ -963,7 +1301,7 @@ const PaymentGroupDetail = () => {
                                                                 <img src={req.recipient_info.profile_picture} alt="recipient" className="w-5 h-5 rounded-full object-cover" />
                                                             ) : (
                                                                 <div className="w-5 h-5 rounded-full border border-theme bg-white flex items-center justify-center text-[10px] font-bold text-primary">
-                                                                    {req.recipient_info.name.charAt(0)}
+                                                                    {req.recipient_info.name?.charAt(0) || '?'}
                                                                 </div>
                                                             )}
                                                             {req.recipient_info.type === 'funding' && req.recipient_info.id ? (
@@ -976,7 +1314,17 @@ const PaymentGroupDetail = () => {
                                                         </div>
                                                     )}
                                                     <div className="mt-2 text-xs text-secondary">
-                                                        {req.items_payload && req.items_payload.length > 0 && (
+                                                        {req.snapshots?.items_payload ? (
+                                                            <div className="bg-secondary/10 px-3 py-2 rounded-lg inline-block">
+                                                                <span className="text-[10px] uppercase font-bold text-secondary flex items-center gap-1 mb-1"><ShieldCheck className="w-3 h-3" /> Locked Snapshot</span>
+                                                                <ul className="list-disc list-inside space-y-1">
+                                                                    {req.snapshots.items_payload.map((item, i) => (
+                                                                        <li key={i}>{item.name} (x{item.qty || 1}) - {formatMoneySimple(item.price || 0)}</li>
+                                                                    ))}
+                                                                </ul>
+                                                                <div className="mt-1 font-bold text-primary">Snapshot Amount: {formatMoneySimple(req.snapshots.amount)}</div>
+                                                            </div>
+                                                        ) : req.items_payload && req.items_payload.length > 0 && (
                                                             <div className="bg-secondary/10 px-3 py-2 rounded-lg inline-block">
                                                                 <ul className="list-disc list-inside space-y-1">
                                                                     {req.items_payload.map((item, i) => (
@@ -986,6 +1334,24 @@ const PaymentGroupDetail = () => {
                                                             </div>
                                                         )}
                                                     </div>
+                                                    
+                                                    {/* Notes Display */}
+                                                    {(req.approval_notes || req.rejection_notes) && (
+                                                        <div className="mt-3 space-y-2">
+                                                            {req.approval_notes && (
+                                                                <div className="p-2 rounded bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800 text-xs text-green-800 dark:text-green-200">
+                                                                    <span className="font-bold">Approval Notes:</span>
+                                                                    <pre className="whitespace-pre-wrap font-sans mt-1">{req.approval_notes}</pre>
+                                                                </div>
+                                                            )}
+                                                            {req.rejection_notes && (
+                                                                <div className="p-2 rounded bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 text-xs text-red-800 dark:text-red-200">
+                                                                    <span className="font-bold">Rejection Notes:</span>
+                                                                    <pre className="whitespace-pre-wrap font-sans mt-1">{req.rejection_notes}</pre>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <div className="mt-2 text-xs font-medium text-primary">
                                                         Approvals: <span className="text-green-600">{req.approvals_count}</span>{' / '}
                                                         Rejections: <span className="text-red-600">{req.rejections_count}</span>{' / '}
@@ -994,13 +1360,18 @@ const PaymentGroupDetail = () => {
                                                 </div>
                                             </div>
                                             {req.status === 'pending' && (
-                                                <div className="flex items-center gap-2 w-full md:w-auto">
-                                                    <Button variant="outline" size="sm" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50" onClick={() => handleReviewRequest(req.id, 'reject')} disabled={actionLoading}>
+                                                <div className="flex items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
+                                                    <Button variant="outline" size="sm" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50" onClick={() => {
+                                                        setRejectingRequest(req);
+                                                        setRejectNotes('');
+                                                        setShowRejectModal(true);
+                                                    }} disabled={actionLoading}>
                                                         <X className="w-4 h-4 mr-1.5" /> Reject
                                                     </Button>
                                                     <Button variant="primary" size="sm" className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white" onClick={() => {
                                                         setApprovingRequest(req);
                                                         setDeliveryAccount('');
+                                                        setApprovalNotes('');
                                                         setShowApprovalModal(true);
                                                     }} disabled={actionLoading}>
                                                         <Check className="w-4 h-4 mr-1.5" /> Approve
@@ -1021,55 +1392,22 @@ const PaymentGroupDetail = () => {
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <GroupDiscourse 
                         groupId={groupId} 
-                        isAdmin={members.some(m => 
-                            (m.user === user?.id || m.payment_profile?.user?.id === user?.id) && m.is_admin
-                        )} 
+                        isAdmin={isAdmin} 
                     />
                 </div>
             )}
 
             {/* Invite Modal */}
-            {
-                showInviteModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <Card className="w-full max-w-md">
-                            <CardBody>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-bold text-primary">Invite Member</h2>
-                                    <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-secondary/10 rounded">
-                                        <X className="w-5 h-5 text-secondary" />
-                                    </button>
-                                </div>
-                                <div className="space-y-4">
-                                    <Input
-                                        label="Email Address or Username"
-                                        type="text"
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                        placeholder="user@example.com or username"
-                                    />
-                                    <p className="text-sm text-secondary">
-                                        An invitation will be sent to the user.
-                                    </p>
-                                    <div className="flex gap-2 pt-4">
-                                        <Button variant="outline" className="flex-1" onClick={() => setShowInviteModal(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            variant="primary"
-                                            className="flex-1"
-                                            onClick={handleInvite}
-                                            disabled={!inviteEmail || actionLoading}
-                                        >
-                                            {actionLoading ? 'Sending...' : 'Send Invitation'}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </div>
-                )
-            }
+            <GroupInviteModal
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                groupId={groupId}
+                groupName={group?.name}
+                onInviteSent={() => {
+                    // Optionally refresh members list if needed, 
+                    // though invitations are pending and won't show in members yet
+                }}
+            />
 
             {/* Contribute Modal */}
             {
@@ -1290,6 +1628,99 @@ const PaymentGroupDetail = () => {
                                         </div>
                                     </div>
 
+                                    {/* Transaction & Security Settings */}
+                                    <div className="pt-2 border-t border-theme">
+                                        <h3 className="text-sm font-semibold text-primary mb-3 text-emerald-500 flex items-center gap-1.5">
+                                            <ShieldCheck className="w-4 h-4" /> Transaction & Security
+                                        </h3>
+                                        
+                                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox"
+                                                checked={groupSettings.requires_approval}
+                                                onChange={(e) => setGroupSettings({ ...groupSettings, requires_approval: e.target.checked })}
+                                                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 bg-secondary/10 border-theme"
+                                            />
+                                            <span className="text-sm font-medium text-primary">Require Checkout Approval</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox"
+                                                checked={groupSettings.allow_anonymous}
+                                                onChange={(e) => setGroupSettings({ ...groupSettings, allow_anonymous: e.target.checked })}
+                                                className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 bg-secondary/10 border-theme"
+                                            />
+                                            <span className="text-sm font-medium text-primary">Allow Anonymous Members</span>
+                                        </label>
+
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Trigger Role</label>
+                                                <select
+                                                    value={groupSettings.transaction_trigger_role}
+                                                    onChange={(e) => setGroupSettings({ ...groupSettings, transaction_trigger_role: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                >
+                                                    <option value="any">Any Member</option>
+                                                    <option value="admin">Admin Only</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Hierarchy Mode</label>
+                                                <select
+                                                    value={groupSettings.hierarchy_mode}
+                                                    onChange={(e) => setGroupSettings({ ...groupSettings, hierarchy_mode: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                >
+                                                    <option value="flat">Flat</option>
+                                                    <option value="tiered">Tiered</option>
+                                                    <option value="democratic">Democratic</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                            <Input
+                                                label="Approval Threshold (%)"
+                                                type="number"
+                                                min="1"
+                                                max="100"
+                                                value={groupSettings.approval_threshold}
+                                                onChange={(e) => setGroupSettings({ ...groupSettings, approval_threshold: parseInt(e.target.value) || 100 })}
+                                            />
+                                            <Input
+                                                label="Joining Min ($)"
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={groupSettings.joining_minimum}
+                                                onChange={(e) => setGroupSettings({ ...groupSettings, joining_minimum: parseFloat(e.target.value) || 0 })}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <label className="block text-xs font-medium text-secondary">Accent Color</label>
+                                            <input
+                                                type="color"
+                                                value={groupSettings.accent_color}
+                                                onChange={(e) => setGroupSettings({ ...groupSettings, accent_color: e.target.value })}
+                                                className="w-8 h-8 rounded cursor-pointer border border-theme"
+                                            />
+                                            <span className="text-xs text-tertiary">{groupSettings.accent_color}</span>
+                                        </div>
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full mt-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                            onClick={handleUpdateSettings}
+                                            disabled={settingsLoading}
+                                        >
+                                            {settingsLoading ? 'Saving Settings...' : 'Save Settings'}
+                                        </Button>
+                                    </div>
+
                                     <div className="flex gap-2 pt-4">
                                         <Button type="button" variant="outline" className="flex-1" onClick={() => setShowEditModal(false)}>
                                             Cancel
@@ -1472,6 +1903,17 @@ const PaymentGroupDetail = () => {
                                         value={parseFloat(approvingRequest.amount / (approvingRequest.total_members || 1)).toFixed(2)}
                                         readOnly
                                     />
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Approval Notes (optional)</label>
+                                        <textarea
+                                            value={approvalNotes}
+                                            onChange={(e) => setApprovalNotes(e.target.value)}
+                                            rows={2}
+                                            placeholder="Add notes for this approval..."
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                                        />
+                                    </div>
 
                                     <div className="flex gap-2 pt-4">
                                         <Button variant="outline" className="flex-1" onClick={() => { setShowApprovalModal(false); setApprovingRequest(null); }}>
@@ -1484,14 +1926,69 @@ const PaymentGroupDetail = () => {
                                                 const memberAmount = parseFloat(approvingRequest.amount / (approvingRequest.total_members || 1));
                                                 handleReviewRequest(approvingRequest.id, 'approve', { 
                                                     member_delivery_account: deliveryAccount,
-                                                    member_amount: memberAmount
+                                                    member_amount: memberAmount,
+                                                    notes: approvalNotes
                                                 });
                                                 setShowApprovalModal(false);
                                                 setApprovingRequest(null);
+                                                setApprovalNotes('');
                                             }}
                                             disabled={!deliveryAccount || actionLoading}
                                         >
                                             {actionLoading ? 'Approving...' : 'Confirm Approve'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                )
+            }
+
+            {/* Reject Modal */}
+            {
+                showRejectModal && rejectingRequest && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+                        <Card className="w-full max-w-md">
+                            <CardBody>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-red-600">Reject Checkout Request</h2>
+                                    <button onClick={() => { setShowRejectModal(false); setRejectingRequest(null); }} className="p-1 hover:bg-secondary/10 rounded">
+                                        <X className="w-5 h-5 text-secondary" />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-sm text-secondary">
+                                        Are you sure you want to reject this request for {formatMoneySimple(rejectingRequest.amount)}?
+                                    </p>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Reason for rejection (optional)</label>
+                                        <textarea
+                                            value={rejectNotes}
+                                            onChange={(e) => setRejectNotes(e.target.value)}
+                                            rows={3}
+                                            placeholder="Explain why you are rejecting..."
+                                            className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-2 pt-4">
+                                        <Button variant="outline" className="flex-1" onClick={() => { setShowRejectModal(false); setRejectingRequest(null); }}>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="primary"
+                                            className="flex-1 !bg-red-600 hover:!bg-red-700 text-white"
+                                            onClick={() => {
+                                                handleReviewRequest(rejectingRequest.id, 'reject', { notes: rejectNotes });
+                                                setShowRejectModal(false);
+                                                setRejectingRequest(null);
+                                                setRejectNotes('');
+                                            }}
+                                            disabled={actionLoading}
+                                        >
+                                            {actionLoading ? 'Rejecting...' : 'Confirm Reject'}
                                         </Button>
                                     </div>
                                 </div>

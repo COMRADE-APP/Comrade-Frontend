@@ -16,6 +16,7 @@ import {
 import fundingService from '../../services/funding.service';
 import { paymentsService } from '../../services/payments.service';
 import Button from '../common/Button';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const PRESET_AMOUNTS = [500, 1000, 5000, 10000, 25000];
 
@@ -284,7 +285,7 @@ const InvestModal = ({
                                 <div>
                                     <label className="text-sm font-semibold text-primary mb-2 block flex items-center gap-2">
                                         <DollarSign className="w-4 h-4 text-green-600" />
-                                        {isDonation ? 'Donation Amount' : 'Investment Amount'} (KES)
+                                        {isDonation ? 'Donation Amount' : 'Investment Amount'} (USD)
                                     </label>
                                     <div className="flex flex-wrap gap-2 mb-3">
                                         {PRESET_AMOUNTS.map(amt => (
@@ -293,7 +294,7 @@ const InvestModal = ({
                                                     ? 'bg-primary text-white border-primary'
                                                     : 'border-theme text-secondary hover:bg-secondary/5'
                                                     }`}>
-                                                KES {amt.toLocaleString()}
+                                                {formatMoneySimple(amt)}
                                             </button>
                                         ))}
                                     </div>
@@ -358,7 +359,7 @@ const InvestModal = ({
                                     disabled={!canProceed}
                                     className={`w-full py-3.5 bg-gradient-to-r ${categoryColor} text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-base shadow-lg`}>
                                     <ChevronRight className="w-5 h-5" />
-                                    Proceed to Checkout — KES {Number(amount || 0).toLocaleString()}
+                                    Proceed to Checkout — {formatMoneySimple(Number(amount || 0))}
                                 </button>
                             </div>
                         )}

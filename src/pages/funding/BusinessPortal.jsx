@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import fundingService from '../../services/funding.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const BusinessPortal = () => {
     const navigate = useNavigate();
@@ -124,7 +125,7 @@ const BusinessPortal = () => {
                                                     <BarChart3 size={12} /> Valuation
                                                 </div>
                                                 <p className="font-bold text-primary text-sm">
-                                                    {biz.valuation ? `KES ${parseFloat(biz.valuation).toLocaleString()}` : 'N/A'}
+                                                    {biz.valuation ? formatMoneySimple(biz.valuation) : 'N/A'}
                                                 </p>
                                             </div>
                                             <div className="bg-secondary/5 rounded-xl p-3 border border-theme/50">
@@ -213,9 +214,9 @@ const BusinessPortal = () => {
                                         
                                         <div className="bg-gradient-to-r from-primary-600 to-indigo-600 rounded-xl p-4 text-white mb-6">
                                             <p className="text-white/70 text-xs mb-1">Available Fund Pool (Kitty)</p>
-                                            <p className="font-bold text-2xl">KES {parseFloat(ven.available_fund).toLocaleString()}</p>
+                                            <p className="font-bold text-2xl">{formatMoneySimple(ven.available_fund)}</p>
                                             <div className="mt-3 flex items-center justify-between text-xs text-white/80 border-t border-white/20 pt-2">
-                                                <span>Total: KES {parseFloat(ven.total_fund).toLocaleString()}</span>
+                                                <span>Total: {formatMoneySimple(ven.total_fund)}</span>
                                                 <span className="flex items-center gap-1"><TrendingUp size={12}/> Active</span>
                                             </div>
                                         </div>

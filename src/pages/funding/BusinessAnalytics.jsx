@@ -216,7 +216,7 @@ const BusinessAnalytics = () => {
                         value={formatCurrency(analytics.total_donations)} 
                         change={2.1} 
                         trend="down" 
-                        icon={HandCoins} 
+                        icon={Coins} 
                     />
                     <MetricCard 
                         title="Total Business Value" 

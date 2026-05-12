@@ -24,6 +24,7 @@
     "@tiptap/starter-kit": "^3.20.1",
     "axios": "^1.6.2",
     "date-fns": "^3.0.0",
+    "face-api.js": "^0.22.2",
     "framer-motion": "^12.30.0",
     "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",

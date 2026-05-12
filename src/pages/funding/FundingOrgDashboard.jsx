@@ -9,6 +9,7 @@ import {
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import fundingService from '../../services/funding.service';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const STATUS_COLORS = {
     draft: 'bg-gray-100 text-gray-700',
@@ -38,11 +39,7 @@ const STATUS_LABELS = {
 
 const FundingRequestCard = ({ request, onView, onReview }) => {
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'KES',
-            minimumFractionDigits: 0
-        }).format(amount);
+        return formatMoneySimple(amount);
     };
 
     return (
@@ -182,7 +179,7 @@ const AddFundsModal = ({ onClose, onSubmit }) => {
                 </div>
                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Amount to Add (KES)</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount to Add (USD)</label>
                         <input
                             type="number"
                             min="1"
@@ -211,9 +208,9 @@ const AddFundsModal = ({ onClose, onSubmit }) => {
 const VenturePublicView = ({ venture, navigate }) => {
     // Sample portfolio and achievements
     const portfolio = [
-        { name: 'TechStartup KE', stage: 'Series A', amount: 'KES 5M', status: 'Active' },
-        { name: 'AgriGrow Africa', stage: 'Seed', amount: 'KES 2M', status: 'Active' },
-        { name: 'FinPay Solutions', stage: 'Pre-Seed', amount: 'KES 1M', status: 'Exited' },
+        { name: 'TechStartup KE', stage: 'Series A', amount: '$5,000', status: 'Active' },
+        { name: 'AgriGrow Africa', stage: 'Seed', amount: '$2,000', status: 'Active' },
+        { name: 'FinPay Solutions', stage: 'Pre-Seed', amount: '$1,000', status: 'Exited' },
     ];
 
     const achievements = [
@@ -248,12 +245,12 @@ const VenturePublicView = ({ venture, navigate }) => {
                 <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                         <p className="text-white/60 text-sm">Total Fund</p>
-                        <p className="text-2xl font-bold">KES {Number(venture?.total_fund || 0).toLocaleString()}</p>
+                        <p className="text-2xl font-bold">{formatMoneySimple(venture?.total_fund || 0)}</p>
                     </div>
                     <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                         <p className="text-white/60 text-sm">Investment Range</p>
                         <p className="text-lg font-bold">
-                            KES {Number(venture?.min_investment || 0).toLocaleString()} - {Number(venture?.max_investment || 0).toLocaleString()}
+                            {formatMoneySimple(venture?.min_investment || 0)} - {formatMoneySimple(venture?.max_investment || 0)}
                         </p>
                     </div>
                     <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
@@ -323,7 +320,7 @@ const VenturePublicView = ({ venture, navigate }) => {
                                 <div className="flex items-start gap-3">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                                     <div>
-                                        <p className="text-sm font-medium text-primary">Fund established with KES {Number(venture?.total_fund || 0).toLocaleString()}</p>
+                                        <p className="text-sm font-medium text-primary">Fund established with {formatMoneySimple(venture?.total_fund || 0)}</p>
                                         <p className="text-xs text-secondary">Initial capital raised</p>
                                     </div>
                                 </div>
@@ -374,11 +371,11 @@ const VenturePublicView = ({ venture, navigate }) => {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-secondary">Min Investment</span>
-                                    <span className="text-primary">KES {Number(venture?.min_investment || 0).toLocaleString()}</span>
+                                    <span className="text-primary">{formatMoneySimple(venture?.min_investment || 0)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-secondary">Max Investment</span>
-                                    <span className="text-primary">KES {Number(venture?.max_investment || 0).toLocaleString()}</span>
+                                    <span className="text-primary">{formatMoneySimple(venture?.max_investment || 0)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-secondary">Status</span>
@@ -519,8 +516,8 @@ const FundingOrgDashboard = () => {
                 <div className="flex items-center justify-between md:justify-end gap-6 bg-secondary/30 p-4 rounded-xl border border-theme">
                     <div>
                         <p className="text-sm text-secondary mb-1">Available Fund</p>
-                        <p className="font-bold text-xl text-primary-600">
-                            KES {venture?.available_fund?.toLocaleString()}
+<p className="font-bold text-xl text-primary-600">
+                            {formatMoneySimple(venture?.available_fund)}
                         </p>
                     </div>
                     <Button variant="primary" onClick={() => setIsAddingFunds(true)}>
@@ -710,7 +707,7 @@ const FundingOrgDashboard = () => {
                                             </div>
                                         </div>
                                         <p className="font-bold text-lg text-primary">
-                                            KES {Number((venture?.total_fund || 0) - (venture?.available_fund || 0)).toLocaleString()}
+                                            {formatMoneySimple((venture?.total_fund || 0) - (venture?.available_fund || 0))}
                                         </p>
                                     </div>
 
@@ -725,7 +722,7 @@ const FundingOrgDashboard = () => {
                                             </div>
                                         </div>
                                         <p className="font-bold text-lg text-primary">
-                                            KES {Number(venture?.available_fund || 0).toLocaleString()}
+                                            {formatMoneySimple(venture?.available_fund)}
                                         </p>
                                     </div>
                                 </div>

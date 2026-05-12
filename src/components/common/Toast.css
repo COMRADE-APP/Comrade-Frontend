@@ -1,0 +1,199 @@
+/* ============================================================================
+   QOMRADE TOAST NOTIFICATION SYSTEM
+   Glassmorphic, dark-mode aware, stacked bottom-right toasts
+   ============================================================================ */
+
+.qomrade-toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+    pointer-events: none;
+    max-width: 420px;
+    width: calc(100vw - 3rem);
+}
+
+/* ── Individual Toast ─────────────────────────────────────────── */
+.qomrade-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+    pointer-events: auto;
+    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: toast-slide-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+    transform-origin: bottom right;
+    cursor: default;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.qomrade-toast--exit {
+    animation: toast-slide-out 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+}
+
+/* ── Type Variants ────────────────────────────────────────────── */
+.qomrade-toast--success {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+.qomrade-toast--success .qomrade-toast__icon {
+    color: #10b981;
+}
+
+.qomrade-toast--error {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.25);
+}
+.qomrade-toast--error .qomrade-toast__icon {
+    color: #ef4444;
+}
+
+.qomrade-toast--warning {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+.qomrade-toast--warning .qomrade-toast__icon {
+    color: #f59e0b;
+}
+
+.qomrade-toast--info {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+.qomrade-toast--info .qomrade-toast__icon {
+    color: #6366f1;
+}
+
+/* ── Icon ─────────────────────────────────────────────────────── */
+.qomrade-toast__icon {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 1px;
+}
+.qomrade-toast__icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* ── Body ─────────────────────────────────────────────────────── */
+.qomrade-toast__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.qomrade-toast__title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #1f2937);
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.qomrade-toast__message {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #6b7280);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* ── Close Button ─────────────────────────────────────────────── */
+.qomrade-toast__close {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--color-text-tertiary, #9ca3af);
+    cursor: pointer;
+    padding: 0;
+    border-radius: 6px;
+    transition: color 0.15s ease, background 0.15s ease;
+    margin-top: 1px;
+}
+.qomrade-toast__close:hover {
+    color: var(--color-text-primary, #1f2937);
+    background: rgba(0, 0, 0, 0.06);
+}
+.qomrade-toast__close svg {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
+/* ── Animations ───────────────────────────────────────────────── */
+@keyframes toast-slide-in {
+    0% {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toast-slide-out {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+}
+
+/* ── Dark Mode ────────────────────────────────────────────────── */
+[data-theme="dark"] .qomrade-toast--success {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+[data-theme="dark"] .qomrade-toast--error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+[data-theme="dark"] .qomrade-toast--warning {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+[data-theme="dark"] .qomrade-toast--info {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+[data-theme="dark"] .qomrade-toast {
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .qomrade-toast__close:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .qomrade-toast-container {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+        max-width: none;
+    }
+}

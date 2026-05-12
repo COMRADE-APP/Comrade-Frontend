@@ -11,6 +11,7 @@ import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { paymentsService } from '../../services/payments.service';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import {
     Shield, FileText, CheckCircle, AlertTriangle, Scale, Users,
     ChevronLeft, ChevronRight, Eye, DollarSign, Lock, UserCheck,
@@ -95,7 +96,7 @@ const InvestmentProcess = () => {
 
     const [investmentData, setInvestmentData] = useState({
         amount: '',
-        currency: 'KES',
+        currency: 'USD',
         investment_type: 'equity',
         duration_months: '12',
         purpose: '',
@@ -420,10 +421,10 @@ const InvestmentProcess = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-primary mb-1.5">Currency</label>
                                     <select className="w-full px-4 py-2.5 bg-secondary border border-theme rounded-xl text-primary" value={investmentData.currency} onChange={e => updateInvestment('currency', e.target.value)}>
-                                        <option value="KES">KES (Kenya Shilling)</option>
                                         <option value="USD">USD (US Dollar)</option>
                                         <option value="EUR">EUR (Euro)</option>
                                         <option value="GBP">GBP (British Pound)</option>
+                                        <option value="KES">KES (Kenya Shilling)</option>
                                     </select>
                                 </div>
                                 <div>
@@ -533,7 +534,7 @@ const InvestmentProcess = () => {
                                 <h3 className="font-semibold text-primary flex items-center gap-2"><FileCheck size={18} /> Contract Summary</h3>
                                 <div className="grid gap-2 text-sm">
                                     <div className="flex justify-between py-2 border-b border-theme"><span className="text-secondary">Investor</span><span className="text-primary font-medium">{kycData.full_name}</span></div>
-                                    <div className="flex justify-between py-2 border-b border-theme"><span className="text-secondary">Amount</span><span className="text-primary font-medium">{investmentData.currency} {parseFloat(investmentData.amount || 0).toLocaleString()}</span></div>
+                                    <div className="flex justify-between py-2 border-b border-theme"><span className="text-secondary">Amount</span><span className="text-primary font-medium">{investmentData.currency} {formatMoneySimple(parseFloat(investmentData.amount || 0))}</span></div>
                                     <div className="flex justify-between py-2 border-b border-theme"><span className="text-secondary">Type</span><span className="text-primary capitalize">{investmentData.investment_type.replace('_', ' ')}</span></div>
                                     <div className="flex justify-between py-2 border-b border-theme"><span className="text-secondary">Duration</span><span className="text-primary">{investmentData.duration_months === '0' ? 'Open-ended' : `${investmentData.duration_months} months`}</span></div>
                                     <div className="flex justify-between py-2"><span className="text-secondary">Date</span><span className="text-primary">{new Date().toLocaleDateString()}</span></div>

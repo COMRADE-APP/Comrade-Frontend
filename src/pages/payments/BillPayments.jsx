@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { billsService } from '../../services/finservices.service';
 import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const BILL_CATEGORIES = [
     { id: 'electricity', label: 'Electricity', icon: Zap, emoji: '⚡' },
@@ -248,22 +249,22 @@ const BillPayments = () => {
                                             className="w-full px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-secondary mb-2">Amount (KES)</label>
+                                        <label className="block text-sm font-medium text-secondary mb-2">Amount (USD)</label>
                                         <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Enter amount"
                                             className="w-full px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none text-2xl font-bold" />
                                         <div className="flex flex-wrap gap-2 mt-3">
                                             {quickAmounts.map(a => (
                                                 <button key={a} onClick={() => setAmount(String(a))} className="px-3 py-1.5 text-xs font-semibold bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors">
-                                                    KES {a.toLocaleString()}
+                                                    {formatMoneySimple(a)}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                     {amount && (
                                         <div className="bg-secondary/5 rounded-xl p-4 space-y-2 text-sm">
-                                            <div className="flex justify-between"><span className="text-secondary">Amount</span><span className="text-primary font-medium">KES {parseFloat(amount || 0).toLocaleString()}</span></div>
-                                            <div className="flex justify-between"><span className="text-secondary">Service Fee</span><span className="text-primary font-medium">KES {(parseFloat(amount || 0) * 0.015).toFixed(2)}</span></div>
-                                            <div className="flex justify-between border-t border-theme pt-2"><span className="font-bold text-primary">Total</span><span className="font-bold text-primary">KES {(parseFloat(amount || 0) * 1.015).toFixed(2)}</span></div>
+                                            <div className="flex justify-between"><span className="text-secondary">Amount</span><span className="text-primary font-medium">{formatMoneySimple(amount || 0)}</span></div>
+                                            <div className="flex justify-between"><span className="text-secondary">Service Fee</span><span className="text-primary font-medium">{formatMoneySimple(parseFloat(amount || 0) * 0.015)}</span></div>
+                                            <div className="flex justify-between border-t border-theme pt-2"><span className="font-bold text-primary">Total</span><span className="font-bold text-primary">{formatMoneySimple(parseFloat(amount || 0) * 1.015)}</span></div>
                                         </div>
                                     )}
                                     <PaymentTypeSelector 
@@ -273,7 +274,7 @@ const BillPayments = () => {
                                     />
                                     <div className="flex gap-3">
                                         <Button variant="primary" className="flex-1 py-3 font-bold text-lg rounded-xl" onClick={handlePay} disabled={!accountNumber || !amount || (purchaseType === 'group' && !selectedGroupId)}>
-                                            {`Pay KES ${amount ? parseFloat(amount).toLocaleString() : '0'}`}
+                                            {`Pay ${formatMoneySimple(amount || 0)}`}
                                         </Button>
                                         <Button variant="outline" className="py-3 rounded-xl" onClick={() => setShowStandingOrderModal(true)} title="Set up recurring payment">
                                             <RefreshCw className="w-5 h-5" />
@@ -354,7 +355,7 @@ const BillPayments = () => {
                                                     {myProviders.find(p => p.id == so.provider_id)?.name || `Provider #${so.provider_id}`}
                                                 </h4>
                                                 <p className="text-xs text-secondary capitalize">
-                                                    KES {parseFloat(so.amount || 0).toLocaleString()} · {so.frequency}
+                                                    {formatMoneySimple(so.amount || 0)} · {so.frequency}
                                                     {so.start_date && ` · Starts ${so.start_date}`}
                                                 </p>
                                             </div>
@@ -393,7 +394,7 @@ const BillPayments = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-primary">KES {parseFloat(tx.amount).toLocaleString()}</p>
+                                                <p className="font-bold text-primary">{formatMoneySimple(tx.amount)}</p>
                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tx.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-rose-500/15 text-rose-500'}`}>{tx.status}</span>
                                             </div>
                                         </div>
@@ -488,7 +489,7 @@ const BillPayments = () => {
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-secondary mb-1">Amount (KES) *</label>
+                                <label className="block text-sm font-medium text-secondary mb-1">Amount (USD) *</label>
                                 <input type="number" min="1" required value={standingOrderForm.amount} onChange={e => setStandingOrderForm({ ...standingOrderForm, amount: e.target.value })}
                                     className="w-full px-4 py-2.5 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
                                     placeholder="0.00" />

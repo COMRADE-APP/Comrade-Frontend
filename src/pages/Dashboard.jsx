@@ -9,7 +9,7 @@ import OpinionComposer from '../components/feed/OpinionComposer';
 import {
     ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare,
     Share2, Users, ArrowRight, RefreshCw, Filter, ShoppingBag, FileText,
-    TrendingUp, Bell, Eye, ShoppingCart, Star, Tag, Check, Plus, Clock
+    TrendingUp, Bell, Eye, ShoppingCart, Star, Tag, Check, Plus, Clock, User
 } from 'lucide-react';
 import api from '../services/api';
 import announcementsService from '../services/announcements.service';
@@ -388,7 +388,27 @@ const Dashboard = () => {
                 </div>
             </div>
 
-
+            {/* Profile Completion Prompt */}
+            {!user?.profile_completed && (
+                <div className="bg-gradient-to-r from-primary-50 to-indigo-50 dark:from-primary-900/40 dark:to-indigo-900/40 border border-primary-200 dark:border-primary-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 p-2 rounded-full mt-0.5 shadow-sm">
+                            <User size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-primary-800 dark:text-primary-200 font-bold mb-0.5">
+                                Complete Your Profile
+                            </h3>
+                            <p className="text-sm text-primary-700/80 dark:text-primary-300/80">
+                                Finishing your profile helps you connect better with the community. Add your bio, location, and interests today.
+                            </p>
+                        </div>
+                    </div>
+                    <Link to="/profile-setup" className="shrink-0 bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors border border-transparent shadow shadow-primary-500/20">
+                        Complete Setup
+                    </Link>
+                </div>
+            )}
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

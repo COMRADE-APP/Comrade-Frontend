@@ -9,6 +9,7 @@ import {
 import { insuranceService } from '../../services/finservices.service';
 import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const CATEGORIES = [
     { id: 'health', label: 'Health', icon: Heart, color: 'from-rose-500 to-pink-600', emoji: '❤️' },
@@ -149,11 +150,11 @@ const Insurance = () => {
                                             <p className="text-xs text-secondary line-clamp-2">{p.description}</p>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-secondary">Premium</span>
-                                                <span className="font-bold text-primary">KES {parseFloat(p.premium_amount).toLocaleString()}<span className="text-xs text-tertiary">/{(p.frequency_display || p.premium_frequency || '').toLowerCase()}</span></span>
+                                                <span className="font-bold text-primary">{formatMoneySimple(p.premium_amount)}<span className="text-xs text-tertiary">/{(p.frequency_display || p.premium_frequency || '').toLowerCase()}</span></span>
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-secondary">Coverage</span>
-                                                <span className="font-medium text-primary">KES {parseFloat(p.coverage_amount).toLocaleString()}</span>
+                                                <span className="font-medium text-primary">{formatMoneySimple(p.coverage_amount)}</span>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -201,10 +202,10 @@ const Insurance = () => {
                             <div className="bg-elevated border border-theme rounded-2xl p-6 space-y-4 h-fit">
                                 <h4 className="font-bold text-primary">Plan Summary</h4>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between text-sm"><span className="text-secondary">Premium</span><span className="font-bold text-primary">KES {parseFloat(selectedProduct.premium_amount).toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-secondary">Premium</span><span className="font-bold text-primary">{formatMoneySimple(selectedProduct.premium_amount)}</span></div>
                                     <div className="flex justify-between text-sm"><span className="text-secondary">Frequency</span><span className="text-primary">{selectedProduct.frequency_display || selectedProduct.premium_frequency}</span></div>
-                                    <div className="flex justify-between text-sm"><span className="text-secondary">Coverage</span><span className="font-bold text-primary">KES {parseFloat(selectedProduct.coverage_amount).toLocaleString()}</span></div>
-                                    <div className="flex justify-between text-sm"><span className="text-secondary">Deductible</span><span className="text-primary">KES {parseFloat(selectedProduct.deductible || 0).toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-secondary">Coverage</span><span className="font-bold text-primary">{formatMoneySimple(selectedProduct.coverage_amount)}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-secondary">Deductible</span><span className="text-primary">{formatMoneySimple(selectedProduct.deductible || 0)}</span></div>
                                     {selectedProduct.waiting_period_days > 0 && (
                                         <div className="flex justify-between text-sm"><span className="text-secondary">Waiting Period</span><span className="text-primary">{selectedProduct.waiting_period_days} days</span></div>
                                     )}
@@ -252,7 +253,7 @@ const Insurance = () => {
                                     </div>
                                 </div>
                                 <div className="px-6 pb-4 flex justify-between text-xs text-secondary border-t border-theme pt-3">
-                                    <span>Premiums Paid: <strong className="text-primary">KES {parseFloat(pol.premium_paid).toLocaleString()}</strong></span>
+                                    <span>Premiums Paid: <strong className="text-primary">{formatMoneySimple(pol.premium_paid)}</strong></span>
                                     {pol.next_payment_date && <span>Next Payment: <strong className="text-primary">{pol.next_payment_date}</strong></span>}
                                 </div>
                                 {pol.claims?.length > 0 && (
@@ -262,7 +263,7 @@ const Insurance = () => {
                                             <div key={c.id} className="flex items-center justify-between bg-secondary/5 rounded-xl p-3 text-sm">
                                                 <span className="text-secondary">{c.reason}</span>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="font-bold text-primary">KES {parseFloat(c.amount_claimed).toLocaleString()}</span>
+                                                    <span className="font-bold text-primary">{formatMoneySimple(c.amount_claimed)}</span>
                                                     <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'approved' || c.status === 'paid' ? 'bg-emerald-500/15 text-emerald-500' : c.status === 'rejected' ? 'bg-rose-500/15 text-rose-500' : 'bg-amber-500/15 text-amber-500'}`}>{c.status_display || c.status}</span>
                                                 </div>
                                             </div>
@@ -296,7 +297,7 @@ const Insurance = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Claim Amount (KES)</label>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Claim Amount (USD)</label>
                                         <input type="number" value={claimForm.amount} onChange={e => setClaimForm({ ...claimForm, amount: e.target.value })} placeholder="Amount"
                                             className="w-full px-4 py-2.5 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 outline-none" />
                                     </div>
@@ -325,7 +326,7 @@ const Insurance = () => {
                                                 <p className="text-xs text-tertiary">{c.reason}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-primary">KES {parseFloat(c.amount_claimed).toLocaleString()}</p>
+                                                <p className="font-bold text-primary">{formatMoneySimple(c.amount_claimed)}</p>
                                                 <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'approved' || c.status === 'paid' ? 'bg-emerald-500/15 text-emerald-500' : c.status === 'rejected' ? 'bg-rose-500/15 text-rose-500' : 'bg-amber-500/15 text-amber-500'}`}>{c.status_display || c.status}</span>
                                             </div>
                                         </div>

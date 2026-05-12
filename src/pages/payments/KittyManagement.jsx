@@ -17,6 +17,7 @@ import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../constants/apiEndpoints';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 // ==================== TYPE BADGES ====================
 const TYPE_CONFIG = {
@@ -81,7 +82,7 @@ const KittyCard = ({ kitty, onSelect, isSelected }) => {
                 <div>
                     <p className="text-xs text-secondary mb-0.5">Available Balance</p>
                     <p className="text-2xl font-bold text-primary">
-                        {showBalance ? `KES ${kitty.balance.toLocaleString()}` : '••••••'}
+                        {showBalance ? formatMoneySimple(kitty.balance) : '••••••'}
                     </p>
                 </div>
 
@@ -90,13 +91,13 @@ const KittyCard = ({ kitty, onSelect, isSelected }) => {
                         <p className="text-[10px] text-green-600 font-medium flex items-center gap-1">
                             <ArrowDownCircle size={10} /> Total In
                         </p>
-                        <p className="text-sm font-bold text-green-700">KES {(kitty.total_inflow / 1000).toFixed(0)}K</p>
+                        <p className="text-sm font-bold text-green-700">{formatMoneySimple(kitty.total_inflow)}</p>
                     </div>
                     <div className="p-2 bg-red-500/5 rounded-lg">
                         <p className="text-[10px] text-red-600 font-medium flex items-center gap-1">
                             <ArrowUpCircle size={10} /> Total Out
                         </p>
-                        <p className="text-sm font-bold text-red-700">KES {(kitty.total_outflow / 1000).toFixed(0)}K</p>
+                        <p className="text-sm font-bold text-red-700">{formatMoneySimple(kitty.total_outflow)}</p>
                     </div>
                 </div>
 
@@ -184,15 +185,15 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                 <div className="grid grid-cols-3 gap-4 mt-6">
                     <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
                         <p className="text-white/60 text-xs">Balance</p>
-                        <p className="text-xl font-bold">KES {kitty.balance.toLocaleString()}</p>
+                        <p className="text-xl font-bold">{formatMoneySimple(kitty.balance)}</p>
                     </div>
                     <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
                         <p className="text-white/60 text-xs">Total In</p>
-                        <p className="text-xl font-bold text-green-200">KES {(kitty.total_inflow / 1000).toFixed(0)}K</p>
+                        <p className="text-xl font-bold text-green-200">{formatMoneySimple(kitty.total_inflow)}</p>
                     </div>
                     <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
                         <p className="text-white/60 text-xs">Total Out</p>
-                        <p className="text-xl font-bold text-red-200">KES {(kitty.total_outflow / 1000).toFixed(0)}K</p>
+                        <p className="text-xl font-bold text-red-200">{formatMoneySimple(kitty.total_outflow)}</p>
                     </div>
                 </div>
             </div>
@@ -264,7 +265,7 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                     <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
                                     <p className="text-xs text-secondary">Net Growth</p>
                                     <p className="text-xl font-bold text-green-600">
-                                        +KES {((kitty.total_inflow - kitty.total_outflow) / 1000).toFixed(0)}K
+                                        +{formatMoneySimple(kitty.total_inflow - kitty.total_outflow)}
                                     </p>
                                 </CardBody>
                             </Card>
@@ -273,7 +274,7 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                     <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
                                     <p className="text-xs text-secondary">Avg Monthly Inflow</p>
                                     <p className="text-xl font-bold text-primary">
-                                        KES {kitty.monthly_data ? (kitty.monthly_data.reduce((s, m) => s + m.inflow, 0) / kitty.monthly_data.length / 1000).toFixed(0) : 0}K
+                                        {formatMoneySimple(kitty.monthly_data ? kitty.monthly_data.reduce((s, m) => s + m.inflow, 0) / kitty.monthly_data.length : 0)}
                                     </p>
                                 </CardBody>
                             </Card>
@@ -356,7 +357,7 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                     </div>
                                     <div className="text-right">
                                         <p className={`font-bold text-sm ${txn.type === 'inflow' ? 'text-green-600' : 'text-red-500'}`}>
-                                            {txn.type === 'inflow' ? '+' : '-'}KES {txn.amount.toLocaleString()}
+                                            {txn.type === 'inflow' ? '+' : '-'}{formatMoneySimple(txn.amount)}
                                         </p>
                                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${txn.status === 'completed'
                                             ? 'bg-green-500/10 text-green-600'
@@ -426,7 +427,7 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                         <p className="text-sm font-medium text-primary">Withdrawal Limit</p>
                                         <p className="text-xs text-secondary">Maximum daily withdrawal amount</p>
                                     </div>
-                                    <span className="text-sm font-bold text-primary">KES 500,000</span>
+                                    <span className="text-sm font-bold text-primary">{formatMoneySimple(500000)}</span>
                                 </div>
                                 <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-xl border border-theme">
                                     <div>
@@ -442,7 +443,7 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                         <p className="text-sm font-medium text-primary">Low Balance Alert</p>
                                         <p className="text-xs text-secondary">Notify when balance drops below threshold</p>
                                     </div>
-                                    <span className="text-sm font-bold text-primary">KES 10,000</span>
+                                    <span className="text-sm font-bold text-primary">{formatMoneySimple(10000)}</span>
                                 </div>
                             </div>
                         </div>
@@ -513,17 +514,17 @@ const WithdrawModal = ({ kitty, onClose, onSuccess }) => {
                                 <CheckCircle className="w-8 h-8 text-green-600" />
                             </div>
                             <h4 className="text-xl font-bold text-primary mb-2">Withdrawal Initiated</h4>
-                            <p className="text-secondary text-sm">KES {Number(amount).toLocaleString()} will be transferred to your personal wallet shortly.</p>
+                            <p className="text-secondary text-sm">{formatMoneySimple(Number(amount))} will be transferred to your personal wallet shortly.</p>
                             <Button onClick={() => onSuccess && onSuccess()} className="mt-4 bg-primary text-white w-full">Done</Button>
                         </div>
                     ) : (
                         <>
                             <div className="bg-secondary/5 rounded-xl p-4 border border-theme">
                                 <p className="text-xs text-secondary">Available in Kitty</p>
-                                <p className="text-2xl font-bold text-primary">KES {kitty.balance.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-primary">{formatMoneySimple(kitty.balance)}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1.5">Withdraw Amount (KES)</label>
+                                <label className="block text-sm font-medium text-primary mb-1.5">Withdraw Amount (USD)</label>
                                 <input
                                     type="number"
                                     value={amount}
@@ -760,7 +761,7 @@ const KittyManagement = () => {
                             </div>
                             <div>
                                 <p className="text-white/70 text-sm">Total Kitty Balance</p>
-                                <p className="text-3xl font-bold">KES {totalBalance.toLocaleString()}</p>
+                                <p className="text-3xl font-bold">{formatMoneySimple(totalBalance)}</p>
                             </div>
                         </div>
                     </div>
@@ -776,7 +777,7 @@ const KittyManagement = () => {
                                         <span className="text-xs text-white/70 capitalize">{type}s</span>
                                     </div>
                                     <p className="text-lg font-bold">{count}</p>
-                                    <p className="text-xs text-white/60">KES {(balance / 1000).toFixed(0)}K</p>
+                                    <p className="text-xs text-white/60">{formatMoneySimple(balance)}</p>
                                 </div>
                             );
                         })}

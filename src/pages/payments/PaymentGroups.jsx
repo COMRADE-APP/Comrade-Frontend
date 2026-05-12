@@ -6,8 +6,11 @@ import Input from '../../components/common/Input';
 import {
     Users, Plus, Search, Target, DollarSign, UserPlus, Settings,
     MoreVertical, Calendar, TrendingUp, ArrowLeft, Filter,
-    CheckCircle, XCircle, Clock, Bell, PiggyBank, X, Mail, AlertCircle
+    CheckCircle, XCircle, Clock, Bell, PiggyBank, X, Mail, AlertCircle,
+    Diamond, Shield, Circle as CircleIcon, Landmark, Globe
 } from 'lucide-react';
+
+const TIER_ICONS = { Diamond, Shield, Circle: CircleIcon, Landmark, Globe };
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
 import { getGroupTier } from '../../utils/groupUtils';
@@ -358,7 +361,7 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                                     const tier = getGroupTier(group.member_count || 0);
                                     return (
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${tier.color} flex items-center gap-1`}>
-                                            <span>{tier.emoji}</span>
+                                            {(() => { const TierIcon = TIER_ICONS[tier.icon]; return TierIcon ? <TierIcon className="w-3 h-3" /> : null; })()}
                                             <span>{tier.label}</span>
                                         </span>
                                     );

@@ -14,6 +14,7 @@ import {
     BookOpen, Award, Plus, Trash2
 } from 'lucide-react';
 import profileService from '../services/profile.service';
+import EditProfileForm from '../components/profile/EditProfileForm';
 import opinionsService from '../services/opinions.service';
 import api from '../services/api';
 
@@ -24,6 +25,7 @@ const Profile = () => {
 
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
@@ -104,6 +106,7 @@ const Profile = () => {
             });
         } catch (error) {
             console.error('Error loading profile:', error);
+            setErrorMsg(error.response?.data?.detail || error.message || "Unknown error occurred");
         } finally {
             setLoading(false);
         }
@@ -428,6 +431,7 @@ const Profile = () => {
         return (
             <div className="text-center py-16">
                 <h2 className="text-xl font-bold text-gray-900">Profile not found</h2>
+                {errorMsg && <p className="text-red-500 mt-2">Error: {errorMsg}</p>}
             </div>
         );
     }
@@ -439,6 +443,21 @@ const Profile = () => {
         { id: 'created', label: 'Created', icon: Layers, description: 'Events, tasks & more' },
         { id: 'drafts', label: 'Drafts', icon: FileText, description: 'Unpublished work' },
     ];
+
+    const calculateCompletion = () => {
+        if (!profile) return 0;
+        // Evaluate key fields to determine % complete
+        const fields = ['first_name', 'last_name', 'bio', 'location', 'avatar_url', 'interests', 'occupation'];
+        let matched = 0;
+        fields.forEach(field => {
+            if (profile[field] && profile[field] !== '' && (!Array.isArray(profile[field]) || profile[field].length > 0)) {
+                matched++;
+            }
+        });
+        return Math.round((matched / fields.length) * 100);
+    };
+
+    const completionPercentage = calculateCompletion();
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -513,17 +532,7 @@ const Profile = () => {
                     <div className="absolute -bottom-6 right-4 flex items-center gap-2">
                         {isOwner ? (
                             <>
-                                {isEditing ? (
-                                    <>
-                                        <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                                            <X className="w-4 h-4 mr-1" /> Cancel
-                                        </Button>
-                                        <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
-                                            {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-                                            Save
-                                        </Button>
-                                    </>
-                                ) : (
+                                {!isEditing && (
                                     <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>
                                         <Edit2 className="w-4 h-4 mr-1" /> Edit Profile
                                     </Button>
@@ -562,7 +571,7 @@ const Profile = () => {
                                     {isOwner ? (
                                         <>
                                             <button
-                                                onClick={() => { setShowPrivacySettings(true); setShowMenu(false); }}
+                                                onClick={() => { navigate('/settings?tab=privacy'); setShowMenu(false); }}
                                                 className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-secondary flex items-center gap-2"
                                             >
                                                 <Shield className="w-4 h-4" /> Privacy Settings
@@ -596,6 +605,17 @@ const Profile = () => {
                     </div>
                 </div>
 
+                {isEditing ? (
+                    <CardBody className="pt-16 pb-0 px-2 sm:px-6">
+                        <EditProfileForm
+                            formData={formData}
+                            setFormData={setFormData}
+                            onCancel={() => setIsEditing(false)}
+                            onSave={handleSave}
+                            saving={saving}
+                        />
+                    </CardBody>
+                ) : (
                 <CardBody className="pt-20">
                     {/* Name & User Type */}
                     <div className="mb-4">
@@ -659,7 +679,7 @@ const Profile = () => {
                     </div>
 
                     {/* Follower counts */}
-                    <div className="flex items-center gap-6 text-sm mb-4">
+                    <div className="flex items-center gap-6 text-sm mb-6">
                         <button className="hover:underline">
                             <span className="font-bold text-primary">{profile.following_count || 0}</span>
                             <span className="text-secondary ml-1">Following</span>
@@ -669,6 +689,23 @@ const Profile = () => {
                             <span className="text-secondary ml-1">Followers</span>
                         </button>
                     </div>
+
+                    {isOwner && completionPercentage < 100 && (
+                        <div className="mb-6 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 p-4 sm:p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                            <div className="flex justify-between items-end mb-3">
+                                <div>
+                                    <span className="text-sm font-bold text-primary-800 dark:text-primary-200">Profile Completion</span>
+                                    <p className="text-xs text-primary-600/80 dark:text-primary-300/80 mt-0.5">Finish your setup to unlock better matching</p>
+                                </div>
+                                <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">{completionPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-indigo-200/50 dark:bg-indigo-900/50 rounded-full h-2.5 overflow-hidden">
+                                <div className="bg-indigo-600 dark:bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out relative" style={{ width: `${completionPercentage}%` }}>
+                                    <div className="absolute inset-0 bg-white/20"></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Bio */}
                     {isEditing ? (
@@ -879,6 +916,7 @@ const Profile = () => {
                         </div>
                     )}
                 </CardBody>
+                )}
             </Card>
 
             {/* Content Tabs */}
@@ -1161,76 +1199,7 @@ const Profile = () => {
                 </Card>
             )}
 
-            {/* Privacy Settings Modal */}
-            {showPrivacySettings && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-elevated rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto border border-theme">
-                        <div className="p-6 border-b border-theme flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-primary">Privacy Settings</h2>
-                            <button onClick={() => setShowPrivacySettings(false)} className="p-2 hover:bg-secondary rounded-full text-secondary hover:text-primary transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-primary mb-2">Who can see your email?</label>
-                                <select
-                                    name="show_email"
-                                    value={formData.show_email}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
-                                >
-                                    <option value="public">Everyone</option>
-                                    <option value="followers">Followers Only</option>
-                                    <option value="private">Only Me</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-primary mb-2">Who can see your phone?</label>
-                                <select
-                                    name="show_phone"
-                                    value={formData.show_phone}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
-                                >
-                                    <option value="public">Everyone</option>
-                                    <option value="followers">Followers Only</option>
-                                    <option value="private">Only Me</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-primary mb-2">Who can message you?</label>
-                                <select
-                                    name="allow_messages"
-                                    value={formData.allow_messages}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-xl focus:ring-2 focus:ring-primary-500"
-                                >
-                                    <option value="anyone">Anyone</option>
-                                    <option value="followers">Followers Only</option>
-                                    <option value="none">No One</option>
-                                </select>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-primary">Show activity status</span>
-                                <input
-                                    type="checkbox"
-                                    name="show_activity_status"
-                                    checked={formData.show_activity_status}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 text-primary-600 rounded"
-                                />
-                            </div>
-                        </div>
-                        <div className="p-6 border-t border-theme flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setShowPrivacySettings(false)}>Cancel</Button>
-                            <Button variant="primary" onClick={() => { handleSave(); setShowPrivacySettings(false); }} disabled={saving}>
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };

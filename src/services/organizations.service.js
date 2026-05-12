@@ -123,7 +123,7 @@ export const organizationsService = {
 
     // Get user's organizations where they are a member
     async getMyOrganizations() {
-        const response = await api.get(`${API_ENDPOINTS.ORGANISATIONS}my_organizations/`);
+        const response = await api.get(`${API_ENDPOINTS.ORGANIZATIONS}my_organizations/`);
         return response.data;
     },
 

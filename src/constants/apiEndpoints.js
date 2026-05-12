@@ -1,7 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const API_ENDPOINTS = {
-    // Authentication
     LOGIN: `${API_BASE_URL}/auth/login/`,
     LOGIN_VERIFY: `${API_BASE_URL}/auth/login-verify/`,
     RESEND_OTP: `${API_BASE_URL}/auth/resend-otp/`,
@@ -9,34 +8,54 @@ export const API_ENDPOINTS = {
     LOGOUT_ALL: `${API_BASE_URL}/auth/logout-all/`,
     REGISTER: `${API_BASE_URL}/auth/register/`,
     REGISTER_VERIFY: `${API_BASE_URL}/auth/register-verify/`,
-    VERIFY_EMAIL: `${API_BASE_URL}/auth/verify/`, // Initial email verification link (GET)
+    VERIFY_EMAIL: `${API_BASE_URL}/auth/verify/`,
     HEARTBEAT: `${API_BASE_URL}/auth/heartbeat/`,
 
-    // Password Reset
     PASSWORD_RESET_REQUEST: `${API_BASE_URL}/auth/password-reset-request/`,
     PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/auth/password-reset-confirm/`,
 
-    // 2FA / OTP
     SETUP_2FA: `${API_BASE_URL}/auth/setup-2fa/`,
     CONFIRM_2FA_SETUP: `${API_BASE_URL}/auth/confirm-2fa-setup/`,
     VERIFY_2FA: `${API_BASE_URL}/auth/verify-2fa/`,
     VERIFY_SMS_OTP: `${API_BASE_URL}/auth/verify-sms-otp/`,
 
-    // Account Settings
     CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password/`,
     ROLE_CHANGE_REQUEST: `${API_BASE_URL}/auth/role-change-request/`,
     ROLE_CHANGE_REQUESTS: `${API_BASE_URL}/auth/role-change-requests/`,
 
-    // Profile Management
     PROFILE: `${API_BASE_URL}/auth/profile/`,
     PROFILE_SETUP: `${API_BASE_URL}/auth/profile-setup/`,
     PROFILE_AVATAR: `${API_BASE_URL}/auth/profile/avatar/`,
     PROFILE_COVER: `${API_BASE_URL}/auth/profile/cover/`,
 
-    GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
-    GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
+    SOCIAL_GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
+    SOCIAL_FACEBOOK_LOGIN: `${API_BASE_URL}/accounts/facebook/login/`,
+    SOCIAL_GITHUB_LOGIN: `${API_BASE_URL}/accounts/github/login/`,
+    SOCIAL_APPLE_LOGIN: `${API_BASE_URL}/accounts/apple/login/`,
+    SOCIAL_TWITTER_LOGIN: `${API_BASE_URL}/accounts/twitter_oauth2/login/`,
+    SOCIAL_LINKEDIN_LOGIN: `${API_BASE_URL}/accounts/linkedin_oauth2/login/`,
+    SOCIAL_MICROSOFT_LOGIN: `${API_BASE_URL}/accounts/microsoft/login/`,
+
+    SOCIAL_GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
+    SOCIAL_FACEBOOK_CALLBACK: `${API_BASE_URL}/auth/facebook/callback/`,
+    SOCIAL_GITHUB_CALLBACK: `${API_BASE_URL}/auth/github/callback/`,
+    SOCIAL_APPLE_CALLBACK: `${API_BASE_URL}/auth/apple/callback/`,
+    SOCIAL_TWITTER_CALLBACK: `${API_BASE_URL}/auth/twitter/callback/`,
+    SOCIAL_LINKEDIN_CALLBACK: `${API_BASE_URL}/auth/linkedin/callback/`,
+    SOCIAL_MICROSOFT_CALLBACK: `${API_BASE_URL}/auth/microsoft/callback/`,
+
     FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
     RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password/`,
+    UPDATE_PROFILE: `${API_BASE_URL}/auth/update-profile/`,
+    DEVICES: `${API_BASE_URL}/auth/devices/`,
+    REVOKE_DEVICE: (id) => `${API_BASE_URL}/auth/devices/${id}/revoke/`,
+    ACTIVITY_LOG: `${API_BASE_URL}/auth/activity/`,
+
+    TOTP_SETUP: `${API_BASE_URL}/auth/totp/setup/`,
+    TOTP_VERIFY_SETUP: `${API_BASE_URL}/auth/totp/verify-setup/`,
+    TOTP_VERIFY_LOGIN: `${API_BASE_URL}/auth/totp/verify-login/`,
+    TOTP_DISABLE: `${API_BASE_URL}/auth/totp/disable/`,
+    TOTP_BACKUP_CODES: `${API_BASE_URL}/auth/totp/backup-codes/`,
 
     // Announcements
     ANNOUNCEMENTS: `${API_BASE_URL}/api/announcements/`,
@@ -148,7 +167,15 @@ export const API_ENDPOINTS = {
     TRANSACTIONS: `${API_BASE_URL}/api/payments/transactions/`,
     TRANSACTION_DETAIL: (id) => `${API_BASE_URL}/api/payments/transactions/${id}/`,
     CREATE_TRANSACTION: `${API_BASE_URL}/api/payments/create/`,
-    TRANSACTION_HISTORY: `${API_BASE_URL}/api/payments/history/`,
+    TRANSACTION_HISTORY: `${API_BASE_URL}/api/payments/transactions/history/`,
+
+    // Currency Exchange
+    CURRENCY_CONVERT: `${API_BASE_URL}/api/payments/profiles/convert/`,
+    EXCHANGE_RATES: `${API_BASE_URL}/api/payments/profiles/exchange_rate/`,
+    ALL_RATES: `${API_BASE_URL}/api/payments/profiles/all_rates/`,
+    SUPPORTED_CURRENCIES: `${API_BASE_URL}/api/payments/profiles/supported_currencies/`,
+    SET_PREFERRED_CURRENCY: `${API_BASE_URL}/api/payments/profiles/set_preferred_currency/`,
+    DETECT_CURRENCY: `${API_BASE_URL}/api/payments/profiles/detect_currency/`,
 
     // Transaction Actions
     DEPOSIT: `${API_BASE_URL}/api/payments/deposit/`,
@@ -185,6 +212,14 @@ export const API_ENDPOINTS = {
     PAYMENT_GROUPS: `${API_BASE_URL}/api/payments/groups/`,
     PAYMENT_GROUP_DETAIL: (id) => `${API_BASE_URL}/api/payments/groups/${id}/`,
     CONTRIBUTE_TO_GROUP: (id) => `${API_BASE_URL}/api/payments/groups/${id}/contribute/`,
+    WITHDRAWAL_REQUESTS: `${API_BASE_URL}/api/payments/withdrawal-requests/`,
+    ROUND_CONTRIBUTIONS: `${API_BASE_URL}/api/payments/round-contributions/`,
+    ROUND_POSITIONS: `${API_BASE_URL}/api/payments/round-positions/`,
+    GROUP_SETTINGS_CHANGES: `${API_BASE_URL}/api/payments/group-settings-changes/`,
+
+    // Loans
+    LOAN_PRODUCTS: `${API_BASE_URL}/api/payments/loan-products/`,
+    LOAN_APPLICATIONS: `${API_BASE_URL}/api/payments/loan-applications/`,
 
     // Kitties (Entity Fund Pools)
     MY_KITTIES: `${API_BASE_URL}/api/payments/groups/my_kitties/`,
@@ -216,6 +251,10 @@ export const API_ENDPOINTS = {
     GROUP_POST_REPLIES: `${API_BASE_URL}/api/payments/group-post-replies/`,
     GROUP_POST_REACT: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/react/`,
     GROUP_POST_PIN: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/pin/`,
+    GROUP_POST_UPVOTE: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/upvote/`,
+    GROUP_POST_TOGGLE_SHARE: (id) => `${API_BASE_URL}/api/payments/group-posts/${id}/toggle_shareability/`,
+    GROUP_REPLY_REACT: (id) => `${API_BASE_URL}/api/payments/group-post-replies/${id}/react/`,
+    GROUP_REPLY_UPVOTE: (id) => `${API_BASE_URL}/api/payments/group-post-replies/${id}/upvote/`,
     GROUP_PHASES: `${API_BASE_URL}/api/payments/group-phases/`,
     
     // Group Portfolio
@@ -282,38 +321,6 @@ export const API_ENDPOINTS = {
     // Subscriptions
     User_SUBSCRIPTIONS: `${API_BASE_URL}/api/payments/subscriptions/`,
     SUBSCRIPTION_DETAIL: (id) => `${API_BASE_URL}/api/payments/subscriptions/${id}/`,
-
-    // Social Auth - Login Initiation
-    GOOGLE_LOGIN: `${API_BASE_URL}/accounts/google/login/`,
-    FACEBOOK_LOGIN: `${API_BASE_URL}/accounts/facebook/login/`,
-    GITHUB_LOGIN: `${API_BASE_URL}/accounts/github/login/`,
-    APPLE_LOGIN: `${API_BASE_URL}/accounts/apple/login/`,
-    TWITTER_LOGIN: `${API_BASE_URL}/accounts/twitter_oauth2/login/`,
-    LINKEDIN_LOGIN: `${API_BASE_URL}/accounts/linkedin_oauth2/login/`,
-    MICROSOFT_LOGIN: `${API_BASE_URL}/accounts/microsoft/login/`,
-
-    // Social Auth - Callbacks (JWT conversion)
-    GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback/`,
-    FACEBOOK_CALLBACK: `${API_BASE_URL}/auth/facebook/callback/`,
-    GITHUB_CALLBACK: `${API_BASE_URL}/auth/github/callback/`,
-    APPLE_CALLBACK: `${API_BASE_URL}/auth/apple/callback/`,
-    TWITTER_CALLBACK: `${API_BASE_URL}/auth/twitter/callback/`,
-    LINKEDIN_CALLBACK: `${API_BASE_URL}/auth/linkedin/callback/`,
-    MICROSOFT_CALLBACK: `${API_BASE_URL}/auth/microsoft/callback/`,
-
-    // Profile & Security
-    CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password/`,
-    UPDATE_PROFILE: `${API_BASE_URL}/auth/update-profile/`,
-    DEVICES: `${API_BASE_URL}/auth/devices/`,
-    REVOKE_DEVICE: (id) => `${API_BASE_URL}/auth/devices/${id}/revoke/`,
-    ACTIVITY_LOG: `${API_BASE_URL}/auth/activity/`,
-
-    // TOTP 2FA (Authenticator App)
-    TOTP_SETUP: `${API_BASE_URL}/auth/totp/setup/`,
-    TOTP_VERIFY_SETUP: `${API_BASE_URL}/auth/totp/verify-setup/`,
-    TOTP_VERIFY_LOGIN: `${API_BASE_URL}/auth/totp/verify-login/`,
-    TOTP_DISABLE: `${API_BASE_URL}/auth/totp/disable/`,
-    TOTP_BACKUP_CODES: `${API_BASE_URL}/auth/totp/backup-codes/`,
 
     // Opinions & Social
     OPINIONS: `${API_BASE_URL}/api/opinions/opinions/`,
@@ -402,6 +409,170 @@ export const API_ENDPOINTS = {
         CONNECTION_CURRENT: `${API_BASE_URL}/api/activity/connections/current/`,
         SEARCHES: `${API_BASE_URL}/api/activity/searches/`,
         EXPORT: `${API_BASE_URL}/api/activity/export/`,
+    },
+
+    // Verification System
+    VERIFICATION: {
+        LIST: `${API_BASE_URL}/api/v1/verification/verifications/`,
+        DETAIL: (id) => `${API_BASE_URL}/api/v1/verification/verifications/${id}/`,
+        CREATE: `${API_BASE_URL}/api/v1/verification/verifications/`,
+        SUBMIT: `${API_BASE_URL}/api/v1/verification/verifications/submit/`,
+        STAFF_DASHBOARD: `${API_BASE_URL}/api/v1/verification/verifications/staff_dashboard/`,
+        BULK_ACTION: `${API_BASE_URL}/api/v1/verification/verifications/bulk_action/`,
+        
+        // Liveness Verification
+        LIVENESS_INITIATE: `${API_BASE_URL}/api/v1/verification/liveness/initiate/`,
+        LIVENESS_GET_SESSION: `${API_BASE_URL}/api/v1/verification/liveness/get_session/`,
+        LIVENESS_COMPLETE: `${API_BASE_URL}/api/v1/verification/liveness/complete/`,
+        LIVENESS_RETRY: `${API_BASE_URL}/api/v1/verification/liveness/retry/`,
+        
+        // Documents & Videos
+        DOCUMENTS: `${API_BASE_URL}/api/v1/verification/documents/`,
+        DOCUMENT_DETAIL: (id) => `${API_BASE_URL}/api/v1/verification/documents/${id}/`,
+        VIDEOS: `${API_BASE_URL}/api/v1/verification/videos/`,
+        VIDEO_DETAIL: (id) => `${API_BASE_URL}/api/v1/verification/videos/${id}/`,
+        
+        // Identifications
+        IDENTIFICATIONS: `${API_BASE_URL}/api/v1/verification/identifications/`,
+        IDENTIFICATION_DETAIL: (id) => `${API_BASE_URL}/api/v1/verification/identifications/${id}/`,
+        IDENTIFICATION_VERIFY: (id) => `${API_BASE_URL}/api/v1/verification/identifications/${id}/verify/`,
+        
+        // Checklist & Stats
+        CHECKLIST: `${API_BASE_URL}/api/v1/verification/checklist/`,
+        STATS: `${API_BASE_URL}/api/v1/verification/stats/`,
+    },
+
+    // ============== BILLS & AIRTIME ==============
+    BILLS: {
+        PROVIDERS: `${API_BASE_URL}/api/payments/bill-providers/`,
+        PROVIDER_DETAIL: (id) => `${API_BASE_URL}/api/payments/bill-providers/${id}/`,
+        
+        // User's Bill Payments
+        LIST: `${API_BASE_URL}/api/payments/bill-payments/`,
+        DETAIL: (id) => `${API_BASE_URL}/api/payments/bill-payments/${id}/`,
+        CREATE: `${API_BASE_URL}/api/payments/bill-payments/`,
+        
+        // Standing Orders (Recurring)
+        STANDING_ORDERS: `${API_BASE_URL}/api/payments/standing-orders/`,
+        STANDING_ORDER_DETAIL: (id) => `${API_BASE_URL}/api/payments/standing-orders/${id}/`,
+        STANDING_ORDER_CANCEL: (id) => `${API_BASE_URL}/api/payments/standing-orders/${id}/cancel/`,
+        
+        // Service Providers (Saved accounts)
+        SERVICE_PROVIDERS: `${API_BASE_URL}/api/payments/service-providers/`,
+        SERVICE_PROVIDER_DETAIL: (id) => `${API_BASE_URL}/api/payments/service-providers/${id}/`,
+        
+        // Admin
+        ADMIN_LIST: `${API_BASE_URL}/api/payments/admin/bills/`,
+        ADMIN_STATS: `${API_BASE_URL}/api/payments/admin/bills/stats/`,
+        ADMIN_BULK_ACTION: `${API_BASE_URL}/api/payments/admin/bills/`,
+    },
+
+    // ============== LOANS & CREDIT ==============
+    LOANS: {
+        // Products
+        PRODUCTS: `${API_BASE_URL}/api/payments/loan-products/`,
+        PRODUCT_DETAIL: (id) => `${API_BASE_URL}/api/payments/loan-products/${id}/`,
+        
+        // Credit Score
+        CREDIT_SCORE: `${API_BASE_URL}/api/payments/credit-scores/my_score/`,
+        CREDIT_HISTORY: `${API_BASE_URL}/api/payments/credit-scores/`,
+        
+        // Applications
+        LIST: `${API_BASE_URL}/api/payments/loan-applications/`,
+        DETAIL: (id) => `${API_BASE_URL}/api/payments/loan-applications/${id}/`,
+        CREATE: `${API_BASE_URL}/api/payments/loan-applications/`,
+        
+        // User Actions
+        APPROVE: (id) => `${API_BASE_URL}/api/payments/loan-applications/${id}/approve/`,
+        REJECT: (id) => `${API_BASE_URL}/api/payments/loan-applications/${id}/reject/`,
+        DISBURSE: (id) => `${API_BASE_URL}/api/payments/loan-applications/${id}/disburse/`,
+        REPAY: (id) => `${API_BASE_URL}/api/payments/loan-applications/${id}/repay/`,
+        
+        // Repayments
+        REPAYMENTS: `${API_BASE_URL}/api/payments/loan-repayments/`,
+        
+        // Admin
+        ADMIN_LIST: `${API_BASE_URL}/api/payments/admin/loans/`,
+        ADMIN_STATS: `${API_BASE_URL}/api/payments/admin/loans/stats/`,
+        ADMIN_BULK_ACTION: `${API_BASE_URL}/api/payments/admin/loans/`,
+    },
+
+    // ============== INSURANCE ==============
+    INSURANCE: {
+        // Products
+        PRODUCTS: `${API_BASE_URL}/api/payments/insurance-products/`,
+        PRODUCT_DETAIL: (id) => `${API_BASE_URL}/api/payments/insurance-products/${id}/`,
+        
+        // Policies
+        POLICIES: `${API_BASE_URL}/api/payments/insurance-policies/`,
+        POLICY_DETAIL: (id) => `${API_BASE_URL}/api/payments/insurance-policies/${id}/`,
+        POLICY_RENEW: (id) => `${API_BASE_URL}/api/payments/insurance-policies/${id}/renew/`,
+        POLICY_CANCEL: (id) => `${API_BASE_URL}/api/payments/insurance-policies/${id}/cancel/`,
+        
+        // Claims
+        CLAIMS: `${API_BASE_URL}/api/payments/insurance-claims/`,
+        CLAIM_DETAIL: (id) => `${API_BASE_URL}/api/payments/insurance-claims/${id}/`,
+        CLAIM_CREATE: `${API_BASE_URL}/api/payments/insurance-claims/`,
+        
+        // Admin
+        ADMIN_LIST: `${API_BASE_URL}/api/payments/admin/insurance/`,
+        ADMIN_STATS: `${API_BASE_URL}/api/payments/admin/insurance/stats/`,
+        ADMIN_BULK_ACTION: `${API_BASE_URL}/api/payments/admin/insurance/`,
+    },
+
+    // ============== TRANSACTIONS & KITTIES ==============
+    PAYMENT_ADMIN: {
+        TRANSACTIONS: `${API_BASE_URL}/api/payments/admin/transactions/`,
+        TRANSACTIONS_STATS: `${API_BASE_URL}/api/payments/admin/transactions/stats/`,
+        
+        KITTIES: `${API_BASE_URL}/api/payments/admin/kitties/`,
+        KITTIES_STATS: `${API_BASE_URL}/api/payments/admin/kitties/stats/`,
+        KITTY_FREEZE: (id) => `${API_BASE_URL}/api/payments/admin/kitties/${id}/freeze/`,
+        KITTY_UNFREEZE: (id) => `${API_BASE_URL}/api/payments/admin/kitties/${id}/unfreeze/`,
+    },
+
+    // ============== PAYMENT PROCESSING ==============
+    PAYMENT_PROCESSING: {
+        PROCESS: `${API_BASE_URL}/api/payments/process/`,
+        REFUND: `${API_BASE_URL}/api/payments/refund/`,
+        DETECT_METHOD: `${API_BASE_URL}/api/payments/detect-method/`,
+        
+        // Deposits
+        DEPOSIT: `${API_BASE_URL}/api/payments/deposit/`,
+        
+        // Withdrawals
+        WITHDRAW: `${API_BASE_URL}/api/payments/withdraw/`,
+        
+        // Transfers
+        TRANSFER: `${API_BASE_URL}/api/payments/transfer/`,
+        
+        // Verify
+        VERIFY_ACCOUNT: `${API_BASE_URL}/api/payments/verify-account/`,
+    },
+
+    // ============== ESCROW ==============
+    ESCROW: {
+        LIST: `${API_BASE_URL}/api/payments/escrow/`,
+        DETAIL: (id) => `${API_BASE_URL}/api/payments/escrow/${id}/`,
+        CREATE: `${API_BASE_URL}/api/payments/escrow/`,
+        FUND: (id) => `${API_BASE_URL}/api/payments/escrow/${id}/fund/`,
+        DELIVER: (id) => `${API_BASE_URL}/api/payments/escrow/${id}/deliver/`,
+        RELEASE: (id) => `${API_BASE_URL}/api/payments/escrow/${id}/release/`,
+        DISPUTE: (id) => `${API_BASE_URL}/api/payments/escrow/${id}/dispute/`,
+    },
+
+    // ============== GATEWAY CONFIG ==============
+    GATEWAY: {
+        CONFIG: `${API_BASE_URL}/api/payments/gateway-config/`,
+        
+        // Stripe
+        STRIPE_WEBHOOK: `${API_BASE_URL}/api/payments/stripe/webhook/`,
+        
+        // PayPal
+        PAYPAL_WEBHOOK: `${API_BASE_URL}/api/payments/paypal/webhook/`,
+        
+        // M-Pesa
+        MPESA_CALLBACK: `${API_BASE_URL}/api/payments/mpesa/callback/`,
     },
 }
 

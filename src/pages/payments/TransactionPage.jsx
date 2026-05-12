@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Card, { CardBody } from '../../components/common/Card';
@@ -9,7 +9,7 @@ import paymentsService from '../../services/payments.service';
 import { getCurrencySymbol } from '../../utils/currency';
 import {
     ArrowLeft, ArrowDownCircle, ArrowUpCircle, Send, ShoppingBag,
-    Shield, Info, Wallet
+    Shield, Info, Wallet, Search, CheckCircle, Loader, User
 } from 'lucide-react';
 
 const TRANSACTION_CONFIG = {
@@ -75,6 +75,13 @@ const TransactionPage = () => {
     const [balance, setBalance] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    // For send - user search
+    const [recipientQuery, setRecipientQuery] = useState('');
+    const [recipientSearchResults, setRecipientSearchResults] = useState([]);
+    const [recipientSearchLoading, setRecipientSearchLoading] = useState(false);
+    const [selectedRecipient, setSelectedRecipient] = useState(null);
+    const recipientSearchTimeoutRef = useRef(null);
 
     // For checkout, product info comes via location.state
     const product = location.state?.product || null;
@@ -88,8 +95,9 @@ const TransactionPage = () => {
 
     const loadBalance = async () => {
         try {
-            const profile = await paymentsService.getProfile();
-            setBalance(profile?.comrade_balance || '0.00');
+            const data = await paymentsService.getBalance();
+            const balance = data?.balance ?? data?.display_balance ?? data?.available_balance ?? '0.00';
+            setBalance(typeof balance === 'number' ? String(balance) : balance);
         } catch {
             setBalance('0.00');
         } finally {
@@ -107,6 +115,35 @@ const TransactionPage = () => {
         if (method?.bank_account_last_four) {
             setAccountNumber(`****${method.bank_account_last_four}`);
         }
+    };
+
+    const handleRecipientSearch = async (query) => {
+        setRecipient(query);
+        if (recipientSearchTimeoutRef.current) {
+            clearTimeout(recipientSearchTimeoutRef.current);
+        }
+        if (!query || query.length < 2) {
+            setRecipientSearchResults([]);
+            return;
+        }
+        recipientSearchTimeoutRef.current = setTimeout(async () => {
+            setRecipientSearchLoading(true);
+            try {
+                const results = await paymentsService.searchUsers(query);
+                setRecipientSearchResults(Array.isArray(results) ? results : (results?.results || []));
+            } catch (error) {
+                console.error('User search error:', error);
+                setRecipientSearchResults([]);
+            } finally {
+                setRecipientSearchLoading(false);
+            }
+        }, 300);
+    };
+
+    const selectRecipient = (user) => {
+        setSelectedRecipient(user);
+        setRecipient(user.email || String(user.id));
+        setRecipientSearchResults([]);
     };
 
     const isFormValid = () => {
@@ -275,14 +312,60 @@ const TransactionPage = () => {
                     {/* Type-specific fields */}
                     {type === 'send' && (
                         <div>
-                            <Input
-                                label="Recipient Email"
-                                type="email"
-                                value={recipient}
-                                onChange={(e) => setRecipient(e.target.value)}
-                                placeholder="recipient@example.com"
-                                required
-                            />
+                            <label className="block text-sm font-semibold text-secondary mb-1">Recipient <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
+                                <input
+                                    type="text"
+                                    value={recipient}
+                                    onChange={(e) => handleRecipientSearch(e.target.value)}
+                                    placeholder="Search by name or email..."
+                                    className="w-full pl-10 pr-4 py-3 bg-elevated border border-theme rounded-xl text-primary focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none"
+                                />
+                            </div>
+                            {recipientSearchLoading && (
+                                <div className="p-2 text-center text-sm text-tertiary">
+                                    <Loader className="w-4 h-4 animate-spin mx-auto" /> Searching...
+                                </div>
+                            )}
+                            {recipientSearchResults.length > 0 && !selectedRecipient && (
+                                <div className="mt-2 border border-theme rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                                    {recipientSearchResults.map(user => (
+                                        <button
+                                            key={user.id}
+                                            onClick={() => selectRecipient(user)}
+                                            className="w-full p-3 text-left hover:bg-secondary/10 border-b border-theme last:border-b-0 flex items-center gap-3"
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-primary-600/10 flex items-center justify-center">
+                                                <User className="w-5 h-5 text-primary-600" />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-primary text-sm">
+                                                    {user.full_name || user.email}
+                                                </div>
+                                                <div className="text-xs text-tertiary">{user.email}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {selectedRecipient && (
+                                <div className="mt-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center gap-3">
+                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    <div className="flex-1">
+                                        <div className="font-medium text-primary text-sm">
+                                            {selectedRecipient.full_name || selectedRecipient.email}
+                                        </div>
+                                        <div className="text-xs text-tertiary">{selectedRecipient.email}</div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setSelectedRecipient(null); setRecipient(''); }}
+                                        className="text-xs text-red-500 hover:text-red-600"
+                                    >
+                                        Change
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

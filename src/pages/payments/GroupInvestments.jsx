@@ -9,6 +9,7 @@ import {
     ThumbsUp, ThumbsDown, ChevronRight, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import paymentsService from '../../services/payments.service';
 import fundingService from '../../services/funding.service';
 import { formatDate } from '../../utils/dateFormatter';
@@ -16,6 +17,7 @@ import { formatDate } from '../../utils/dateFormatter';
 const GroupInvestments = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const toast = useToast();
     const [activeTab, setActiveTab] = useState('for_you');
     const [investments, setInvestments] = useState([]);
     const [groups, setGroups] = useState([]);
@@ -31,7 +33,7 @@ const GroupInvestments = () => {
     const [voteLoading, setVoteLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: '', description: '', target_amount: '', maturity_date: '',
+        name: '', description: '', total_amount: '', maturity_date: '',
         payment_group: '', quoting_mode: 'proportional', opportunity_id: '', pitch_visibility: 'internal'
     });
     const [quoteAmount, setQuoteAmount] = useState('');
@@ -72,7 +74,7 @@ const GroupInvestments = () => {
 
     const resetForm = () => {
         setFormData({
-            name: '', description: '', target_amount: '', maturity_date: '',
+            name: '', description: '', total_amount: '', maturity_date: '',
             payment_group: '', quoting_mode: 'proportional', opportunity_id: '', pitch_visibility: 'internal'
         });
         setCreateStep(1);
@@ -85,7 +87,7 @@ const GroupInvestments = () => {
         try {
             const payload = {
                 name: formData.name, description: formData.description,
-                target_amount: parseFloat(formData.target_amount) || 0,
+                total_amount: parseFloat(formData.total_amount) || 0,
                 maturity_date: formData.maturity_date || null,
                 payment_group: formData.payment_group,
                 quoting_mode: formData.quoting_mode,
@@ -98,7 +100,7 @@ const GroupInvestments = () => {
             loadData();
         } catch (error) {
             console.error('Failed to create investment:', error);
-            alert('Failed to create investment pitch.');
+            toast.error('Failed to create investment pitch.');
         } finally { setCreateLoading(false); }
     };
 
@@ -119,6 +121,10 @@ const GroupInvestments = () => {
     };
 
     const handleVote = async (investmentId, voteValue, voteId) => {
+        if (!voteId) {
+            toast.error('Vote ID not found for this investment.');
+            return;
+        }
         setVoteLoading(true);
         try {
             await paymentsService.castVote(voteId, voteValue);
@@ -126,16 +132,20 @@ const GroupInvestments = () => {
             loadData();
         } catch (error) {
             console.error('Vote failed:', error);
-            alert('Vote submission failed.');
+            const status = error.response?.status;
+            const data = error.response?.data;
+            const errMsg = data?.error || data?.detail || error.message || 'Vote submission failed.';
+            toast.error(`${errMsg}${status ? ` (${status})` : ''}`);
         } finally { setVoteLoading(false); }
     };
 
     const getProgress = (inv) => {
-        if (!inv.target_amount || inv.target_amount === 0) return 0;
-        return Math.min(100, (parseFloat(inv.amount_collected || 0) / parseFloat(inv.target_amount)) * 100);
+        const target = parseFloat(inv.total_amount || inv.target_amount || 0);
+        if (!target || target === 0) return 0;
+        return Math.min(100, (parseFloat(inv.amount_collected || 0) / target) * 100);
     };
 
-    const totalTarget = investments.reduce((sum, i) => sum + parseFloat(i.target_amount || 0), 0);
+    const totalTarget = investments.reduce((sum, i) => sum + parseFloat(i.total_amount || i.target_amount || 0), 0);
     const totalCollected = investments.reduce((sum, i) => sum + parseFloat(i.amount_collected || 0), 0);
     const activeCount = investments.filter(i => i.status === 'active').length;
 
@@ -340,7 +350,7 @@ const GroupInvestments = () => {
                                 {/* Amount */}
                                 <div className="flex justify-between items-baseline mb-2">
                                     <span className="text-base font-bold text-primary">${parseFloat(inv.amount_collected || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                    <span className="text-xs text-secondary">of ${parseFloat(inv.target_amount || 0).toLocaleString()}</span>
+                                    <span className="text-xs text-secondary">of ${parseFloat(inv.total_amount || inv.target_amount || 0).toLocaleString()}</span>
                                 </div>
 
                                 {/* Progress */}
@@ -464,7 +474,7 @@ const GroupInvestments = () => {
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-indigo-700">Target</span>
-                                        <span className="font-bold text-indigo-900">${parseFloat(showQuoteModal.target_amount || 0).toFixed(2)}</span>
+                                        <span className="font-bold text-indigo-900">${parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div className="relative">
@@ -475,9 +485,9 @@ const GroupInvestments = () => {
                                         onChange={(e) => setQuoteAmount(e.target.value)} placeholder="0.00"
                                         className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-indigo-500 text-xl font-bold text-center" />
                                 </div>
-                                {quoteAmount && showQuoteModal.target_amount > 0 && showQuoteModal.quoting_mode === 'proportional' && (
+                                {quoteAmount && (parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount) > 0) && showQuoteModal.quoting_mode === 'proportional' && (
                                     <div className="text-xs text-secondary bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
-                                        This secures <strong className="text-indigo-700">{((parseFloat(quoteAmount) / parseFloat(showQuoteModal.target_amount)) * 100).toFixed(2)}%</strong> equity
+                                        This secures <strong className="text-indigo-700">{((parseFloat(quoteAmount) / parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount)) * 100).toFixed(2)}%</strong> equity
                                     </div>
                                 )}
                                 <div className="flex gap-2 pt-2">
@@ -566,8 +576,8 @@ const GroupInvestments = () => {
                                 {createStep === 2 && (
                                     <>
                                         <Input label="Target Capital ($) *" type="number" min="1" step="0.01"
-                                            value={formData.target_amount}
-                                            onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
+                                            value={formData.total_amount}
+                                            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
                                             required placeholder="e.g., 50000.00" />
                                         <Input label="Maturity Date" type="date" value={formData.maturity_date}
                                             onChange={(e) => setFormData({ ...formData, maturity_date: e.target.value })} />

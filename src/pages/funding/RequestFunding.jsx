@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import fundingService from '../../services/funding.service';
 import Button from '../../components/common/Button';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const STEPS = [
     { id: 1, label: 'Select Venture', icon: Target },
@@ -229,8 +230,8 @@ const RequestFunding = () => {
                                                         <p className="text-xs text-secondary">{v.investment_focus || 'General Investment'}</p>
                                                     </div>
                                                     <div className="text-right text-xs text-secondary">
-                                                        <div>Fund: KES {Number(v.available_fund).toLocaleString()}</div>
-                                                        <div>{v.min_investment ? `Min: KES ${Number(v.min_investment).toLocaleString()}` : ''}</div>
+                                                        <div>Fund: {formatMoneySimple(v.available_fund)}</div>
+                                                        <div>{v.min_investment ? `Min: ${formatMoneySimple(v.min_investment)}` : ''}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -248,7 +249,7 @@ const RequestFunding = () => {
                                     </div>
                                     <div className="grid gap-5 md:grid-cols-2">
                                         <div>
-                                            <label className="block text-sm font-medium text-primary mb-1">Amount Needed (KES) *</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Amount Needed (USD) *</label>
                                             <input
                                                 type="number"
                                                 name="amount_needed"
@@ -275,7 +276,7 @@ const RequestFunding = () => {
                                             />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-primary mb-1">Minimum Investment (KES)</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Minimum Investment (USD)</label>
                                             <input
                                                 type="number"
                                                 name="min_investment"
@@ -289,8 +290,8 @@ const RequestFunding = () => {
                                     {selectedVenture && (
                                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
                                             <strong>{selectedVenture.name}</strong> accepts investments between
-                                            KES {Number(selectedVenture.min_investment).toLocaleString()} –
-                                            KES {Number(selectedVenture.max_investment).toLocaleString()}
+                                            formatMoneySimple(selectedVenture.min_investment)} –
+                                             {formatMoneySimple(selectedVenture.max_investment)}
                                         </div>
                                     )}
                                 </div>
@@ -358,7 +359,7 @@ Example:
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 bg-secondary/5 rounded-xl border border-theme">
                                                 <h4 className="text-sm font-medium text-tertiary mb-1">Amount Requested</h4>
-                                                <p className="text-primary font-semibold text-lg">KES {Number(formData.amount_needed).toLocaleString()}</p>
+                                                <p className="text-primary font-semibold text-lg">{formatMoneySimple(formData.amount_needed)}</p>
                                             </div>
                                             <div className="p-4 bg-secondary/5 rounded-xl border border-theme">
                                                 <h4 className="text-sm font-medium text-tertiary mb-1">Equity Offered</h4>

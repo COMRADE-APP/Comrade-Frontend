@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useStripeContext } from '../../contexts/StripeProvider';
 import paymentProcessingService from '../../services/paymentProcessing.service';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import './PaymentForm.css';
 
 // Stripe CardElement styling (matches dark theme)
@@ -166,7 +167,7 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                 }
                 response = await paymentProcessingService.processPayment({
                     amount: parseFloat(amount),
-                    currency: 'KES',
+                    currency: 'USD',
                     payment_method: 'mpesa',
                     phone_number: phoneNumber,
                     description,

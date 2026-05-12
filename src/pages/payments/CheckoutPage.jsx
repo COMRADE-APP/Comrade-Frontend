@@ -4,10 +4,11 @@ import { ArrowLeft, CreditCard, ShieldCheck, Loader2, CheckCircle, Package, Smar
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStripeContext } from '../../contexts/StripeProvider';
-import { paymentsService } from '../../services/payments.service';
+import paymentsService from '../../services/payments.service';
 import paymentProcessingService from '../../services/paymentProcessing.service';
 import Button from '../../components/common/Button';
 import Card, { CardBody } from '../../components/common/Card';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 // Stripe CardElement styling
 const CARD_ELEMENT_OPTIONS = {
@@ -69,13 +70,17 @@ const CheckoutPage = () => {
             navigate('/shop');
             return;
         }
-        if (purchaseType === 'individual') {
-            paymentsService.getBalance()
-                .then(res => {
-                    setWalletBalance(res.balance !== undefined ? res.balance : (res.available_balance || 0));
-                })
-                .catch(err => console.error("Error fetching balance:", err));
-        }
+        // Always fetch wallet balance regardless of purchase type
+        paymentsService.getBalance()
+            .then(res => {
+                console.log('Balance response:', res);
+                const balance = res?.balance ?? res?.display_balance ?? res?.available_balance ?? 0;
+                setWalletBalance(typeof balance === 'number' ? balance : parseFloat(balance) || 0);
+            })
+            .catch(err => {
+                console.error("Error fetching balance:", err);
+                setWalletBalance(0);
+            });
     }, [location.state, navigate, cartItems, purchaseType]);
 
     const handleCheckout = async () => {
@@ -275,21 +280,132 @@ const CheckoutPage = () => {
 
     if (success) {
         const hasFundingItem = cartItems.some(item => item.type === 'funding');
+        const hasContribution = cartItems.some(item => item.type === 'contribution' || item.contribution_type);
+        const hasDigitalItems = cartItems.every(item =>
+            item.metadata?.product_type === 'digital' ||
+            item.metadata?.service_mode === 'online' ||
+            item.type === 'funding' ||
+            item.type === 'booking'
+        );
+
+        const getSuccessTitle = () => {
+            if (hasFundingItem) return 'Investment Successful!';
+            if (hasContribution) return 'Contribution Recorded!';
+            if (purchaseType === 'group') return 'Group Payment Successful!';
+            if (hasDigitalItems) return 'Purchase Complete!';
+            return 'Payment Successful!';
+        };
+
+        const getSuccessMessage = () => {
+            if (hasFundingItem) return 'Your investment has been processed. Track your returns in the Funding Hub.';
+            if (hasContribution) return 'Your contribution to the group savings has been recorded.';
+            if (purchaseType === 'group') return 'The group payment has been split and processed among members.';
+            if (hasDigitalItems) return 'Your digital items are now available in your library.';
+            return 'Your order has been placed successfully and will be delivered soon.';
+        };
+
+        const getPrimaryAction = () => {
+            if (hasFundingItem) return { label: 'Track Investment', path: '/funding/history' };
+            if (hasContribution) return { label: 'View Group', path: `/payments/groups/${selectedGroupId || ''}` };
+            if (hasDigitalItems) return { label: 'My Library', path: '/library' };
+            return { label: 'View Orders', path: '/shop/orders' };
+        };
+
+        const getSecondaryAction = () => {
+            if (hasFundingItem) return { label: 'Browse Funding Hub', path: '/funding' };
+            if (hasContribution) return { label: 'View Analytics', path: `/payments/groups/${selectedGroupId || ''}?tab=analytics` };
+            if (hasDigitalItems) return { label: 'Continue Shopping', path: '/shop' };
+            return { label: 'Continue Shopping', path: '/shop' };
+        };
+
+        const primaryAction = getPrimaryAction();
+        const secondaryAction = getSecondaryAction();
+
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                    <CheckCircle className="w-10 h-10 text-green-500" />
+                <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                    <CheckCircle className="w-12 h-12 text-green-500" />
                 </div>
-                <h1 className="text-3xl font-bold text-primary mb-2">Payment Successful!</h1>
-                <p className="text-secondary max-w-md text-center mb-8">
-                    Your {purchaseType === 'group' ? 'group ' : ''}payment has been processed successfully.
+                <h1 className="text-3xl font-bold text-primary mb-2">{getSuccessTitle()}</h1>
+                <p className="text-secondary max-w-md text-center mb-6">
+                    {getSuccessMessage()}
                 </p>
+
+                {/* Order Summary Card */}
+                <Card className="w-full max-w-md mb-6">
+                    <CardBody className="p-4">
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-secondary">Items</span>
+                                <span className="text-sm font-medium text-primary">{cartItems.length}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-secondary">Total Amount</span>
+                                <span className="text-lg font-bold text-primary">{formatMoneySimple(totalAmount)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-secondary">Payment Method</span>
+                                <span className="text-sm font-medium text-primary capitalize">{paymentMethod === 'stripe' ? 'Card' : paymentMethod}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-secondary">Date</span>
+                                <span className="text-sm font-medium text-primary">{new Date().toLocaleDateString()}</span>
+                            </div>
+                        </div>
+
+                        {/* Item List */}
+                        <div className="mt-4 pt-4 border-t border-theme space-y-2">
+                            {cartItems.slice(0, 3).map((item, index) => (
+                                <div key={index} className="flex justify-between text-sm">
+                                    <span className="text-primary truncate max-w-[200px]">{item.name}</span>
+                                    <span className="font-medium text-primary">{formatMoneySimple(item.price)}</span>
+                                </div>
+                            ))}
+                            {cartItems.length > 3 && (
+                                <div className="text-xs text-tertiary text-center">
+                                    + {cartItems.length - 3} more items
+                                </div>
+                            )}
+                        </div>
+                    </CardBody>
+                </Card>
+
+                {/* Next Steps */}
+                <div className="w-full max-w-md space-y-3 mb-6">
+                    <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide">Next Steps</h3>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                <span className="text-blue-500 text-xs font-bold">1</span>
+                            </div>
+                            <span className="text-primary">
+                                {hasDigitalItems ? 'Access your items from your library' : 'Track your order status'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                <span className="text-blue-500 text-xs font-bold">2</span>
+                            </div>
+                            <span className="text-primary">
+                                {hasFundingItem ? 'Monitor your investment returns' : 'Check delivery updates'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                <span className="text-blue-500 text-xs font-bold">3</span>
+                            </div>
+                            <span className="text-primary">Share with friends or request support</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions */}
                 <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => navigate(hasFundingItem ? '/funding' : '/shop')}>
-                        {hasFundingItem ? 'Return to Funding' : 'Continue Shopping'}
+                    <Button variant="outline" onClick={() => navigate(secondaryAction.path)}>
+                        {secondaryAction.label}
                     </Button>
-                    <Button variant="primary" onClick={() => navigate(hasFundingItem ? '/funding/history' : '/shop/orders')}>
-                        {hasFundingItem ? 'Track Investment' : 'View Orders'}
+                    <Button variant="primary" onClick={() => navigate(primaryAction.path)}>
+                        {primaryAction.label}
                     </Button>
                 </div>
             </div>
@@ -300,7 +416,12 @@ const CheckoutPage = () => {
 
     // Payment options for individual checkout
     const paymentOptions = [];
-    paymentOptions.push({ val: 'wallet', label: 'Personal Wallet', icon: <CreditCard className="w-4 h-4" />, sub: `Balance: $${walletBalance.toFixed(2)}` });
+    paymentOptions.push({ 
+        val: 'wallet', 
+        label: 'Personal Wallet', 
+        icon: <CreditCard className="w-4 h-4" />, 
+        sub: `Balance: $${(Number(walletBalance) || 0).toFixed(2)}` 
+    });
     if (hasStripe) paymentOptions.push({ val: 'stripe', label: 'Card / Apple Pay', icon: <CreditCard className="w-4 h-4 text-indigo-400" />, sub: 'Visa, Mastercard, Amex' });
     if (hasMpesa) paymentOptions.push({ val: 'mpesa', label: 'M-Pesa', icon: <Smartphone className="w-4 h-4 text-green-400" />, sub: 'Safaricom STK Push' });
     if (hasFlutterwave) paymentOptions.push({ val: 'flutterwave', label: 'Bank Transfer', icon: <Building2 className="w-4 h-4 text-amber-400" />, sub: 'Equity, KCB, DTB, Absa & more' });
@@ -441,7 +562,7 @@ const CheckoutPage = () => {
                                 <div className="border-t border-theme pt-4 space-y-3">
                                     <div className="flex justify-between text-secondary">
                                         <span>Subtotal</span>
-                                        <span>${totalAmount.toFixed(2)}</span>
+                                        <span>${(Number(totalAmount) || 0).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-secondary">
                                         <span>Fees</span>
@@ -449,7 +570,7 @@ const CheckoutPage = () => {
                                     </div>
                                     <div className="flex justify-between items-center pt-2 border-t border-theme border-dashed">
                                         <span className="font-bold text-primary">Total</span>
-                                        <span className="text-xl font-bold text-primary">${totalAmount.toFixed(2)}</span>
+                                        <span className="text-xl font-bold text-primary">${(Number(totalAmount) || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
 
@@ -470,7 +591,7 @@ const CheckoutPage = () => {
                                     ) : (
                                         <>
                                             <ShieldCheck className="w-5 h-5 mr-2" />
-                                            {isGroupPurchase ? 'Confirm Group Checkout' : `Pay $${totalAmount.toFixed(2)}`}
+                                            {isGroupPurchase ? 'Confirm Group Checkout' : `Pay $${(Number(totalAmount) || 0).toFixed(2)}`}
                                         </>
                                     )}
                                 </Button>

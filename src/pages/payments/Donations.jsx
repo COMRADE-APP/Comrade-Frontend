@@ -5,7 +5,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import {
     Heart, Search, Plus, Calendar, User, Users, CheckCircle,
-    ArrowLeft, X, TrendingUp, DollarSign, ChevronRight, Globe, Eye
+    ArrowLeft, X, TrendingUp, DollarSign, ChevronRight, Globe, Eye, Building2
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
@@ -38,6 +38,8 @@ const Donations = () => {
         name: '', description: '', category: 'other', goal_amount: '',
         deadline: '', donation_type: 'individual', payment_group: null,
         group_mode: 'independent', visibility: 'external',
+        cover_image: null,
+        organization_name: '', organization_type: '', organization_address: '', organization_reg_number: '',
     });
     const [contributionAmount, setContributionAmount] = useState('');
     const [createLoading, setCreateLoading] = useState(false);
@@ -81,6 +83,8 @@ const Donations = () => {
             name: '', description: '', category: 'other', goal_amount: '',
             deadline: '', donation_type: 'individual', payment_group: null,
             group_mode: 'independent', visibility: 'external',
+            cover_image: null,
+            organization_name: '', organization_type: '', organization_address: '', organization_reg_number: '',
         });
         setCreateStep(1);
     };
@@ -88,19 +92,38 @@ const Donations = () => {
     const handleCreate = async (e) => {
         e.preventDefault();
         if (createStep === 1) { setCreateStep(2); return; }
+        if (createStep === 2) { setCreateStep(3); return; }
+
         setCreateLoading(true);
         try {
-            const payload = {
-                name: formData.name, description: formData.description,
-                category: formData.category || 'other',
-                goal_amount: parseFloat(formData.goal_amount) || 0,
-                deadline: formData.deadline || null,
-                visibility: formData.visibility,
-            };
-            if (formData.donation_type === 'group' && formData.payment_group) {
-                payload.payment_group = formData.payment_group;
-                payload.group_mode = formData.group_mode;
+            const payload = new FormData();
+            payload.append('name', formData.name);
+            payload.append('description', formData.description);
+            payload.append('category', formData.category || 'other');
+            payload.append('goal_amount', parseFloat(formData.goal_amount) || 0);
+            if (formData.deadline) {
+                payload.append('deadline', new Date(formData.deadline).toISOString());
             }
+            payload.append('visibility', formData.visibility);
+            payload.append('donor_type', formData.donation_type === 'group' ? 'group' : 'individual');
+
+            if (formData.donation_type === 'group' && formData.payment_group) {
+                payload.append('payment_group', formData.payment_group);
+                payload.append('group_mode', formData.group_mode);
+            }
+            if (formData.cover_image) {
+                payload.append('cover_image', formData.cover_image);
+            }
+            if (formData.organization_name) {
+                const orgDetails = {
+                    name: formData.organization_name,
+                    type: formData.organization_type || 'hospital',
+                    address: formData.organization_address || '',
+                    registration_number: formData.organization_reg_number || '',
+                };
+                payload.append('organization_details', JSON.stringify(orgDetails));
+            }
+
             await paymentsService.createDonation(payload);
             setShowCreateModal(false);
             resetForm();
@@ -120,7 +143,7 @@ const Donations = () => {
                     id: showContributeModal.id, type: 'donation',
                     name: `Donation: ${showContributeModal.name}`,
                     price: parseFloat(contributionAmount), qty: 1,
-                    image: showContributeModal.cover_photo || null,
+                    image: showContributeModal.cover_image_url || null,
                 }],
                 purchaseType: 'individual',
                 totalAmount: parseFloat(contributionAmount)
@@ -258,8 +281,8 @@ const Donations = () => {
                             >
                                 {/* Cover / Gradient */}
                                 <div className="h-32 relative overflow-hidden">
-                                    {donation.cover_photo ? (
-                                        <img src={donation.cover_photo} alt={donation.name}
+                                    {donation.cover_image_url ? (
+                                        <img src={donation.cover_image_url} alt={donation.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
@@ -333,14 +356,14 @@ const Donations = () => {
                             </div>
 
                             <div className="flex items-center gap-2 mb-5">
-                                {[1, 2].map(s => (
+                                {[1, 2, 3].map(s => (
                                     <React.Fragment key={s}>
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                                             s < createStep ? 'bg-green-500 text-white' : s === createStep ? 'bg-rose-500 text-white' : 'bg-secondary/10 text-secondary'
                                         }`}>
                                             {s < createStep ? <CheckCircle className="w-4 h-4" /> : s}
                                         </div>
-                                        {s < 2 && <div className={`flex-1 h-0.5 ${s < createStep ? 'bg-green-500' : 'bg-secondary/10'}`} />}
+                                        {s < 3 && <div className={`flex-1 h-0.5 ${s < createStep ? 'bg-green-500' : 'bg-secondary/10'}`} />}
                                     </React.Fragment>
                                 ))}
                             </div>
@@ -407,6 +430,13 @@ const Donations = () => {
                                         <Input label="Deadline" type="date" value={formData.deadline}
                                             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
                                         <div>
+                                            <label className="block text-sm font-medium text-secondary mb-1">Cover Image (Optional)</label>
+                                            <input type="file" accept="image/*"
+                                                onChange={(e) => setFormData({ ...formData, cover_image: e.target.files[0] })}
+                                                className="w-full text-xs text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer"
+                                            />
+                                        </div>
+                                        <div>
                                             <label className="block text-sm font-medium text-secondary mb-1">Visibility</label>
                                             <div className="flex gap-3">
                                                 <button type="button" onClick={() => setFormData({ ...formData, visibility: 'external' })}
@@ -423,7 +453,44 @@ const Donations = () => {
                                                 </button>
                                             </div>
                                         </div>
+                                        <div className="border border-theme rounded-xl p-4 space-y-3">
+                                            <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                                                <Building2 className="w-4 h-4" /> Connect to Organization (Optional)
+                                            </h4>
+                                            <Input label="Organization Name" value={formData.organization_name}
+                                                onChange={(e) => setFormData({ ...formData, organization_name: e.target.value })}
+                                                placeholder="e.g., Kenyatta Hospital" />
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Input label="Type" value={formData.organization_type}
+                                                    onChange={(e) => setFormData({ ...formData, organization_type: e.target.value })}
+                                                    placeholder="e.g., Hospital" />
+                                                <Input label="Registration #" value={formData.organization_reg_number}
+                                                    onChange={(e) => setFormData({ ...formData, organization_reg_number: e.target.value })}
+                                                    placeholder="Reg. number" />
+                                            </div>
+                                            <Input label="Address" value={formData.organization_address}
+                                                onChange={(e) => setFormData({ ...formData, organization_address: e.target.value })}
+                                                placeholder="Organization address" />
+                                        </div>
                                     </>
+                                )}
+                                {createStep === 3 && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-primary">Review Campaign</h3>
+                                        <div className="bg-secondary/5 rounded-xl p-4 space-y-3 text-sm">
+                                            <div><span className="text-secondary">Title:</span> <span className="text-primary font-medium">{formData.name}</span></div>
+                                            <div><span className="text-secondary">Category:</span> <span className="text-primary font-medium">{formData.category}</span></div>
+                                            <div><span className="text-secondary">Goal:</span> <span className="text-primary font-medium">${parseFloat(formData.goal_amount || 0).toLocaleString()}</span></div>
+                                            <div><span className="text-secondary">Type:</span> <span className="text-primary font-medium">{formData.donation_type === 'group' ? 'Group Campaign' : 'Personal Campaign'}</span></div>
+                                            {formData.organization_name && (
+                                                <div><span className="text-secondary">Organization:</span> <span className="text-primary font-medium">{formData.organization_name}</span></div>
+                                            )}
+                                            {formData.cover_image && (
+                                                <div><span className="text-secondary">Cover Image:</span> <span className="text-primary font-medium">{formData.cover_image.name}</span></div>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-secondary">Please review your campaign details before launching.</p>
+                                    </div>
                                 )}
                                 <div className="flex gap-2 pt-3">
                                     {createStep > 1 && (
@@ -431,8 +498,8 @@ const Donations = () => {
                                     )}
                                     <Button type="button" variant="outline" className={createStep === 1 ? "flex-1" : ""} onClick={() => { setShowCreateModal(false); resetForm(); }}>Cancel</Button>
                                     <Button type="submit" variant="primary" className="flex-1"
-                                        disabled={createLoading || (createStep === 1 && !formData.name)}>
-                                        {createLoading ? 'Creating...' : createStep === 1 ? 'Next' : 'Launch Campaign'}
+                                        disabled={createLoading || (createStep === 1 && !formData.name) || (createStep === 2 && !formData.goal_amount)}>
+                                        {createLoading ? 'Creating...' : createStep === 3 ? 'Launch Campaign' : 'Next'}
                                     </Button>
                                 </div>
                             </form>

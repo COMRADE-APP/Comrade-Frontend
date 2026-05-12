@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../constants/routes';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import {
-    Target, ArrowLeft, Calendar, DollarSign, Check, Users, AlertCircle, PiggyBank, Briefcase, Lock, Unlock, TrendingUp
+    Target, ArrowLeft, Calendar, DollarSign, Check, Users, AlertCircle, PiggyBank, Briefcase, Lock, Unlock, TrendingUp,
+    Activity, ArrowRightCircle, ShieldCheck, Clock, CheckCircle2, History, Crown
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const PiggyBankDetail = () => {
+    const { user } = useAuth();
+    const toast = useToast();
     const { id } = useParams();
     const navigate = useNavigate();
     const [piggy, setPiggy] = useState(null);
@@ -17,6 +23,11 @@ const PiggyBankDetail = () => {
     const [showContributeModal, setShowContributeModal] = useState(false);
     const [contributeAmount, setContributeAmount] = useState('');
     const [error, setError] = useState(null);
+    const [analytics, setAnalytics] = useState(null);
+    const [conversionStatus, setConversionStatus] = useState(null);
+    const [isConverting, setIsConverting] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview'); // 'overview' or 'analytics'
+    const [claimLoading, setClaimLoading] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -28,11 +39,52 @@ const PiggyBankDetail = () => {
         try {
             const data = await paymentsService.getPiggyBankById(id);
             setPiggy(data);
+            
+            // Parallel fetch analytics and status, but don't fail the whole page if they fail
+            try {
+                const [analyticsData, statusData] = await Promise.all([
+                    paymentsService.getPiggyAnalytics(id),
+                    data.payment_group ? paymentsService.getPiggyConversionStatus(id) : Promise.resolve(null)
+                ]);
+                setAnalytics(analyticsData);
+                setConversionStatus(statusData);
+            } catch (innerErr) {
+                console.error('Error loading analytics/status:', innerErr);
+            }
         } catch (err) {
-            console.error('Error loading Piggy Bank:', err);
+            console.error('Error loading Piggy Bank details:', err);
             setError('Failed to load Piggy Bank details.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRequestConversion = async () => {
+        setIsConverting(true);
+        try {
+            const res = await paymentsService.requestPiggyConversion(id);
+            setConversionStatus(res);
+            toast.success('Conversion request submitted');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to request conversion');
+        } finally {
+            setIsConverting(false);
+        }
+    };
+
+    const handleApproveConversion = async () => {
+        const pendingReq = conversionStatus?.find(r => r.status === 'pending');
+        if (!pendingReq) return;
+
+        setIsConverting(true);
+        try {
+            await paymentsService.approvePiggyConversion(id, pendingReq.id);
+            toast.success('Piggy bank converted to group funds successfully');
+            loadData();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to approve conversion');
+        } finally {
+            setIsConverting(false);
         }
     };
 
@@ -56,6 +108,20 @@ const PiggyBankDetail = () => {
         });
     };
 
+    const handleClaimFunds = async () => {
+        setClaimLoading(true);
+        try {
+            await paymentsService.withdrawPiggyBank(id, piggy.current_amount);
+            toast.success('Funds successfully claimed to your wallet!');
+            loadData();
+        } catch (error) {
+            console.error('Claim failed:', error);
+            toast.error(error.response?.data?.error || 'Failed to claim funds. Please try again.');
+        } finally {
+            setClaimLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -69,7 +135,7 @@ const PiggyBankDetail = () => {
             <div className="text-center py-12">
                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-primary mb-2">{error || 'Piggy Bank not found'}</h3>
-                <Button variant="primary" onClick={() => navigate('/payments/piggy-banks')}>
+                <Button variant="primary" onClick={() => navigate(ROUTES.PIGGY_BANKS)}>
                     Return to Piggy Banks
                 </Button>
             </div>
@@ -87,7 +153,7 @@ const PiggyBankDetail = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/payments/piggy-banks')}
+                        onClick={() => navigate(ROUTES.PIGGY_BANKS)}
                         className="p-2 rounded-xl bg-white shadow-sm border border-theme hover:bg-secondary/5 text-secondary transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -112,8 +178,30 @@ const PiggyBankDetail = () => {
                 </div>
             </div>
 
-            {/* Top Cards: Aesthetics Upgrade */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Tabs */}
+            <div className="flex border-b border-theme mb-2">
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`px-6 py-3 font-bold text-sm transition-all relative ${
+                        activeTab === 'overview' ? 'text-primary' : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                    Overview
+                    {activeTab === 'overview' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>}
+                </button>
+                <button
+                    onClick={() => setActiveTab('analytics')}
+                    className={`px-6 py-3 font-bold text-sm transition-all relative ${
+                        activeTab === 'analytics' ? 'text-primary' : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                    Analytics & Trends
+                    {activeTab === 'analytics' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full"></div>}
+                </button>
+            </div>
+
+            {activeTab === 'overview' && (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 
                 {/* Main Progress Board */}
                 <Card className="md:col-span-8 border-theme shadow-lg overflow-hidden relative">
@@ -162,15 +250,26 @@ const PiggyBankDetail = () => {
                         </div>
 
                         <div className="mt-10 flex gap-4">
-                            <Button
-                                variant="primary"
-                                onClick={() => setShowContributeModal(true)}
-                                className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5"
-                                disabled={isAchieved}
-                            >
-                                <DollarSign className="w-5 h-5 mr-2" />
-                                {isAchieved ? 'Goal Completed!' : 'Add Savings'}
-                            </Button>
+                            {!isAchieved ? (
+                                <Button
+                                    variant="primary"
+                                    onClick={() => setShowContributeModal(true)}
+                                    className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5"
+                                >
+                                    <DollarSign className="w-5 h-5 mr-2" />
+                                    Add Savings
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="primary"
+                                    onClick={handleClaimFunds}
+                                    className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 !bg-green-600 hover:!bg-green-700"
+                                    disabled={claimLoading || piggy.current_amount <= 0}
+                                >
+                                    <DollarSign className="w-5 h-5 mr-2" />
+                                    {claimLoading ? 'Claiming...' : 'Claim Funds'}
+                                </Button>
+                            )}
                         </div>
                     </CardBody>
                 </Card>
@@ -228,8 +327,153 @@ const PiggyBankDetail = () => {
                         </CardBody>
                     </Card>
                 </div>
-
             </div>
+            )}
+
+            {activeTab === 'analytics' && analytics && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card>
+                            <CardBody className="p-4">
+                                <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-1">Growth (30d)</p>
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5 text-green-500" />
+                                    <h3 className="text-xl font-black text-primary">+${analytics.growth_30d?.toFixed(2)}</h3>
+                                </div>
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardBody className="p-4">
+                                <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-1">Total Contributors</p>
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-blue-500" />
+                                    <h3 className="text-xl font-black text-primary">{analytics.total_contributors}</h3>
+                                </div>
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardBody className="p-4">
+                                <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-1">Maturity Status</p>
+                                <div className="flex items-center gap-2">
+                                    {analytics.is_mature ? (
+                                        <ShieldCheck className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <Clock className="w-5 h-5 text-amber-500" />
+                                    )}
+                                    <h3 className="text-xl font-black text-primary">{analytics.is_mature ? 'Mature' : 'Immature'}</h3>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="border-theme">
+                            <CardBody className="p-6">
+                                <h4 className="font-bold text-primary mb-4 flex items-center gap-2">
+                                    <Activity className="w-5 h-5 text-primary" /> Contribution Trends
+                                </h4>
+                                <div className="space-y-4">
+                                    {analytics.monthly_trends?.map((item, idx) => (
+                                        <div key={idx} className="flex items-center justify-between">
+                                            <span className="text-sm text-secondary">{item.month}</span>
+                                            <div className="flex-1 mx-4 h-2 bg-secondary/10 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-primary" 
+                                                    style={{ width: `${(item.amount / (analytics.max_monthly || 1)) * 100}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-sm font-bold text-primary">${item.amount.toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardBody>
+                        </Card>
+
+                        <Card className="border-theme">
+                            <CardBody className="p-6">
+                                <h4 className="font-bold text-primary mb-4 flex items-center gap-2">
+                                    <Crown className="w-5 h-5 text-amber-500" /> Top Stakers
+                                </h4>
+                                <div className="divide-y divide-theme">
+                                    {analytics.top_stakers?.map((staker, idx) => (
+                                        <div key={idx} className="py-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-[10px] font-bold">
+                                                    {idx + 1}
+                                                </div>
+                                                <span className="text-sm font-medium text-primary">{staker.user_name}</span>
+                                            </div>
+                                            <span className="text-sm font-bold text-emerald-600">${staker.total_contributed.toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                </div>
+            )}
+
+            {/* Conversion UI - Only if linked to a group and not converted */}
+            {piggy.payment_group && !piggy.is_converted && (
+                <Card className="border-primary/20 bg-primary/5 overflow-hidden">
+                    <CardBody className="p-6">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                    <ArrowRightCircle className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-primary">Convert to Group Funds</h3>
+                                    <p className="text-sm text-secondary">Move all savings to the parent group's main balance.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                                {(() => {
+                                    const pendingRequest = conversionStatus?.find(r => r.status === 'pending');
+                                    if (pendingRequest) {
+                                        return (
+                                            <div className="flex items-center gap-4">
+                                                <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-bold flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" /> Awaiting Approval
+                                                </span>
+                                                {pendingRequest.can_approve && (
+                                                    <Button 
+                                                        variant="primary" 
+                                                        size="sm" 
+                                                        onClick={handleApproveConversion}
+                                                        disabled={isConverting}
+                                                    >
+                                                        {isConverting ? 'Processing...' : 'Approve Conversion'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <Button 
+                                            variant="outline" 
+                                            className="border-primary text-primary hover:bg-primary hover:text-white"
+                                            onClick={handleRequestConversion}
+                                            disabled={isConverting}
+                                        >
+                                            <ArrowRightCircle className="w-4 h-4 mr-2" />
+                                            Request Conversion
+                                        </Button>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
+
+            {piggy.is_converted && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <p className="text-sm font-medium">This piggy bank has been converted to group funds.</p>
+                </div>
+            )}
 
             {/* Contribute Modal */}
             {showContributeModal && (

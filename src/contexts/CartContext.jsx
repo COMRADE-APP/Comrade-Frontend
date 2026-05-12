@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { paymentsService } from '../services/payments.service';
+import paymentsService from '../services/payments.service';
 
 const CartContext = createContext(null);
 

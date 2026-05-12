@@ -59,13 +59,8 @@ const OAuthCallback = ({ provider }) => {
                     return;
                 }
 
-                if (!isProfileComplete) {
-                    // Redirect to profile setup with social flag
-                    window.location.href = `${ROUTES.PROFILE_SETUP || '/profile-setup'}?fromSocial=true&hasPassword=${hasPassword}`;
-                } else {
-                    // Navigate to dashboard
-                    window.location.href = ROUTES.DASHBOARD || '/dashboard';
-                }
+                // Skip forced profile setup routing and send them straight to DASHBOARD
+                window.location.href = ROUTES.DASHBOARD || '/dashboard';
             } else {
                 navigate(ROUTES.LOGIN);
             }

@@ -9,10 +9,12 @@ import {
     ArrowRightLeft, DollarSign, Wallet, ChevronRight
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
+import { useToast } from '../../contexts/ToastContext';
 import { formatDate } from '../../utils/dateFormatter';
 
 const PiggyBanks = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [piggyBanks, setPiggyBanks] = useState([]);
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ const PiggyBanks = () => {
             loadData();
         } catch (error) {
             console.error('Failed to create piggy bank:', error);
-            alert('Failed to create piggy bank. Please try again.');
+            toast.error('Failed to create piggy bank. Please try again.');
         } finally { setCreateLoading(false); }
     };
 
@@ -117,10 +119,10 @@ const PiggyBanks = () => {
             setShowTransferModal(false);
             setTransferFrom(''); setTransferTo(''); setTransferAmount('');
             loadData();
-            alert('Transfer successful!');
+            toast.success('Transfer successful!');
         } catch (error) {
             console.error('Transfer failed:', error);
-            alert('Transfer failed. Check balances and locking status.');
+            toast.error('Transfer failed. Check balances and locking status.');
         } finally { setTransferLoading(false); }
     };
 

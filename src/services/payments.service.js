@@ -41,6 +41,14 @@ export const paymentsService = {
         return response.data;
     },
 
+    async reverseTransaction(transactionCode, reason = '') {
+        const response = await api.post(`${API_ENDPOINTS.TRANSACTIONS}reverse/`, {
+            transaction_code: transactionCode,
+            reason
+        });
+        return response.data;
+    },
+
     // ========== Deposit, Withdraw, Transfer ==========
     async deposit(amount, paymentMethod = 'bank_transfer', additionalData = {}) {
         const response = await api.post(API_ENDPOINTS.DEPOSIT, {
@@ -62,6 +70,45 @@ export const paymentsService = {
 
     async transfer(data) {
         const response = await api.post(API_ENDPOINTS.TRANSFER, data);
+        return response.data;
+    },
+
+    // ========== Currency Conversion ==========
+    async getSupportedCurrencies() {
+        const response = await api.get(API_ENDPOINTS.SUPPORTED_CURRENCIES);
+        return response.data;
+    },
+
+    async getExchangeRate(fromCurrency, toCurrency) {
+        const response = await api.get(API_ENDPOINTS.EXCHANGE_RATES, {
+            params: { from: fromCurrency, to: toCurrency }
+        });
+        return response.data;
+    },
+
+    async getAllRates(baseCurrency = 'USD') {
+        const response = await api.get(API_ENDPOINTS.ALL_RATES, {
+            params: { base: baseCurrency }
+        });
+        return response.data;
+    },
+
+    async convertCurrency(amount, fromCurrency, toCurrency) {
+        const response = await api.post(API_ENDPOINTS.CURRENCY_CONVERT, {
+            amount,
+            from_currency: fromCurrency,
+            to_currency: toCurrency
+        });
+        return response.data;
+    },
+
+    async setPreferredCurrency(currency) {
+        const response = await api.post(API_ENDPOINTS.SET_PREFERRED_CURRENCY, { currency });
+        return response.data;
+    },
+
+    async detectCurrency() {
+        const response = await api.get(API_ENDPOINTS.DETECT_CURRENCY);
         return response.data;
     },
 
@@ -126,6 +173,13 @@ export const paymentsService = {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}invite/`, {
             email,
             force_external: forceExternal
+        });
+        return response.data;
+    },
+
+    async searchInvitableUsers(groupId, query) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}search_invitable_users/`, {
+            params: { q: query }
         });
         return response.data;
     },
@@ -211,6 +265,16 @@ export const paymentsService = {
         return response.data;
     },
 
+    async upvoteGroupPost(postId) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POST_UPVOTE(postId));
+        return response.data;
+    },
+
+    async toggleGroupPostShareability(postId) {
+        const response = await api.post(API_ENDPOINTS.GROUP_POST_TOGGLE_SHARE(postId));
+        return response.data;
+    },
+
     async getGroupPostReplies(postId) {
         const response = await api.get(`${API_ENDPOINTS.GROUP_POST_REPLIES}?post=${postId}`);
         return response.data;
@@ -218,6 +282,16 @@ export const paymentsService = {
 
     async createGroupPostReply(data) {
         const response = await api.post(API_ENDPOINTS.GROUP_POST_REPLIES, data);
+        return response.data;
+    },
+
+    async reactToGroupPostReply(replyId, emoji) {
+        const response = await api.post(API_ENDPOINTS.GROUP_REPLY_REACT(replyId), { emoji });
+        return response.data;
+    },
+
+    async upvoteGroupPostReply(replyId) {
+        const response = await api.post(API_ENDPOINTS.GROUP_REPLY_UPVOTE(replyId));
         return response.data;
     },
 
@@ -306,6 +380,36 @@ export const paymentsService = {
 
     async unlockPiggyBank(piggyId) {
         const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(piggyId)}unlock/`);
+        return response.data;
+    },
+
+    async withdrawPiggyBank(piggyId, amount) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(piggyId)}withdraw/`, { amount });
+        return response.data;
+    },
+
+    async getPiggyAnalytics(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}piggy_analytics/`);
+        return response.data;
+    },
+
+    async getPiggyMembers(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}piggy_members/`);
+        return response.data;
+    },
+
+    async requestPiggyConversion(id) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}request_conversion/`);
+        return response.data;
+    },
+
+    async approvePiggyConversion(id, requestId) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}approve_conversion/${requestId}/`);
+        return response.data;
+    },
+
+    async getPiggyConversionStatus(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}conversion_status/`);
         return response.data;
     },
 
@@ -412,33 +516,33 @@ export const paymentsService = {
     },
 
     async withdrawGains(investmentId, amount, preference) {
-        const response = await api.post(`/payments/group-investments/${investmentId}/withdraw_gains/`, { amount, preference });
+        const response = await api.post(`/api/payments/group-investments/${investmentId}/withdraw_gains/`, { amount, preference });
         return response.data;
     },
 
-    async getPublicPitches() {
-        const response = await api.get('/payments/group-investments/public_pitches/');
+    async getPublicInvestmentPitches() {
+        const response = await api.get('/api/payments/group-investments/public_pitches/');
         return response.data;
     },
 
     // ========== Group Votes ==========
     async getGroupVotes(groupId) {
-        let url = '/payments/group-votes/';
+        let url = '/api/payments/group-votes/';
         if (groupId) {
-            url = `/payments/group-votes/by_group/?group_id=${groupId}`;
+            url = `/api/payments/group-votes/by_group/?group_id=${groupId}`;
         }
         const response = await api.get(url);
         return response.data;
     },
 
     async createVote(data) {
-        const response = await api.post('/payments/group-votes/', data);
+        const response = await api.post('/api/payments/group-votes/', data);
         return response.data;
     },
 
     async castVote(voteId, choice) {
         // choice: 'for', 'against', 'abstain'
-        const response = await api.post(`/payments/group-votes/${voteId}/cast_vote/`, { vote: choice });
+        const response = await api.post(`/api/payments/group-votes/${voteId}/cast_vote/`, { vote: choice });
         return response.data;
     },
 
@@ -479,8 +583,8 @@ export const paymentsService = {
         return response.data;
     },
 
-    async rejectCheckoutRequest(groupId, requestId) {
-        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/${requestId}/reject/`);
+    async rejectCheckoutRequest(groupId, requestId, payload = {}) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/${requestId}/reject/`, payload);
         return response.data;
     },
 
@@ -492,6 +596,244 @@ export const paymentsService = {
         const response = await api.patch(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/update_group/`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
+        return response.data;
+    },
+
+    async updateGroupSettings(groupId, settings) {
+        const response = await api.patch(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/update_settings/`, settings);
+        return response.data;
+    },
+
+    async updateMemberRole(groupId, memberId, role) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/update_member_role/`, {
+            member_id: memberId,
+            role
+        });
+        return response.data;
+    },
+
+    async getGroupPiggyBanks(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_piggy_banks/`);
+        return response.data;
+    },
+
+    async getGroupAnalytics(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group-analytics/`);
+        return response.data;
+    },
+
+    async getGroupRules(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/rules/`);
+        return response.data;
+    },
+
+    async updateGroupRules(groupId, rulesText) {
+        const response = await api.put(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/rules/`, {
+            rules_text: rulesText
+        });
+        return response.data;
+    },
+
+    async applyCertificate(groupId) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/apply_certificate/`);
+        return response.data;
+    },
+
+    async getCertificateStatus(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/certificate_status/`);
+        return response.data;
+    },
+
+    async getGroupDonations(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_donations/`);
+        return response.data;
+    },
+
+    async getGroupInvestmentsByGroupId(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_investments/`);
+        return response.data;
+    },
+
+    async getGroupLoans(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_loans/`);
+        return response.data;
+    },
+
+    async getGroupKitties(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_kitties/`);
+        return response.data;
+    },
+
+    async getGroupBusinesses(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_businesses/`);
+        return response.data;
+    },
+
+    async getGroupVentures(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_ventures/`);
+        return response.data;
+    },
+
+    async registerBusiness(businessData) {
+        const response = await api.post(API_ENDPOINTS.FUNDING.BUSINESSES, businessData);
+        return response.data;
+    },
+
+    async createGroupVenture(ventureData) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${ventureData.payment_group}/group_ventures/`, ventureData);
+        return response.data;
+    },
+
+    async getLoanProducts() {
+        const response = await api.get(API_ENDPOINTS.LOAN_PRODUCTS);
+        return response.data;
+    },
+
+    async applyForLoan(loanData) {
+        const response = await api.post(API_ENDPOINTS.LOAN_APPLICATIONS, loanData);
+        return response.data;
+    },
+
+    async getGroupRounds(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_rounds/`);
+        return response.data;
+    },
+
+    async getGroupWithdrawals(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_withdrawals/`);
+        return response.data;
+    },
+
+    async getGroupBenefitRules(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_benefit_rules/`);
+        return response.data;
+    },
+
+    async getGroupSettingsChanges(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_settings_changes/`);
+        return response.data;
+    },
+
+    async getGroupAutomations(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_automations/`);
+        return response.data;
+    },
+
+    async createGroupAutomation(groupId, data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_automations/`, data);
+        return response.data;
+    },
+
+    async requestWithdrawal(groupId, data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/request_withdrawal/`, data);
+        return response.data;
+    },
+
+    async approveWithdrawal(id) {
+        const response = await api.post(`${API_ENDPOINTS.WITHDRAWAL_REQUESTS}${id}/approve/`);
+        return response.data;
+    },
+
+    async rejectWithdrawal(id, reason = '') {
+        const response = await api.post(`${API_ENDPOINTS.WITHDRAWAL_REQUESTS}${id}/reject/`, { reason });
+        return response.data;
+    },
+
+    async contributeToRound(roundId, data) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/contribute/`, data);
+        return response.data;
+    },
+
+    async createRound(data) {
+        const response = await api.post(API_ENDPOINTS.ROUND_CONTRIBUTIONS, data);
+        return response.data;
+    },
+
+    async getRoundApprovalStatus(roundId) {
+        const response = await api.get(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/approval-status/`);
+        return response.data;
+    },
+
+    async approveRound(roundId) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/approve_round/`);
+        return response.data;
+    },
+
+    async rejectRound(roundId, note = '') {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/reject_round/`, { note });
+        return response.data;
+    },
+
+    async startRound(roundId) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/start_round/`);
+        return response.data;
+    },
+
+    async claimRoundPayout(roundId, payload = {}) {
+        const data = typeof payload === 'string' ? { destination: payload } : payload;
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/claim/`, data);
+        return response.data;
+    },
+
+    async searchUsers(query) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}search_users/`, { params: { q: query } });
+        return response.data;
+    },
+
+    async swapRoundPositions(roundId, data) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/swap-positions/`, data);
+        return response.data;
+    },
+
+    async randomizeRoundPositions(roundId) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/randomize_positions/`);
+        return response.data;
+    },
+
+    async getRoundDetail(roundId) {
+        const response = await api.get(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/detail_view/`);
+        return response.data;
+    },
+
+    async getAvailablePositions(groupId, roundId = null) {
+        const params = roundId ? `group=${groupId}&round_id=${roundId}` : `group=${groupId}`;
+        const response = await api.get(`${API_ENDPOINTS.ROUND_POSITIONS}available/?${params}`);
+        return response.data;
+    },
+
+    async pickPosition(groupId, roundId, positionNumber) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_POSITIONS}pick/`, { 
+            group: groupId, 
+            round_id: roundId,
+            position_number: positionNumber 
+        });
+        return response.data;
+    },
+
+    async getMyPosition(groupId, roundId = null) {
+        const params = roundId ? `group=${groupId}&round_id=${roundId}` : `group=${groupId}`;
+        const response = await api.get(`${API_ENDPOINTS.ROUND_POSITIONS}my-position/?${params}`);
+        return response.data;
+    },
+
+    async getRoundPositions(groupId, roundId = null) {
+        const params = roundId ? `group=${groupId}&round_id=${roundId}` : `group=${groupId}`;
+        const response = await api.get(`${API_ENDPOINTS.ROUND_POSITIONS}?${params}`);
+        return response.data;
+    },
+
+    async proposeSettingsChange(groupId, data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/propose_settings_change/`, data);
+        return response.data;
+    },
+
+    async createBenefitRule(groupId, data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/create_benefit_rule/`, data);
+        return response.data;
+    },
+
+    async voteOnSettingsChange(requestId, vote) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_SETTINGS_CHANGES}${requestId}/vote/`, { vote });
         return response.data;
     },
 

@@ -9,6 +9,7 @@ import {
 import { escrowService } from '../../services/finservices.service';
 import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const ESCROW_TYPES = [
     { id: 'marketplace', label: 'Marketplace Purchase', icon: Package, color: 'from-blue-500 to-indigo-600', desc: 'Buy products or services securely' },
@@ -149,7 +150,7 @@ const Escrow = () => {
                                     className="w-full px-4 py-2.5 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 outline-none" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-secondary mb-1">Amount (KES)</label>
+                                <label className="block text-sm font-medium text-secondary mb-1">Amount (USD)</label>
                                 <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="50000"
                                     className="w-full px-4 py-2.5 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 outline-none" />
                             </div>
@@ -167,7 +168,7 @@ const Escrow = () => {
                         {form.amount && (
                             <div className="bg-secondary/5 rounded-xl p-4 flex justify-between text-sm">
                                 <span className="text-secondary">Escrow Fee (2%)</span>
-                                <span className="font-bold text-primary">KES {(parseFloat(form.amount || 0) * 0.02).toLocaleString()} → Total: KES {(parseFloat(form.amount || 0) * 1.02).toLocaleString()}</span>
+                                <span className="font-bold text-primary">{formatMoneySimple(parseFloat(form.amount || 0) * 0.02)} → Total: {formatMoneySimple(parseFloat(form.amount || 0) * 1.02)}</span>
                             </div>
                         )}
                         <Button variant="primary" className="w-full py-3 rounded-xl font-bold" onClick={handleCreate} disabled={!form.title || !form.amount || submitting}>
@@ -205,7 +206,7 @@ const Escrow = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-primary text-lg">KES {parseFloat(escrow.amount).toLocaleString()}</p>
+                                    <p className="font-bold text-primary text-lg">{formatMoneySimple(escrow.amount)}</p>
                                     <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${SC.color}`}>{escrow.status.replace('_', ' ')}</span>
                                 </div>
                             </div>
@@ -217,7 +218,7 @@ const Escrow = () => {
                                         {escrow.milestones.map((m, i) => (
                                             <div key={i} className={`flex-1 text-center py-2 rounded-lg text-xs font-medium ${m.completed ? 'bg-emerald-500/15 text-emerald-500' : 'bg-secondary/5 text-tertiary'}`}>
                                                 {m.completed && <CheckCircle className="w-3 h-3 inline mr-1" />}
-                                                {m.name} • KES {(m.amount || 0).toLocaleString()}
+                                                {m.name} • {formatMoneySimple(m.amount || 0)}
                                             </div>
                                         ))}
                                     </div>
@@ -280,9 +281,9 @@ const Escrow = () => {
                             <div className="space-y-6">
                                 <div className="p-4 bg-secondary/5 border border-theme rounded-xl space-y-2">
                                     <h4 className="font-bold text-primary">{fundingEscrow.title}</h4>
-                                    <div className="flex justify-between text-sm"><span className="text-secondary">Amount</span><span className="font-bold text-primary">KES {parseFloat(fundingEscrow.amount).toLocaleString()}</span></div>
-                                    <div className="flex justify-between text-sm"><span className="text-secondary">Escrow Fee</span><span className="font-bold text-primary">KES {parseFloat(fundingEscrow.escrow_fee).toLocaleString()}</span></div>
-                                    <div className="flex justify-between text-lg font-bold border-t border-theme pt-2 mt-2"><span className="text-primary">Total to Fund</span><span className="text-blue-500">KES {parseFloat(fundingEscrow.total_amount || fundingEscrow.amount).toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-secondary">Amount</span><span className="font-bold text-primary">{formatMoneySimple(fundingEscrow.amount)}</span></div>
+                                    <div className="flex justify-between text-sm"><span className="text-secondary">Escrow Fee</span><span className="font-bold text-primary">{formatMoneySimple(fundingEscrow.escrow_fee)}</span></div>
+                                    <div className="flex justify-between text-lg font-bold border-t border-theme pt-2 mt-2"><span className="text-primary">Total to Fund</span><span className="text-blue-500">{formatMoneySimple(fundingEscrow.total_amount || fundingEscrow.amount)}</span></div>
                                 </div>
                                 <PaymentTypeSelector 
                                     purchaseType={purchaseType} setPurchaseType={setPurchaseType} 
