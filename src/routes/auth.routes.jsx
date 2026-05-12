@@ -34,7 +34,12 @@ const Verify2FA = () => Lazy(() => import('../pages/auth/Verify2FA'));
 const VerifySMS = () => Lazy(() => import('../pages/auth/VerifySMS'));
 const TOTPSetup = () => Lazy(() => import('../pages/auth/TOTPSetup'));
 
-const { AppleCallback, FacebookCallback, XCallback, GitHubCallback, MicrosoftCallback } = await import('../pages/auth/OAuthCallback');
+const OAuthCallback = () => Lazy(() => import('../pages/auth/OAuthCallback'));
+const AppleCallback = () => Lazy(() => import('../pages/auth/OAuthCallback')).then(m => m.AppleCallback);
+const FacebookCallback = () => Lazy(() => import('../pages/auth/OAuthCallback')).then(m => m.FacebookCallback);
+const XCallback = () => Lazy(() => import('../pages/auth/OAuthCallback')).then(m => m.XCallback);
+const GitHubCallback = () => Lazy(() => import('../pages/auth/OAuthCallback')).then(m => m.GitHubCallback);
+const MicrosoftCallback = () => Lazy(() => import('../pages/auth/OAuthCallback')).then(m => m.MicrosoftCallback);
 
 export const publicRoutes = [
     <Route key="landing" path="/" element={<Landing />} />,

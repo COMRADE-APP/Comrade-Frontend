@@ -290,7 +290,7 @@ const RequestFunding = () => {
                                     {selectedVenture && (
                                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
                                             <strong>{selectedVenture.name}</strong> accepts investments between
-                                            formatMoneySimple(selectedVenture.min_investment)} –
+                                            {formatMoneySimple(selectedVenture.min_investment)} –
                                              {formatMoneySimple(selectedVenture.max_investment)}
                                         </div>
                                     )}
