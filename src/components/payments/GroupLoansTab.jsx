@@ -59,9 +59,8 @@ const GroupLoansTab = ({ groupId }) => {
                 ...formData,
                 amount: parseFloat(formData.amount),
                 tenure_months: parseInt(formData.tenure_months),
-                group: groupId,
             };
-            await paymentsService.applyForLoan(payload);
+            await paymentsService.applyForLoan(groupId, payload);
             setShowCreateModal(false);
             resetForm();
             loadData();

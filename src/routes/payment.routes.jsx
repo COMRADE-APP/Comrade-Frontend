@@ -29,6 +29,7 @@ const ReverseTransaction = () => Lazy(() => import('../pages/payments/ReverseTra
 const BillPayments = () => Lazy(() => import('../pages/payments/BillPayments'));
 const Loans = () => Lazy(() => import('../pages/payments/Loans'));
 const Escrow = () => Lazy(() => import('../pages/payments/Escrow'));
+const EscrowDetail = () => Lazy(() => import('../pages/payments/EscrowDetail'));
 const Insurance = () => Lazy(() => import('../pages/payments/Insurance'));
 
 const BusinessRegistration = () => Lazy(() => import('../pages/payments/BusinessRegistration'));
@@ -41,6 +42,11 @@ const SubscriptionPlans = () => Lazy(() => import('../pages/subscription/Subscri
 const TierPlans = () => Lazy(() => import('../pages/subscription/TierPlans'));
 
 const PaymentForm = () => Lazy(() => import('../components/payments/PaymentForm'));
+
+// Provider Portal Routes
+const ProviderLanding = () => Lazy(() => import('../pages/providers/ProviderLanding'));
+const ProviderRegistration = () => Lazy(() => import('../pages/providers/ProviderRegistration'));
+const ProviderDashboard = () => Lazy(() => import('../pages/providers/ProviderDashboard'));
 
 export const paymentRoutes = [
     <Route key="payments" path={ROUTES.PAYMENTS} element={<Payments />} />,
@@ -72,6 +78,7 @@ export const paymentRoutes = [
     <Route key="bill-payments" path={ROUTES.BILL_PAYMENTS} element={<BillPayments />} />,
     <Route key="loans" path={ROUTES.LOANS} element={<Loans />} />,
     <Route key="escrow" path={ROUTES.ESCROW} element={<Escrow />} />,
+    <Route key="escrow-detail" path="/payments/escrow/:id" element={<EscrowDetail />} />,
     <Route key="insurance" path={ROUTES.INSURANCE} element={<Insurance />} />,
 
     <Route key="business-register" path="/business/register" element={<BusinessRegistration />} />,

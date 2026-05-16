@@ -194,7 +194,8 @@ const Escrow = () => {
                     const StatusIcon = SC.icon;
                     return (
                         <motion.div key={escrow.id} whileHover={{ scale: 1.005 }}
-                            className="bg-elevated border border-theme rounded-2xl overflow-hidden hover:shadow-md transition-all">
+                            onClick={() => navigate(`/payments/escrow/${escrow.id}`)}
+                            className="bg-elevated border border-theme rounded-2xl overflow-hidden hover:shadow-md transition-all cursor-pointer">
                             <div className="p-6 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${SC.color}`}>
@@ -224,20 +225,11 @@ const Escrow = () => {
                                     </div>
                                 </div>
                             )}
-                            {/* Actions */}
-                            {['initiated', 'funded', 'delivered'].includes(escrow.status) && (
+                            {/* Actions (Moved to detail page, simplified here) */}
+                            {['initiated', 'funded', 'delivered', 'disputed'].includes(escrow.status) && (
                                 <div className="px-6 pb-4 flex gap-2">
-                                    {escrow.status === 'initiated' && (
-                                        <button onClick={() => handleFund(escrow)} className="px-4 py-2 text-xs font-semibold bg-blue-500/15 text-blue-500 rounded-xl hover:bg-blue-500/25 transition-colors">Fund Escrow</button>
-                                    )}
-                                    {escrow.status === 'funded' && (
-                                        <button className="px-4 py-2 text-xs font-semibold bg-amber-500/15 text-amber-500 rounded-xl hover:bg-amber-500/25 transition-colors">Mark Delivered</button>
-                                    )}
-                                    {escrow.status === 'delivered' && (
-                                        <button className="px-4 py-2 text-xs font-semibold bg-emerald-500/15 text-emerald-500 rounded-xl hover:bg-emerald-500/25 transition-colors">Release Funds</button>
-                                    )}
-                                    <button className="px-4 py-2 text-xs font-semibold bg-rose-500/15 text-rose-500 rounded-xl hover:bg-rose-500/25 transition-colors flex items-center gap-1">
-                                        <Flag className="w-3 h-3" /> Dispute
+                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/payments/escrow/${escrow.id}`); }} className="px-4 py-2 text-xs font-semibold bg-secondary/10 text-secondary rounded-xl hover:bg-secondary/20 transition-colors">
+                                        View Details
                                     </button>
                                 </div>
                             )}

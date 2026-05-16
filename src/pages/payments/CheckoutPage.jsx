@@ -128,6 +128,23 @@ const CheckoutPage = () => {
                     return;
                 }
             }
+            // ── ROUND CONTRIBUTION ──
+            else if (purchaseType === 'group_contribution') {
+                const roundItem = cartItems.find(item => item.type === 'round_contribution');
+                if (!roundItem) throw new Error("No round contribution found.");
+                
+                const roundId = roundItem.id || roundItem.roundId;
+                
+                // For wallet payments, use the contributeToRound API directly
+                const response = await paymentsService.contributeToRound(roundId, {
+                    amount: roundItem.price
+                });
+                if (response?.error) {
+                    throw new Error(response.error);
+                }
+                // Store the round response for success display
+                window.lastRoundContribution = response;
+            }
             // ── STRIPE CARD PAYMENT ──
             else if (paymentMethod === 'stripe') {
                 if (!stripe || !elements) {

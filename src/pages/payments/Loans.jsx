@@ -56,6 +56,24 @@ const Loans = () => {
         finally { setApplying(false); }
     };
 
+    const handleRepay = async (loanId, amountToPay) => {
+        setApplying(true);
+        try {
+            await loansService.repayLoan(loanId, parseFloat(amountToPay));
+            // Refresh loans and score
+            const [lRes, sRes] = await Promise.all([
+                loansService.getMyLoans(),
+                loansService.getMyScore()
+            ]);
+            setMyLoans(lRes.data?.results || lRes.data || []);
+            if (sRes.data?.score) setCreditScore(sRes.data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setApplying(false);
+        }
+    };
+
     const tabs = [
         { id: 'marketplace', label: 'Loan Products', icon: DollarSign },
         { id: 'credit', label: 'Credit Score', icon: Award },
@@ -247,9 +265,10 @@ const Loans = () => {
                                 <Button variant="primary" className="mt-4 rounded-xl" onClick={() => setTab('marketplace')}>Browse Products</Button>
                             </div>
                         ) : myLoans.map(loan => {
-                            const totalDue = loan.repayments?.reduce((sum, r) => sum + parseFloat(r.amount_due), 0) || 0;
-                            const totalPaid = loan.repayments?.filter(r => r.status === 'paid').reduce((sum, r) => sum + parseFloat(r.amount_due), 0) || 0;
+                            const totalDue = loan.repayments?.reduce((sum, r) => sum + parseFloat(r.amount_due) + (parseFloat(r.penalty || 0)), 0) || 0;
+                            const totalPaid = loan.repayments?.filter(r => r.status === 'paid').reduce((sum, r) => sum + parseFloat(r.amount_paid || r.amount_due), 0) || 0;
                             const progress = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
+                            const remaining = totalDue - totalPaid;
                             
                             return (
                                 <div key={loan.id} className="bg-elevated border border-theme rounded-2xl overflow-hidden">
@@ -298,14 +317,35 @@ const Loans = () => {
                                             {loan.repayments.map(r => (
                                                 <div key={r.installment_number} className="px-6 py-3 flex items-center justify-between text-sm">
                                                     <div className="flex items-center gap-2">
-                                                        {r.status === 'paid' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : r.status === 'due' || r.status === 'overdue' ? <Clock className="w-4 h-4 text-amber-500" /> : <Clock className="w-4 h-4 text-tertiary" />}
+                                                        {r.status === 'paid' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : r.status === 'overdue' ? <AlertTriangle className="w-4 h-4 text-rose-500" /> : r.status === 'pending' || r.status === 'due' ? <Clock className="w-4 h-4 text-amber-500" /> : <Clock className="w-4 h-4 text-tertiary" />}
                                                         <span className="text-secondary">Installment {r.installment_number}</span>
                                                     </div>
-                                                    <span className="text-primary font-medium">{formatMoneySimple(r.amount_due)}</span>
+                                                    <span className="text-primary font-medium">{formatMoneySimple(parseFloat(r.amount_due) + parseFloat(r.penalty || 0))}</span>
                                                     <span className="text-tertiary text-xs">{r.due_date}</span>
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'paid' ? 'bg-emerald-500/15 text-emerald-500' : r.status === 'due' || r.status === 'overdue' ? 'bg-amber-500/15 text-amber-500' : 'bg-secondary/10 text-tertiary'}`}>{r.status}</span>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'paid' ? 'bg-emerald-500/15 text-emerald-500' : r.status === 'overdue' ? 'bg-rose-500/15 text-rose-500' : r.status === 'due' ? 'bg-amber-500/15 text-amber-500' : 'bg-secondary/10 text-tertiary'}`}>{r.status}</span>
                                                 </div>
                                             ))}
+                                        </div>
+                                    )}
+
+                                    {/* Repayment Action */}
+                                    {remaining > 0 && ['disbursed', 'overdue', 'repaying'].includes(loan.status) && (
+                                        <div className="p-6 bg-secondary/5 border-t border-theme flex flex-col sm:flex-row gap-4 items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-primary">Make a Repayment</p>
+                                                <p className="text-xs text-tertiary">Pay directly from your wallet balance.</p>
+                                            </div>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <Button variant="primary" className="w-full sm:w-auto rounded-xl" onClick={() => {
+                                                    const amt = prompt(`Enter amount to repay (Remaining: ${remaining}):`, remaining);
+                                                    if (amt && !isNaN(amt) && parseFloat(amt) > 0) {
+                                                        handleRepay(loan.id, amt);
+                                                    }
+                                                }} disabled={applying}>
+                                                    {applying ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <DollarSign className="w-4 h-4 mr-2" />} 
+                                                    Repay Now
+                                                </Button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

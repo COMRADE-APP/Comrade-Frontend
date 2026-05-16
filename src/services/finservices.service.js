@@ -57,6 +57,8 @@ export const escrowService = {
     deliverEscrow: (id, proof) => api.post(`${BASE}/escrow/${id}/deliver/`, { proof }),
     releaseEscrow: (id) => api.post(`${BASE}/escrow/${id}/release/`),
     disputeEscrow: (id, reason, evidence) => api.post(`${BASE}/escrow/${id}/dispute/`, { reason, evidence }),
+    resolveEscrow: (id, resolution_type, split_percentage, notes) => api.post(`${BASE}/escrow/${id}/resolve_dispute/`, { resolution_type, split_percentage, notes }),
+    submitEscrowEvidence: (id, notes, file_url) => api.post(`${BASE}/escrow/${id}/submit_evidence/`, { notes, file_url }),
 };
 
 export const insuranceService = {

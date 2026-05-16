@@ -692,6 +692,40 @@ const eventsService = {
     confirmPayment: (bookingId) => {
         return api.post(`${BASE_URL}/slot_bookings/${bookingId}/confirm_payment/`);
     },
+
+    // ===== SPONSORSHIP =====
+
+    getSponsorshipLevels: (eventId) => {
+        return api.get(`${BASE_URL}/sponsorship_levels/?event=${eventId}`);
+    },
+
+    getSponsorshipApplications: (eventId) => {
+        return api.get(`${BASE_URL}/sponsorship_applications/by_event/?event_id=${eventId}`);
+    },
+
+    getMySponsorshipApplications: () => {
+        return api.get(`${BASE_URL}/sponsorship_applications/my_applications/`);
+    },
+
+    applySponsorshipApplication: (data) => {
+        return api.post(`${BASE_URL}/sponsorship_applications/`, data);
+    },
+
+    approveSponsorshipApplication: (applicationId, data = {}) => {
+        return api.post(`${BASE_URL}/sponsorship_applications/${applicationId}/approve/`, data);
+    },
+
+    rejectSponsorshipApplication: (applicationId, data = {}) => {
+        return api.post(`${BASE_URL}/sponsorship_applications/${applicationId}/reject/`, data);
+    },
+
+    getSponsorshipDashboard: (eventId) => {
+        return api.get(`${BASE_URL}/sponsorship_applications/sponsorship_dashboard/?event_id=${eventId}`);
+    },
+
+    getEventSponsors: (eventId) => {
+        return api.get(`${BASE_URL}/sponsors/?event=${eventId}`);
+    },
 };
 
 export default eventsService;

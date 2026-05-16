@@ -78,44 +78,64 @@ const GroupAnalytics = () => {
         setError(null);
         try {
             const groupIdParam = groupId || 'unknown';
-            console.log('Loading analytics for group:', groupIdParam);
             
-            // Fetch both in parallel but handle errors separately
             let analyticsData = null;
             let groupData = null;
+            let summaryData = null;
             
             try {
                 analyticsData = await paymentsService.getGroupAnalytics(groupIdParam);
-                console.log('Analytics response:', analyticsData);
             } catch (e) {
                 console.error('Analytics fetch error:', e);
             }
             
             try {
                 groupData = await paymentsService.getPaymentGroupDetail(groupIdParam);
-                console.log('Group response:', groupData);
             } catch (e) {
                 console.error('Group fetch error:', e);
             }
-            
-            if (!analyticsData && !groupData) {
-                throw new Error('Failed to load data from both endpoints');
+
+            try {
+                summaryData = await paymentsService.getAnalyticsSummary(groupIdParam);
+            } catch (e) {
+                console.error('Summary fetch error:', e);
             }
             
-            const timelineData = ((analyticsData?.monthly_trend) || []).map((entry, i) => ({
-                name: entry.month ? new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : `M${i+1}`,
-                contributions: parseFloat(entry.total || 0),
-                transactions: entry.count || 0,
-            }));
+            if (!analyticsData && !groupData && !summaryData) {
+                throw new Error('Failed to load data from all endpoints');
+            }
+
+            // Prefer new summary data if available
+            const monthlyTrends = summaryData?.monthly_trends || [];
+            const timelineData = monthlyTrends.length > 0 
+                ? monthlyTrends.map((entry, i) => ({
+                    name: entry.month ? new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : `M${i+1}`,
+                    contributions: parseFloat(entry.inflow || 0),
+                    withdrawals: parseFloat(entry.outflow || 0),
+                    transactions: entry.tx_count || 0,
+                }))
+                : ((analyticsData?.monthly_trend) || []).map((entry, i) => ({
+                    name: entry.month ? new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : `M${i+1}`,
+                    contributions: parseFloat(entry.total || 0),
+                    transactions: entry.count || 0,
+                }));
 
             const categoryBreakdown = [
-                { name: 'Contributions', value: parseFloat(analyticsData?.total_contributed || 0) },
+                { name: 'Contributions', value: parseFloat(summaryData?.total_inflow || analyticsData?.total_contributed || 0) },
+                { name: 'Withdrawals', value: parseFloat(summaryData?.total_outflow || 0) },
                 { name: 'Piggy Banks', value: parseFloat(analyticsData?.piggy_bank_total || 0) },
                 { name: 'Donations', value: parseFloat(analyticsData?.donations_total || 0) },
                 { name: 'Investments', value: parseFloat(analyticsData?.investments_total || 0) },
             ].filter(d => d.value > 0);
 
-            setAnalytics({ ...analyticsData, timelineData, categoryBreakdown });
+            setAnalytics({ 
+                ...analyticsData, 
+                ...summaryData,
+                timelineData, 
+                categoryBreakdown,
+                member_heatmap: summaryData?.member_heatmap || [],
+                top_contributors: summaryData?.top_contributors || analyticsData?.top_contributors || [],
+            });
             setGroup(groupData);
         } catch (err) {
             console.error('Load data error:', err);
@@ -243,12 +263,19 @@ const GroupAnalytics = () => {
                                                 <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.3}/>
                                                 <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
                                             </linearGradient>
+                                            <linearGradient id="colorWithdrawals" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={COLORS[3]} stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor={COLORS[3]} stopOpacity={0}/>
+                                            </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} dy={10} />
                                         <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280'}} tickFormatter={(v) => `$${v < 1000 ? v : v/1000 + 'k'}`} />
                                         <RechartsTooltip content={<CustomTooltip />} />
-                                        <Area type="monotone" dataKey="contributions" name="Contributions" stroke={COLORS[0]} strokeWidth={3} fillOpacity={1} fill="url(#colorContributions)" />
+                                        <Area type="monotone" dataKey="contributions" name="Inflow" stroke={COLORS[0]} strokeWidth={3} fillOpacity={1} fill="url(#colorContributions)" />
+                                        {analytics.timelineData?.[0]?.withdrawals !== undefined && (
+                                            <Area type="monotone" dataKey="withdrawals" name="Outflow" stroke={COLORS[3]} strokeWidth={2} fillOpacity={1} fill="url(#colorWithdrawals)" />
+                                        )}
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -341,7 +368,7 @@ const GroupAnalytics = () => {
 
                     <Card className="border-theme">
                         <CardBody className="p-6">
-                            <h3 className="text-lg font-bold text-primary mb-6">Group Activity</h3>
+                            <h3 className="text-lg font-bold text-primary mb-6">Operations & Activity</h3>
                             <div className="space-y-5">
                                 <div className="flex justify-between items-center group">
                                     <div className="flex items-center gap-3">
@@ -357,15 +384,39 @@ const GroupAnalytics = () => {
                                 </div>
                                 <div className="flex justify-between items-center group">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600">
-                                            <CheckCircle size={18} />
+                                        <div className="p-2 bg-purple-500/10 rounded-xl text-purple-600">
+                                            <Award size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-primary">Checkout Requests</p>
-                                            <p className="text-xs text-secondary">Total requests made</p>
+                                            <p className="text-sm font-bold text-primary">Active Rounds</p>
+                                            <p className="text-xs text-secondary">Currently ongoing</p>
                                         </div>
                                     </div>
-                                    <span className="text-xl font-bold text-primary">{analytics.checkout_requests_count || 0}</span>
+                                    <span className="text-xl font-bold text-primary">{analytics.round_stats?.active || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600">
+                                            <Briefcase size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-primary">Loans Issued</p>
+                                            <p className="text-xs text-secondary">Total principal given</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xl font-bold text-primary">{formatMoneySimple(analytics.total_loans_given || 0)}</span>
+                                </div>
+                                <div className="flex justify-between items-center group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-red-500/10 rounded-xl text-red-600">
+                                            <Activity size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-primary">Penalties Collected</p>
+                                            <p className="text-xs text-secondary">From early withdrawals</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xl font-bold text-primary">{formatMoneySimple(analytics.total_penalties || 0)}</span>
                                 </div>
                                 <div className="flex justify-between items-center group">
                                     <div className="flex items-center gap-3">
@@ -379,22 +430,97 @@ const GroupAnalytics = () => {
                                     </div>
                                     <span className="text-xl font-bold text-primary">{analytics.pending_checkouts || 0}</span>
                                 </div>
-                                <div className="flex justify-between items-center group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-purple-500/10 rounded-xl text-purple-600">
-                                            <Award size={18} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-primary">Tier</p>
-                                            <p className="text-xs text-secondary">Group capacity tier</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-xl font-bold text-primary capitalize">{analytics.capacity_category}</span>
-                                </div>
                             </div>
                         </CardBody>
                     </Card>
                 </div>
+
+                {/* Member Contribution Heatmap */}
+                {analytics.member_heatmap?.length > 0 && (
+                    <Card className="border-theme">
+                        <CardBody className="p-6">
+                            <h3 className="text-lg font-bold text-primary mb-6">Member Contribution Heatmap</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th className="text-left py-2 pr-4 text-secondary font-medium">Member</th>
+                                            <th className="text-right py-2 px-2 text-secondary font-medium">Total</th>
+                                            {analytics.member_heatmap[0]?.monthly?.slice(-6).map((m, i) => (
+                                                <th key={i} className="text-center py-2 px-2 text-secondary font-medium text-xs">
+                                                    {m.month ? new Date(m.month).toLocaleDateString('en-US', { month: 'short' }) : ''}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-theme">
+                                        {analytics.member_heatmap.map((member) => {
+                                            const maxAmount = Math.max(...analytics.member_heatmap.flatMap(m => m.monthly.map(mo => mo.amount)), 1);
+                                            return (
+                                                <tr key={member.member_id} className="hover:bg-secondary/5">
+                                                    <td className="py-3 pr-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-7 h-7 rounded-full bg-primary/10 text-primary-600 flex items-center justify-center text-xs font-bold">
+                                                                {member.name?.charAt(0)?.toUpperCase() || '?'}
+                                                            </div>
+                                                            <span className="font-medium text-primary truncate max-w-[120px]">{member.name}</span>
+                                                            {member.is_admin && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">Admin</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="text-right py-3 px-2 font-bold text-emerald-600">{formatMoneySimple(member.total_contributed)}</td>
+                                                    {member.monthly?.slice(-6).map((m, i) => {
+                                                        const intensity = m.amount > 0 ? Math.min(m.amount / maxAmount, 1) : 0;
+                                                        return (
+                                                            <td key={i} className="text-center py-3 px-2">
+                                                                <div 
+                                                                    className="w-8 h-8 rounded-lg mx-auto flex items-center justify-center text-[10px] font-bold transition-colors"
+                                                                    style={{
+                                                                        backgroundColor: intensity > 0 
+                                                                            ? `rgba(139, 92, 246, ${0.1 + intensity * 0.7})`
+                                                                            : 'rgba(0,0,0,0.03)',
+                                                                        color: intensity > 0.5 ? 'white' : intensity > 0 ? '#7C3AED' : '#9CA3AF'
+                                                                    }}
+                                                                    title={`${formatMoneySimple(m.amount)}`}
+                                                                >
+                                                                    {m.amount > 0 ? '$' + Math.round(m.amount) : '—'}
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardBody>
+                    </Card>
+                )}
+
+                {/* Growth Rate + Net Flow Banner */}
+                {(analytics.growth_rate !== undefined || analytics.net_flow !== undefined) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <MetricCard 
+                            title="Total Inflow" 
+                            value={formatMoneySimple(analytics.total_inflow)} 
+                            icon={TrendingUp} 
+                            trend="up"
+                        />
+                        <MetricCard 
+                            title="Total Outflow" 
+                            value={formatMoneySimple(analytics.total_outflow)} 
+                            icon={Activity} 
+                            trend="down"
+                        />
+                        <MetricCard 
+                            title="Growth Rate" 
+                            value={`${analytics.growth_rate || 0}%`} 
+                            icon={TrendingUp}
+                            change={analytics.growth_rate}
+                            trend={analytics.growth_rate > 0 ? 'up' : analytics.growth_rate < 0 ? 'down' : undefined}
+                        />
+                    </div>
+                )}
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

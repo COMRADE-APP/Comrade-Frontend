@@ -298,6 +298,17 @@ const GroupRoundsTab = ({ groupId }) => {
         }
     };
 
+    const handleRestartCycle = async (roundId) => {
+        if (!window.confirm('Are you sure you want to start a new cycle for this completed round? This will reset the round and allow members to contribute again.')) return;
+        try {
+            await paymentsService.restartRoundCycle(roundId);
+            loadRounds();
+            alert('Round restarted for new cycle!');
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to restart round');
+        }
+    };
+
     const loadWalletBalance = async () => {
         try {
             const data = await paymentsService.getBalance();
@@ -379,27 +390,45 @@ const GroupRoundsTab = ({ groupId }) => {
                 </Card>
             ) : null}
 
-            {rounds.some(r => r.has_unclaimed_payout) && (
+            {rounds.some(r => r.can_claim && r.has_unclaimed_payout) && (
                 <div className="space-y-4">
                     <h4 className="text-sm font-bold text-emerald-600 flex items-center gap-2">
-                        <Award className="w-4 h-4" /> Pending Payouts for You
+                        <Award className="w-4 h-4" /> Your Payout Ready to Claim
                     </h4>
-                    {rounds.filter(r => r.has_unclaimed_payout).map(round => (
-                        <Card key={`pending-${round.id}`} className="border-emerald-200 bg-emerald-50 dark:bg-emerald-900/10 dark:border-emerald-800">
-                            <CardBody className="p-4 flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center text-emerald-600">
-                                        <Wallet className="w-6 h-6" />
+                    {rounds.filter(r => r.can_claim && r.has_unclaimed_payout).map(round => (
+                        <Card key={`pending-${round.id}`} className="border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-700 shadow-lg">
+                            <CardBody className="p-4">
+                                <div className="flex items-center justify-between gap-4 mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center text-emerald-600">
+                                            <Award className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-bold text-emerald-800 dark:text-emerald-400">
+                                                {round.round_name || `Round #${round.round_number}`}
+                                            </h4>
+                                            <p className="text-xs text-emerald-600 dark:text-emerald-500">
+                                                Cycle {round.current_cycle} of {round.total_members || round.member_count || 'all'} members
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Payout Ready: {round.round_name || `Round #${round.round_number}`}</h4>
-                                        <p className="text-xs text-emerald-600 dark:text-emerald-500">Your collection is ready to be claimed to your wallet.</p>
+                                </div>
+                                <div className="bg-white dark:bg-emerald-950/30 rounded-lg p-3 mb-3 border border-emerald-200 dark:border-emerald-800">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-emerald-700 dark:text-emerald-500">Amount to Claim:</span>
+                                        <span className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
+                                            {formatMoneySimple(round.pending_claim_amount || round.total_collected || 0)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2 text-xs text-emerald-600 dark:text-emerald-500">
+                                        <span>Your Position: #{round.user_position || 'Assigned'}</span>
+                                        <span>Status: {round.claim_status}</span>
                                     </div>
                                 </div>
                                 <Button 
                                     variant="primary" 
                                     size="sm" 
-                                    className="!bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white" 
+                                    className="w-full !bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white" 
                                     onClick={() => { setSelectedRound(round); setShowClaimModal(true); }}
                                 >
                                     Claim Now
@@ -483,25 +512,28 @@ const GroupRoundsTab = ({ groupId }) => {
 
                                 {round.has_unclaimed_payout && (
                                     <div className="mx-4 my-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center justify-between gap-4 mb-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center text-emerald-600">
                                                     <Award className="w-6 h-6" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Payout Ready!</h4>
-                                                    <p className="text-xs text-emerald-600 dark:text-emerald-500">Your rotating collection is ready to be claimed.</p>
+                                                    <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400">Your Payout Ready!</h4>
+                                                    <p className="text-xs text-emerald-600 dark:text-emerald-500">Cycle {round.current_cycle}</p>
                                                 </div>
                                             </div>
-                                            <Button 
-                                                variant="primary" 
-                                                size="sm" 
-                                                className="!bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white" 
-                                                onClick={() => { setSelectedRound(round); setShowClaimModal(true); }}
-                                            >
-                                                Claim Now
-                                            </Button>
+                                            <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                                                {formatMoneySimple(round.pending_claim_amount || round.total_collected || 0)}
+                                            </span>
                                         </div>
+                                        <Button 
+                                            variant="primary" 
+                                            size="sm" 
+                                            className="w-full !bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white" 
+                                            onClick={() => { setSelectedRound(round); setShowClaimModal(true); }}
+                                        >
+                                            Claim Now
+                                        </Button>
                                     </div>
                                 )}
                                 {round.status === 'active' && round.members_rotation && (
@@ -578,7 +610,17 @@ const GroupRoundsTab = ({ groupId }) => {
                                             </div>
                                         )}
                                         {round.status === 'completed' && (
-                                            <span className="text-xs text-secondary">Completed</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-purple-600 font-medium">Completed</span>
+                                                <Button 
+                                                    variant="primary" 
+                                                    size="sm" 
+                                                    className="!py-1 !px-3 text-xs !bg-purple-600 hover:!bg-purple-700 !border-none"
+                                                    onClick={() => handleRestartCycle(round.id)}
+                                                >
+                                                    <RefreshCw className="w-3 h-3 mr-1" /> New Cycle
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

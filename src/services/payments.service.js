@@ -398,8 +398,13 @@ export const paymentsService = {
         return response.data;
     },
 
-    async requestPiggyConversion(id) {
-        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}request_conversion/`);
+    async requestPiggyConversion(id, data) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}request_conversion/`, data);
+        return response.data;
+    },
+
+    async votePiggyConversion(id, requestId, vote) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}vote_conversion/${requestId}/`, { vote });
         return response.data;
     },
 
@@ -410,6 +415,21 @@ export const paymentsService = {
 
     async getPiggyConversionStatus(id) {
         const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}conversion_status/`);
+        return response.data;
+    },
+
+    async updatePiggySettings(id, data) {
+        const response = await api.patch(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}update_settings/`, data);
+        return response.data;
+    },
+
+    async executePiggyAutomation(id) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}execute_automation/`);
+        return response.data;
+    },
+
+    async searchAutomationTargets(query, type = 'all') {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET}search_automation_targets/?q=${encodeURIComponent(query)}&type=${type}`);
         return response.data;
     },
 
@@ -490,8 +510,8 @@ export const paymentsService = {
         return response.data;
     },
 
-    async createGroupInvestment(data) {
-        const response = await api.post(API_ENDPOINTS.GROUP_INVESTMENTS, data);
+    async createGroupInvestment(groupId, data) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_investments/`, data);
         return response.data;
     },
 
@@ -622,6 +642,19 @@ export const paymentsService = {
         return response.data;
     },
 
+    async getAnalyticsSummary(groupId) {
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/analytics_summary/`);
+        return response.data;
+    },
+
+    async getFinancialReport(groupId, startDate = null, endDate = null) {
+        const params = {};
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
+        const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/financial_report/`, { params });
+        return response.data;
+    },
+
     async getGroupRules(groupId) {
         const response = await api.get(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/rules/`);
         return response.data;
@@ -689,8 +722,8 @@ export const paymentsService = {
         return response.data;
     },
 
-    async applyForLoan(loanData) {
-        const response = await api.post(API_ENDPOINTS.LOAN_APPLICATIONS, loanData);
+    async applyForLoan(groupId, loanData) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_loans/`, loanData);
         return response.data;
     },
 
@@ -772,6 +805,11 @@ export const paymentsService = {
     async claimRoundPayout(roundId, payload = {}) {
         const data = typeof payload === 'string' ? { destination: payload } : payload;
         const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/claim/`, data);
+        return response.data;
+    },
+
+    async restartRoundCycle(roundId) {
+        const response = await api.post(`${API_ENDPOINTS.ROUND_CONTRIBUTIONS}${roundId}/restart_cycle/`);
         return response.data;
     },
 

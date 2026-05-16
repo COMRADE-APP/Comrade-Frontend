@@ -747,7 +747,7 @@ const PaymentGroupDetail = () => {
             </Card>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-theme overflow-x-auto">
+            <div className="flex gap-1 border-b-2 border-emerald-100 dark:border-emerald-900/30 overflow-x-auto scrollbar-thin" style={{ scrollbarWidth: 'thin' }}>
                 {[
                     { id: 'overview', label: 'Overview', icon: Target },
                     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -773,12 +773,12 @@ const PaymentGroupDetail = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 -mb-px transition-colors whitespace-nowrap ${activeTab === tab.id
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-secondary hover:text-primary'
+                        className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 -mb-[2px] transition-all duration-200 whitespace-nowrap rounded-t-lg ${activeTab === tab.id
+                            ? 'border-amber-500 text-emerald-700 dark:text-amber-400 bg-gradient-to-t from-amber-50/80 to-transparent dark:from-amber-900/10'
+                            : 'border-transparent text-secondary hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10'
                             }`}
                     >
-                        <tab.icon className="w-4 h-4" />
+                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-amber-600 dark:text-amber-400' : ''}`} />
                         {tab.label}
                         {tab.id === 'approvals' && checkoutRequests.filter(req => req.status === 'pending').length > 0 && (
                             <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">

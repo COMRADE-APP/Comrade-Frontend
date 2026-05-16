@@ -638,6 +638,29 @@ const Dashboard = () => {
 
                     {/* Savings Goals / Piggy Banks */}
                     <PiggyBankFeed limit={3} />
+                    
+                    {/* Provider CTA */}
+                    <Card className="bg-gradient-to-br from-primary-600 to-indigo-700 text-white border-none shadow-lg">
+                        <CardBody className="p-5">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <ShoppingBag size={20} className="text-white" />
+                                </div>
+                                <h3 className="font-bold text-lg">Become a Provider</h3>
+                            </div>
+                            <p className="text-sm text-white/80 mb-4 line-clamp-2">
+                                Offer your services to the Qomrade community. Manage your products, staff, and transactions from our dedicated portal.
+                            </p>
+                            <a 
+                                href={import.meta.env.VITE_PROVIDER_URL || 'http://localhost:3001'} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="block w-full py-2.5 bg-white text-primary-700 font-bold text-sm text-center rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
+                            >
+                                Open Provider Portal
+                            </a>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </div>

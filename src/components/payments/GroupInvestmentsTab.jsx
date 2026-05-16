@@ -50,9 +50,8 @@ const GroupInvestmentsTab = ({ groupId }) => {
                 ...formData,
                 amount_invested: parseFloat(formData.amount_invested),
                 current_value: parseFloat(formData.current_value) || parseFloat(formData.amount_invested),
-                payment_group: groupId,
             };
-            await paymentsService.createGroupInvestment(payload);
+            await paymentsService.createGroupInvestment(groupId, payload);
             setShowCreateModal(false);
             resetForm();
             loadInvestments();
