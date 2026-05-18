@@ -11,6 +11,7 @@ import Button from '../../components/common/Button';
 import fundingService from '../../services/funding.service';
 import { formatDistanceToNow } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const SCAN_STATUS_COLORS = {
     pending: 'bg-yellow-100 text-yellow-700',
@@ -172,11 +173,7 @@ const RequestDetail = () => {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'KES',
-            minimumFractionDigits: 0
-        }).format(amount || 0);
+        return formatMoneySimple(amount || 0);
     };
 
     if (loading) {

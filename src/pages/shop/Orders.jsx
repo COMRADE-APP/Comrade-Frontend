@@ -188,6 +188,51 @@ const Orders = () => {
                                         {/* Expanded Details Section */}
                                         {expandedOrderId === order.id && (
                                             <div className="border-t border-theme bg-secondary/5 p-5 animate-in slide-in-from-top-2 duration-200">
+                                                {/* Visual Pipeline */}
+                                                <div className="mb-6 relative">
+                                                    <div className="absolute top-1/2 left-0 w-full h-1 bg-theme -translate-y-1/2 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className="h-full bg-primary-500 transition-all duration-500"
+                                                            style={{ 
+                                                                width: order.status === 'delivered' || order.status === 'completed' ? '100%' : 
+                                                                       order.status === 'out_for_delivery' || order.status === 'ready' ? '75%' : 
+                                                                       order.status === 'preparing' ? '50%' : 
+                                                                       order.status === 'confirmed' ? '25%' : '0%' 
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="relative flex justify-between">
+                                                        {['pending', 'confirmed', 'preparing', 'ready', 'delivered'].map((step, idx) => {
+                                                            const isPast = ['delivered', 'completed'].includes(order.status) || 
+                                                                          (order.status === 'out_for_delivery' && idx <= 3) ||
+                                                                          (order.status === 'ready' && idx <= 3) ||
+                                                                          (order.status === 'preparing' && idx <= 2) ||
+                                                                          (order.status === 'confirmed' && idx <= 1) ||
+                                                                          (order.status === 'pending' && idx === 0);
+                                                            const isCurrent = order.status === step || (step === 'ready' && order.status === 'out_for_delivery');
+                                                            return (
+                                                                <div key={step} className="flex flex-col items-center gap-2 bg-secondary/5 px-2">
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+                                                                        isCurrent ? 'border-primary-500 bg-primary-50 text-primary-600 shadow-[0_0_10px_rgba(99,102,241,0.3)]' :
+                                                                        isPast ? 'border-primary-500 bg-primary-500 text-white' : 
+                                                                        'border-theme bg-elevated text-tertiary'
+                                                                    }`}>
+                                                                        {isPast && !isCurrent ? <CheckCircle size={14} /> : 
+                                                                         step === 'pending' ? <Clock size={14} /> :
+                                                                         step === 'confirmed' ? <CheckCircle size={14} /> :
+                                                                         step === 'preparing' ? <RefreshCw size={14} className={isCurrent ? "animate-spin" : ""} /> :
+                                                                         step === 'ready' ? <Package size={14} /> :
+                                                                         <Truck size={14} />}
+                                                                    </div>
+                                                                    <span className={`text-[10px] font-bold uppercase tracking-wider hidden sm:block ${isCurrent ? 'text-primary-600' : isPast ? 'text-primary-700' : 'text-tertiary'}`}>
+                                                                        {step}
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
                                                 <h5 className="font-semibold text-primary mb-3 text-sm flex items-center gap-2">
                                                     <Package size={16} className="text-tertiary" /> Order Items
                                                 </h5>

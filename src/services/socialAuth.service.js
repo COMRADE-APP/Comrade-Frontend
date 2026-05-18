@@ -10,49 +10,31 @@ const socialAuthService = {
      * Opens popup or redirects to Google login
      */
     loginWithGoogle: () => {
-        window.location.href = API_ENDPOINTS.GOOGLE_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_GOOGLE_LOGIN;
     },
 
-    /**
-     * Initiate Facebook OAuth login
-     */
     loginWithFacebook: () => {
-        window.location.href = API_ENDPOINTS.FACEBOOK_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_FACEBOOK_LOGIN;
     },
 
-    /**
-     * Initiate GitHub OAuth login
-     */
     loginWithGitHub: () => {
-        window.location.href = API_ENDPOINTS.GITHUB_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_GITHUB_LOGIN;
     },
 
-    /**
-     * Initiate Apple OAuth login
-     */
     loginWithApple: () => {
-        window.location.href = API_ENDPOINTS.APPLE_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_APPLE_LOGIN;
     },
 
-    /**
-     * Initiate Twitter/X OAuth login
-     */
     loginWithTwitter: () => {
-        window.location.href = API_ENDPOINTS.TWITTER_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_TWITTER_LOGIN;
     },
 
-    /**
-     * Initiate LinkedIn OAuth login
-     */
     loginWithLinkedIn: () => {
-        window.location.href = API_ENDPOINTS.LINKEDIN_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_LINKEDIN_LOGIN;
     },
 
-    /**
-     * Initiate Microsoft OAuth login
-     */
     loginWithMicrosoft: () => {
-        window.location.href = API_ENDPOINTS.MICROSOFT_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_MICROSOFT_LOGIN;
     },
 
     /**

@@ -14,7 +14,7 @@ const RegisterShop = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        currency: 'KES'
+        currency: 'USD'
     });
 
     const [files, setFiles] = useState({
@@ -110,7 +110,6 @@ const RegisterShop = () => {
                                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                                     className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 >
-                                    <option value="KES">KES (Kenyan Shilling)</option>
                                     <option value="USD">USD (US Dollar)</option>
                                 </select>
                             </div>

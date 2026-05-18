@@ -96,6 +96,11 @@ const EventDetail = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [bookingStep, setBookingStep] = useState('check'); // check, confirm, done
 
+    // Sponsorship
+    const [sponsorshipData, setSponsorshipData] = useState(null);
+    const [showSponsorForm, setShowSponsorForm] = useState(false);
+    const [sponsorForm, setSponsorForm] = useState({ applicant_name: '', applicant_contact: '', application_details: '' });
+
     useEffect(() => {
         loadEvent();
         const searchParams = new URLSearchParams(window.location.search);
@@ -108,6 +113,14 @@ const EventDetail = () => {
             eventsService.logInteraction(event.id, 'view');
         }
     }, [event?.id]);
+
+    useEffect(() => {
+        if (activeTab === 'sponsorship' && event?.id && !sponsorshipData) {
+            eventsService.getSponsorshipDashboard(event.id)
+                .then(res => setSponsorshipData(res?.data || res))
+                .catch(() => setSponsorshipData({}));
+        }
+    }, [activeTab, event?.id]);
 
     const loadEvent = async () => {
         setLoading(true);
@@ -212,6 +225,7 @@ const EventDetail = () => {
         { id: 'schedule', label: 'Schedule', icon: CalendarDays },
         { id: 'booking', label: 'Book Slot', icon: Ticket },
         { id: 'tickets', label: 'Tickets', icon: Ticket },
+        { id: 'sponsorship', label: 'Sponsors', icon: DollarSign },
         { id: 'attendees', label: 'Attendees', icon: Users },
         { id: 'room', label: 'Discussion', icon: MessageSquare },
         { id: 'reviews', label: 'Reviews', icon: Star },
@@ -1026,6 +1040,122 @@ const EventDetail = () => {
 
                 {activeTab === 'analytics' && isOrganizer && (
                     <EventAnalyticsDashboard event={event} />
+                )}
+
+                {activeTab === 'sponsorship' && (
+                    <div className="space-y-6">
+                        {/* Sponsorship Levels */}
+                        <Card><CardBody>
+                            <h3 className="font-semibold text-lg mb-4 text-primary flex items-center gap-2">
+                                <DollarSign size={20} /> Sponsorship Tiers
+                            </h3>
+                            {sponsorshipData?.levels?.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {sponsorshipData.levels.map((level) => (
+                                        <div key={level.id} className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 transition-colors">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="font-bold text-primary">{level.name}</h4>
+                                                <span className="text-primary-600 font-bold text-lg">${level.price}</span>
+                                            </div>
+                                            <p className="text-sm text-secondary line-clamp-3">{level.benefits}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-secondary text-center py-6">No sponsorship levels defined yet.</p>
+                            )}
+                        </CardBody></Card>
+
+                        {/* Current Sponsors */}
+                        {sponsorshipData?.sponsors?.length > 0 && (
+                            <Card><CardBody>
+                                <h3 className="font-semibold text-lg mb-4 text-primary flex items-center gap-2">
+                                    <Star size={20} /> Current Sponsors
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {sponsorshipData.sponsors.map((sponsor, idx) => (
+                                        <div key={idx} className="flex items-center gap-3 p-3 bg-secondary/20 rounded-lg border border-theme/30">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-bold">
+                                                {sponsor.name?.[0]?.toUpperCase() || 'S'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-medium text-primary text-sm">{sponsor.name}</p>
+                                                <p className="text-xs text-secondary">{sponsor.level || 'Sponsor'} &middot; ${sponsor.amount}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardBody></Card>
+                        )}
+
+                        {/* Apply for Sponsorship */}
+                        <Card><CardBody>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-lg text-primary">Apply for Sponsorship</h3>
+                                <Button variant="primary" size="sm" onClick={() => setShowSponsorForm(!showSponsorForm)}>
+                                    <Plus size={16} className="mr-1" /> Apply
+                                </Button>
+                            </div>
+
+                            {showSponsorForm && (
+                                <div className="mb-6 p-4 bg-secondary/30 rounded-lg border border-theme/50 space-y-3">
+                                    <input type="text" placeholder="Your Name / Organization" value={sponsorForm.applicant_name}
+                                        onChange={e => setSponsorForm({ ...sponsorForm, applicant_name: e.target.value })}
+                                        className="w-full px-3 py-2 bg-transparent border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20" />
+                                    <input type="text" placeholder="Contact Email / Phone" value={sponsorForm.applicant_contact}
+                                        onChange={e => setSponsorForm({ ...sponsorForm, applicant_contact: e.target.value })}
+                                        className="w-full px-3 py-2 bg-transparent border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20" />
+                                    <textarea placeholder="Why do you want to sponsor this event?" value={sponsorForm.application_details}
+                                        onChange={e => setSponsorForm({ ...sponsorForm, application_details: e.target.value })}
+                                        className="w-full px-3 py-2 bg-transparent border border-theme rounded-lg text-primary outline-none resize-y focus:ring-2 focus:ring-primary/20" rows={4} />
+                                    <div className="flex gap-2">
+                                        <Button variant="primary" size="sm" onClick={async () => {
+                                            try {
+                                                await eventsService.applySponsorshipApplication({
+                                                    event: event.id,
+                                                    ...sponsorForm,
+                                                });
+                                                setSponsorForm({ applicant_name: '', applicant_contact: '', application_details: '' });
+                                                setShowSponsorForm(false);
+                                                alert('Application submitted!');
+                                            } catch (err) {
+                                                alert(err.response?.data?.error || 'Failed to submit application');
+                                            }
+                                        }}>Submit</Button>
+                                        <Button variant="secondary" size="sm" onClick={() => setShowSponsorForm(false)}>Cancel</Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Stats for organizer */}
+                            {isOrganizer && sponsorshipData && (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                                    <div className="p-3 bg-blue-500/10 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-blue-500">{sponsorshipData.total_applications || 0}</p>
+                                        <p className="text-xs text-secondary">Applications</p>
+                                    </div>
+                                    <div className="p-3 bg-green-500/10 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-green-500">{sponsorshipData.approved || 0}</p>
+                                        <p className="text-xs text-secondary">Approved</p>
+                                    </div>
+                                    <div className="p-3 bg-amber-500/10 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-amber-500">{sponsorshipData.pending || 0}</p>
+                                        <p className="text-xs text-secondary">Pending</p>
+                                    </div>
+                                    <div className="p-3 bg-primary/10 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-primary">${sponsorshipData.total_sponsorship_value || 0}</p>
+                                        <p className="text-xs text-secondary">Total Value</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <p className="text-sm text-secondary">
+                                {isOrganizer 
+                                    ? 'Manage sponsorship applications for your event below.'
+                                    : 'Submit your sponsorship proposal and the organizer will review it.'}
+                            </p>
+                        </CardBody></Card>
+                    </div>
                 )}
             </div>
         </div>

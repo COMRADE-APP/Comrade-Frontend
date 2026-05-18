@@ -6,11 +6,13 @@ import {
     Briefcase, ArrowLeft, Calendar, DollarSign, Users, AlertCircle, PieChart, Target, TrendingUp, Building, ThumbsUp, ThumbsDown, CheckCircle, Share2, UploadCloud
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
+import { useToast } from '../../contexts/ToastContext';
 import { formatDate } from '../../utils/dateFormatter';
 
 const GroupInvestmentDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const toast = useToast();
     const [investment, setInvestment] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -64,7 +66,7 @@ const GroupInvestmentDetail = () => {
             loadData();
         } catch (err) {
             console.error('Vote failed:', err);
-            alert('Vote submission failed.');
+            toast.error('Vote submission failed.');
         } finally {
             setVoteLoading(false);
         }
@@ -73,11 +75,11 @@ const GroupInvestmentDetail = () => {
     const handleJoinPitch = async () => {
         try {
             await paymentsService.joinPublicPitch(investment.id);
-            alert('You have successfully joined the syndicate!');
+            toast.success('You have successfully joined the syndicate!');
             loadData();
         } catch (err) {
             console.error('Join failed:', err);
-            alert('Could not join syndicate.');
+            toast.error('Could not join syndicate.');
         }
     };
 
@@ -90,11 +92,11 @@ const GroupInvestmentDetail = () => {
             } else {
                 await paymentsService.withdrawGains(investment.id, amount, 'direct_to_wallet');
             }
-            alert('Withdrawal successful');
+            toast.success('Withdrawal successful');
             loadData();
         } catch (err) {
             console.error('Withdrawal failed:', err);
-            alert('Withdrawal failed.');
+            toast.error('Withdrawal failed.');
         }
     };
 
@@ -108,7 +110,7 @@ const GroupInvestmentDetail = () => {
                 });
             } else {
                 await navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
+                toast.success('Link copied to clipboard!');
             }
         } catch (err) {
             console.error('Share failed', err);

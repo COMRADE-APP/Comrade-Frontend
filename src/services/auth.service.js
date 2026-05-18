@@ -1,28 +1,11 @@
-import axios from 'axios';
+import api from './api';
 import API_ENDPOINTS from '../constants/apiEndpoints';
-
-// Create independent axios instance to avoid circular dependency
-const api = axios.create({
-    baseURL: 'http://localhost:8000',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-// Add token interceptor
-api.interceptors.request.use((config) => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.access_token) {
-        config.headers.Authorization = `Bearer ${user.access_token}`;
-    }
-    return config;
-});
 
 const authService = {
     heartbeat: async () => {
         try {
             await api.post(API_ENDPOINTS.HEARTBEAT);
-        } catch (error) {
+        } catch {
             // Heartbeat failures should be silent
         }
     },
@@ -63,40 +46,59 @@ const authService = {
     },
 
     logout: async () => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user?.refresh_token) {
+        const rememberMe = localStorage.getItem('remember_me') === 'true';
+        const refreshToken = rememberMe
+            ? localStorage.getItem('refresh_token')
+            : sessionStorage.getItem('refresh_token') || localStorage.getItem('refresh_token');
+        if (refreshToken) {
             try {
-                await api.post(API_ENDPOINTS.LOGOUT, { refresh: user.refresh_token });
-            } catch (error) {
-                console.error("Logout failed on server", error);
+                await api.post(API_ENDPOINTS.LOGOUT, { refresh: refreshToken });
+            } catch {
+                // Logout failure is non-blocking
             }
         }
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('remember_me');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('user');
     },
 
     logoutAllDevices: async () => {
         const response = await api.post(API_ENDPOINTS.LOGOUT_ALL);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('remember_me');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('user');
         return response.data;
     },
 
     getCurrentUser: async () => {
         try {
-            const stored = JSON.parse(localStorage.getItem('user'));
+            const rememberMe = localStorage.getItem('remember_me') === 'true';
+            const stored = rememberMe
+                ? JSON.parse(localStorage.getItem('user'))
+                : JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user'));
             if (!stored?.access_token) return null;
 
-            // Fetch fresh user data from server
-            const response = await api.get('/api/auth/me/');
+            const response = await api.get('/auth/me/');
             const freshData = response.data;
 
-            // Merge fresh user data with stored tokens
             const merged = { ...stored, ...freshData };
-            localStorage.setItem('user', JSON.stringify(merged));
+            if (rememberMe) {
+                localStorage.setItem('user', JSON.stringify(merged));
+            } else {
+                sessionStorage.setItem('user', JSON.stringify(merged));
+            }
             return merged;
-        } catch (error) {
-            // Fallback to stored data if server is unreachable
+        } catch {
             try {
-                return JSON.parse(localStorage.getItem('user'));
+                return JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
             } catch {
                 return null;
             }
@@ -105,18 +107,20 @@ const authService = {
 
     getStoredUser: () => {
         try {
-            return JSON.parse(localStorage.getItem('user'));
-        } catch (error) {
+            return JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+        } catch {
             return null;
         }
     },
 
     isAuthenticated: () => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        return !!user?.access_token;
+        const rememberMe = localStorage.getItem('remember_me') === 'true';
+        const token = rememberMe
+            ? localStorage.getItem('access_token')
+            : sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        return !!token;
     },
 
-    // Password Reset
     requestPasswordReset: async (email) => {
         const response = await api.post(API_ENDPOINTS.PASSWORD_RESET_REQUEST, { email });
         return response.data;
@@ -127,7 +131,6 @@ const authService = {
         return response.data;
     },
 
-    // 2FA Setup
     setup2FA: async () => {
         const response = await api.post(API_ENDPOINTS.SETUP_2FA);
         return response.data;
@@ -138,7 +141,6 @@ const authService = {
         return response.data;
     },
 
-    // Change Password
     changePassword: async (currentPassword, newPassword) => {
         const response = await api.post(API_ENDPOINTS.CHANGE_PASSWORD, {
             current_password: currentPassword,
@@ -147,19 +149,16 @@ const authService = {
         return response.data;
     },
 
-    // Role Change Request
     requestRoleChange: async (requestData) => {
         const response = await api.post(API_ENDPOINTS.ROLE_CHANGE_REQUEST, requestData);
         return response.data;
     },
 
-    // Get Role Change Requests (for admins)
     getRoleChangeRequests: async () => {
         const response = await api.get(API_ENDPOINTS.ROLE_CHANGE_REQUESTS);
         return response.data;
     },
 
-    // Approve/Reject Role Change Request (for admins)
     updateRoleChangeRequest: async (requestId, status, adminNotes = '') => {
         const response = await api.patch(`${API_ENDPOINTS.ROLE_CHANGE_REQUESTS}${requestId}/`, {
             status,
@@ -168,23 +167,19 @@ const authService = {
         return response.data;
     },
 
-    // Profile Setup - called after registration
     setupProfile: async (profileData) => {
         const formData = new FormData();
 
-        // Add text fields
         if (profileData.bio) formData.append('bio', profileData.bio);
         if (profileData.location) formData.append('location', profileData.location);
         if (profileData.occupation) formData.append('occupation', profileData.occupation);
         if (profileData.company) formData.append('company', profileData.company);
         if (profileData.website) formData.append('website', profileData.website);
 
-        // Add interests as comma-separated string
         if (profileData.interests && profileData.interests.length > 0) {
             formData.append('interests', profileData.interests.join(','));
         }
 
-        // Add avatar file
         if (profileData.avatar) {
             formData.append('avatar', profileData.avatar);
         }
@@ -195,13 +190,11 @@ const authService = {
         return response.data;
     },
 
-    // Get profile
     getProfile: async () => {
         const response = await api.get(API_ENDPOINTS.PROFILE);
         return response.data;
     },
 
-    // Update profile
     updateProfile: async (profileData) => {
         const formData = new FormData();
         Object.entries(profileData).forEach(([key, value]) => {

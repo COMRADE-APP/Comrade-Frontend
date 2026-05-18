@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { useTheme } from '../contexts/ThemeContext';
@@ -32,9 +32,21 @@ const XLogo = ({ className }) => (
 
 const Settings = () => {
     const { user, logout, updateUser } = useAuth();
-    const navigate = useNavigate();
+    const location = useLocation();
     const { theme, setTheme: changeTheme, isDark } = useTheme();
-    const [activeTab, setActiveTab] = useState('account');
+    const queryParams = new URLSearchParams(location.search);
+    const initialTab = queryParams.get('tab') || 'account';
+    const [activeTab, setActiveTab] = useState(initialTab);
+    
+    useEffect(() => {
+        const tab = new URLSearchParams(location.search).get('tab');
+        if (tab) setActiveTab(tab);
+    }, [location.search]);
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        navigate(`/settings?tab=${tabId}`, { replace: true });
+    };
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -242,7 +254,8 @@ const Settings = () => {
 
     const tabs = [
         { id: 'account', label: 'Account Center', icon: UserCog },
-        { id: 'security', label: 'Privacy & Security', icon: Shield },
+        { id: 'security', label: 'Security & Login', icon: Shield },
+        { id: 'privacy', label: 'Privacy & Visibility', icon: Eye },
         { id: 'verification', label: 'Verification & KYC', icon: UserCheck },
         { id: 'notifications', label: 'Notifications', icon: Bell },
         { id: 'appearance', label: 'Display & Accessibility', icon: MonitorSmartphone },
@@ -265,7 +278,7 @@ const Settings = () => {
                             return (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => handleTabChange(tab.id)}
                                     className={`flex-shrink-0 flex items-center gap-3 px-4 py-2.5 rounded-full md:rounded-xl font-medium text-sm transition-all ${
                                         isActive
                                             ? 'bg-primary text-white md:bg-primary/10 md:text-primary'
@@ -643,104 +656,6 @@ const Settings = () => {
                         </CardBody>
                     </Card>
 
-                    {/* Profile Visibility */}
-                    <Card>
-                        <CardHeader className="p-4 border-b border-theme">
-                            <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <User className="w-5 h-5" />
-                                Profile Visibility
-                            </h3>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                {/* Activity Status */}
-                                <div className="flex items-center justify-between py-3 border-b border-theme">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Show Activity Status</h4>
-                                        <p className="text-sm text-secondary">Allow others to see when you're online or last seen</p>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const newStatus = !user?.user_profile?.show_activity_status;
-                                                await authService.updateProfile({ show_activity_status: newStatus });
-                                                updateUser({
-                                                    user_profile: {
-                                                        ...user?.user_profile,
-                                                        show_activity_status: newStatus,
-                                                    }
-                                                });
-                                                showMessage('success', 'Privacy setting updated');
-                                            } catch (error) {
-                                                showMessage('error', 'Failed to update setting');
-                                            }
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ? 'bg-primary-600' : 'bg-secondary'
-                                            }`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
-
-                                {/* Read Receipts */}
-                                <div className="flex items-center justify-between py-3 border-b border-theme">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Read Receipts</h4>
-                                        <p className="text-sm text-secondary">Allow others to see when you've read their messages</p>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const newStatus = !user?.user_profile?.show_read_receipts;
-                                                await authService.updateProfile({ show_read_receipts: newStatus });
-                                                updateUser({
-                                                    user_profile: {
-                                                        ...user?.user_profile,
-                                                        show_read_receipts: newStatus,
-                                                    }
-                                                });
-                                                showMessage('success', 'Privacy setting updated');
-                                            } catch (error) {
-                                                showMessage('error', 'Failed to update setting');
-                                            }
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ? 'bg-primary-600' : 'bg-secondary'
-                                            }`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
-
-                                <div className="flex items-center justify-between py-3 border-b border-theme last:border-0">
-                                    <div>
-                                        <h4 className="font-medium text-primary">Public Profile</h4>
-                                        <p className="text-sm text-secondary">Allow others to view your profile</p>
-                                    </div>
-                                    <button 
-                                        onClick={async () => {
-                                            try {
-                                                const newStatus = !user?.user_profile?.public_profile;
-                                                await authService.updateProfile({ public_profile: newStatus });
-                                                updateUser({
-                                                    user_profile: {
-                                                        ...user?.user_profile,
-                                                        public_profile: newStatus,
-                                                    }
-                                                });
-                                                showMessage('success', 'Privacy setting updated');
-                                            } catch (error) {
-                                                showMessage('error', 'Failed to update setting');
-                                            }
-                                        }}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.public_profile ? 'bg-primary-600' : 'bg-secondary'}`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.public_profile ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
-                            </div>
-                        </CardBody>
-                    </Card>
-
                     {/* Danger Zone */}
                     <Card className="border-red-200 dark:border-red-900/50">
                         <CardHeader className="p-4 border-b border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
@@ -759,6 +674,177 @@ const Settings = () => {
                                 </div>
                                 <Button variant="danger" onClick={handleDeleteAccount}>
                                     Delete My Account
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+
+            {/* Privacy & Visibility Tab */}
+            {activeTab === 'privacy' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    
+                    {/* Contact Information Privacy */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Mail className="w-5 h-5 text-indigo-500" />
+                                Contact Information Visibility
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-5">
+                                <div>
+                                    <h4 className="font-medium text-primary mb-1">Email Address</h4>
+                                    <p className="text-sm text-secondary mb-3">Choose who is allowed to view your email address on your profile</p>
+                                    <div className="relative">
+                                        <select 
+                                            value={user?.user_profile?.show_email || 'followers'}
+                                            onChange={async (e) => {
+                                                try {
+                                                    await authService.updateProfile({ show_email: e.target.value });
+                                                    updateUser({ user_profile: { ...user?.user_profile, show_email: e.target.value } });
+                                                    showMessage('success', 'Email visibility updated');
+                                                } catch (err) { showMessage('error', 'Failed to update setting'); }
+                                            }}
+                                            className="w-full md:w-1/2 px-4 py-2.5 border border-theme bg-secondary text-primary rounded-xl outline-none focus:border-primary-500 appearance-none"
+                                        >
+                                            <option value="public">Everyone</option>
+                                            <option value="followers">Followers Only</option>
+                                            <option value="private">Only Me (Private)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="pt-2 border-t border-theme">
+                                    <h4 className="font-medium text-primary mb-1 mt-3">Phone Number</h4>
+                                    <p className="text-sm text-secondary mb-3">Choose who is allowed to view your phone number</p>
+                                    <div className="relative">
+                                        <select 
+                                            value={user?.user_profile?.show_phone || 'private'}
+                                            onChange={async (e) => {
+                                                try {
+                                                    await authService.updateProfile({ show_phone: e.target.value });
+                                                    updateUser({ user_profile: { ...user?.user_profile, show_phone: e.target.value } });
+                                                    showMessage('success', 'Phone visibility updated');
+                                                } catch (err) { showMessage('error', 'Failed to update setting'); }
+                                            }}
+                                            className="w-full md:w-1/2 px-4 py-2.5 border border-theme bg-secondary text-primary rounded-xl outline-none focus:border-primary-500 appearance-none"
+                                        >
+                                            <option value="public">Everyone</option>
+                                            <option value="followers">Followers Only</option>
+                                            <option value="private">Only Me (Private)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Communication Permissions */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Send className="w-5 h-5 text-emerald-500" />
+                                Communication Permissions
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-5">
+                                <div>
+                                    <h4 className="font-medium text-primary mb-1">Direct Messages</h4>
+                                    <p className="text-sm text-secondary mb-3">Control who is allowed to send you direct messages on the platform</p>
+                                    <div className="relative">
+                                        <select 
+                                            value={user?.user_profile?.allow_messages || 'followers'}
+                                            onChange={async (e) => {
+                                                try {
+                                                    await authService.updateProfile({ allow_messages: e.target.value });
+                                                    updateUser({ user_profile: { ...user?.user_profile, allow_messages: e.target.value } });
+                                                    showMessage('success', 'Messaging permissions updated');
+                                                } catch (err) { showMessage('error', 'Failed to update setting'); }
+                                            }}
+                                            className="w-full md:w-1/2 px-4 py-2.5 border border-theme bg-secondary text-primary rounded-xl outline-none focus:border-primary-500 appearance-none"
+                                        >
+                                            <option value="anyone">Anyone on Qomrade</option>
+                                            <option value="followers">Followers Only</option>
+                                            <option value="none">No One</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Platform Presence */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-blue-500" />
+                                Platform Presence
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between py-3 border-b border-theme">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Activity Status</h4>
+                                        <p className="text-sm text-secondary">Allow others to see when you're instantly active or last online</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !(user?.user_profile?.show_activity_status ?? true);
+                                                await authService.updateProfile({ show_activity_status: newStatus });
+                                                updateUser({ user_profile: { ...user?.user_profile, show_activity_status: newStatus } });
+                                                showMessage('success', 'Activity status updated');
+                                            } catch (error) { showMessage('error', 'Failed to update setting'); }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_activity_status ?? true ? 'bg-primary-600' : 'bg-secondary'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_activity_status ?? true ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between py-3">
+                                    <div>
+                                        <h4 className="font-medium text-primary">Read Receipts</h4>
+                                        <p className="text-sm text-secondary">Allow senders to see when you've viewed their messages</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const newStatus = !(user?.user_profile?.show_read_receipts ?? true);
+                                                await authService.updateProfile({ show_read_receipts: newStatus });
+                                                updateUser({ user_profile: { ...user?.user_profile, show_read_receipts: newStatus } });
+                                                showMessage('success', 'Read receipts toggled');
+                                            } catch (error) { showMessage('error', 'Failed to update setting'); }
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.user_profile?.show_read_receipts ?? true ? 'bg-primary-600' : 'bg-secondary'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.user_profile?.show_read_receipts ?? true ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Blocked Entities */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Shield className="w-5 h-5 text-red-500" />
+                                Blocked Accounts & Communities
+                            </h3>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-sm font-medium text-primary">Manage Blocked Entities</p>
+                                    <p className="text-sm text-secondary">Review the list of users, organisations, or institutions you have blocked from viewing or interacting with your profile.</p>
+                                </div>
+                                <Button variant="outline" onClick={() => showMessage('success', 'Block list management coming soon')}>
+                                    <User className="w-4 h-4 mr-2" /> View Block List
                                 </Button>
                             </div>
                         </CardBody>

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import portalService from '../../services/portal.service';
 import { ROUTES } from '../../constants/routes';
 import { PortalSidebar } from './StaffPortal';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import './RolePortal.css';
 
 const InstitutionPortal = () => {
@@ -231,7 +232,7 @@ const InstitutionPortal = () => {
                                                 {(partnerData.recent_products || []).map((p, i) => (
                                                     <tr key={i}>
                                                         <td style={{ fontWeight: 600 }}>{p.name}</td>
-                                                        <td>KES {p.price}</td>
+                                                        <td>{formatMoneySimple(p.price)}</td>
                                                         <td><span className={`portal-badge ${p.status === 'active' ? 'success' : 'warning'}`}>{p.status}</span></td>
                                                         <td>{formatDate(p.created_at)}</td>
                                                     </tr>

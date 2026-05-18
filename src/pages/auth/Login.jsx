@@ -81,7 +81,7 @@ const Login = () => {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = API_ENDPOINTS.GOOGLE_LOGIN;
+        window.location.href = API_ENDPOINTS.SOCIAL_GOOGLE_LOGIN;
     };
 
     return (

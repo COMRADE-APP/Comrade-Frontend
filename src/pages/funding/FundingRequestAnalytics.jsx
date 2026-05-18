@@ -9,6 +9,7 @@ import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import fundingService from '../../services/funding.service';
 import { formatDistanceToNow, format } from 'date-fns';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const REACTION_LABELS = {
     'interested': '👀 Shown Interest',
@@ -98,7 +99,7 @@ const FundingRequestAnalytics = () => {
                             <Activity className="w-6 h-6 text-primary-600" /> Traction Analytics
                         </h1>
                         <p className="text-secondary mt-1">
-                            For {request.business_name} • KES {Number(request.amount_needed).toLocaleString()}
+                            For {request.business_name} • {formatMoneySimple(request.amount_needed)}
                         </p>
                     </div>
                 </div>
@@ -197,7 +198,7 @@ const FundingRequestAnalytics = () => {
                                             <div className="text-right shrink-0 mt-3 sm:mt-0">
                                                 {resp.response_type === 'offer' && (
                                                     <p className="font-bold text-green-600 mb-1">
-                                                        KES {Number(resp.offer_amount).toLocaleString()}
+                                                        {formatMoneySimple(resp.offer_amount)}
                                                     </p>
                                                 )}
                                                 <Button size="sm" variant="outline" onClick={() => navigate(`/rooms`)}>

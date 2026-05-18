@@ -44,7 +44,7 @@ const MobileNav = () => {
         const checkUpdates = async () => {
             try {
                 const endpoints = [
-                    { path: ROUTES.MESSAGES, url: '/api/rooms/rooms/unread_summary/' },
+                    { path: ROUTES.MESSAGES, url: '/api/rooms/dm_rooms/' },
                 ];
                 const results = await Promise.allSettled(
                     endpoints.map(ep => api.get(ep.url).then(res => ({ path: ep.path, data: res.data })))
@@ -53,7 +53,8 @@ const MobileNav = () => {
                 results.forEach(r => {
                     if (r.status === 'fulfilled') {
                         const { path, data } = r.value;
-                        const count = data?.total_unread || data?.count || (Array.isArray(data) ? data.length : 0);
+                        const results = data?.results || (Array.isArray(data) ? data : []);
+                        const count = results.filter(r => (r.unread_count || 0) > 0).length;
                         if (count > 0 && !visitedPages[path]) {
                             updates[path] = true;
                         }

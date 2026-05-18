@@ -3,10 +3,11 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { CreditCard, DollarSign, Download, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, Filter } from 'lucide-react';
+import { CreditCard, DollarSign, Download, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, ArrowDownLeft, ArrowLeftRight, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, Filter, ChevronRight, ChevronDown, Clock, RefreshCw, ShoppingCart, Heart, Building, Gift, BarChart3 } from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
 import { formatDate } from '../utils/dateFormatter';
+import { formatMoneySimple } from '../utils/moneyUtils.jsx';
 import { ROUTES } from '../constants/routes';
 
 
@@ -24,7 +25,9 @@ const Payments = () => {
     
     const initialTab = searchParams.get('tab') || 'transactions';
     const [activeMainTab, setActiveMainTab] = useState(initialTab);
-    const [savedMethods, setSavedMethods] = useState(null); 
+    const [savedMethods, setSavedMethods] = useState(null);
+    const [expandedTxnId, setExpandedTxnId] = useState(null);
+    const [txnPage, setTxnPage] = useState(1); 
 
     useEffect(() => {
         if (activeMainTab !== searchParams.get('tab')) {
@@ -62,16 +65,25 @@ const Payments = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [profile, txns, reqs] = await Promise.all([
+            const [profile, historyData, reqs] = await Promise.all([
                 paymentsService.getProfile().catch(() => null),
-                paymentsService.getTransactions().catch(() => []),
+                paymentsService.getTransactionHistory().catch(() => []),
                 paymentsService.getMyCheckoutRequests().catch(() => [])
             ]);
             setPaymentProfile(profile);
-            setTransactions(Array.isArray(txns) ? txns : (txns?.results || []));
+            // Use transaction history which has proper IDs for reversal
+            const txns = Array.isArray(historyData) ? historyData : (historyData?.results || []);
+            setTransactions(txns);
             setCheckoutRequests(Array.isArray(reqs) ? reqs : (reqs?.results || []));
         } catch (error) {
             console.error('Error loading payment data:', error);
+            // Fallback to regular transactions endpoint
+            try {
+                const txns = await paymentsService.getTransactions();
+                setTransactions(Array.isArray(txns) ? txns : (txns?.results || []));
+            } catch (e) {
+                console.error('Fallback transaction fetch also failed:', e);
+            }
         } finally {
             setLoading(false);
         }
@@ -91,7 +103,7 @@ const Payments = () => {
     const filteredTransactions = filter === 'all'
         ? transactions
         : filter === 'group_transaction'
-            ? transactions.filter(t => t.transaction_details?.group_name)
+            ? transactions.filter(t => t.transaction_details?.group_id)
             : filter === 'investment'
                 ? transactions.filter(t => t.transaction_type === 'investment' || t.transaction_type === 'bid')
                 : transactions.filter(t => t.transaction_type === filter);
@@ -142,6 +154,14 @@ const Payments = () => {
                     >
                         <CheckCircle className="w-4 h-4 mr-2" />
                         Verify Account
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/reverse-transaction')}
+                        className="border-theme hover:border-red-500 hover:bg-red-50 text-red-600"
+                    >
+                        <ArrowLeftRight className="w-4 h-4 mr-2" />
+                        Reverse
                     </Button>
                     <Button
                         variant="outline"
@@ -299,12 +319,11 @@ const Payments = () => {
 
             {activeMainTab === 'transactions' && (
                 <>
-                    {/* Filters */}
                     <div className="flex gap-2 overflow-x-auto pb-2">
                         {['all', 'purchase', 'deposit', 'withdrawal', 'transfer', 'group_transaction', 'investment', 'donation'].map((f) => (
                             <button
                                 key={f}
-                                onClick={() => setFilter(f)}
+                                onClick={() => { setFilter(f); setTxnPage(1); }}
                                 className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
                                     ? 'bg-primary-600 text-white'
                                     : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
@@ -315,34 +334,206 @@ const Payments = () => {
                         ))}
                     </div>
 
-                    {/* Transactions */}
-                    <Card>
-                        <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
-                            <h3 className="font-semibold text-primary">Recent Transactions</h3>
-                            <Button variant="outline">
-                                <Download className="w-4 h-4 mr-2" />
-                                Export
-                            </Button>
-                        </CardHeader>
-                        <CardBody className="p-0">
-                            {loading ? (
-                                <div className="text-center py-12">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-                                </div>
-                            ) : filteredTransactions.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <DollarSign className="w-12 h-12 text-tertiary mx-auto mb-4" />
-                                    <p className="text-secondary">No transactions yet</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-theme">
-                                    {filteredTransactions.map((txn, idx) => (
-                                        <TransactionRow key={idx} transaction={txn} />
-                                    ))}
-                                </div>
-                            )}
-                        </CardBody>
-                    </Card>
+                    {loading ? (
+                        <div className="text-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                        </div>
+                    ) : filteredTransactions.length === 0 ? (
+                        <div className="text-center py-20">
+                            <DollarSign className="w-16 h-16 text-tertiary mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-primary mb-2">No transactions found</h3>
+                            <p className="text-secondary mb-4">
+                                {filter === 'all' ? "You haven't made any transactions yet" : `No ${filter} transactions`}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {filteredTransactions.map((txn, idx) => {
+                                const isExpanded = expandedTxnId === txn.id;
+                                return (
+                                    <Card
+                                        key={idx}
+                                        className={`transition-all duration-300 overflow-hidden border ${isExpanded ? 'border-primary shadow-md' : 'hover:shadow-md border-theme'}`}
+                                    >
+                                        <CardBody className="p-0">
+                                            <div
+                                                className="p-5 flex flex-col md:flex-row md:items-center gap-4 cursor-pointer"
+                                                onClick={() => setExpandedTxnId(isExpanded ? null : txn.id)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                                        txn.direction === 'received' ? 'bg-green-500/10' :
+                                                        txn.direction === 'sent' ? 'bg-red-500/10' :
+                                                        txn.transaction_type === 'deposit' ? 'bg-green-500/10' :
+                                                        txn.transaction_type === 'withdrawal' ? 'bg-red-500/10' :
+                                                        txn.transaction_type === 'transfer' ? 'bg-blue-500/10' :
+                                                        txn.transaction_type === 'purchase' && txn.transaction_details?.group_id ? 'bg-primary-600/10' :
+                                                        txn.transaction_type === 'purchase' ? 'bg-amber-500/10' :
+                                                        txn.transaction_type === 'group_transaction' ? 'bg-primary-600/10' :
+                                                        txn.transaction_type === 'investment' ? 'bg-amber-500/10' :
+                                                        'bg-secondary/10'
+                                                    }`}>
+                                                        {txn.direction === 'received' ? <ArrowDownLeft className="w-5 h-5 text-green-600" /> :
+                                                         txn.direction === 'sent' ? <ArrowUpCircle className="w-5 h-5 text-red-600" /> :
+                                                         txn.transaction_type === 'deposit' ? <ArrowDownLeft className="w-5 h-5 text-green-600" /> :
+                                                         txn.transaction_type === 'withdrawal' ? <ArrowUpCircle className="w-5 h-5 text-red-600" /> :
+                                                         txn.transaction_type === 'transfer' ? <ArrowLeftRight className="w-5 h-5 text-blue-600" /> :
+                                                         txn.transaction_type === 'purchase' ? <ShoppingCart className={`w-5 h-5 ${txn.transaction_details?.group_id ? 'text-primary' : 'text-amber-600'}`} /> :
+                                                         txn.transaction_type === 'group_transaction' ? <Users className="w-5 h-5 text-primary" /> :
+                                                         txn.transaction_type === 'investment' ? <TrendingUp className="w-5 h-5 text-amber-600" /> :
+                                                         <DollarSign className="w-5 h-5 text-secondary" />}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                                        <h4 className="font-bold text-primary truncate">
+                                                            {txn.transaction_details?.group_name || txn.group_name ? (
+                                                                <Link to={`/payments/groups/${txn.transaction_details?.group_id || txn.group_id}`} className="hover:underline" onClick={e => e.stopPropagation()}>
+                                                                    {txn.transaction_details?.group_name || txn.group_name}
+                                                                </Link>
+                                                            ) : txn.transaction_type === 'group_transaction' ? (
+                                                                <span>Group Transaction</span>
+                                                            ) : txn.transaction_type === 'purchase' && (txn.transaction_details?.group_id || txn.group_id) ? (
+                                                                <span>Group Purchase</span>
+                                                            ) : txn.transaction_type === 'purchase' ? (
+                                                                <span>Purchase</span>
+                                                            ) : (
+                                                                txn.transaction_category || (txn.transaction_type ? txn.transaction_type.charAt(0).toUpperCase() + txn.transaction_type.slice(1) : 'Transaction')
+                                                            )}
+                                                        </h4>
+                                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                            txn.status === 'completed' || txn.status === 'completed' ? 'bg-green-500/10 text-green-700' :
+                                                            txn.status === 'pending' ? 'bg-amber-500/10 text-amber-700' :
+                                                            txn.status === 'failed' ? 'bg-red-500/10 text-red-700' :
+                                                            'bg-blue-500/10 text-blue-700'
+                                                        }`}>
+                                                            {txn.status === 'completed' ? <CheckCircle size={10} /> : txn.status === 'pending' ? <Clock size={10} /> : null}
+                                                            {(txn.status || 'pending').charAt(0).toUpperCase() + (txn.status || 'pending').slice(1)}
+                                                        </span>
+                                                        {txn.transaction_type === 'group_transaction' && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-600/10 text-primary-700 border border-primary-600/20">
+                                                                <Users size={10} /> Group
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-secondary">
+                                                        <span className="flex items-center gap-1">
+                                                            <Clock size={14} /> {formatDate(txn.created_at)}
+                                                        </span>
+                                                        {txn.transaction_details?.recipient_name && (
+                                                            <span className="flex items-center gap-1">
+                                                                To: <span className="font-medium text-primary">{txn.transaction_details.recipient_name}</span>
+                                                            </span>
+                                                        )}
+                                                        {txn.transaction_details?.initiator_name && (
+                                                            <span className="flex items-center gap-1">
+                                                                From: <span className="font-medium text-primary">{txn.transaction_details.initiator_name}</span>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`font-bold text-lg ${txn.direction === 'received' ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {txn.direction === 'received' ? '+' : '-'}{formatMoneySimple(parseFloat(txn.amount))}
+                                                    </span>
+                                                    {txn.direction === 'received' && (txn.initiator_name || txn.sender_name) && (
+                                                        <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                            From {txn.initiator_name || txn.sender_name}
+                                                        </span>
+                                                    )}
+                                                    {txn.direction === 'sent' && (txn.recipient_name || txn.recipient_name) && (
+                                                        <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                            To {txn.recipient_name || txn.recipient_name}
+                                                        </span>
+                                                    )}
+                                                    {txn.transaction_type === 'group_transaction' && (txn.transaction_details?.group_id || txn.group_id) && (
+                                                        <span className="text-xs text-white bg-primary-600 px-2 py-0.5 rounded-full border border-primary-700">
+                                                            Group
+                                                        </span>
+                                                    )}
+                                                    {txn.transaction_type === 'purchase' && (txn.transaction_details?.group_id || txn.group_id) && (
+                                                        <span className="text-xs text-white bg-primary-600 px-2 py-0.5 rounded-full border border-primary-700">
+                                                            Group Purchase
+                                                        </span>
+                                                    )}
+                                                    {txn.transaction_type === 'purchase' && !txn.transaction_details?.group_id && !txn.group_id && (
+                                                        <span className="text-xs text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                                            Purchase
+                                                        </span>
+                                                    )}
+                                                    {txn.transaction_type === 'investment' && (
+                                                        <span className="text-xs text-secondary bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 text-amber-700">
+                                                            Investment
+                                                        </span>
+                                                    )}
+                                                    {txn.transaction_type === 'donation' && (
+                                                        <span className="text-xs text-secondary bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20 text-pink-700">
+                                                            Donation
+                                                        </span>
+                                                    )}
+                                                    <ChevronRight size={20} className={`text-secondary transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                                                </div>
+                                            </div>
+
+                                            {isExpanded && (
+                                                <div className="border-t border-theme bg-secondary/5 p-5 animate-in slide-in-from-top-2 duration-200">
+                                                    {txn.description && (
+                                                        <p className="text-sm text-secondary mb-4">{txn.description}</p>
+                                                    )}
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                                        <div>
+                                                            <p className="text-xs text-secondary mb-1">Transaction ID</p>
+                                                            <p className="font-medium text-primary font-mono text-xs">{txn.id}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-secondary mb-1">Type</p>
+                                                            <p className="font-medium text-primary capitalize">{txn.transaction_type || 'Unknown'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-secondary mb-1">Status</p>
+                                                            <p className="font-medium text-primary capitalize">{txn.status || 'pending'}</p>
+                                                        </div>
+                                                        {txn.transaction_category && (
+                                                            <div>
+                                                                <p className="text-xs text-secondary mb-1">Category</p>
+                                                                <p className="font-medium text-primary">{txn.transaction_category}</p>
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="text-xs text-secondary mb-1">Amount</p>
+                                                            <p className={`font-semibold ${txn.direction === 'received' ? 'text-green-600' : 'text-red-600'}`}>
+                                                                {txn.direction === 'received' ? '+' : '-'}{formatMoneySimple(parseFloat(txn.amount))}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-secondary mb-1">Date</p>
+                                                            <p className="font-medium text-primary">{formatDate(txn.created_at)}</p>
+                                                        </div>
+                                                    </div>
+                                                    {txn.transaction_details && Object.keys(txn.transaction_details).length > 0 && (
+                                                        <div className="mt-4 pt-4 border-t border-theme">
+                                                            <p className="text-xs text-secondary mb-2 font-medium">Details</p>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                                                                {Object.entries(txn.transaction_details).map(([key, val]) => {
+                                                                    if (!val || key === 'group_id' || key === 'group_name' || key === 'group_cover_photo') return null;
+                                                                    return (
+                                                                        <div key={key} className="bg-white/50 dark:bg-black/10 rounded-lg p-2">
+                                                                            <p className="text-secondary capitalize">{key.replace(/_/g, ' ')}</p>
+                                                                            <p className="font-medium text-primary mt-0.5 truncate">{String(val)}</p>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </CardBody>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )}
                 </>
             )}
 
@@ -372,7 +563,7 @@ const Payments = () => {
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="font-bold text-lg text-primary">
-                                                        KES {parseFloat(req.amount).toFixed(2)}
+                                                        {formatMoneySimple(parseFloat(req.amount))}
                                                     </span>
                                                     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                                                         req.status === 'approved' ? 'bg-green-100 text-green-700' :

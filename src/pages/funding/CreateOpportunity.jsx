@@ -167,7 +167,7 @@ const CreateOpportunity = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <Input
-                                    label="Min Individual Entry (USD/KES)"
+                                    label="Min Individual Entry (USD)"
                                     name="min_individual_entry"
                                     type="number"
                                     min="0"
@@ -178,7 +178,7 @@ const CreateOpportunity = () => {
                                     required
                                 />
                                 <Input
-                                    label="Min Group Entry (USD/KES)"
+                                    label="Min Group Entry (USD)"
                                     name="min_group_entry"
                                     type="number"
                                     min="0"

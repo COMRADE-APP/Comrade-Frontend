@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import fundingService from '../../services/funding.service';
 import Button from '../../components/common/Button';
 import { useNavigate, useParams } from 'react-router-dom';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const INDUSTRY_LABELS = {
     tech: 'Technology', agri: 'Agriculture', fin: 'Finance',
@@ -389,7 +390,7 @@ const ApplicationTracking = ({ requests, loading, navigate }) => {
                                                 </p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-lg font-bold text-primary">KES {Number(req.amount_needed).toLocaleString()}</p>
+                                                <p className="text-lg font-bold text-primary">{formatMoneySimple(req.amount_needed)}</p>
                                                 <p className="text-xs text-secondary">{req.equity_offered}% equity</p>
                                             </div>
                                         </div>
@@ -492,7 +493,7 @@ const CapitalVenturesTab = ({ myVentures, allVentures, loading, navigate }) => {
                                         <p className="text-sm text-secondary mt-1 line-clamp-2">{venture.investment_focus || venture.description}</p>
                                         <div className="mt-4 pt-3 border-t border-theme flex justify-between text-sm">
                                             <span className="text-secondary">{venture.received_requests_count || 0} requests</span>
-                                            <span className="text-primary-600 font-medium">KES {venture.available_fund?.toLocaleString()}</span>
+                                            <span className="text-primary-600 font-medium">{formatMoneySimple(venture.available_fund)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -525,7 +526,7 @@ const CapitalVenturesTab = ({ myVentures, allVentures, loading, navigate }) => {
                                 </div>
                                 <p className="text-sm text-secondary line-clamp-2 mb-3">{venture.investment_focus || venture.description}</p>
                                 <div className="flex justify-between items-center text-xs text-secondary border-t border-theme pt-3">
-                                    <span>Fund: KES {Number(venture.available_fund || 0).toLocaleString()}</span>
+                                    <span>Fund: {formatMoneySimple(Number(venture.available_fund || 0))}</span>
                                     <span className="flex items-center gap-1 text-primary group-hover:gap-2 transition-all">
                                         View <ChevronRight className="w-3 h-3" />
                                     </span>
@@ -626,7 +627,7 @@ const InvestmentHistoryTab = ({ history, loading, navigate }) => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-primary text-sm">KES {Number(item.amount).toLocaleString()}</p>
+                                    <p className="font-bold text-primary text-sm">{formatMoneySimple(Number(item.amount))}</p>
                                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(item.status)}`}>
                                         {item.status}
                                     </span>

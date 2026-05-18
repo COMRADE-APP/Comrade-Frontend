@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -45,6 +45,16 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // Log all API errors for debugging
+        if (error.response) {
+            console.error('API Error:', {
+                status: error.response.status,
+                url: originalRequest.url,
+                data: error.response.data,
+                method: originalRequest.method
+            });
+        }
+
         // If error is 401 and we haven't retried yet
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
@@ -71,6 +81,7 @@ api.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${access}`;
                 return api(originalRequest);
             } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
                 // Refresh failed, clear tokens and redirect to login
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');

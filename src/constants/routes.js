@@ -29,6 +29,14 @@ export const ROUTES = {
     ADMIN_ANALYTICS: '/admin/analytics',
     ADMIN_SETTINGS: '/admin/settings',
     ADMIN_DELETION_REVIEW: '/admin/deletion-review',
+    
+    VERIFICATION_APPLY: '/verification/apply',
+    VERIFICATION_DETAIL: '/verification/:id',
+    VERIFICATION_LIVENESS: '/verification/:id/liveness',
+    VERIFICATION_EDIT: '/verification/:id/edit',
+    MY_VERIFICATIONS: '/my-verifications',
+    STAFF_VERIFICATIONS: '/staff/verifications',
+    
     COMMUNITY: '/community',
     ROOMS: '/rooms',
     MESSAGES: '/messages',

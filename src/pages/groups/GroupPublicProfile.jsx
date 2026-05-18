@@ -10,6 +10,7 @@ import { AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell,
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { paymentsService } from '../../services/payments.service';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 // Mock data generators for rich analytics
 const generatePerformanceData = () => Array.from({ length: 12 }, (_, i) => ({
@@ -40,7 +41,7 @@ const generateInvestments = () => [
 ];
 
 const generateCreditTerms = () => [
-    { label: 'Max Credit / Member', value: 'KES 100,000' },
+    { label: 'Max Credit / Member', value: '100,000' },
     { label: 'Interest Rate (Loans)', value: '3.5% p.a.' },
     { label: 'Loan Tenure', value: '6 - 24 months' },
     { label: 'Emergency Fund Access', value: 'Up to 50% of contributions' },
@@ -162,9 +163,9 @@ const GroupPublicProfile = () => {
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { label: 'Total Invested', value: `KES ${(totalInvested / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'text-blue-600 bg-blue-50', change: '+12%' },
+                    { label: 'Total Invested', value: `${formatMoneySimple(totalInvested)}`, icon: DollarSign, color: 'text-blue-600 bg-blue-50', change: '+12%' },
                     { label: 'Avg Return', value: `${avgReturn}%`, icon: Target, color: 'text-emerald-600 bg-emerald-50', change: '+2.3%' },
-                    { label: 'Total Gains', value: `KES ${(totalGains / 1000).toFixed(0)}K`, icon: TrendingUp, color: 'text-green-600 bg-green-50', change: null },
+                    { label: 'Total Gains', value: `${formatMoneySimple(totalGains)}`, icon: TrendingUp, color: 'text-green-600 bg-green-50', change: null },
                     { label: 'Risk Category', value: riskCategory, icon: AlertTriangle, color: 'text-amber-600 bg-amber-50', change: null },
                 ].map((stat, i) => (
                     <div key={i} className="bg-elevated border border-theme rounded-2xl p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
@@ -248,8 +249,8 @@ const GroupPublicProfile = () => {
                     {/* Financial Summary */}
                     <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'Historical Gains', value: `KES ${(totalGains / 1000).toFixed(0)}K`, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: TrendingUp },
-                            { label: 'Historical Losses', value: `KES ${(totalLosses / 1000).toFixed(0)}K`, color: 'text-rose-600', bg: 'bg-rose-50', icon: TrendingDown },
+                            { label: 'Historical Gains', value: `${formatMoneySimple(totalGains)}`, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: TrendingUp },
+                            { label: 'Historical Losses', value: `${formatMoneySimple(totalLosses)}`, color: 'text-rose-600', bg: 'bg-rose-50', icon: TrendingDown },
                             { label: 'Active Investments', value: activeInvestments.length, color: 'text-blue-600', bg: 'bg-blue-50', icon: Activity },
                             { label: 'Donations Made', value: investments.filter(i => i.type === 'donation').length, color: 'text-pink-600', bg: 'bg-pink-50', icon: Heart },
                         ].map((item, i) => (
@@ -289,7 +290,7 @@ const GroupPublicProfile = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-primary">KES {inv.amount.toLocaleString()}</p>
+                                        <p className="font-bold text-primary">{formatMoneySimple(inv.amount)}</p>
                                         <p className={`text-sm font-semibold ${inv.returns >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {inv.returns >= 0 ? '+' : ''}{inv.returns}%
                                         </p>
@@ -317,7 +318,7 @@ const GroupPublicProfile = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-primary">KES {inv.amount.toLocaleString()}</p>
+                                        <p className="font-bold text-primary">{formatMoneySimple(inv.amount)}</p>
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${inv.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                                             {inv.status}
                                         </span>
@@ -342,7 +343,7 @@ const GroupPublicProfile = () => {
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-theme, #e5e7eb)" />
                                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                                     <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
-                                    <Tooltip formatter={v => `KES ${Number(v).toLocaleString()}`} />
+                                    <Tooltip formatter={v => `${formatMoneySimple(Number(v))}`} />
                                     <Area type="monotone" dataKey="netAssets" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={2} name="NAV" />
                                 </AreaChart>
                             </ResponsiveContainer>

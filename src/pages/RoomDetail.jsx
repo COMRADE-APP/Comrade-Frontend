@@ -578,26 +578,56 @@ const RoomDetail = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Poll for new messages and typing users (Real-time feel)
+    // WebSocket for real-time messaging
     useEffect(() => {
         if (!id || activeTab !== 'chat') return;
 
-        const interval = setInterval(() => {
-            loadChats();
-        }, 1000);
+        // Ensure we load initial chats immediately
+        loadChats();
 
-        // Poll for typing users independently
+        // Establish WebSocket connection
+        // For development, hardcode port 8000 for Django backend if running locally
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+        const wsUrl = `${protocol}//${wsHost}/ws/chat/${id}/`;
+        
+        let ws;
+        try {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to real-time chat websocket');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.message || data.type === 'chat_message') {
+                    // Instantly refresh chats on receiving a new message ping
+                    loadChats();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+            };
+        } catch (e) {
+            console.error('Failed to connect to WebSocket, falling back to manual refresh', e);
+        }
+
+        // Keep the typing users polling for now as it's separate from WS
         const typingInterval = setInterval(async () => {
             try {
                 const users = await roomsService.getTypingUsers(id, 'room');
                 setTypingUsers(users);
-            } catch (error) {
-                console.error('Error fetching typing users:', error);
-            }
-        }, 1000);
+            } catch (error) {}
+        }, 2000);
 
         return () => {
-            clearInterval(interval);
+            if (ws) ws.close();
             clearInterval(typingInterval);
         };
     }, [id, activeTab, messageFilter]);

@@ -46,19 +46,16 @@ const GoogleCallback = () => {
                 };
                 localStorage.setItem('user', JSON.stringify(user));
 
-                const profileCompleted = searchParams.get('profile_completed') === 'true';
-                if (!profileCompleted) {
-                    window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup?fromSocial=true';
-                } else {
-                    window.location.href = ROUTES.DASHBOARD;
-                }
+                // Since they are a returning social user or a new social user, route them to the dashboard 
+                // exactly the same way standard logins flow, bypassing the forced profile setup check.
+                window.location.href = ROUTES.DASHBOARD || '/dashboard';
                 return;
             }
 
             // If no tokens in URL, try to get JWT from our callback endpoint
             // This handles the case where allauth redirects to frontend and we need to exchange session for JWT
             try {
-                const response = await fetch(API_ENDPOINTS.GOOGLE_CALLBACK, {
+                const response = await fetch(API_ENDPOINTS.SOCIAL_GOOGLE_CALLBACK, {
                     method: 'GET',
                     credentials: 'include', // Include session cookies
                 });
@@ -93,12 +90,8 @@ const GoogleCallback = () => {
                         };
                         localStorage.setItem('user', JSON.stringify(user));
 
-                        // Check if profile needs to be completed
-                        if (data.profile_completed === false) {
-                            window.location.href = ROUTES.PROFILE_SETUP || '/profile-setup?fromSocial=true';
-                        } else {
-                            window.location.href = ROUTES.DASHBOARD;
-                        }
+                        // Route them straight to the dashboard to mimic standard login flow.
+                        window.location.href = ROUTES.DASHBOARD || '/dashboard';
                         return;
                     }
                 }

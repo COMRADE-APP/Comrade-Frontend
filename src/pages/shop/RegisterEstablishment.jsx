@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Check, X } from 'lucide-react';
 import shopService from '../../services/shop.service';
 import Button from '../../components/common/Button';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import './Shop.css';
 
 const ESTABLISHMENT_TYPES = [
@@ -434,7 +435,6 @@ export default function RegisterEstablishment() {
                             <option value="USD">USD ($)</option>
                             <option value="EUR">EUR (€)</option>
                             <option value="GBP">GBP (£)</option>
-                            <option value="KES">KES (KSh)</option>
                             <option value="NGN">NGN (₦)</option>
                             <option value="ZAR">ZAR (R)</option>
                         </select>

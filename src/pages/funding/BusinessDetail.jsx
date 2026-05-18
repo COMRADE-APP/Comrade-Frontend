@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    ArrowLeft, Building, TrendingUp, Globe, DollarSign, Users,
-    FileText, ExternalLink, Shield, CheckCircle, AlertTriangle,
-    Calendar, Briefcase, PieChart
-} from 'lucide-react';
+import { ArrowLeft, Heart, Users, TrendingUp, Calendar, MapPin, Globe, Mail, Phone, ExternalLink, Share2, Shield, Crown, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import fundingService from '../../services/funding.service';
 import Button from '../../components/common/Button';
+import fundingService from '../../services/funding.service';
 import InvestModal from '../../components/funding/InvestModal';
+import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const STAGE_LABELS = {
     idea: 'Idea Phase', mvp: 'MVP', pre_seed: 'Pre-Seed',
@@ -95,7 +92,7 @@ const BusinessDetail = () => {
                 <div className="relative grid grid-cols-3 gap-6 mt-8">
                     <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                         <p className="text-white/60 text-sm">Valuation</p>
-                        <p className="text-2xl font-bold">{business.valuation ? `KES ${Number(business.valuation).toLocaleString()}` : 'Pre-Valuation'}</p>
+                        <p className="text-2xl font-bold">{business.valuation ? formatMoneySimple(business.valuation) : 'Pre-Valuation'}</p>
                     </div>
                     <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                         <p className="text-white/60 text-sm">Investors</p>
@@ -128,7 +125,7 @@ const BusinessDetail = () => {
                                 {business.funding_requests.map(req => (
                                     <div key={req.id} className="p-4 bg-secondary/5 rounded-xl border border-theme flex justify-between items-center">
                                         <div>
-                                            <p className="font-semibold text-primary">KES {Number(req.amount_needed).toLocaleString()}</p>
+                                            <p className="font-semibold text-primary">{formatMoneySimple(req.amount_needed)}</p>
                                             <p className="text-sm text-secondary">{req.equity_offered}% equity • {req.status}</p>
                                         </div>
                                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${req.status === 'funded' ? 'bg-green-100 text-green-700' :
@@ -252,8 +249,8 @@ const BusinessDetail = () => {
                             <h3 className="font-bold text-pink-700 mb-2">🎀 Charity Campaign</h3>
                             <div className="mb-2">
                                 <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-pink-600">KES {Number(business.charity_raised || 0).toLocaleString()}</span>
-                                    <span className="text-pink-400">of KES {Number(business.charity_goal || 0).toLocaleString()}</span>
+<span className="text-pink-600">{formatMoneySimple(business.charity_raised || 0)}</span>
+                                                        <span className="text-pink-400">of {formatMoneySimple(business.charity_goal || 0)}</span>
                                 </div>
                                 <div className="w-full bg-pink-100 rounded-full h-2">
                                     <div className="bg-pink-500 h-2 rounded-full" style={{ width: `${business.charity_progress || 0}%` }} />

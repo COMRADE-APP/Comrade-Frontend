@@ -4,9 +4,11 @@ import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import {
-    Target, ArrowLeft, Calendar, DollarSign, Users, AlertCircle, Heart, Ribbon, Share2, ShieldCheck, Mail
+    Target, ArrowLeft, Calendar, DollarSign, Users, AlertCircle, Heart, Ribbon, Share2, ShieldCheck, Mail,
+    Building2
 } from 'lucide-react';
 import paymentsService from '../../services/payments.service';
+import { formatDate } from '../../utils/dateFormatter';
 
 const DonationDetail = () => {
     const { id } = useParams();
@@ -47,7 +49,7 @@ const DonationDetail = () => {
                     name: `Donation: ${donation.name}`,
                     price: parseFloat(contributeAmount),
                     qty: 1,
-                    image: donation.cover_photo || null
+                    image: donation.cover_image_url || null
                 }],
                 purchaseType: 'individual',
                 totalAmount: parseFloat(contributeAmount)
@@ -93,9 +95,9 @@ const DonationDetail = () => {
 
             {/* Premium Hero Banner */}
             <div className="relative w-full h-[300px] md:h-[400px] lg:h-[450px] rounded-b-3xl md:rounded-3xl overflow-hidden shadow-2xl lg:mt-6 group">
-                {donation.cover_photo ? (
+                {donation.cover_image_url ? (
                     <img 
-                        src={donation.cover_photo} 
+                        src={donation.cover_image_url} 
                         alt={donation.name} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
@@ -146,7 +148,7 @@ const DonationDetail = () => {
                 </button>
             </div>
 
-            {/* Campaign Content */}
+                {/* Campaign Content */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 md:px-0">
                 
                 {/* Left Col: Narrative */}
@@ -160,6 +162,45 @@ const DonationDetail = () => {
                         </div>
                     </div>
 
+                    {/* Organization Details */}
+                    {donation.organization_details && (
+                        <div className="bg-blue-50 border border-blue-100 p-6 rounded-3xl shadow-sm">
+                            <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                                <Building2 className="w-5 h-5 text-blue-600" /> Organization Details
+                            </h4>
+                            <div className="space-y-2 text-sm text-blue-800">
+                                {donation.organization_details.name && (
+                                    <p><strong>Name:</strong> {donation.organization_details.name}</p>
+                                )}
+                                {donation.organization_details.type && (
+                                    <p><strong>Type:</strong> {donation.organization_details.type}</p>
+                                )}
+                                {donation.organization_details.address && (
+                                    <p><strong>Address:</strong> {donation.organization_details.address}</p>
+                                )}
+                                {donation.organization_details.registration_number && (
+                                    <p><strong>Reg. Number:</strong> {donation.organization_details.registration_number}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Creator Info */}
+                    <div className="bg-secondary/5 p-6 rounded-3xl border border-theme">
+                        <h4 className="font-bold text-primary mb-3">Campaign Creator</h4>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Users className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-primary">{donation.donor_name || 'Unknown'}</p>
+                                <p className="text-xs text-secondary">
+                                    {donation.donor_type === 'group' ? 'Group Campaign' : 'Individual Campaign'} • Created {formatDate(donation.created_at)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                
                     <div className="bg-rose-50 border border-rose-100 p-6 rounded-3xl flex gap-4 items-start shadow-inner">
                         <div className="bg-white p-3 rounded-2xl shadow-sm text-pink-600 shrink-0">
                             <Mail className="w-6 h-6" />
