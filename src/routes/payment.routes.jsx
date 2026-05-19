@@ -19,12 +19,16 @@ const DonationDetail = () => Lazy(() => import('../pages/payments/DonationDetail
 const GroupInvestments = () => Lazy(() => import('../pages/payments/GroupInvestments'));
 const GroupInvestmentDetail = () => Lazy(() => import('../pages/payments/GroupInvestmentDetail'));
 const KittyManagement = () => Lazy(() => import('../pages/payments/KittyManagement'));
+const KittyDetail = () => Lazy(() => import('../pages/payments/KittyDetail'));
 const GroupTargets = () => Lazy(() => import('../pages/payments/GroupTargets'));
 const PaymentGroups = () => Lazy(() => import('../pages/payments/PaymentGroups'));
 const PaymentGroupDetail = () => Lazy(() => import('../pages/payments/PaymentGroupDetail'));
 const CreatePaymentGroup = () => Lazy(() => import('../pages/payments/CreatePaymentGroup'));
 const GroupAnalytics = () => Lazy(() => import('../pages/payments/GroupAnalytics'));
+const PortfolioAnalytics = () => Lazy(() => import('../pages/payments/PortfolioAnalytics'));
+const GroupKittyDetail = () => Lazy(() => import('../pages/payments/GroupKittyDetail'));
 const ReverseTransaction = () => Lazy(() => import('../pages/payments/ReverseTransaction'));
+const CreateAutomationPage = () => Lazy(() => import('../pages/payments/CreateAutomationPage'));
 
 const BillPayments = () => Lazy(() => import('../pages/payments/BillPayments'));
 const Loans = () => Lazy(() => import('../pages/payments/Loans'));
@@ -47,6 +51,7 @@ const PaymentForm = () => Lazy(() => import('../components/payments/PaymentForm'
 const ProviderLanding = () => Lazy(() => import('../pages/providers/ProviderLanding'));
 const ProviderRegistration = () => Lazy(() => import('../pages/providers/ProviderRegistration'));
 const ProviderDashboard = () => Lazy(() => import('../pages/providers/ProviderDashboard'));
+const ProviderDetail = () => Lazy(() => import('../pages/providers/ProviderDetail'));
 
 export const paymentRoutes = [
     <Route key="payments" path={ROUTES.PAYMENTS} element={<Payments />} />,
@@ -68,12 +73,17 @@ export const paymentRoutes = [
     <Route key="group-investments-funding" path="/funding/group-investments" element={<GroupInvestments />} />,
     <Route key="group-investment-detail" path="/payments/group-investments/:id" element={<GroupInvestmentDetail />} />,
     <Route key="kitties" path={ROUTES.KITTIES} element={<KittyManagement />} />,
+    <Route key="kitty-detail" path="/payments/kitties/:kittyId" element={<KittyDetail />} />,
     <Route key="savings-goals" path="/savings-goals" element={<GroupTargets />} />,
     <Route key="payment-groups" path="/payments/groups" element={<PaymentGroups />} />,
     <Route key="payment-group-detail" path="/payments/groups/:groupId" element={<PaymentGroupDetail />} />,
     <Route key="payment-group-analytics" path="/payments/groups/:groupId/analytics" element={<GroupAnalytics />} />,
+    <Route key="payment-group-portfolio" path="/payments/groups/:groupId/portfolio" element={<PortfolioAnalytics />} />,
+    <Route key="payment-group-kitty-detail" path="/payments/groups/:groupId/kitty/:kittyId" element={<GroupKittyDetail />} />,
     <Route key="reverse-transaction" path="/payments/reverse-transaction" element={<ReverseTransaction />} />,
     <Route key="payment-group-create" path="/payments/create-group" element={<CreatePaymentGroup />} />,
+    <Route key="payment-group-create-automation" path="/payments/groups/:groupId/create-automation" element={<CreateAutomationPage />} />,
+    <Route key="payment-personal-create-automation" path="/payments/create-automation" element={<CreateAutomationPage />} />,
 
     <Route key="bill-payments" path={ROUTES.BILL_PAYMENTS} element={<BillPayments />} />,
     <Route key="loans" path={ROUTES.LOANS} element={<Loans />} />,
@@ -89,4 +99,10 @@ export const paymentRoutes = [
     <Route key="products" path="/products" element={<ProductCatalog />} />,
     <Route key="subscriptions" path="/subscriptions" element={<SubscriptionPlans />} />,
     <Route key="tier-plans" path={ROUTES.TIER_PLANS} element={<TierPlans />} />,
+
+    // Provider Self-Service Portal
+    <Route key="provider-landing" path="/providers" element={<ProviderLanding />} />,
+    <Route key="provider-register" path="/providers/register" element={<ProviderRegistration />} />,
+    <Route key="provider-dashboard" path="/providers/dashboard" element={<ProviderDashboard />} />,
+    <Route key="provider-detail" path="/providers/:providerId" element={<ProviderDetail />} />,
 ];

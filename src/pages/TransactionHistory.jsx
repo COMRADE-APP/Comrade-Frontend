@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     ArrowLeft, Wallet, ArrowDownLeft, ArrowUpRight, RefreshCw, CreditCard,
     ChevronRight, ChevronDown, Loader2, Calendar, Clock, CheckCircle, XCircle,
@@ -30,6 +30,62 @@ const TYPE_CONFIG = {
     refund: { icon: RefreshCw, bg: 'bg-amber-500/10', color: 'text-amber-600', label: 'Refund' },
     reversal: { icon: RefreshCw, bg: 'bg-orange-500/10', color: 'text-orange-600', label: 'Reversal' },
     default: { icon: CreditCard, bg: 'bg-gray-500/10', color: 'text-gray-600', label: 'Payment' },
+};
+
+const getTransactionTitle = (txn) => {
+    const type = txn.transaction_type || txn.type || '';
+    const hasGroup = !!(txn.group_id || txn.group_name || txn.transaction_details?.group_id || txn.transaction_details?.group_name);
+    const direction = txn.direction || '';
+
+    switch (type) {
+        case 'contribution':
+            return hasGroup ? 'Group Contribution' : 'Contribution';
+        case 'piggy_bank_contribution':
+        case 'savings_deposit':
+            return 'Piggy Bank Contribution';
+        case 'piggy_bank_withdrawal':
+        case 'savings_withdrawal':
+            return 'Piggy Bank Withdrawal';
+        case 'withdrawal':
+            return hasGroup ? 'Group Withdrawal' : 'Withdrawal';
+        case 'payout':
+            return hasGroup ? 'Group Benefits' : 'Payout';
+        case 'purchase':
+            return hasGroup ? 'Group Purchase' : 'Purchase';
+        case 'transfer':
+            return 'Transfer';
+        case 'loan_repayment':
+            return 'Loan Payment';
+        case 'loan_disbursement':
+            return direction === 'received' ? 'Loan Received' : 'Loan Payment';
+        case 'deposit':
+            return 'Deposit';
+        case 'bill_payment':
+            return 'Bill Payment';
+        case 'escrow_release':
+            return 'Escrow Release';
+        case 'escrow_refund':
+            return 'Escrow Refund';
+        case 'insurance_premium':
+            return 'Insurance Premium';
+        case 'insurance_claim_payout':
+            return 'Insurance Payout';
+        case 'kitty_withdrawal':
+            return 'Kitty Withdrawal';
+        case 'investment_withdrawal':
+            return 'Investment Withdrawal';
+        case 'fee':
+            return 'Fee Payment';
+        case 'refund':
+            return 'Refund';
+        case 'reversal':
+            return 'Reversal';
+        default:
+            if (type) {
+                return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            }
+            return 'Transaction';
+    }
 };
 
 const TransactionHistory = () => {
@@ -88,6 +144,9 @@ const TransactionHistory = () => {
     };
 
     const isPositive = (tx) => {
+        if (tx.direction) {
+            return tx.direction === 'received';
+        }
         return ['deposit', 'refund', 'reversal'].includes(tx.transaction_type) || tx.status === 'refunded';
     };
 
@@ -225,7 +284,7 @@ const TransactionHistory = () => {
                                                         <TypeIcon className={`w-5 h-5 ${typeCfg.color}`} />
                                                     </div>
                                                     <h4 className="font-bold text-primary capitalize">
-                                                        {typeCfg.label}
+                                                        {getTransactionTitle(transaction)}
                                                     </h4>
                                                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusCfg.color}`}>
                                                         <StatusIcon size={12} />
@@ -242,21 +301,52 @@ const TransactionHistory = () => {
                                                         <Calendar className="w-4 h-4" />
                                                         {formatDate(transaction.created_at)}
                                                     </span>
-                                                    {transaction.recipient_email && (
+                                                    {(transaction.group_name || transaction.transaction_details?.group_name) && (
                                                         <span className="flex items-center gap-1">
-                                                            <ArrowRightLeft className="w-4 h-4" />
-                                                            To: {transaction.recipient_name || transaction.recipient_email}
+                                                            Group: <Link to={`/payments/groups/${transaction.group_id || transaction.transaction_details?.group_id}`} className="font-medium text-primary hover:underline" onClick={e => e.stopPropagation()}>{transaction.group_name || transaction.transaction_details?.group_name}</Link>
                                                         </span>
                                                     )}
-                                                    {transaction.sender_email && !transaction.recipient_email && (
-                                                        <span className="flex items-center gap-1">
-                                                            <ArrowDownLeft className="w-4 h-4" />
-                                                            From: {transaction.sender_name || transaction.sender_email}
-                                                        </span>
-                                                    )}
+                                                    {(transaction.transaction_type || transaction.type) === 'withdrawal' ? (
+                                                         <>
+                                                             <span className="flex items-center gap-1">
+                                                                 <ArrowDownLeft className="w-4 h-4" />
+                                                                 From: {transaction.group_name || transaction.transaction_details?.group_name || 'Wallet'}
+                                                             </span>
+                                                             <span className="flex items-center gap-1">
+                                                                 <ArrowRightLeft className="w-4 h-4" />
+                                                                 To: {(transaction.group_name || transaction.transaction_details?.group_name) ? 'Wallet' : (transaction.payment_option || 'External')}
+                                                             </span>
+                                                         </>
+                                                     ) : (transaction.transaction_type || transaction.type) === 'deposit' ? (
+                                                         <>
+                                                             <span className="flex items-center gap-1">
+                                                                 <ArrowDownLeft className="w-4 h-4" />
+                                                                 From: {transaction.payment_option || 'External'}
+                                                             </span>
+                                                             <span className="flex items-center gap-1">
+                                                                 <ArrowRightLeft className="w-4 h-4" />
+                                                                 To: Wallet
+                                                             </span>
+                                                         </>
+                                                     ) : (
+                                                         <>
+                                                             {transaction.sender_email && (transaction.sender_email !== transaction.recipient_email) && (
+                                                                 <span className="flex items-center gap-1">
+                                                                     <ArrowDownLeft className="w-4 h-4" />
+                                                                     From: {transaction.sender_name || transaction.sender_email}
+                                                                 </span>
+                                                             )}
+                                                             {transaction.recipient_email && (transaction.sender_email !== transaction.recipient_email) && (
+                                                                 <span className="flex items-center gap-1">
+                                                                     <ArrowRightLeft className="w-4 h-4" />
+                                                                     To: {transaction.recipient_name || transaction.recipient_email}
+                                                                 </span>
+                                                             )}
+                                                         </>
+                                                     )}
                                                     <span className="flex items-center gap-1">
                                                         <CreditCard className="w-4 h-4" />
-                                                        {transaction.payment_option || 'Wallet'}
+                                                        {((transaction.group_name || transaction.transaction_details?.group_name) || transaction.payment_option === 'comrade_balance') ? 'Wallet' : (transaction.payment_option || 'Wallet')}
                                                     </span>
                                                 </div>
                                             </div>

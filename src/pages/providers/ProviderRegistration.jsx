@@ -41,10 +41,10 @@ const ProviderRegistration = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.post('/payments/provider-registrations/', formData);
+            const response = await api.post('/api/v1/payments/provider-registrations/', formData);
             if (response.data) {
                 // Submit immediately for review
-                await api.post(`/payments/provider-registrations/${response.data.id}/submit/`);
+                await api.post(`/api/v1/payments/provider-registrations/${response.data.id}/submit/`);
                 navigate('/providers/dashboard');
             }
         } catch (err) {

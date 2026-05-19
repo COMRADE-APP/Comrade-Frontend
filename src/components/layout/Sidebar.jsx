@@ -86,21 +86,41 @@ const Sidebar = () => {
         return () => clearInterval(interval);
     }, [visitedPages]);
 
-    const navItems = [
+    const [hasBusinesses, setHasBusinesses] = useState(false);
+
+    useEffect(() => {
+        const checkBusinesses = async () => {
+            if (!user) return;
+            try {
+                const [bRes, vRes] = await Promise.all([
+                    api.get('/api/funding/businesses/my_businesses/'),
+                    api.get('/api/funding/ventures/my_ventures/')
+                ]);
+                const bCount = Array.isArray(bRes.data) ? bRes.data.length : 0;
+                const vCount = Array.isArray(vRes.data) ? vRes.data.length : 0;
+                setHasBusinesses(bCount > 0 || vCount > 0);
+            } catch (err) {
+                console.warn('Failed to check businesses:', err);
+            }
+        };
+        checkBusinesses();
+    }, [user]);
+
+    const isProviderMode = activeProfile && activeProfile.type !== 'personal';
+
+    const consumerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
-        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
         { path: ROUTES.ROOMS || '/rooms', label: 'Rooms', icon: Hash },
         { path: ROUTES.PAYMENT_GROUPS, label: 'Payment Groups', icon: Users },
+        ...(hasBusinesses ? [{ path: '/my-businesses', label: 'My Businesses', icon: Briefcase }] : []),
         { path: ROUTES.PIGGY_BANKS, label: 'Piggy Banks', icon: PiggyBank },
         { path: ROUTES.DONATIONS, label: 'Donations', icon: Heart },
         { path: ROUTES.GROUP_INVESTMENTS, label: 'Group Investments', icon: PieChart },
         { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
         { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
         { path: ROUTES.OPPORTUNITIES, label: 'Opportunities', icon: Sparkles },
-        { path: '/my-businesses', label: 'My Businesses', icon: Briefcase },
         { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
         { path: ROUTES.BILL_PAYMENTS, label: 'Bills & Airtime', icon: Banknote },
@@ -111,6 +131,18 @@ const Sidebar = () => {
         { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
         { path: ROUTES.GIGS, label: 'Gigs & Tasks', icon: ClipboardList },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
+        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last
+        { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
+    ];
+
+    const providerNavItems = [
+        { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
+        { path: '/providers/dashboard', label: 'Provider Hub', icon: Building2 },
+        ...(hasBusinesses ? [{ path: '/my-businesses', label: 'My Businesses', icon: Briefcase }] : []),
+        { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
+        { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         // Admin Portal - only visible for admin/staff users
         ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
             { path: ROUTES.ADMIN_PORTAL, label: 'Admin Portal', icon: Shield },
@@ -132,8 +164,12 @@ const Sidebar = () => {
         ...(['institutional_admin', 'institutional_staff', 'organisational_admin', 'organisational_staff', 'partner'].includes(user?.user_type) ? [
             { path: ROUTES.INSTITUTION_PORTAL, label: 'My Portal', icon: Building2 },
         ] : []),
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last here too
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
+
+    const navItems = isProviderMode ? providerNavItems : consumerNavItems;
+
 
     const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path + '/'));
 

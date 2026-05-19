@@ -280,8 +280,8 @@ const CheckoutPage = () => {
     if (approvalPending) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                    <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
                 </div>
                 <h1 className="text-3xl font-bold text-primary mb-2">Approval Pending</h1>
                 <p className="text-secondary max-w-md text-center mb-8">
@@ -392,24 +392,24 @@ const CheckoutPage = () => {
                     <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide">Next Steps</h3>
                     <div className="space-y-2">
                         <div className="flex items-center gap-3 text-sm">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                <span className="text-blue-500 text-xs font-bold">1</span>
+                            <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                <span className="text-emerald-500 text-xs font-bold">1</span>
                             </div>
                             <span className="text-primary">
                                 {hasDigitalItems ? 'Access your items from your library' : 'Track your order status'}
                             </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                <span className="text-blue-500 text-xs font-bold">2</span>
+                            <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                <span className="text-emerald-500 text-xs font-bold">2</span>
                             </div>
                             <span className="text-primary">
                                 {hasFundingItem ? 'Monitor your investment returns' : 'Check delivery updates'}
                             </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                <span className="text-blue-500 text-xs font-bold">3</span>
+                            <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                <span className="text-emerald-500 text-xs font-bold">3</span>
                             </div>
                             <span className="text-primary">Share with friends or request support</span>
                         </div>
@@ -439,10 +439,10 @@ const CheckoutPage = () => {
         icon: <CreditCard className="w-4 h-4" />, 
         sub: `Balance: $${(Number(walletBalance) || 0).toFixed(2)}` 
     });
-    if (hasStripe) paymentOptions.push({ val: 'stripe', label: 'Card / Apple Pay', icon: <CreditCard className="w-4 h-4 text-indigo-400" />, sub: 'Visa, Mastercard, Amex' });
+    if (hasStripe) paymentOptions.push({ val: 'stripe', label: 'Card / Apple Pay', icon: <CreditCard className="w-4 h-4 text-amber-400" />, sub: 'Visa, Mastercard, Amex' });
     if (hasMpesa) paymentOptions.push({ val: 'mpesa', label: 'M-Pesa', icon: <Smartphone className="w-4 h-4 text-green-400" />, sub: 'Safaricom STK Push' });
     if (hasFlutterwave) paymentOptions.push({ val: 'flutterwave', label: 'Bank Transfer', icon: <Building2 className="w-4 h-4 text-amber-400" />, sub: 'Equity, KCB, DTB, Absa & more' });
-    if (hasPaypal) paymentOptions.push({ val: 'paypal', label: 'PayPal', icon: <Globe className="w-4 h-4 text-blue-400" />, sub: 'PayPal / Venmo' });
+    if (hasPaypal) paymentOptions.push({ val: 'paypal', label: 'PayPal', icon: <Globe className="w-4 h-4 text-emerald-400" />, sub: 'PayPal / Venmo' });
 
     const canPay = isGroupPurchase ||
         paymentMethod === 'stripe' ||
@@ -467,7 +467,7 @@ const CheckoutPage = () => {
                         <Card>
                             <CardBody>
                                 <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-                                    <Package className="w-5 h-5 mr-2 text-indigo-500" /> Order Summary
+                                    <Package className="w-5 h-5 mr-2 text-amber-500" /> Order Summary
                                 </h2>
 
                                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
@@ -521,9 +521,9 @@ const CheckoutPage = () => {
                                     <h3 className="font-bold text-lg text-primary mb-4">Payment Selection</h3>
 
                                     {isGroupPurchase ? (
-                                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                                        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Group Finance</span>
+                                                <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Group Finance</span>
                                             </div>
                                             <p className="font-medium text-primary line-clamp-1">{selectedGroup?.name || 'Selected Group'}</p>
                                             <p className="text-xs text-secondary mt-1">Funds will be deducted from this group's pool.</p>
@@ -531,10 +531,10 @@ const CheckoutPage = () => {
                                     ) : (
                                         <div className="space-y-3">
                                             {paymentOptions.map(opt => (
-                                                <label key={opt.val} className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${paymentMethod === opt.val ? 'border-indigo-500 bg-indigo-500/5 shadow-sm shadow-indigo-500/10' : 'border-theme hover:bg-secondary/10'}`}>
+                                                <label key={opt.val} className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200 ${paymentMethod === opt.val ? 'border-amber-500 bg-amber-500/5 shadow-sm shadow-amber-500/10' : 'border-theme hover:bg-secondary/10'}`}>
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === opt.val ? 'border-indigo-500' : 'border-secondary'}`}>
-                                                            {paymentMethod === opt.val && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === opt.val ? 'border-amber-500' : 'border-secondary'}`}>
+                                                            {paymentMethod === opt.val && <div className="w-2 h-2 rounded-full bg-amber-500" />}
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-primary flex items-center gap-2">

@@ -449,12 +449,12 @@ const PaymentGroupDetail = () => {
         <div className="space-y-6">
             {/* Pending Invitation Banner */}
             {pendingInvitation && (
-                <Card className="border-2 border-blue-500/30 bg-blue-500/5">
+                <Card className="border-2 border-emerald-500/30 bg-emerald-500/5">
                     <CardBody className="p-4">
                         <div className="flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Mail className="w-5 h-5 text-blue-600" />
+                                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    <Mail className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-primary">You've been invited!</h3>
@@ -568,7 +568,7 @@ const PaymentGroupDetail = () => {
                                 </span>
                             )}
                             {group.certificate?.status === 'pending' && (
-                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-100 border border-blue-500/30 backdrop-blur-md shadow-sm">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-100 border border-emerald-500/30 backdrop-blur-md shadow-sm">
                                     Verification Pending
                                 </span>
                             )}
@@ -639,14 +639,14 @@ const PaymentGroupDetail = () => {
                                 </span>
                             )}
                             {group.certificate?.status === 'pending' && (
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                     Verification Pending
                                 </span>
                             )}
                             {!group.certificate && isAdmin && (
                                 <button 
                                     onClick={handleApplyCertificate}
-                                    className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1 border border-indigo-200"
+                                    className="px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors flex items-center gap-1 border border-amber-200"
                                     disabled={actionLoading}
                                 >
                                     <ShieldCheck className="w-3.5 h-3.5" />
@@ -721,7 +721,7 @@ const PaymentGroupDetail = () => {
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="text-secondary text-sm mb-2">Group Balance</p>
+                            <p className="text-secondary text-sm mb-2">{group.is_kitty ? 'Kitty Balance' : 'Group Balance'}</p>
                             <h2 className="text-4xl font-bold text-primary">
                                 ${parseFloat(group.current_amount || 0).toFixed(2)}
                             </h2>
@@ -753,23 +753,23 @@ const PaymentGroupDetail = () => {
                     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
                     { id: 'members', label: 'Members', icon: Users },
                     { id: 'contributions', label: 'Contributions', icon: History },
-                    { id: 'approvals', label: 'Approvals', icon: CheckCircle },
+                    { id: 'approvals', label: 'Approvals', icon: CheckCircle, hideForKitty: true },
                     { id: 'withdrawals', label: 'Withdrawals', icon: Download },
-                    { id: 'kitties', label: 'Kitties', icon: Wallet },
-                    { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank },
-                    { id: 'donations', label: 'Donations', icon: HeartHandshake },
+                    { id: 'kitties', label: 'Kitties', icon: Wallet, hideForKitty: true },
+                    { id: 'piggybanks', label: 'Piggy Banks', icon: PiggyBank, hideForKitty: true },
+                    { id: 'donations', label: 'Donations', icon: HeartHandshake, hideForKitty: true },
                     { id: 'discourse', label: 'Discourse', icon: MessageCircle },
-                    { id: 'rounds', label: 'Rounds', icon: CalendarIcon },
-                    { id: 'investments', label: 'Investments', icon: TrendingUp },
-                    { id: 'ventures', label: 'Ventures', icon: Zap },
-                    { id: 'businesses', label: 'Businesses', icon: BookOpen },
-                    { id: 'loans', label: 'Loans', icon: CreditCard },
-                    { id: 'automations', label: 'Automations', icon: Smartphone },
-                    { id: 'benefits', label: 'Benefits', icon: Percent },
-                    { id: 'governance', label: 'Governance', icon: ShieldCheck },
+                    { id: 'rounds', label: 'Rounds', icon: CalendarIcon, hideForKitty: true },
+                    { id: 'investments', label: 'Investments', icon: TrendingUp, hideForKitty: true },
+                    { id: 'ventures', label: 'Ventures', icon: Zap, hideForKitty: true },
+                    { id: 'businesses', label: 'Businesses', icon: BookOpen, hideForKitty: true },
+                    { id: 'loans', label: 'Loans', icon: CreditCard, hideForKitty: true },
+                    { id: 'automations', label: 'Automations', icon: Smartphone, hideForKitty: true },
+                    { id: 'benefits', label: 'Benefits', icon: Percent, hideForKitty: true },
+                    { id: 'governance', label: 'Governance', icon: ShieldCheck, hideForKitty: true },
                     { id: 'rules', label: 'Rules', icon: Shield },
                     { id: 'settings', label: 'Settings', icon: Settings },
-                ].map((tab) => (
+                ].filter(tab => !group.is_kitty || !tab.hideForKitty).map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -794,7 +794,7 @@ const PaymentGroupDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader className="p-4 border-b border-theme">
-                            <h3 className="font-semibold text-primary">Group Details</h3>
+                            <h3 className="font-semibold text-primary">{group.is_kitty ? 'Kitty Details' : 'Group Details'}</h3>
                         </CardHeader>
                         <CardBody className="p-4 space-y-3">
                             <div className="flex justify-between">
@@ -976,7 +976,7 @@ const PaymentGroupDetail = () => {
                                                     {member.role && member.role !== 'member' && (
                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                                                             member.role === 'admin' ? 'bg-yellow-100 text-yellow-700' :
-                                                            member.role === 'moderator' ? 'bg-blue-100 text-blue-700' :
+                                                            member.role === 'moderator' ? 'bg-emerald-100 text-emerald-700' :
                                                             'bg-gray-100 text-gray-600'
                                                         }`}>
                                                             {member.role}
@@ -1114,7 +1114,7 @@ const PaymentGroupDetail = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card>
                                 <CardBody className="p-4 flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
                                         <TrendingUp className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -1136,7 +1136,7 @@ const PaymentGroupDetail = () => {
                             </Card>
                             <Card>
                                 <CardBody className="p-4 flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
                                         <Users className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -1177,7 +1177,7 @@ const PaymentGroupDetail = () => {
                     <Card>
                         <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
                             <h3 className="font-semibold text-primary flex items-center gap-2">
-                                <ShieldCheck className="w-5 h-5 text-indigo-500" /> Group Rules & Guidelines
+                                <ShieldCheck className="w-5 h-5 text-amber-500" /> {group.is_kitty ? 'Kitty Rules & Guidelines' : 'Group Rules & Guidelines'}
                             </h3>
                             {isAdmin && !isEditingRules && (
                                 <Button variant="outline" size="sm" onClick={() => {
@@ -1196,7 +1196,7 @@ const PaymentGroupDetail = () => {
                                         value={editRulesText}
                                         onChange={(e) => setEditRulesText(e.target.value)}
                                         placeholder="Enter the rules and guidelines for this group..."
-                                        className="w-full h-48 px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        className="w-full h-48 px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary focus:ring-2 focus:ring-amber-500 outline-none"
                                     />
                                     <div className="flex justify-end gap-2">
                                         <Button variant="outline" onClick={() => setIsEditingRules(false)}>Cancel</Button>
@@ -1224,7 +1224,7 @@ const PaymentGroupDetail = () => {
 
             {activeTab === 'kitties' && <GroupKittiesTab groupId={groupId} />}
             {activeTab === 'rounds' && <GroupRoundsTab groupId={groupId} />}
-            {activeTab === 'withdrawals' && <GroupWithdrawalsTab groupId={groupId} isAdmin={isAdmin} />}
+            {activeTab === 'withdrawals' && <GroupWithdrawalsTab groupId={groupId} isAdmin={isAdmin} groupSettings={groupSettings} />}
             {activeTab === 'donations' && <GroupDonationsTab groupId={groupId} />}
             {activeTab === 'investments' && <GroupInvestmentsTab groupId={groupId} />}
             {activeTab === 'ventures' && <GroupVenturesTab groupId={groupId} />}
@@ -1305,7 +1305,7 @@ const PaymentGroupDetail = () => {
                                                                 </div>
                                                             )}
                                                             {req.recipient_info.type === 'funding' && req.recipient_info.id ? (
-                                                                <Link to={`/funding/business/${req.recipient_info.id}`} className="text-sm font-medium text-primary hover:underline hover:text-blue-600">
+                                                                <Link to={`/funding/business/${req.recipient_info.id}`} className="text-sm font-medium text-primary hover:underline hover:text-emerald-600">
                                                                     {req.recipient_info.name}
                                                                 </Link>
                                                             ) : (
@@ -1556,13 +1556,13 @@ const PaymentGroupDetail = () => {
                                     </div>
                                     
                                     <div className="pt-2 border-t border-theme">
-                                        <h3 className="text-sm font-semibold text-primary mb-3 text-indigo-500">Joining Requirements</h3>
+                                        <h3 className="text-sm font-semibold text-primary mb-3 text-amber-500">Joining Requirements</h3>
                                         <label className="flex items-center gap-2 mb-3 cursor-pointer">
                                             <input 
                                                 type="checkbox"
                                                 checked={editGroupData.entry_fee_required}
                                                 onChange={(e) => setEditGroupData({ ...editGroupData, entry_fee_required: e.target.checked })}
-                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 bg-secondary/10 border-theme"
+                                                className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 bg-secondary/10 border-theme"
                                             />
                                             <span className="text-sm font-medium text-primary">Require Entry Fee</span>
                                         </label>
@@ -1815,7 +1815,7 @@ const PaymentGroupDetail = () => {
                                             setShowShareModal(false);
                                         }}
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                                             <Share2 className="w-5 h-5" />
                                         </div>
                                         <span className="text-sm font-medium text-primary">Copy Link</span>
@@ -1860,7 +1860,7 @@ const PaymentGroupDetail = () => {
                                     <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
                                         onClick={() => navigate('/research/create', { state: { attachment: { type: 'payment_group', id: groupId, name: group?.name, link: window.location.href } } })}
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                                             <BookOpen className="w-5 h-5" />
                                         </div>
                                         <span className="text-sm font-medium text-primary">Attach to Research</span>

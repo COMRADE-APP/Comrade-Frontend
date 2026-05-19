@@ -147,7 +147,7 @@ const GroupPiggyBanksTab = ({ groupId }) => {
                                                     <Unlock className="w-3 h-3" /> Flexible
                                                 </span>
                                             )}
-                                            <span className="text-[10px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-800 capitalize">
+                                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md border border-emerald-100 dark:border-emerald-800 capitalize">
                                                 {pb.savings_type?.replace('_', ' ')}
                                             </span>
                                         </div>
@@ -342,9 +342,9 @@ const GroupPiggyBanksTab = ({ groupId }) => {
                                             </div>
                                         </div>
 
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
-                                            <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                                            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800 flex gap-3">
+                                            <Info className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
                                                 Group piggy banks are shared accounts. Contributions will be visible to all members to ensure transparency and accountability.
                                             </p>
                                         </div>

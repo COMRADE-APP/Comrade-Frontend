@@ -306,6 +306,7 @@ export const API_ENDPOINTS = {
     // Piggy Bank (Group Targets)
     GROUP_TARGETS: `${API_BASE_URL}/api/payments/targets/`,
     GROUP_TARGET_DETAIL: (id) => `${API_BASE_URL}/api/payments/targets/${id}/`,
+    SEARCH_AUTOMATION_TARGETS: `${API_BASE_URL}/api/payments/targets/search_automation_targets/`,
     CONTRIBUTE_TARGET: (id) => `${API_BASE_URL}/api/payments/targets/${id}/contribute/`,
 
     // Donations & Charity

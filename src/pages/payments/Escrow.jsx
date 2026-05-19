@@ -12,7 +12,7 @@ import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const ESCROW_TYPES = [
-    { id: 'marketplace', label: 'Marketplace Purchase', icon: Package, color: 'from-blue-500 to-indigo-600', desc: 'Buy products or services securely' },
+    { id: 'marketplace', label: 'Marketplace Purchase', icon: Package, color: 'from-emerald-500 to-amber-600', desc: 'Buy products or services securely' },
     { id: 'gig', label: 'Gig / Freelance', icon: Users, color: 'from-primary-600 to-primary-600', desc: 'Secure payments for freelance work' },
     { id: 'p2p', label: 'Peer-to-Peer', icon: ArrowRightLeft, color: 'from-emerald-500 to-green-600', desc: 'Safe transactions between individuals' },
     { id: 'group_investment', label: 'Group Investment', icon: ShieldCheck, color: 'from-amber-500 to-orange-600', desc: 'Protect group investment funds' },
@@ -20,8 +20,8 @@ const ESCROW_TYPES = [
 
 const STATUS_CONFIG = {
     initiated: { color: 'bg-secondary/10 text-secondary', icon: Clock },
-    funded: { color: 'bg-blue-500/15 text-blue-500', icon: Lock },
-    in_progress: { color: 'bg-indigo-500/15 text-indigo-500', icon: RefreshCw },
+    funded: { color: 'bg-emerald-500/15 text-emerald-500', icon: Lock },
+    in_progress: { color: 'bg-amber-500/15 text-amber-500', icon: RefreshCw },
     delivered: { color: 'bg-amber-500/15 text-amber-500', icon: Package },
     released: { color: 'bg-emerald-500/15 text-emerald-500', icon: CheckCircle },
     disputed: { color: 'bg-rose-500/15 text-rose-500', icon: AlertTriangle },
@@ -113,7 +113,7 @@ const Escrow = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                     { label: 'Total', value: statusCounts.total, color: 'text-primary', bg: 'bg-primary/5' },
-                    { label: 'Active', value: statusCounts.active, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { label: 'Active', value: statusCounts.active, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                     { label: 'Disputed', value: statusCounts.disputed, color: 'text-rose-500', bg: 'bg-rose-500/10' },
                     { label: 'Completed', value: statusCounts.completed, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                 ].map((s, i) => (
@@ -266,7 +266,7 @@ const Escrow = () => {
                             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-elevated border border-theme rounded-3xl p-6 z-50 shadow-2xl">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-                                    <Lock className="w-6 h-6 text-blue-500" /> Fund Escrow
+                                    <Lock className="w-6 h-6 text-emerald-500" /> Fund Escrow
                                 </h2>
                                 <button onClick={() => setFundingEscrow(null)} className="p-2 hover:bg-secondary/10 rounded-xl transition-colors text-secondary"><XCircle size={24} /></button>
                             </div>
@@ -275,7 +275,7 @@ const Escrow = () => {
                                     <h4 className="font-bold text-primary">{fundingEscrow.title}</h4>
                                     <div className="flex justify-between text-sm"><span className="text-secondary">Amount</span><span className="font-bold text-primary">{formatMoneySimple(fundingEscrow.amount)}</span></div>
                                     <div className="flex justify-between text-sm"><span className="text-secondary">Escrow Fee</span><span className="font-bold text-primary">{formatMoneySimple(fundingEscrow.escrow_fee)}</span></div>
-                                    <div className="flex justify-between text-lg font-bold border-t border-theme pt-2 mt-2"><span className="text-primary">Total to Fund</span><span className="text-blue-500">{formatMoneySimple(fundingEscrow.total_amount || fundingEscrow.amount)}</span></div>
+                                    <div className="flex justify-between text-lg font-bold border-t border-theme pt-2 mt-2"><span className="text-primary">Total to Fund</span><span className="text-emerald-500">{formatMoneySimple(fundingEscrow.total_amount || fundingEscrow.amount)}</span></div>
                                 </div>
                                 <PaymentTypeSelector 
                                     purchaseType={purchaseType} setPurchaseType={setPurchaseType} 

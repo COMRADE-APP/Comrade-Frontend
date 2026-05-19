@@ -5,7 +5,7 @@ import {
     Star, MapPin, Truck, Package, Clock, Plus, ArrowRight,
     Check, X, Loader2, ShoppingCart, Minus, Trash2, ChevronRight,
     Bell, Eye, Users, User, Wallet, ClipboardList, CalendarCheck,
-    Filter, ArrowLeft, Shield, Share2, Lock, Tag, SearchSlash
+    Filter, ArrowLeft, Shield, Share2, Lock, Tag, SearchSlash, Zap
 } from 'lucide-react';
 import { paymentsService } from '../../services/payments.service';
 import shopService from '../../services/shop.service';
@@ -52,6 +52,7 @@ const TABS = [
     { key: 'shops', label: 'Supermarkets & Stores', icon: Store },
     { key: 'services', label: 'Services', icon: Briefcase },
     { key: 'orders', label: 'My Orders', icon: ClipboardList },
+    { key: 'automations', label: 'Automations', icon: Zap },
     { key: 'my-services', label: 'My Services', icon: CalendarCheck },
     { key: 'dashboard', label: 'Inventory & Sales', icon: Store },
 ];
@@ -385,6 +386,123 @@ const OrdersTab = () => {
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// --- Automations Tab ---
+const AutomationsTab = ({ navigate }) => {
+    const [automations, setAutomations] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadAutomations();
+    }, []);
+
+    const loadAutomations = async () => {
+        setLoading(true);
+        try {
+            const res = await billsService.getStandingOrders();
+            const raw = res.data?.results || res.data || [];
+            // Filter only purchase, booking, or service automations
+            const purchaseAutomations = raw.filter(item => 
+                (item.provider_name && (
+                    item.provider_name.startsWith('PURCHASE:') || 
+                    item.provider_name.startsWith('BOOKING:') || 
+                    item.provider_name.startsWith('SERVICE:')
+                ))
+            );
+            setAutomations(purchaseAutomations);
+        } catch (e) {
+            console.error('Failed to load standing orders:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancel = async (id) => {
+        if (!window.confirm("Are you sure you want to cancel this automation rule?")) return;
+        try {
+            await billsService.cancelStandingOrder(id);
+            alert("Automation cancelled successfully.");
+            loadAutomations();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to cancel automation.");
+        }
+    };
+
+    if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="animate-spin text-primary" size={24} /></div>;
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                        <Zap className="text-amber-500 w-5 h-5" /> Smart Automations
+                    </h3>
+                    <p className="text-xs text-secondary mt-1">Manage your active scheduled purchase and booking subscriptions.</p>
+                </div>
+                <Button variant="primary" size="sm" onClick={() => navigate('/payments/create-automation?type=purchase')}>
+                    <Plus size={16} className="mr-1" /> Create Automation
+                </Button>
+            </div>
+
+            {automations.length === 0 ? (
+                <Card>
+                    <CardBody className="text-center py-12 text-secondary flex flex-col items-center justify-center">
+                        <Zap className="w-12 h-12 text-tertiary mb-3 opacity-30 animate-pulse" />
+                        <h4 className="font-semibold text-primary">No Active Automations</h4>
+                        <p className="text-xs max-w-sm mt-1">Schedule automatic weekly or monthly purchases of your favorite products and services.</p>
+                    </CardBody>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {automations.map(order => (
+                        <Card key={order.id} className="overflow-hidden border border-theme">
+                            <CardBody className="p-5 flex flex-col justify-between h-full space-y-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                                                {order.provider_name?.split(':')[0] || 'Purchase'}
+                                            </span>
+                                            <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md ${
+                                                order.status === 'active' 
+                                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                                                    : 'bg-secondary/20 text-secondary'
+                                            }`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-primary truncate" title={order.provider_name?.replace(/^(PURCHASE|BOOKING|SERVICE):\s*/, '')}>
+                                            {order.provider_name?.replace(/^(PURCHASE|BOOKING|SERVICE):\s*/, '')}
+                                        </h4>
+                                        <p className="text-xs text-secondary mt-1 flex items-center gap-1">
+                                            <Clock className="w-3.5 h-3.5 text-tertiary" /> 
+                                            Scheduled: <span className="font-semibold text-primary capitalize">{order.frequency}</span>
+                                        </p>
+                                    </div>
+                                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 shrink-0">
+                                        ${parseFloat(order.amount).toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between border-t border-theme pt-3 text-[11px] text-secondary">
+                                    <span>Started: {order.start_date}</span>
+                                    {order.status === 'active' && (
+                                        <button 
+                                            onClick={() => handleCancel(order.id)}
+                                            className="text-red-500 hover:text-red-700 font-bold hover:underline transition-all"
+                                        >
+                                            Cancel Rule
+                                        </button>
+                                    )}
+                                </div>
+                            </CardBody>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
@@ -834,7 +952,7 @@ export default function Shop() {
 
             {/* Search and Tabs */}
             <div className="mb-8 space-y-6">
-                {!['orders', 'my-services', 'dashboard'].includes(activeTab) && (
+                {!['orders', 'automations', 'my-services', 'dashboard'].includes(activeTab) && (
                     <div className="relative max-w-xl">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary w-5 h-5" />
                         <input
@@ -850,7 +968,7 @@ export default function Shop() {
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-theme">
                     {TABS.map(tabOption => {
                                 const count = counts[tabOption.key] || 0;
-                                if (tabOption.key !== 'all' && tabOption.key !== 'orders' && tabOption.key !== 'my-services' && tabOption.key !== 'dashboard' && count === 0) return null;
+                                if (tabOption.key !== 'all' && tabOption.key !== 'orders' && tabOption.key !== 'automations' && tabOption.key !== 'my-services' && tabOption.key !== 'dashboard' && count === 0) return null;
                                 return (
                                     <button
                                         key={tabOption.key}
@@ -863,7 +981,7 @@ export default function Shop() {
                                     >
                                         <tabOption.icon size={16} />
                                         <span>{tabOption.label}</span>
-                                        {(tabOption.key !== 'orders' && tabOption.key !== 'my-services' && tabOption.key !== 'dashboard') && (
+                                        {(tabOption.key !== 'orders' && tabOption.key !== 'automations' && tabOption.key !== 'my-services' && tabOption.key !== 'dashboard') && (
                                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === tabOption.key ? 'bg-primary-600 text-white' : 'bg-secondary/20 text-secondary'}`}>
                                                 {count}
                                             </span>
@@ -878,6 +996,8 @@ export default function Shop() {
             <div className="space-y-10">
                 {activeTab === 'orders' ? (
                     <OrdersTab />
+                ) : activeTab === 'automations' ? (
+                    <AutomationsTab navigate={navigate} />
                 ) : activeTab === 'my-services' ? (
                     <MyServicesTab navigate={navigate} />
                 ) : activeTab === 'dashboard' ? (

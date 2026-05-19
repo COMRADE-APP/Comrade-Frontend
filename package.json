@@ -10,6 +10,8 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.1",
     "@tailwindcss/typography": "^0.5.19",
@@ -24,6 +26,7 @@
     "@tiptap/starter-kit": "^3.20.1",
     "axios": "^1.16.0",
     "date-fns": "^3.0.0",
+    "emoji-mart": "^5.6.0",
     "face-api.js": "^0.20.0",
     "framer-motion": "^12.30.0",
     "html2canvas": "^1.4.1",
@@ -37,7 +40,8 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.21.0",
     "recharts": "^3.8.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "twemoji": "^14.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

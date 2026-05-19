@@ -13,6 +13,7 @@ const GroupLoansTab = ({ groupId }) => {
     const [loans, setLoans] = useState([]);
     const [loanProducts, setLoanProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [step, setStep] = useState(1);
     const totalSteps = 3;
@@ -32,12 +33,23 @@ const GroupLoansTab = ({ groupId }) => {
     const loadData = async () => {
         if (!groupId) return;
         setLoading(true);
+        setLoadError(null);
         try {
             const [loansData, productsData] = await Promise.all([
-                paymentsService.getGroupLoans(groupId),
-                paymentsService.getLoanProducts()
+                paymentsService.getProviderApplications(groupId).catch((err) => {
+                    console.warn('Could not load applications:', err);
+                    return { results: [] };
+                }),
+                paymentsService.getProviderLoanProducts().catch((err) => {
+                    console.warn('Could not load loan products:', err);
+                    return { results: [] };
+                })
             ]);
-            setLoans(Array.isArray(loansData) ? loansData : (loansData?.results || []));
+            
+            // Filter applications to only show loans
+            const allApps = Array.isArray(loansData) ? loansData : (loansData?.results || []);
+            setLoans(allApps.filter(app => app.application_type === 'loan_application' || app.application_type_display === 'Loan Application'));
+            
             const products = Array.isArray(productsData) ? productsData : (productsData?.results || []);
             setLoanProducts(products);
             
@@ -46,6 +58,8 @@ const GroupLoansTab = ({ groupId }) => {
             }
         } catch (error) {
             console.error('Error loading loans data:', error);
+            setLoadError('Failed to load loan data. Please try again.');
+            toast.error('Failed to load loan products');
         } finally {
             setLoading(false);
         }
@@ -55,12 +69,20 @@ const GroupLoansTab = ({ groupId }) => {
         if (e) e.preventDefault();
         setCreateLoading(true);
         try {
+            const selectedProduct = loanProducts.find(p => p.id === formData.loan_product);
+            
             const payload = {
-                ...formData,
-                amount: parseFloat(formData.amount),
-                tenure_months: parseInt(formData.tenure_months),
+                application_type: 'loan_application',
+                provider: selectedProduct?.provider,
+                service_product: formData.loan_product,
+                application_data: {
+                    amount: parseFloat(formData.amount),
+                    tenure_months: parseInt(formData.tenure_months),
+                    purpose: formData.purpose,
+                    group_id: groupId
+                }
             };
-            await paymentsService.applyForLoan(groupId, payload);
+            await paymentsService.submitProviderApplication(payload);
             setShowCreateModal(false);
             resetForm();
             loadData();
@@ -85,6 +107,19 @@ const GroupLoansTab = ({ groupId }) => {
 
     if (loading) {
         return <div className="p-8 text-center"><div className="animate-spin h-8 w-8 border-b-2 border-primary mx-auto rounded-full"></div></div>;
+    }
+
+    if (loadError) {
+        return (
+            <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <Coins className="w-8 h-8 text-rose-500" />
+                </div>
+                <h4 className="text-lg font-bold text-primary mb-2">Failed to Load</h4>
+                <p className="text-secondary max-w-sm mb-6 mx-auto">{loadError}</p>
+                <Button variant="outline" onClick={loadData}>Try Again</Button>
+            </div>
+        );
     }
 
     const selectedProduct = loanProducts.find(p => p.id === formData.loan_product);
@@ -129,7 +164,7 @@ const GroupLoansTab = ({ groupId }) => {
                                             <Landmark className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-primary">{loan.product_name || 'Group Loan'}</h4>
+                                            <h4 className="font-bold text-primary">{loan.service_product_name || 'Group Loan'}</h4>
                                             <p className="text-[10px] text-secondary font-bold uppercase tracking-wider">Applied on {formatDate(loan.created_at)}</p>
                                         </div>
                                     </div>
@@ -137,23 +172,23 @@ const GroupLoansTab = ({ groupId }) => {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 flex-1 md:justify-end px-4">
                                         <div>
                                             <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Amount</p>
-                                            <p className="text-sm font-bold text-primary">{formatMoneySimple(loan.amount)}</p>
+                                            <p className="text-sm font-bold text-primary">{formatMoneySimple(loan.application_data?.amount || 0)}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Interest</p>
-                                            <p className="text-sm font-bold text-amber-600">{loan.product_interest}%</p>
+                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Provider</p>
+                                            <p className="text-sm font-bold text-amber-600 truncate max-w-[100px]">{loan.provider_name || 'Internal'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Monthly</p>
-                                            <p className="text-sm font-bold text-primary">{formatMoneySimple(loan.monthly_payment || 0)}</p>
+                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Tenure</p>
+                                            <p className="text-sm font-bold text-primary">{loan.application_data?.tenure_months || 0} Months</p>
                                         </div>
                                         <div>
                                             <p className="text-[10px] text-tertiary font-bold uppercase mb-0.5">Status</p>
                                             <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
-                                                loan.status === 'disbursed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                                                loan.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-secondary/10 text-secondary border-transparent'
+                                                loan.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
+                                                loan.status === 'submitted' || loan.status === 'under_review' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-secondary/10 text-secondary border-transparent'
                                             }`}>
-                                                {loan.status}
+                                                {loan.status_display || loan.status}
                                             </span>
                                         </div>
                                     </div>
@@ -211,6 +246,13 @@ const GroupLoansTab = ({ groupId }) => {
                                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                         <div>
                                             <label className="block text-sm font-bold text-secondary mb-3 uppercase tracking-wider text-[10px]">Select Loan Product *</label>
+                                            {loanProducts.length === 0 ? (
+                                                <div className="p-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl text-center">
+                                                    <Coins className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                                                    <p className="text-sm font-bold text-primary mb-1">No Loan Products Available</p>
+                                                    <p className="text-xs text-secondary">There are currently no loan products configured by any provider. Please check back later or contact your group admin.</p>
+                                                </div>
+                                            ) : (
                                             <div className="grid grid-cols-1 gap-3">
                                                 {loanProducts.map(product => (
                                                     <label key={product.id} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -227,8 +269,8 @@ const GroupLoansTab = ({ groupId }) => {
                                                             <Landmark className="w-5 h-5" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-bold text-sm text-primary">{product.name}</p>
-                                                            <p className="text-xs text-secondary font-medium">{product.interest_rate}% Annual Interest • {product.max_tenure_months || 24} Months Max</p>
+                                                            <p className="font-bold text-sm text-primary">{product.name} <span className="text-xs font-normal text-amber-600 ml-2">by {product.provider_name}</span></p>
+                                                            <p className="text-xs text-secondary font-medium">Rate: {product.commission_rate}% • Max {Math.floor(product.max_tenure_days / 30) || 24} Months</p>
                                                         </div>
                                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${formData.loan_product === product.id ? 'border-amber-500 bg-amber-500' : 'border-theme'}`}>
                                                             {formData.loan_product === product.id && <div className="w-2 h-2 bg-white rounded-full" />}
@@ -236,6 +278,7 @@ const GroupLoansTab = ({ groupId }) => {
                                                     </label>
                                                 ))}
                                             </div>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
@@ -298,9 +341,9 @@ const GroupLoansTab = ({ groupId }) => {
 
                                             <div className="grid grid-cols-2 gap-8">
                                                 <div>
-                                                    <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mb-1">Interest Rate</p>
+                                                    <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mb-1">Provider & Rate</p>
                                                     <p className="text-lg font-bold text-primary flex items-center gap-2">
-                                                        <Percent className="w-4 h-4 text-amber-500" /> {selectedProduct?.interest_rate}% <span className="text-[10px] text-secondary font-normal">Annual</span>
+                                                        <Percent className="w-4 h-4 text-amber-500" /> {selectedProduct?.commission_rate || 0}% <span className="text-[10px] text-secondary font-normal">via {selectedProduct?.provider_name}</span>
                                                     </p>
                                                 </div>
                                                 <div>

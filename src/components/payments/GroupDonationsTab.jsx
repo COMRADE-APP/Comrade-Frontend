@@ -17,6 +17,7 @@ const GroupDonationsTab = ({ groupId }) => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createLoading, setCreateLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
+    const [step, setStep] = useState(1);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -135,7 +136,7 @@ const GroupDonationsTab = ({ groupId }) => {
                     </Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {donations.map(donation => {
                         const progress = parseFloat(donation.goal_amount) > 0 
                             ? Math.min(100, (parseFloat(donation.amount_collected || donation.current_amount || 0) / parseFloat(donation.goal_amount)) * 100) 
@@ -143,7 +144,7 @@ const GroupDonationsTab = ({ groupId }) => {
 
                         return (
                             <Card key={donation.id} className="border-theme overflow-hidden flex flex-col h-full hover:shadow-md transition-all hover:border-rose-300">
-                                <div className="h-40 bg-secondary/5 overflow-hidden relative shrink-0">
+                                <div className="h-32 bg-secondary/5 overflow-hidden relative shrink-0">
                                     {donation.cover_image_url ? (
                                         <img src={donation.cover_image_url} alt={donation.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -159,7 +160,7 @@ const GroupDonationsTab = ({ groupId }) => {
                                         </span>
                                     </div>
                                 </div>
-                                <CardBody className="p-5 flex flex-col flex-1 space-y-4">
+                                <CardBody className="p-4 flex flex-col flex-1 space-y-4">
                                     <div className="flex justify-between items-start">
                                         <div className="flex gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-500 shrink-0 border border-rose-100 dark:border-rose-800 shadow-sm">
@@ -300,11 +301,11 @@ const GroupDonationsTab = ({ groupId }) => {
 
                                 {step === 2 && (
                                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl flex gap-3">
-                                            <Building2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 rounded-xl flex gap-3">
+                                            <Building2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                                             <div>
-                                                <p className="text-sm font-bold text-blue-900 dark:text-blue-100">Verified Beneficiary</p>
-                                                <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">Adding organization details increases trust and transparency for the drive.</p>
+                                                <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">Verified Beneficiary</p>
+                                                <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">Adding organization details increases trust and transparency for the drive.</p>
                                             </div>
                                         </div>
 
@@ -368,11 +369,11 @@ const GroupDonationsTab = ({ groupId }) => {
                                                 </div>
 
                                                 {formData.organization_name && (
-                                                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800">
-                                                        <Building2 className="w-5 h-5 text-blue-500" />
+                                                    <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                                                        <Building2 className="w-5 h-5 text-emerald-500" />
                                                         <div>
-                                                            <p className="text-xs font-bold text-blue-900 dark:text-blue-100">{formData.organization_name}</p>
-                                                            <p className="text-[10px] text-blue-700 dark:text-blue-300 capitalize">{formData.organization_type} • {formData.organization_reg_number || 'No Reg ID'}</p>
+                                                            <p className="text-xs font-bold text-emerald-900 dark:text-emerald-100">{formData.organization_name}</p>
+                                                            <p className="text-[10px] text-emerald-700 dark:text-emerald-300 capitalize">{formData.organization_type} • {formData.organization_reg_number || 'No Reg ID'}</p>
                                                         </div>
                                                     </div>
                                                 )}

@@ -11,8 +11,8 @@ import { motion } from 'framer-motion';
 
 const STATUS_CONFIG = {
     initiated: { color: 'bg-secondary/10 text-secondary', icon: Clock },
-    funded: { color: 'bg-blue-500/15 text-blue-500', icon: Lock },
-    in_progress: { color: 'bg-indigo-500/15 text-indigo-500', icon: RefreshCw },
+    funded: { color: 'bg-emerald-500/15 text-emerald-500', icon: Lock },
+    in_progress: { color: 'bg-amber-500/15 text-amber-500', icon: RefreshCw },
     delivered: { color: 'bg-amber-500/15 text-amber-500', icon: Package },
     released: { color: 'bg-emerald-500/15 text-emerald-500', icon: CheckCircle },
     disputed: { color: 'bg-rose-500/15 text-rose-500', icon: AlertTriangle },
@@ -110,7 +110,7 @@ const EscrowDetail = () => {
                                 <div className="flex justify-between"><span className="text-secondary text-sm">Buyer</span><span className="font-medium text-primary">{escrow.buyer_name}</span></div>
                                 <div className="flex justify-between"><span className="text-secondary text-sm">Seller</span><span className="font-medium text-primary">{escrow.seller_name}</span></div>
                                 <div className="flex justify-between"><span className="text-secondary text-sm">Escrow Fee</span><span className="font-medium text-primary">{formatMoneySimple(escrow.escrow_fee)}</span></div>
-                                <div className="flex justify-between border-t border-theme pt-3"><span className="text-secondary text-sm">Total Funded</span><span className="font-bold text-blue-500">{formatMoneySimple(escrow.total_amount)}</span></div>
+                                <div className="flex justify-between border-t border-theme pt-3"><span className="text-secondary text-sm">Total Funded</span><span className="font-bold text-emerald-500">{formatMoneySimple(escrow.total_amount)}</span></div>
                             </div>
                         </div>
 
@@ -153,7 +153,7 @@ const EscrowDetail = () => {
                                             {!m.completed && escrow.status === 'funded' && (
                                                 <button 
                                                     onClick={() => escrowService.completeMilestone?.(id, i).then(loadEscrow)}
-                                                    className="text-xs px-3 py-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg font-medium transition-colors"
+                                                    className="text-xs px-3 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-lg font-medium transition-colors"
                                                 >
                                                     Mark Complete
                                                 </button>
@@ -217,7 +217,7 @@ const EscrowDetail = () => {
                                                 </Button>
                                                 <Button 
                                                     variant="outline" 
-                                                    className="border-blue-500/30 text-blue-500 hover:bg-blue-500/10 text-xs"
+                                                    className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 text-xs"
                                                     onClick={() => handleAction(escrowService.resolveEscrow, 'seller_wins', 0, 'Resolved in favor of seller')}
                                                     disabled={submitting}
                                                 >

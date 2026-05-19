@@ -24,7 +24,7 @@ const TYPE_CONFIG = {
     enterprise: { icon: Heart, color: 'from-pink-500 to-rose-600', bg: 'bg-pink-500/10', text: 'text-pink-600' },
     venture: { icon: Building2, color: 'from-primary-500 to-primary-700', bg: 'bg-primary-500/10', text: 'text-primary-600' },
     shop: { icon: Store, color: 'from-emerald-500 to-green-600', bg: 'bg-emerald-500/10', text: 'text-emerald-600' },
-    business: { icon: Briefcase, color: 'from-blue-500 to-cyan-600', bg: 'bg-blue-500/10', text: 'text-blue-600' },
+    business: { icon: Briefcase, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-500/10', text: 'text-emerald-600' },
 };
 
 // ==================== MINI BAR CHART ====================
@@ -289,8 +289,8 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                 <div className="space-y-2">
                                     {kitty.connected_accounts.map((acc, i) => (
                                         <div key={i} className="flex items-center gap-3 p-3 bg-secondary/5 rounded-xl border border-theme">
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${acc.type === 'mpesa' ? 'bg-green-500/10' : 'bg-blue-500/10'}`}>
-                                                {acc.type === 'mpesa' ? <Smartphone size={18} className="text-green-600" /> : <Landmark size={18} className="text-blue-600" />}
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${acc.type === 'mpesa' ? 'bg-green-500/10' : 'bg-emerald-500/10'}`}>
+                                                {acc.type === 'mpesa' ? <Smartphone size={18} className="text-green-600" /> : <Landmark size={18} className="text-emerald-600" />}
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-sm font-medium text-primary">{acc.name}</p>
@@ -395,8 +395,8 @@ const KittyDetailPanel = ({ kitty, onClose, onKittyUpdate }) => {
                                     onClick={() => setShowSettingsModal(true)}
                                     className="p-4 bg-secondary/5 rounded-xl border border-theme hover:bg-secondary/10 transition-colors text-left group"
                                 >
-                                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-3">
-                                        <Link2 size={18} className="text-blue-600" />
+                                    <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-3">
+                                        <Link2 size={18} className="text-emerald-600" />
                                     </div>
                                     <p className="font-semibold text-primary text-sm">Connect Account</p>
                                     <p className="text-xs text-secondary mt-0.5">Link bank or M-PESA</p>
@@ -586,7 +586,7 @@ const ConnectAccountModal = ({ kitty, onClose }) => {
             >
                 <div className="p-5 border-b border-theme flex justify-between items-center">
                     <h3 className="font-bold text-lg text-primary flex items-center gap-2">
-                        <Link2 size={20} className="text-blue-600" /> Connect Account
+                        <Link2 size={20} className="text-emerald-600" /> Connect Account
                     </h3>
                     <button onClick={onClose} className="text-secondary hover:text-primary text-xl">&times;</button>
                 </div>
@@ -610,7 +610,7 @@ const ConnectAccountModal = ({ kitty, onClose }) => {
                                         onClick={() => setAccountType('bank')}
                                         className={`p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${accountType === 'bank' ? 'border-primary bg-primary/5' : 'border-theme hover:border-primary/30'}`}
                                     >
-                                        <Landmark size={18} className="text-blue-600" />
+                                        <Landmark size={18} className="text-emerald-600" />
                                         <span className="text-sm font-medium text-primary">Bank Account</span>
                                     </button>
                                     <button
@@ -690,7 +690,7 @@ const ConnectAccountModal = ({ kitty, onClose }) => {
                                 <Button
                                     onClick={handleSave}
                                     disabled={saving}
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                                 >
                                     {saving ? 'Connecting...' : 'Connect Account'}
                                 </Button>
@@ -752,7 +752,7 @@ const KittyManagement = () => {
             </div>
 
             {/* Overview Card */}
-            <Card className="bg-gradient-to-br from-primary-600 via-indigo-600 to-primary-800 text-white border-0">
+            <Card className="bg-gradient-to-br from-primary-600 via-amber-600 to-primary-800 text-white border-0">
                 <CardBody className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -829,23 +829,12 @@ const KittyManagement = () => {
                         <KittyCard
                             key={kitty.id}
                             kitty={kitty}
-                            onSelect={setSelectedKittyId}
-                            isSelected={selectedKittyId === kitty.id}
+                            onSelect={(id) => navigate(`/payments/kitties/${id}`)}
+                            isSelected={false}
                         />
                     ))}
                 </div>
             )}
-
-            {/* Detail Panel */}
-            <AnimatePresence>
-                {selectedKitty && (
-                    <KittyDetailPanel
-                        kitty={selectedKitty}
-                        onClose={() => setSelectedKittyId(null)}
-                        onKittyUpdate={fetchKitties}
-                    />
-                )}
-            </AnimatePresence>
         </div>
     );
 };

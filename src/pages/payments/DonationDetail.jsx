@@ -164,11 +164,11 @@ const DonationDetail = () => {
 
                     {/* Organization Details */}
                     {donation.organization_details && (
-                        <div className="bg-blue-50 border border-blue-100 p-6 rounded-3xl shadow-sm">
-                            <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                                <Building2 className="w-5 h-5 text-blue-600" /> Organization Details
+                        <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl shadow-sm">
+                            <h4 className="font-bold text-emerald-900 mb-3 flex items-center gap-2">
+                                <Building2 className="w-5 h-5 text-emerald-600" /> Organization Details
                             </h4>
-                            <div className="space-y-2 text-sm text-blue-800">
+                            <div className="space-y-2 text-sm text-emerald-800">
                                 {donation.organization_details.name && (
                                     <p><strong>Name:</strong> {donation.organization_details.name}</p>
                                 )}

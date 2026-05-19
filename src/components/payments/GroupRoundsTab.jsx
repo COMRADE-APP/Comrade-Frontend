@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Calendar, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, AlertCircle, Loader, User, Wallet, RefreshCw, Landmark, CreditCard, Search, Send } from 'lucide-react';
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
@@ -342,9 +342,9 @@ const GroupRoundsTab = ({ groupId }) => {
 
     const statusColors = {
         pending_approval: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
-        pending: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
+        pending: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
         active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
-        completed: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
+        completed: 'bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
         cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
     };
 
@@ -375,9 +375,9 @@ const GroupRoundsTab = ({ groupId }) => {
             {positionsLoading ? (
                 <div className="flex items-center gap-2 text-sm text-secondary"><Loader className="w-4 h-4 animate-spin" /> Loading positions...</div>
             ) : myPosition ? (
-                <Card className="border-theme bg-blue-50 dark:bg-blue-900/10">
+                <Card className="border-theme bg-emerald-50 dark:bg-emerald-900/10">
                     <CardBody className="p-3 flex items-center gap-3">
-                        <Award className="w-5 h-5 text-blue-500" />
+                        <Award className="w-5 h-5 text-emerald-500" />
                         <span className="text-sm text-primary"><strong>Your Position:</strong> #{myPosition.position_number} of {positions.length} members</span>
                     </CardBody>
                 </Card>
@@ -441,8 +441,8 @@ const GroupRoundsTab = ({ groupId }) => {
 
             {rounds.length === 0 ? (
                 <div className="bg-elevated border border-theme rounded-xl p-12 text-center flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                        <Calendar className="w-8 h-8 text-blue-500" />
+                    <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4">
+                        <Calendar className="w-8 h-8 text-emerald-500" />
                     </div>
                     <h4 className="text-lg font-bold text-primary mb-2">No Active Rounds</h4>
                     <p className="text-secondary max-w-sm mb-6">
@@ -461,9 +461,9 @@ const GroupRoundsTab = ({ groupId }) => {
                                     <div className="flex items-start gap-4">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                                             round.status === 'active' ? 'bg-emerald-100 text-emerald-600' :
-                                            round.status === 'completed' ? 'bg-purple-100 text-purple-600' :
+                                            round.status === 'completed' ? 'bg-amber-100 text-amber-600' :
                                             round.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-600' :
-                                            round.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+                                            round.status === 'pending' ? 'bg-emerald-100 text-emerald-600' :
                                             'bg-red-100 text-red-600'
                                         }`}>
                                             {React.createElement(statusIcons[round.status] || Clock, { className: "w-6 h-6" })}
@@ -497,7 +497,7 @@ const GroupRoundsTab = ({ groupId }) => {
                                                     <Calendar className="w-3 h-3" /> Pick Position
                                                 </button>
                                             ) : round.user_position ? (
-                                                <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                                <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                                                     <Award className="w-3 h-3" /> Position: #{round.user_position}
                                                 </div>
                                             ) : null}
@@ -505,7 +505,7 @@ const GroupRoundsTab = ({ groupId }) => {
                                 </div>
                                 <div className="h-1.5 w-full bg-secondary/10">
                                     <div 
-                                        className={`h-full transition-all ${round.status === 'active' ? 'bg-emerald-500' : round.status === 'pending' ? 'bg-blue-500' : 'bg-yellow-500'}`} 
+                                        className={`h-full transition-all ${round.status === 'active' ? 'bg-emerald-500' : round.status === 'pending' ? 'bg-emerald-500' : 'bg-yellow-500'}`} 
                                         style={{ width: `${round.progress_percentage || 0}%` }}
                                     />
                                 </div>
@@ -541,7 +541,7 @@ const GroupRoundsTab = ({ groupId }) => {
                                         <h5 className="text-[10px] font-bold text-secondary uppercase mb-2">Rotation Schedule</h5>
                                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                                             {round.members_rotation.map((pos) => (
-                                                <div key={pos.member_id} className={`flex-shrink-0 w-24 p-2 rounded-lg border ${
+                                                <div key={pos.member_id} className={`flex-shrink-0 w-32 p-2 rounded-lg border ${
                                                     pos.status === 'current' ? 'bg-emerald-50 border-emerald-200 ring-2 ring-emerald-500/20' :
                                                     pos.status === 'past' ? 'bg-secondary/10 border-transparent opacity-60' :
                                                     'bg-elevated border-theme'
@@ -551,7 +551,28 @@ const GroupRoundsTab = ({ groupId }) => {
                                                         {pos.status === 'current' && <RefreshCw className="w-2 h-2 animate-spin text-emerald-500" />}
                                                         {pos.status === 'past' && <CheckCircle className="w-2 h-2 text-emerald-500" />}
                                                     </div>
-                                                    <div className="text-[10px] font-bold text-primary truncate">{pos.name}</div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Link to={pos.user_id ? `/profile/${pos.user_id}` : '#'} onClick={(e) => !pos.user_id && e.preventDefault()} className="flex items-center gap-2 hover:opacity-80 transition-opacity w-full overflow-hidden">
+                                                            {pos.profile_picture ? (
+                                                                <>
+                                                                    <img 
+                                                                        src={pos.profile_picture.startsWith('http') ? pos.profile_picture : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${pos.profile_picture.startsWith('/') ? '' : '/'}${pos.profile_picture}`} 
+                                                                        alt={pos.name} 
+                                                                        className="w-6 h-6 rounded-full object-cover flex-shrink-0" 
+                                                                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                                                    />
+                                                                    <div className="w-6 h-6 rounded-full bg-secondary/20 items-center justify-center flex-shrink-0" style={{ display: 'none' }}>
+                                                                        <User className="w-3 h-3 text-secondary" />
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                                                                    <User className="w-3 h-3 text-secondary" />
+                                                                </div>
+                                                            )}
+                                                            <div className="text-[10px] font-bold text-primary hover:text-emerald-500 truncate leading-tight flex-1">{pos.name}</div>
+                                                        </Link>
+                                                    </div>
                                                     <div className={`text-[8px] mt-1 ${
                                                         pos.status === 'current' ? 'text-emerald-600 font-bold' :
                                                         pos.status === 'past' ? 'text-secondary' : 'text-tertiary'
@@ -587,6 +608,16 @@ const GroupRoundsTab = ({ groupId }) => {
                                         )}
                                         {round.status === 'active' && (
                                             <div className="flex items-center gap-2">
+                                                {round.can_claim && round.has_unclaimed_payout && (
+                                                    <Button 
+                                                        variant="primary" 
+                                                        size="sm" 
+                                                        className="!py-1 !px-3 text-[10px] !bg-emerald-600 hover:!bg-emerald-700 !border-none animate-pulse"
+                                                        onClick={() => { setSelectedRound(round); setShowClaimModal(true); }}
+                                                    >
+                                                        <Award className="w-3 h-3 mr-1" /> Claim {formatMoneySimple(round.pending_claim_amount || 0)}
+                                                    </Button>
+                                                )}
                                                 <Button 
                                                     variant={walletBalance < parseFloat(round.contribution_amount) ? 'outline' : 'primary'} 
                                                     size="sm" 
@@ -611,11 +642,22 @@ const GroupRoundsTab = ({ groupId }) => {
                                         )}
                                         {round.status === 'completed' && (
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs text-purple-600 font-medium">Completed</span>
+                                                {round.can_claim && round.has_unclaimed_payout ? (
+                                                    <Button 
+                                                        variant="primary" 
+                                                        size="sm" 
+                                                        className="!py-1 !px-3 text-xs !bg-emerald-600 hover:!bg-emerald-700 !border-none shadow-lg shadow-emerald-500/25"
+                                                        onClick={() => { setSelectedRound(round); setShowClaimModal(true); }}
+                                                    >
+                                                        <Award className="w-3 h-3 mr-1" /> Claim {formatMoneySimple(round.pending_claim_amount || 0)}
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-xs text-amber-600 font-medium">Completed</span>
+                                                )}
                                                 <Button 
                                                     variant="primary" 
                                                     size="sm" 
-                                                    className="!py-1 !px-3 text-xs !bg-purple-600 hover:!bg-purple-700 !border-none"
+                                                    className="!py-1 !px-3 text-xs !bg-amber-600 hover:!bg-amber-700 !border-none"
                                                     onClick={() => handleRestartCycle(round.id)}
                                                 >
                                                     <RefreshCw className="w-3 h-3 mr-1" /> New Cycle

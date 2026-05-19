@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { renderContentWithEmojis } from './emoji';
 
 /**
  * Parses text and renders @username mentions as clickable spans that navigate to the user profile.
  * We use span with onClick rather than nested Link/a tags to avoid HTML validation errors
  * when the content itself is wrapped in a Link (like in OpinionCard).
+ * Also renders Apple emojis.
  */
 export const renderContentWithMentions = (text, navigate) => {
     if (!text || typeof text !== 'string') return text;
@@ -13,7 +15,7 @@ export const renderContentWithMentions = (text, navigate) => {
     const mentionRegex = /(@[\w]+)/g;
     const parts = text.split(mentionRegex);
 
-    return parts.map((part, i) => {
+    return parts.flatMap((part, i) => {
         if (part.match(mentionRegex)) {
             const username = part.substring(1); // remove @
             return (
@@ -31,6 +33,7 @@ export const renderContentWithMentions = (text, navigate) => {
                 </span>
             );
         }
-        return part;
+        // Apply emoji rendering to text parts
+        return renderContentWithEmojis(part);
     });
 };

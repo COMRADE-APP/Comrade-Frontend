@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
 import {
-    MessageSquare, Users, Settings, ArrowLeft, Send, Paperclip, Image, File, Mic,
+    MessageSquare, Users, Settings, ArrowLeft, Send, Paperclip, Image, File, Mic, Smile,
     UserPlus, UserMinus, Shield, Crown, MoreVertical, X, Bell, BellOff, Check, CheckCheck,
     Forward, Reply, Trash2, Calendar, ClipboardList, BookOpen, Megaphone, ChevronDown,
     Eye, UserCheck, AlertCircle, Download, Plus, MessageCircle, Heart, Repeat2, Share2, EyeOff, User, DollarSign,
@@ -15,6 +15,9 @@ import TypingIndicator from '../components/common/TypingIndicator';
 import roomsService from '../services/rooms.service';
 import { formatTimeAgo, formatLocalTime } from '../utils/dateFormatter';
 import { ROUTES } from '../constants/routes';
+import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../utils/emoji';
+import data from '@emoji-mart/data/sets/15/apple.json';
+import Picker from '@emoji-mart/react';
 
 // Message status tick component
 const MessageTicks = ({ status, isOwn }) => {
@@ -170,7 +173,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
                     )}
 
                     {/* Text content */}
-                    {message.content && <p className="whitespace-pre-wrap break-words">{message.content}</p>}
+                    {message.content && <p className="whitespace-pre-wrap break-words">{renderContentWithEmojis(message.content)}</p>}
 
                     {/* Entity references */}
                     {message.event && (
@@ -556,6 +559,8 @@ const RoomDetail = () => {
     const [messageFilter, setMessageFilter] = useState(null);
     const [typingUsers, setTypingUsers] = useState([]);
     const lastTypingRef = useRef(0);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const composerRef = useRef(null);
 
     // Check user role in room
     const isAdmin = room?.admins?.some(a => a.id === user?.id);
@@ -679,15 +684,20 @@ const RoomDetail = () => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() && selectedFiles.length === 0) return;
+        const html = composerRef.current?.innerHTML || '';
+        const textWithEmojis = convertHTMLToTextWithEmojis(html);
+        
+        const content = composerRef.current?.innerText === composerRef.current?.getAttribute('data-placeholder') ? '' : textWithEmojis;
+        if (!content.trim() && selectedFiles.length === 0) return;
 
         try {
             await roomsService.sendChat(id, {
-                content: newMessage,
+                content: content,
                 files: selectedFiles,
                 reply_to: replyTo?.id,
             });
             setNewMessage('');
+            if (composerRef.current) composerRef.current.innerText = composerRef.current.getAttribute('data-placeholder');
             setSelectedFiles([]);
             setReplyTo(null);
             await loadChats();
@@ -965,13 +975,54 @@ const RoomDetail = () => {
                                     >
                                         <Paperclip className="w-5 h-5" />
                                     </button>
-                                    <input
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={onInputChange}
-                                        placeholder="Type a message..."
-                                        className="flex-1 px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                                    />
+                                    <div className="relative flex-1">
+                                        <div 
+                                            ref={composerRef}
+                                            contentEditable 
+                                            className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none min-h-[40px]"
+                                            onInput={(e) => {
+                                                setNewMessage(e.target.innerHTML);
+                                                const now = Date.now();
+                                                if (now - lastTypingRef.current > 2000) {
+                                                    handleTyping();
+                                                    lastTypingRef.current = now;
+                                                }
+                                            }}
+                                            onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
+                                            onBlur={(e) => { if (e.target.innerText === '') e.target.innerText = e.target.getAttribute('data-placeholder'); }}
+                                            data-placeholder="Type a message..."
+                                        >Type a message...</div>
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className="p-1.5 hover:bg-tertiary/20 rounded-full text-secondary hover:text-primary transition-colors"
+                                            >
+                                                <Smile className="w-5 h-5" />
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <div 
+                                                    className="absolute bottom-full right-0 mb-2 z-[9999] shadow-2xl rounded-xl overflow-hidden border border-theme"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                >
+                                                    <Picker 
+                                                        data={data} 
+                                                        onEmojiSelect={(emoji) => { 
+                                                            composerRef.current.focus();
+                                                            insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);
+                                                            setNewMessage(composerRef.current.innerHTML);
+                                                            // Do not close on select to allow multiple picking
+                                                        }} 
+                                                        set="apple" 
+                                                        theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                                                        previewPosition="none"
+                                                        skinTonePosition="none"
+                                                        backgroundImageFn={(set, sheetSize) => `${window.location.origin}/apple-sheets-64.png`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                     <Button variant="primary" type="submit" disabled={!newMessage.trim() && selectedFiles.length === 0}>
                                         <Send className="w-4 h-4" />
                                     </Button>

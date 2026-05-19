@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const MetricCard = ({ title, value, change, icon: Icon, trend }) => (
     <Card className="hover:shadow-lg transition-shadow duration-300 border-theme">
         <CardBody className="p-5 flex items-center gap-4">
-            <div className={`p-3 rounded-xl ${trend === 'up' ? 'bg-emerald-500/10 text-emerald-600' : trend === 'down' ? 'bg-red-500/10 text-red-600' : 'bg-blue-500/10 text-blue-600'}`}>
+            <div className={`p-3 rounded-xl ${trend === 'up' ? 'bg-emerald-500/10 text-emerald-600' : trend === 'down' ? 'bg-red-500/10 text-red-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
                 <Icon size={22} strokeWidth={2} />
             </div>
             <div className="flex-1">
@@ -101,12 +101,12 @@ const GroupAnalytics = () => {
                 console.error('Summary fetch error:', e);
             }
             
-            if (!analyticsData && !groupData && !summaryData) {
-                throw new Error('Failed to load data from all endpoints');
-            }
+            // Build analytics even with partial data — zero-defaults for missing fields
+            const safeAnalytics = analyticsData || {};
+            const safeSummary = summaryData || {};
 
             // Prefer new summary data if available
-            const monthlyTrends = summaryData?.monthly_trends || [];
+            const monthlyTrends = safeSummary.monthly_trends || [];
             const timelineData = monthlyTrends.length > 0 
                 ? monthlyTrends.map((entry, i) => ({
                     name: entry.month ? new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : `M${i+1}`,
@@ -114,29 +114,41 @@ const GroupAnalytics = () => {
                     withdrawals: parseFloat(entry.outflow || 0),
                     transactions: entry.tx_count || 0,
                 }))
-                : ((analyticsData?.monthly_trend) || []).map((entry, i) => ({
+                : (safeAnalytics.monthly_trend || []).map((entry, i) => ({
                     name: entry.month ? new Date(entry.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : `M${i+1}`,
                     contributions: parseFloat(entry.total || 0),
                     transactions: entry.count || 0,
                 }));
 
             const categoryBreakdown = [
-                { name: 'Contributions', value: parseFloat(summaryData?.total_inflow || analyticsData?.total_contributed || 0) },
-                { name: 'Withdrawals', value: parseFloat(summaryData?.total_outflow || 0) },
-                { name: 'Piggy Banks', value: parseFloat(analyticsData?.piggy_bank_total || 0) },
-                { name: 'Donations', value: parseFloat(analyticsData?.donations_total || 0) },
-                { name: 'Investments', value: parseFloat(analyticsData?.investments_total || 0) },
+                { name: 'Contributions', value: parseFloat(safeSummary.total_inflow || safeAnalytics.total_contributed || 0) },
+                { name: 'Withdrawals', value: parseFloat(safeSummary.total_outflow || 0) },
+                { name: 'Piggy Banks', value: parseFloat(safeAnalytics.piggy_bank_total || 0) },
+                { name: 'Donations', value: parseFloat(safeAnalytics.donations_total || 0) },
+                { name: 'Investments', value: parseFloat(safeAnalytics.investments_total || 0) },
             ].filter(d => d.value > 0);
 
-            setAnalytics({ 
-                ...analyticsData, 
-                ...summaryData,
+            const mergedAnalytics = { 
+                total_contributed: 0,
+                total_members: 0,
+                progress: 0,
+                pending_checkouts: 0,
+                total_inflow: 0,
+                total_outflow: 0,
+                growth_rate: 0,
+                total_loans_given: 0,
+                total_penalties: 0,
+                round_stats: { active: 0 },
+                ...safeAnalytics, 
+                ...safeSummary,
                 timelineData, 
                 categoryBreakdown,
-                member_heatmap: summaryData?.member_heatmap || [],
-                top_contributors: summaryData?.top_contributors || analyticsData?.top_contributors || [],
-            });
-            setGroup(groupData);
+                member_heatmap: safeSummary.member_heatmap || [],
+                top_contributors: safeSummary.top_contributors || safeAnalytics.top_contributors || [],
+            };
+
+            setAnalytics(mergedAnalytics);
+            setGroup(groupData || { name: 'Group', id: groupIdParam });
         } catch (err) {
             console.error('Load data error:', err);
             setError(err.message || "Failed to load analytics. Please try again.");
@@ -346,7 +358,7 @@ const GroupAnalytics = () => {
                                 {analytics.top_contributors?.map((user, idx) => (
                                     <div key={idx} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold text-sm">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-sm">
                                                 {idx + 1}
                                             </div>
                                             <div>
@@ -372,7 +384,7 @@ const GroupAnalytics = () => {
                             <div className="space-y-5">
                                 <div className="flex justify-between items-center group">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-blue-500/10 rounded-xl text-blue-600">
+                                        <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600">
                                             <Users size={18} />
                                         </div>
                                         <div>
@@ -384,7 +396,7 @@ const GroupAnalytics = () => {
                                 </div>
                                 <div className="flex justify-between items-center group">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-purple-500/10 rounded-xl text-purple-600">
+                                        <div className="p-2 bg-amber-500/10 rounded-xl text-amber-600">
                                             <Award size={18} />
                                         </div>
                                         <div>

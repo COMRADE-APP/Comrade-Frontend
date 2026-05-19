@@ -1,8 +1,29 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye, AtSign, Quote } from 'lucide-react';
+import { Image, Video, FileText, X, Send, Globe, Users, Lock, Hash, MessageSquare, Search, Building2, GraduationCap, User, EyeOff, Eye, AtSign, Quote, Smile } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import roomsService from '../../services/rooms.service';
 import api from '../../services/api';
+import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../../utils/emoji';
+import data from '@emoji-mart/data/sets/15/apple.json';
+import Picker from '@emoji-mart/react';
+
+function getCaretCharacterOffsetWithin(element) {
+    let caretOffset = 0;
+    const doc = element.ownerDocument || element.document;
+    const win = doc.defaultView || doc.parentWindow;
+    let sel;
+    if (typeof win.getSelection != "undefined") {
+        sel = win.getSelection();
+        if (sel.rangeCount > 0) {
+            const range = win.getSelection().getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(element);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            caretOffset = preCaretRange.toString().length;
+        }
+    }
+    return caretOffset;
+}
 
 /**
  * OpinionComposer - Create new opinions with media upload, room tagging, and @-mentions
@@ -21,6 +42,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
     const [roomSearchQuery, setRoomSearchQuery] = useState('');
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
 
@@ -99,10 +121,11 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
 
     // Detect @ trigger in the textarea
     const handleContentChange = (e) => {
-        const value = e.target.value;
-        setContent(value);
+        const html = e.target.innerHTML;
+        const textWithEmojis = convertHTMLToTextWithEmojis(html);
+        setContent(textWithEmojis);
 
-        const cursorPos = e.target.selectionStart;
+        const cursorPos = getCaretCharacterOffsetWithin(e.target);
         // Look backwards from cursor for an @ that starts a mention
         const textBeforeCursor = value.substring(0, cursorPos);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
@@ -227,12 +250,18 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
         : availableRooms;
 
     const handleSubmit = async () => {
-        if (!content.trim() || content.length > characterLimit) return;
+        const html = textareaRef.current?.innerHTML || '';
+        const textWithEmojis = convertHTMLToTextWithEmojis(html);
+        
+        const placeholder = textareaRef.current?.getAttribute('data-placeholder');
+        const isPlaceholder = textWithEmojis.trim() === placeholder?.trim();
+        
+        if (isPlaceholder || !textWithEmojis.trim() || textWithEmojis.length > characterLimit) return;
 
         setIsSubmitting(true);
         try {
             const formData = new FormData();
-            formData.append('content', content);
+            formData.append('content', textWithEmojis);
             formData.append('visibility', visibility);
             mediaFiles.forEach((media) => {
                 formData.append('media', media.file);
@@ -272,6 +301,9 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
             setContent('');
             setMediaFiles([]);
             setTaggedRooms([]);
+            if (textareaRef.current) {
+                textareaRef.current.innerHTML = textareaRef.current.getAttribute('data-placeholder') || '';
+            }
             setTaggedUsers([]);
             setIsAnonymous(false);
         } catch (error) {
@@ -311,17 +343,31 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                 </div>
 
                 <div className="flex-1 relative">
-                    <textarea
-                        ref={textareaRef}
-                        value={content}
-                        onChange={handleContentChange}
-                        onKeyDown={handleTextareaKeyDown}
-                        placeholder={activeProfile?.type !== 'personal'
-                            ? `What does ${activeProfile?.name} want to share?`
-                            : "What's on your mind? Use @ to mention people"}
-                        className="w-full resize-none border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent"
-                        rows={3}
-                    />
+                    <div className="relative w-full">
+                        <div 
+                            key={activeProfile?.id}
+                            ref={textareaRef}
+                            contentEditable 
+                            className="w-full px-0 py-2 border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent outline-none"
+                            onInput={(e) => {
+                                handleContentChange(e);
+                            }}
+                            onKeyDown={handleTextareaKeyDown}
+                            onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
+                            onBlur={(e) => {
+                                const text = convertHTMLToTextWithEmojis(e.target.innerHTML);
+                                if (text.trim() === '') {
+                                    e.target.innerText = e.target.getAttribute('data-placeholder');
+                                }
+                            }}
+                            data-placeholder={activeProfile?.type !== 'personal'
+                                ? `What does ${activeProfile?.name} want to share?`
+                                : "What's on your mind? Use @ to mention people"}
+                            dangerouslySetInnerHTML={{ __html: activeProfile?.type !== 'personal'
+                                ? `What does ${activeProfile?.name} want to share?`
+                                : "What's on your mind? Use @ to mention people" }}
+                        ></div>
+                    </div>
 
                     {/* @-mention dropdown */}
                     {showMentionDropdown && (
@@ -476,6 +522,39 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
                     >
                         <Image size={20} />
                     </button>
+
+                    {/* Emoji button */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            className="p-2 rounded-full hover:bg-secondary text-secondary hover:text-primary transition-colors"
+                            title="Add emoji"
+                        >
+                            <Smile size={20} />
+                        </button>
+                        {showEmojiPicker && (
+                            <div 
+                                className="absolute top-full left-0 mt-2 z-[9999] shadow-2xl rounded-xl overflow-hidden border border-theme"
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                <Picker 
+                                    data={data} 
+                                    onEmojiSelect={(emoji) => { 
+                                        textareaRef.current.focus();
+                                        insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);
+                                        const html = textareaRef.current.innerHTML;
+                                        setContent(convertHTMLToTextWithEmojis(html));
+                                        // Do not close on select to allow multiple picking
+                                    }} 
+                                    set="apple" 
+                                    theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                                    previewPosition="none"
+                                    skinTonePosition="none"
+                                    backgroundImageFn={(set, sheetSize) => `${window.location.origin}/apple-sheets-64.png`}
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     {/* Room tagging button */}
                     <div className="relative">

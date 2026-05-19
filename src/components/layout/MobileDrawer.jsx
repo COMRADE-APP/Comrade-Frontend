@@ -16,11 +16,10 @@ import { useAuth } from '../../contexts/AuthContext';
 const MobileDrawer = ({ isOpen, onClose }) => {
     const location = useLocation();
     const { user, activeProfile } = useAuth();
+    const isProviderMode = activeProfile && activeProfile.type !== 'personal';
 
-    const navItems = [
+    const consumerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
-        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
         { path: ROUTES.ROOMS, label: 'Rooms', icon: Users },
@@ -41,8 +40,18 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         { path: ROUTES.DONATIONS, label: 'Donations', icon: Heart },
         { path: ROUTES.GROUP_INVESTMENTS, label: 'Group Investments', icon: PieChart },
         { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
-        { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
+        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
+    ];
+
+    const providerNavItems = [
+        { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
+        { path: '/providers/dashboard', label: 'Provider Hub', icon: Building2 },
+        { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
+        { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
+        { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
         // Admin Portal - only visible for admin/staff users
         ...(user?.is_admin || user?.is_staff || user?.is_superuser ? [
             { path: ROUTES.ADMIN_PORTAL, label: 'Admin Portal', icon: Shield },
@@ -64,7 +73,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         ...(['institutional_admin', 'institutional_staff', 'organisational_admin', 'organisational_staff', 'partner'].includes(user?.user_type) ? [
             { path: ROUTES.INSTITUTION_PORTAL, label: 'My Portal', icon: Building2 },
         ] : []),
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last
+        { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
+
+    const navItems = isProviderMode ? providerNavItems : consumerNavItems;
 
     const isActive = (path) => location.pathname === path;
 

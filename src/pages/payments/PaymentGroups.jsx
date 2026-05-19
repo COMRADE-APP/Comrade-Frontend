@@ -142,8 +142,8 @@ const PaymentGroups = () => {
                 <Card>
                     <CardBody className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                <DollarSign className="w-5 h-5 text-blue-600" />
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                <DollarSign className="w-5 h-5 text-emerald-600" />
                             </div>
                             <div>
                                 <p className="text-xs text-secondary">Total Saved</p>
@@ -372,8 +372,8 @@ const GroupCard = ({ group, progress, onClick, onInvite, onPiggyBank }) => {
                     <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold capitalize ${
                             group.group_type === 'piggy_bank' ? 'bg-pink-50 text-pink-700' :
-                            group.group_type === 'kitty' ? 'bg-indigo-50 text-indigo-700' :
-                            'bg-blue-50 text-blue-700'
+                            group.group_type === 'kitty' ? 'bg-amber-50 text-amber-700' :
+                            'bg-emerald-50 text-emerald-700'
                         }`}>
                             {group.group_type === 'piggy_bank' ? 'Piggy Bank' : group.group_type === 'kitty' ? 'Kitty' : 'Standard'}
                         </span>

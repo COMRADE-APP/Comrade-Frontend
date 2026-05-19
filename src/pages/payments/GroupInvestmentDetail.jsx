@@ -120,7 +120,7 @@ const GroupInvestmentDetail = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
             </div>
         );
     }
@@ -167,7 +167,7 @@ const GroupInvestmentDetail = () => {
                     <div>
                         <div className="mb-4 flex flex-wrap gap-2">
                             {investment.opportunity_category && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full uppercase font-bold tracking-wider">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 text-xs rounded-full uppercase font-bold tracking-wider">
                                     <Target className="w-3.5 h-3.5" />
                                     {investment.opportunity_category}
                                 </span>
@@ -188,32 +188,32 @@ const GroupInvestmentDetail = () => {
                         </p>
                     </div>
 
-                    <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 shadow-inner mt-4">
+                    <div className="bg-amber-50 border border-amber-100 rounded-3xl p-8 shadow-inner mt-4">
                         <div className="flex flex-col md:flex-row gap-8 items-center">
                             <div className="flex-1 w-full">
                                 <div className="flex justify-between items-end mb-2">
-                                    <span className="text-indigo-900 font-bold uppercase tracking-wider text-sm">Capital Raised</span>
+                                    <span className="text-amber-900 font-bold uppercase tracking-wider text-sm">Capital Raised</span>
                                     <span className="text-secondary font-medium">Goal: ${parseFloat(investment.target_amount || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-4xl font-black text-indigo-700">
+                                    <span className="text-4xl font-black text-amber-700">
                                         ${parseFloat(investment.amount_collected || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </span>
                                 </div>
-                                <div className="h-4 bg-indigo-200/50 rounded-full overflow-hidden p-0.5">
+                                <div className="h-4 bg-amber-200/50 rounded-full overflow-hidden p-0.5">
                                     <div
-                                        className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                                        className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-1000 ease-out"
                                         style={{ width: `${Math.max(2, progress)}%` }}
                                     ></div>
                                 </div>
-                                <p className="text-right text-indigo-700 text-sm font-bold mt-2">{progress.toFixed(1)}% Subscribed</p>
+                                <p className="text-right text-amber-700 text-sm font-bold mt-2">{progress.toFixed(1)}% Subscribed</p>
                             </div>
                             
                             <div className="w-full md:w-auto flex shrink-0 gap-4">
                                 <Button
                                     variant="outline"
                                     onClick={handleShare}
-                                    className="py-4 px-6 text-lg hover:-translate-y-1 transition-all rounded-2xl border-indigo-200 text-indigo-700 bg-white"
+                                    className="py-4 px-6 text-lg hover:-translate-y-1 transition-all rounded-2xl border-amber-200 text-amber-700 bg-white"
                                 >
                                     <Share2 className="w-5 h-5" />
                                 </Button>
@@ -231,7 +231,7 @@ const GroupInvestmentDetail = () => {
                                     <Button
                                         variant="primary"
                                         onClick={() => setShowQuoteModal(true)}
-                                        className="w-full md:w-auto py-4 px-8 text-lg shadow-xl shadow-indigo-200 hover:-translate-y-1 transition-all bg-indigo-600 hover:bg-indigo-700 border-0 rounded-2xl"
+                                        className="w-full md:w-auto py-4 px-8 text-lg shadow-xl shadow-amber-200 hover:-translate-y-1 transition-all bg-amber-600 hover:bg-amber-700 border-0 rounded-2xl"
                                     >
                                         <DollarSign className="w-6 h-6 mr-3" />
                                         Quote Shares
@@ -244,10 +244,10 @@ const GroupInvestmentDetail = () => {
 
                 {/* Right Side: Term Sheet */}
                 <Card className="xl:col-span-1 border-theme shadow-lg rounded-3xl overflow-hidden h-fit sticky top-24">
-                    <div className="h-2 bg-gradient-to-r from-indigo-600 to-blue-500"></div>
+                    <div className="h-2 bg-gradient-to-r from-amber-600 to-emerald-500"></div>
                     <CardBody className="p-6">
                         <h3 className="font-bold text-primary flex items-center gap-2 mb-6 text-lg">
-                            <Briefcase className="text-indigo-600" />
+                            <Briefcase className="text-amber-600" />
                             Term Sheet Summary
                         </h3>
                         
@@ -255,7 +255,7 @@ const GroupInvestmentDetail = () => {
                             <div className="bg-primary/5 rounded-2xl p-4 border border-theme">
                                 <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Syndicate Group</p>
                                 <div className="flex items-center gap-2 font-semibold text-primary">
-                                    <Users className="w-5 h-5 text-blue-600" />
+                                    <Users className="w-5 h-5 text-emerald-600" />
                                     {investment.payment_group_name || 'Group Backed'}
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ const GroupInvestmentDetail = () => {
                             <div className="bg-primary/5 rounded-2xl p-4 border border-theme">
                                 <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Maturity Horizon</p>
                                 <div className="flex items-center gap-2 font-semibold text-primary">
-                                    <Calendar className="w-5 h-5 text-blue-600" />
+                                    <Calendar className="w-5 h-5 text-emerald-600" />
                                     {investment.maturity_date ? formatDate(investment.maturity_date) : 'Open-Ended'}
                                 </div>
                             </div>
@@ -271,7 +271,7 @@ const GroupInvestmentDetail = () => {
                             <div className="bg-primary/5 rounded-2xl p-4 border border-theme">
                                 <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-1">Quoting Mode</p>
                                 <div className="flex items-center gap-2 font-semibold text-primary capitalize">
-                                    <PieChart className="w-5 h-5 text-blue-600" />
+                                    <PieChart className="w-5 h-5 text-emerald-600" />
                                     {investment.quoting_mode}
                                 </div>
                             </div>
@@ -297,14 +297,14 @@ const GroupInvestmentDetail = () => {
             {investment.approval_vote && (
                 <div className="mt-12 bg-elevated border border-theme rounded-3xl p-8 shadow-sm">
                     <h3 className="text-2xl font-black text-primary mb-6 flex items-center gap-3">
-                        <CheckCircle className="text-indigo-600 w-7 h-7" />
+                        <CheckCircle className="text-amber-600 w-7 h-7" />
                         Pitch Approval
                     </h3>
                     
                     {!investment.approval_vote.user_vote ? (
                         <div className="text-center py-8 max-w-lg mx-auto">
-                            <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle className="w-8 h-8 text-indigo-500" />
+                            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle className="w-8 h-8 text-amber-500" />
                             </div>
                             <h4 className="text-xl font-bold text-primary mb-2">Your Vote is Required</h4>
                             <p className="text-secondary mb-8">
@@ -320,10 +320,10 @@ const GroupInvestmentDetail = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col md:flex-row gap-8 items-center border border-indigo-100 bg-indigo-50/50 rounded-2xl p-6">
+                        <div className="flex flex-col md:flex-row gap-8 items-center border border-amber-100 bg-amber-50/50 rounded-2xl p-6">
                             <div className="flex-1 w-full space-y-4">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-indigo-900 font-bold uppercase tracking-wider text-sm">Group Sentiment</span>
+                                    <span className="text-amber-900 font-bold uppercase tracking-wider text-sm">Group Sentiment</span>
                                     <span className={`text-2xl font-black ${investment.approval_vote.approval_percentage >= 50 ? 'text-green-600' : 'text-amber-600'}`}>
                                         {investment.approval_vote.approval_percentage}% Approved
                                     </span>
@@ -340,7 +340,7 @@ const GroupInvestmentDetail = () => {
                                     <span>{investment.approval_vote.votes_abstain_count} Abstain</span>
                                 </div>
                             </div>
-                            <div className="w-full md:w-auto shrink-0 bg-white p-4 rounded-xl border border-indigo-100 text-center shadow-sm">
+                            <div className="w-full md:w-auto shrink-0 bg-white p-4 rounded-xl border border-amber-100 text-center shadow-sm">
                                 <p className="text-xs text-secondary font-bold uppercase tracking-wider mb-2">You Voted</p>
                                 <div className="flex justify-center items-center gap-2">
                                     {investment.approval_vote.user_vote === 'for' ? <ThumbsUp className="w-6 h-6 text-green-600" /> : <ThumbsDown className="w-6 h-6 text-red-600" />}
@@ -358,7 +358,7 @@ const GroupInvestmentDetail = () => {
             {(!investment.approval_vote || investment.approval_vote.user_vote) && investment.quotes && investment.quotes.length > 0 && (
                 <div className="mt-12">
                     <h3 className="text-2xl font-black text-primary mb-6 flex items-center gap-3">
-                        <PieChart className="text-indigo-600 w-7 h-7" />
+                        <PieChart className="text-amber-600 w-7 h-7" />
                         Capitalization Table
                     </h3>
                     <div className="bg-elevated border border-theme rounded-3xl overflow-hidden shadow-sm">
@@ -376,10 +376,10 @@ const GroupInvestmentDetail = () => {
                                         <tr key={idx} className="hover:bg-primary/5 transition-colors group">
                                             <td className="p-4 pl-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-inner">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-emerald-500 flex items-center justify-center text-white font-bold shadow-inner">
                                                         {quote.member_name?.charAt(0).toUpperCase() || 'U'}
                                                     </div>
-                                                    <span className="font-semibold text-primary group-hover:text-indigo-600 transition-colors">
+                                                    <span className="font-semibold text-primary group-hover:text-amber-600 transition-colors">
                                                         {quote.member_name}
                                                     </span>
                                                 </div>
@@ -388,7 +388,7 @@ const GroupInvestmentDetail = () => {
                                                 ${parseFloat(quote.amount_quoted).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </td>
                                             <td className="p-4 text-right pr-6">
-                                                <span className="inline-block bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-bold text-sm mb-2">
+                                                <span className="inline-block bg-amber-50 text-amber-700 px-3 py-1 rounded-full font-bold text-sm mb-2">
                                                     {parseFloat(quote.ownership_percentage).toFixed(2)}%
                                                 </span>
                                                 {investment.is_group_member && quote.member_name && ( // assuming checking logic if this row is me wouldn't hurt
@@ -415,15 +415,15 @@ const GroupInvestmentDetail = () => {
             {showQuoteModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-lg shadow-2xl scale-in-center overflow-hidden border-0 rounded-3xl">
-                        <div className="h-2 bg-gradient-to-r from-indigo-600 to-blue-500"></div>
+                        <div className="h-2 bg-gradient-to-r from-amber-600 to-emerald-500"></div>
                         <CardBody className="p-8">
                             <h3 className="text-3xl font-black text-primary mb-2">Quote Shares</h3>
                             <p className="text-secondary mb-8">Secure your allocation in <strong className="text-primary">{investment.name}</strong></p>
                             
                             <form onSubmit={handleQuote} className="space-y-6">
-                                <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                                <div className="p-6 bg-amber-50/50 rounded-2xl border border-amber-100">
                                     <div className="flex justify-between items-end mb-4">
-                                        <span className="text-sm font-bold text-indigo-900 uppercase">Available Volume</span>
+                                        <span className="text-sm font-bold text-amber-900 uppercase">Available Volume</span>
                                         <span className="text-xl font-black text-primary text-right">
                                             ${Math.max(0, parseFloat(investment.target_amount) - parseFloat(investment.amount_collected)).toLocaleString()}
                                         </span>
@@ -440,17 +440,17 @@ const GroupInvestmentDetail = () => {
                                             value={quoteAmount}
                                             onChange={(e) => setQuoteAmount(e.target.value)}
                                             placeholder="Enter amount..."
-                                            className="block w-full pl-12 pr-4 py-4 border-2 border-indigo-200 bg-white text-indigo-900 rounded-xl focus:ring-0 focus:border-indigo-500 text-2xl font-bold transition-all shadow-inner"
+                                            className="block w-full pl-12 pr-4 py-4 border-2 border-amber-200 bg-white text-amber-900 rounded-xl focus:ring-0 focus:border-amber-500 text-2xl font-bold transition-all shadow-inner"
                                         />
                                     </div>
                                     
                                     {quoteAmount && investment.target_amount > 0 && investment.quoting_mode === 'proportional' && (
-                                        <div className="mt-4 flex items-start gap-3 p-3 bg-white rounded-xl border border-indigo-100 shadow-sm">
-                                            <PieChart className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                                        <div className="mt-4 flex items-start gap-3 p-3 bg-white rounded-xl border border-amber-100 shadow-sm">
+                                            <PieChart className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                             <div>
                                                 <p className="text-sm font-bold text-primary">Proportional Stake</p>
                                                 <p className="text-xs text-secondary mt-0.5">
-                                                    This quote secures <strong className="text-indigo-600">{((parseFloat(quoteAmount) / parseFloat(investment.target_amount)) * 100).toFixed(2)}%</strong> of the total vehicle equity.
+                                                    This quote secures <strong className="text-amber-600">{((parseFloat(quoteAmount) / parseFloat(investment.target_amount)) * 100).toFixed(2)}%</strong> of the total vehicle equity.
                                                 </p>
                                             </div>
                                         </div>
@@ -461,7 +461,7 @@ const GroupInvestmentDetail = () => {
                                     <Button type="button" variant="outline" className="flex-1 py-3" onClick={() => setShowQuoteModal(false)}>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" variant="primary" className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 border-0 shadow-md" disabled={!quoteAmount}>
+                                    <Button type="submit" variant="primary" className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 border-0 shadow-md" disabled={!quoteAmount}>
                                         Commit Capital
                                     </Button>
                                 </div>

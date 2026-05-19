@@ -15,6 +15,8 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
     const [selectedUser, setSelectedUser] = useState(null);
     const [externalEmail, setExternalEmail] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [inviteLink, setInviteLink] = useState('');
+    const [copied, setCopied] = useState(false);
     const toast = useToast();
 
     // Debounced search
@@ -62,11 +64,17 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
             const identifier = inviteMethod === 'qomrade' ? selectedUser.username : externalEmail;
             const forceExternal = inviteMethod === 'external';
             
-            await paymentsService.inviteToGroup(groupId, identifier, forceExternal);
+            const response = await paymentsService.inviteToGroup(groupId, identifier, forceExternal);
+            
+            if (response && response.invitation_link) {
+                // Construct full URL using frontend origin
+                const fullLink = `${window.location.origin}/payments/groups/${groupId}?token=${response.invitation_link}`;
+                setInviteLink(fullLink);
+            }
             
             toast.success(`Invitation sent to ${identifier}`);
             onInviteSent();
-            handleClose();
+            setStep(4); // Move to success step
         } catch (error) {
             console.error('Invite error:', error);
             toast.error(error.response?.data?.error || 'Failed to send invitation');
@@ -76,12 +84,21 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
     };
 
     const handleClose = () => {
-        setStep(1);
-        setInviteMethod(null);
-        setSearchQuery('');
-        setSelectedUser(null);
-        setExternalEmail('');
-        onClose();
+            setStep(1);
+            setInviteMethod(null);
+            setSearchQuery('');
+            setSelectedUser(null);
+            setExternalEmail('');
+            setInviteLink('');
+            setCopied(false);
+            onClose();
+        };
+
+    const copyToClipboard = () => {
+        if (!inviteLink) return;
+        navigator.clipboard.writeText(inviteLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     if (!isOpen) return null;
@@ -97,8 +114,8 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
                                 <UserPlus className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="font-bold text-primary">Invite to {groupName}</h2>
-                                <p className="text-[10px] text-secondary uppercase tracking-wider font-semibold">Step {step} of 3</p>
+                                <h2 className="font-bold text-primary">{step === 4 ? 'Invitation Sent' : `Invite to ${groupName}`}</h2>
+                                {step < 4 && <p className="text-[10px] text-secondary uppercase tracking-wider font-semibold">Step {step} of 3</p>}
                             </div>
                         </div>
                         <button onClick={handleClose} className="p-2 hover:bg-secondary/10 rounded-full transition-colors">
@@ -253,27 +270,77 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
                             </div>
                         )}
 
+                        {/* Step 4: Success & Share Link */}
+                        {step === 4 && (
+                            <div className="space-y-6 animate-in zoom-in-95 duration-300">
+                                <div className="p-6 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-center space-y-4">
+                                    <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto">
+                                        <Check className="w-8 h-8" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-emerald-800 dark:text-emerald-400 text-lg">
+                                            Invitation Sent!
+                                        </h3>
+                                        <p className="text-emerald-600 dark:text-emerald-500 text-sm mt-1">
+                                            {inviteMethod === 'qomrade' ? `@${selectedUser?.username}` : externalEmail} has been invited to join.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {inviteLink && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-secondary ml-1">Direct Invite Link</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                readOnly 
+                                                value={inviteLink} 
+                                                className="flex-1 px-4 py-2 bg-secondary/5 border border-theme rounded-xl text-xs text-primary font-mono truncate"
+                                            />
+                                            <Button 
+                                                variant="outline" 
+                                                onClick={copyToClipboard}
+                                                className={copied ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''}
+                                            >
+                                                {copied ? 'Copied!' : 'Copy'}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Actions */}
                         <div className="flex gap-3 mt-8">
-                            {step > 1 && (
+                            {step > 1 && step < 4 && (
                                 <Button variant="outline" className="flex-1 py-3" onClick={handlePrevStep} disabled={isSending}>
                                     <ArrowLeft className="w-4 h-4 mr-2" /> Back
                                 </Button>
                             )}
-                            <Button 
-                                variant="primary" 
-                                className="flex-[2] py-3 shadow-lg shadow-primary/20" 
-                                onClick={step === 3 ? handleSendInvite : handleNextStep}
-                                disabled={
-                                    (step === 1 && !inviteMethod) ||
-                                    (step === 2 && inviteMethod === 'qomrade' && !selectedUser) ||
-                                    (step === 2 && inviteMethod === 'external' && !externalEmail) ||
-                                    isSending
-                                }
-                            >
-                                {isSending ? 'Sending...' : step === 3 ? 'Confirm & Send' : 'Continue'}
-                                {step < 3 && !isSending && <ArrowRight className="w-4 h-4 ml-2" />}
-                            </Button>
+                            {step < 4 ? (
+                                <Button 
+                                    variant="primary" 
+                                    className="flex-[2] py-3 shadow-lg shadow-primary/20" 
+                                    onClick={step === 3 ? handleSendInvite : handleNextStep}
+                                    disabled={
+                                        (step === 1 && !inviteMethod) ||
+                                        (step === 2 && inviteMethod === 'qomrade' && !selectedUser) ||
+                                        (step === 2 && inviteMethod === 'external' && !externalEmail) ||
+                                        isSending
+                                    }
+                                >
+                                    {isSending ? 'Sending...' : step === 3 ? 'Confirm & Send' : 'Continue'}
+                                    {step < 3 && !isSending && <ArrowRight className="w-4 h-4 ml-2" />}
+                                </Button>
+                            ) : (
+                                <Button 
+                                    variant="primary" 
+                                    className="w-full py-3" 
+                                    onClick={handleClose}
+                                >
+                                    Done
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </CardBody>

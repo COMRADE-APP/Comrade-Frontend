@@ -314,7 +314,7 @@ const BillPayments = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${sp.destination_type?.includes('internal') ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${sp.destination_type?.includes('internal') ? 'bg-green-100 text-green-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                 {sp.destination_type?.includes('internal') ? 'Internal' : 'External'}
                                             </span>
                                             <button onClick={() => handleDeleteProvider(sp.id)} className="p-1.5 text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">

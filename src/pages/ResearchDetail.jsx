@@ -38,6 +38,10 @@ const ResearchDetail = () => {
     const [surveys, setSurveys] = useState([]);
     const [surveysLoading, setSurveysLoading] = useState(false);
 
+    // Matching state
+    const [matches, setMatches] = useState([]);
+    const [matchesLoading, setMatchesLoading] = useState(false);
+
     useEffect(() => {
         loadProject();
     }, [id]);
@@ -75,6 +79,24 @@ const ResearchDetail = () => {
             console.error('Error loading project data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (project && String(project.principal_investigator?.id) === String(user?.id)) {
+            loadMatches();
+        }
+    }, [project, user]);
+
+    const loadMatches = async () => {
+        setMatchesLoading(true);
+        try {
+            const res = await api.get(`/api/v1/research-projects/${id}/matches/`);
+            setMatches(res.data);
+        } catch (error) {
+            console.error('Error loading matches:', error);
+        } finally {
+            setMatchesLoading(false);
         }
     };
 
@@ -126,6 +148,28 @@ const ResearchDetail = () => {
         } catch (error) {
             console.error('Error updating publication:', error);
             alert('Failed to update publication.');
+        }
+    };
+
+    const handleRunMatching = async () => {
+        try {
+            await api.post(`/api/v1/research-projects/${id}/run_matching/`);
+            alert('AI Participant Matching completed!');
+            loadMatches();
+        } catch (error) {
+            console.error('Error running matching:', error);
+            alert('Failed to run participant matching.');
+        }
+    };
+
+    const handleDisburseCompensation = async () => {
+        if (!window.confirm('Disburse compensation to all completed, unpaid participants? This will deduct funds from your payment profile.')) return;
+        try {
+            const res = await api.post(`/api/v1/research-projects/${id}/disburse_compensation/`);
+            alert(`Success! Disbursed a total of $${res.data.total_disbursed} to ${res.data.participants_paid} participants.`);
+        } catch (error) {
+            console.error('Error disbursing compensation:', error);
+            alert(error.response?.data?.detail || error.response?.data?.error || 'Failed to disburse compensation.');
         }
     };
 
@@ -713,6 +757,93 @@ const ResearchDetail = () => {
         </div>
     );
 
+    const renderMatching = () => {
+        if (!isPI) return <div className="p-8 text-center text-secondary">Not authorized to view participant matches.</div>;
+
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center bg-gradient-to-r from-primary-900 to-primary-700 p-6 rounded-2xl text-white shadow-lg">
+                    <div>
+                        <h3 className="text-xl font-semibold">AI Participant Matching</h3>
+                        <p className="text-primary-100 text-sm mt-1">
+                            Find the best participants for your research based on requirements and profiles.
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
+                        <Button variant="primary" className="bg-white text-primary hover:bg-gray-100" onClick={handleRunMatching}>
+                            <Users className="w-4 h-4 mr-2" /> Run AI Matching
+                        </Button>
+                        <Button variant="outline" className="border-white text-white hover:bg-white/10" onClick={handleDisburseCompensation}>
+                            <DollarSign className="w-4 h-4 mr-2" /> Disburse Compensation
+                        </Button>
+                    </div>
+                </div>
+
+                {matchesLoading ? (
+                    <div className="text-center py-12 text-secondary">Analyzing profiles...</div>
+                ) : matches.length === 0 ? (
+                    <div className="text-center py-12 bg-elevated rounded-xl border border-theme">
+                        <User className="w-12 h-12 mx-auto text-tertiary mb-3" />
+                        <p className="text-secondary">No matches found yet.</p>
+                        <p className="text-xs text-tertiary mt-1">Click "Run AI Matching" to discover compatible participants.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {matches.map(match => (
+                            <Card key={match.id} className="hover:border-primary/50 transition-colors">
+                                <CardBody className="space-y-3">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                                            {match.avatar ? (
+                                                <img src={match.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-primary font-bold">{match.participant_name.charAt(0)}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-primary">{match.participant_name}</h4>
+                                            <div className="flex items-center gap-1 text-xs text-secondary">
+                                                <span className={`font-bold ${match.match_score >= 80 ? 'text-green-500' : match.match_score >= 60 ? 'text-blue-500' : 'text-orange-500'}`}>
+                                                    {match.match_score}% Match
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2 text-xs bg-secondary/10 p-2 rounded-lg">
+                                        <div className="flex justify-between">
+                                            <span className="text-tertiary">Age:</span>
+                                            <span className="text-secondary font-medium">{match.age_match}%</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-tertiary">Edu:</span>
+                                            <span className="text-secondary font-medium">{match.education_match}%</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-tertiary">Skills:</span>
+                                            <span className="text-secondary font-medium">{match.experience_match}%</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-tertiary">Loc:</span>
+                                            <span className="text-secondary font-medium">{match.location_match}%</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 flex gap-2">
+                                        <Button variant="outline" size="sm" className="flex-1 text-xs py-1 h-auto">View Profile</Button>
+                                        <Button variant="primary" size="sm" className="flex-1 text-xs py-1 h-auto" disabled={match.notification_sent}>
+                                            {match.notification_sent ? 'Invited' : 'Invite'}
+                                        </Button>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <Button variant="ghost" onClick={() => navigate('/research')}>
@@ -793,7 +924,7 @@ const ResearchDetail = () => {
 
             {/* Navigation Tabs */}
             <div className="flex gap-4 border-b border-theme overflow-x-auto pb-1">
-                {['overview', 'personas', 'participants', 'surveys', 'recruitment', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
+                {['overview', 'personas', 'participants', 'surveys', 'matching', 'recruitment', 'guidelines', 'team', 'reviews', 'publication'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -813,6 +944,7 @@ const ResearchDetail = () => {
                 {activeTab === 'personas' && renderPersonas()}
                 {activeTab === 'participants' && renderPositions()}
                 {activeTab === 'surveys' && renderSurveys()}
+                {activeTab === 'matching' && renderMatching()}
                 {activeTab === 'recruitment' && renderRecruitment()}
                 {activeTab === 'guidelines' && renderGuidelines()}
                 {activeTab === 'team' && renderTeam()}

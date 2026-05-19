@@ -37,7 +37,7 @@ const TRANSACTION_CONFIG = {
         title: 'Send Money',
         subtitle: 'Transfer funds to another user',
         icon: Send,
-        color: 'from-blue-500 to-indigo-600',
+        color: 'from-emerald-500 to-amber-600',
         amountLabel: 'Amount to Send',
         showBalance: true,
         confirmLabel: 'Confirm Transfer',

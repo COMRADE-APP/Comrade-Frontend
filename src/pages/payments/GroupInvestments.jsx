@@ -179,7 +179,7 @@ const GroupInvestments = () => {
             <div className="bg-elevated border border-theme rounded-2xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                     <div className="flex items-center gap-4 flex-1">
-                        <div className="w-12 h-12 shrink-0 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md">
+                        <div className="w-12 h-12 shrink-0 rounded-xl bg-amber-600 flex items-center justify-center shadow-md">
                             <Briefcase className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -209,7 +209,7 @@ const GroupInvestments = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
                     <input type="text" placeholder="Search investments..." value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none"
+                        className="w-full pl-9 pr-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl text-sm focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none"
                     />
                 </div>
                 <div className="flex p-1 bg-secondary/5 rounded-xl border border-theme">
@@ -250,7 +250,7 @@ const GroupInvestments = () => {
                     {opportunities.map(opp => (
                         <div key={opp.id} className="bg-elevated border border-theme rounded-2xl p-5 hover:shadow-md transition-all group">
                             <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-bold text-primary group-hover:text-indigo-600 transition-colors line-clamp-1">{opp.title || opp.name}</h4>
+                                <h4 className="font-bold text-primary group-hover:text-amber-600 transition-colors line-clamp-1">{opp.title || opp.name}</h4>
                                 {opp.is_verified && (
                                     <span className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
                                         <CheckCircle className="w-3 h-3" /> Verified
@@ -310,30 +310,30 @@ const GroupInvestments = () => {
                         return (
                             <div key={inv.id}
                                 onClick={() => navigate(`/payments/group-investments/${inv.id}`)}
-                                className="bg-elevated border border-theme rounded-2xl p-5 cursor-pointer hover:shadow-md hover:border-indigo-200 transition-all group"
+                                className="bg-elevated border border-theme rounded-2xl p-5 cursor-pointer hover:shadow-md hover:border-amber-200 transition-all group"
                             >
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                            <Briefcase className="w-5 h-5 text-indigo-600" />
+                                        <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                                            <Briefcase className="w-5 h-5 text-amber-600" />
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-semibold text-primary text-sm group-hover:text-indigo-700 transition-colors line-clamp-1">{inv.name}</h3>
+                                            <h3 className="font-semibold text-primary text-sm group-hover:text-amber-700 transition-colors line-clamp-1">{inv.name}</h3>
                                             <p className="text-xs text-secondary line-clamp-1 mt-0.5">{inv.description || 'No description'}</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-indigo-500 transition-colors shrink-0 mt-1" />
+                                    <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-amber-500 transition-colors shrink-0 mt-1" />
                                 </div>
 
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-1.5 mb-3">
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                                         <Users className="w-3 h-3" /> {inv.payment_group_name || 'Group'}
                                     </span>
                                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-md capitalize">
                                         <PieChart className="w-3 h-3" /> {inv.quoting_mode}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded-md capitalize">
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md capitalize">
                                         {inv.pitch_visibility || 'Internal'}
                                     </span>
                                     {inv.approval_vote?.user_vote && (
@@ -355,17 +355,17 @@ const GroupInvestments = () => {
 
                                 {/* Progress */}
                                 <div className="h-2 bg-secondary/10 rounded-full overflow-hidden mb-3">
-                                    <div className="h-full bg-indigo-500 rounded-full transition-all duration-700"
+                                    <div className="h-full bg-amber-500 rounded-full transition-all duration-700"
                                         style={{ width: `${Math.min(100, progress)}%` }} />
                                 </div>
 
                                 {/* Gated Analytics - Only show vote counts if user has voted */}
                                 {inv.approval_vote && (
-                                    <div className="mb-4 bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/50">
+                                    <div className="mb-4 bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
                                         {inv.approval_vote.user_vote ? (
                                             <>
                                                 <div className="flex justify-between text-xs font-semibold mb-1">
-                                                    <span className="text-indigo-900">Approval Sentiment</span>
+                                                    <span className="text-amber-900">Approval Sentiment</span>
                                                     <span className={inv.approval_vote.approval_percentage >= 50 ? "text-green-600" : "text-amber-600"}>
                                                         {inv.approval_vote.approval_percentage}%
                                                     </span>
@@ -382,7 +382,7 @@ const GroupInvestments = () => {
                                             </>
                                         ) : (
                                             <div className="text-center py-2">
-                                                <p className="text-xs font-medium text-indigo-800">Vote to reveal sentiment analytics</p>
+                                                <p className="text-xs font-medium text-amber-800">Vote to reveal sentiment analytics</p>
                                             </div>
                                         )}
                                     </div>
@@ -410,7 +410,7 @@ const GroupInvestments = () => {
                                     )}
                                     {inv.status === 'active' && inv.approval_vote?.user_vote && (
                                         <button onClick={(e) => { e.stopPropagation(); setShowQuoteModal(inv); }}
-                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors">
                                             Quote
                                         </button>
                                     )}
@@ -466,15 +466,15 @@ const GroupInvestments = () => {
                                 </button>
                             </div>
                             <form onSubmit={handleQuote} className="space-y-4">
-                                <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-                                    <h4 className="font-bold text-indigo-900 text-sm mb-2">{showQuoteModal.name}</h4>
+                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+                                    <h4 className="font-bold text-amber-900 text-sm mb-2">{showQuoteModal.name}</h4>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-indigo-700">Capital Raised</span>
-                                        <span className="font-bold text-indigo-900">${parseFloat(showQuoteModal.amount_collected || 0).toFixed(2)}</span>
+                                        <span className="text-amber-700">Capital Raised</span>
+                                        <span className="font-bold text-amber-900">${parseFloat(showQuoteModal.amount_collected || 0).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-indigo-700">Target</span>
-                                        <span className="font-bold text-indigo-900">${parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount || 0).toFixed(2)}</span>
+                                        <span className="text-amber-700">Target</span>
+                                        <span className="font-bold text-amber-900">${parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div className="relative">
@@ -483,11 +483,11 @@ const GroupInvestments = () => {
                                     </div>
                                     <input type="number" min="0.01" step="0.01" required value={quoteAmount}
                                         onChange={(e) => setQuoteAmount(e.target.value)} placeholder="0.00"
-                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-indigo-500 text-xl font-bold text-center" />
+                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-amber-500 text-xl font-bold text-center" />
                                 </div>
                                 {quoteAmount && (parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount) > 0) && showQuoteModal.quoting_mode === 'proportional' && (
-                                    <div className="text-xs text-secondary bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
-                                        This secures <strong className="text-indigo-700">{((parseFloat(quoteAmount) / parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount)) * 100).toFixed(2)}%</strong> equity
+                                    <div className="text-xs text-secondary bg-amber-50 p-3 rounded-lg border border-amber-100 text-center">
+                                        This secures <strong className="text-amber-700">{((parseFloat(quoteAmount) / parseFloat(showQuoteModal.total_amount || showQuoteModal.target_amount)) * 100).toFixed(2)}%</strong> equity
                                     </div>
                                 )}
                                 <div className="flex gap-2 pt-2">
@@ -518,7 +518,7 @@ const GroupInvestments = () => {
                                 {[1, 2].map(s => (
                                     <React.Fragment key={s}>
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                                            s < createStep ? 'bg-green-500 text-white' : s === createStep ? 'bg-indigo-600 text-white' : 'bg-secondary/10 text-secondary'
+                                            s < createStep ? 'bg-green-500 text-white' : s === createStep ? 'bg-amber-600 text-white' : 'bg-secondary/10 text-secondary'
                                         }`}>
                                             {s < createStep ? <CheckCircle className="w-4 h-4" /> : s}
                                         </div>
@@ -538,13 +538,13 @@ const GroupInvestments = () => {
                                             <textarea value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 rows={3} placeholder="Describe the investment opportunity..."
-                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none resize-none text-sm" />
+                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-amber-400 outline-none resize-none text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-secondary mb-1">Payment Group *</label>
                                             <select value={formData.payment_group} required
                                                 onChange={(e) => setFormData({ ...formData, payment_group: e.target.value })}
-                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-400">
                                                 <option value="">Choose a group...</option>
                                                 {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                                             </select>
@@ -555,7 +555,7 @@ const GroupInvestments = () => {
                                                 {['internal', 'public'].map(m => (
                                                     <button key={m} type="button" onClick={() => setFormData({ ...formData, pitch_visibility: m })}
                                                         className={`flex-1 p-2.5 rounded-lg border-2 text-center text-xs font-medium capitalize ${
-                                                            formData.pitch_visibility === m ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-theme text-secondary'
+                                                            formData.pitch_visibility === m ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-theme text-secondary'
                                                         }`}>{m === 'internal' ? 'Group Only' : 'Public Pitch'}</button>
                                                 ))}
                                             </div>
@@ -565,7 +565,7 @@ const GroupInvestments = () => {
                                                 <label className="block text-sm font-medium text-secondary mb-1">Link to Opportunity (optional)</label>
                                                 <select value={formData.opportunity_id}
                                                     onChange={(e) => setFormData({ ...formData, opportunity_id: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                                                    className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-400">
                                                     <option value="">None (custom pitch)</option>
                                                     {opportunities.map(o => <option key={o.id} value={o.id}>{o.title || o.name}</option>)}
                                                 </select>
@@ -587,7 +587,7 @@ const GroupInvestments = () => {
                                                 {['proportional', 'fixed', 'individual'].map(m => (
                                                     <button key={m} type="button" onClick={() => setFormData({ ...formData, quoting_mode: m })}
                                                         className={`flex-1 p-2.5 rounded-lg border-2 text-center text-xs font-medium capitalize ${
-                                                            formData.quoting_mode === m ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-theme text-secondary'
+                                                            formData.quoting_mode === m ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-theme text-secondary'
                                                         }`}>{m}</button>
                                                 ))}
                                             </div>

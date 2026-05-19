@@ -35,13 +35,13 @@ const ProviderDashboard = () => {
         setError(null);
         try {
             // First get the list of provider registrations for this user
-            const response = await api.get('/payments/provider-registrations/');
+            const response = await api.get('/api/v1/payments/provider-registrations/');
             const providerList = response.data.results || response.data;
             
             // For each provider, fetch their dashboard stats
             const providersWithStats = await Promise.all(providerList.map(async (provider) => {
                 try {
-                    const statsRes = await api.get(`/payments/provider-registrations/${provider.id}/dashboard/`);
+                    const statsRes = await api.get(`/api/v1/payments/provider-registrations/${provider.id}/dashboard/`);
                     return { ...provider, stats: statsRes.data };
                 } catch (e) {
                     console.error('Failed to load stats for provider', provider.id, e);
@@ -161,7 +161,7 @@ const ProviderDashboard = () => {
                                                 size="sm" 
                                                 className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
                                                 onClick={async () => {
-                                                    await api.post(`/payments/provider-registrations/${provider.id}/submit/`);
+                                                    await api.post(`/api/v1/payments/provider-registrations/${provider.id}/submit/`);
                                                     loadProviders();
                                                 }}
                                             >
@@ -200,20 +200,23 @@ const ProviderDashboard = () => {
                             </div>
 
                             <div className="flex flex-wrap gap-4 border-t border-theme pt-6">
-                                <Button variant="outline" className="flex-1 sm:flex-none">
-                                    <FileText size={18} className="mr-2" /> View Documents
+                                <Button variant="outline" onClick={() => navigate(`/providers/${provider.id}?tab=overview`)} className="flex-1 sm:flex-none">
+                                    <Activity size={18} className="mr-2" /> Operations Hub
                                 </Button>
                                 {provider.status === 'approved' && (
                                     <>
-                                        <Button variant="outline" className="flex-1 sm:flex-none">
+                                        <Button variant="outline" onClick={() => navigate(`/providers/${provider.id}?tab=products`)} className="flex-1 sm:flex-none">
                                             <Building2 size={18} className="mr-2" /> Manage Products
                                         </Button>
-                                        <Button variant="outline" className="flex-1 sm:flex-none">
+                                        <Button variant="outline" onClick={() => navigate(`/providers/${provider.id}?tab=staff`)} className="flex-1 sm:flex-none">
                                             <Users size={18} className="mr-2" /> Manage Staff
                                         </Button>
                                     </>
                                 )}
-                                <Button variant="outline" className="flex-1 sm:flex-none ml-auto text-secondary hover:text-primary">
+                                <Button variant="outline" onClick={() => navigate(`/providers/${provider.id}?tab=documents`)} className="flex-1 sm:flex-none">
+                                    <FileText size={18} className="mr-2" /> View Documents
+                                </Button>
+                                <Button variant="outline" onClick={() => navigate(`/providers/${provider.id}?tab=settings`)} className="flex-1 sm:flex-none ml-auto text-secondary hover:text-primary">
                                     <Settings size={18} className="mr-2" /> Settings
                                 </Button>
                             </div>

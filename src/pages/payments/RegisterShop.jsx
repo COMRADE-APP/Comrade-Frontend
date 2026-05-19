@@ -47,8 +47,8 @@ const RegisterShop = () => {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-4">
                 <Card className="max-w-md w-full text-center p-8">
-                    <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Store className="w-8 h-8 text-blue-600" />
+                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Store className="w-8 h-8 text-emerald-600" />
                     </div>
                     <h2 className="text-2xl font-bold text-primary mb-2">Shop Created!</h2>
                     <p className="text-secondary mb-6">

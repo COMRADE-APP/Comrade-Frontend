@@ -42,6 +42,11 @@ const fundingService = {
         return response.data.results || response.data;
     },
 
+    getRecommendedOpportunities: async () => {
+        const response = await api.get(`${API_ENDPOINTS.FUNDING.OPPORTUNITIES}recommendations/`);
+        return response.data;
+    },
+
     getOpportunityDetail: async (id) => {
         const response = await api.get(`${API_ENDPOINTS.FUNDING.OPPORTUNITIES}${id}/`);
         return response.data;

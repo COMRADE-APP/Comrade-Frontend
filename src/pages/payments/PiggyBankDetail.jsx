@@ -295,6 +295,18 @@ const PiggyBankDetail = () => {
         }
     };
 
+    const handleJoinGroup = async () => {
+        if (!piggy.payment_group) return;
+        try {
+            await paymentsService.joinGroup(piggy.payment_group);
+            toast.success('Successfully joined the group to participate in this Piggy Bank!');
+            loadData();
+        } catch (error) {
+            console.error('Join failed:', error);
+            toast.error(error.response?.data?.error || 'Failed to join group. Please try again.');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -341,7 +353,7 @@ const PiggyBankDetail = () => {
                                     <Check className="w-3 h-3" /> Goal Achieved
                                 </span>
                             ) : (
-                                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1 font-bold shadow-sm">
+                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full flex items-center gap-1 font-bold shadow-sm">
                                     <TrendingUp className="w-3 h-3" /> Saving Active
                                 </span>
                             )}
@@ -378,12 +390,12 @@ const PiggyBankDetail = () => {
                 
                 {/* Main Progress Board */}
                 <Card className="md:col-span-8 border-theme shadow-lg overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-teal-400 to-green-500"></div>
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500"></div>
                     <CardBody className="p-8">
                         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center border border-blue-200 shadow-inner">
-                                    <PiggyBank className="w-8 h-8 text-blue-600" />
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center border border-emerald-200 shadow-inner">
+                                    <PiggyBank className="w-8 h-8 text-emerald-600" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-secondary uppercase tracking-widest">Total Saved</p>
@@ -403,7 +415,7 @@ const PiggyBankDetail = () => {
                         {/* Rich Progress Bar */}
                         <div className="space-y-3">
                             <div className="flex justify-between items-end text-sm font-bold">
-                                <span className={isAchieved ? "text-green-600" : "text-blue-600"}>
+                                <span className={isAchieved ? "text-green-600" : "text-emerald-600"}>
                                     {progress.toFixed(1)}% Funded
                                 </span>
                                 <span className="text-secondary">
@@ -413,7 +425,7 @@ const PiggyBankDetail = () => {
                             <div className="h-4 bg-secondary/20 rounded-full overflow-hidden shadow-inner p-0.5">
                                 <div
                                     className={`h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden
-                                        ${isAchieved ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-blue-500 to-teal-400'}
+                                        ${isAchieved ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}
                                     `}
                                     style={{ width: `${Math.min(100, Math.max(2, progress))}%` }}
                                 >
@@ -424,14 +436,25 @@ const PiggyBankDetail = () => {
 
                         <div className="mt-10 flex gap-4">
                             {!isAchieved ? (
-                                <Button
-                                    variant="primary"
-                                    onClick={() => setShowContributeModal(true)}
-                                    className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5"
-                                >
-                                    <DollarSign className="w-5 h-5 mr-2" />
-                                    Add Savings
-                                </Button>
+                                piggy.type === 'group' && !piggy.is_group_member ? (
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleJoinGroup}
+                                        className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5"
+                                    >
+                                        <Users className="w-5 h-5 mr-2" />
+                                        Join Group to Contribute
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => setShowContributeModal(true)}
+                                        className="flex-1 text-lg shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5"
+                                    >
+                                        <DollarSign className="w-5 h-5 mr-2" />
+                                        Add Savings
+                                    </Button>
+                                )
                             ) : (
                                 <Button
                                     variant="primary"
@@ -492,7 +515,7 @@ const PiggyBankDetail = () => {
                                     {piggy.automation_trigger && piggy.automation_trigger !== 'none' && (
                                         <div className="flex justify-between items-center border-b border-theme pb-3">
                                             <span className="text-sm text-secondary">Automation</span>
-                                            <span className="font-semibold text-primary capitalize bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
+                                            <span className="font-semibold text-primary capitalize bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">
                                                 {piggy.automation_trigger === 'manual' ? 'Manual' : piggy.automation_trigger}
                                             </span>
                                         </div>
@@ -510,14 +533,24 @@ const PiggyBankDetail = () => {
                             {piggy.payment_group && (
                                 <div className="mt-6 pt-4 border-t border-theme">
                                     <p className="text-xs text-secondary mb-2 font-bold uppercase tracking-wider">Linked Group</p>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => navigate(`/payments/groups/${piggy.payment_group}?tab=overview`)}
-                                        className="w-full justify-center"
-                                    >
-                                        <Users className="w-4 h-4 mr-2 text-blue-600" />
-                                        View Payment Group
-                                    </Button>
+                                    {!piggy.group_is_public && !piggy.is_group_member ? (
+                                        <div className="p-3 bg-secondary/5 rounded-xl border border-theme flex flex-col items-center justify-center gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <Lock className="w-4 h-4 text-secondary" />
+                                                <span className="text-sm text-secondary font-medium">Private Group</span>
+                                            </div>
+                                            <p className="text-xs text-tertiary text-center px-2">Group details are hidden from non-members.</p>
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => navigate(`/payments/groups/${piggy.payment_group}?tab=overview`)}
+                                            className="w-full justify-center"
+                                        >
+                                            <Users className="w-4 h-4 mr-2 text-emerald-600" />
+                                            View {piggy.group_name || 'Payment Group'}
+                                        </Button>
+                                    )}
                                 </div>
                             )}
                         </CardBody>
@@ -542,7 +575,7 @@ const PiggyBankDetail = () => {
                             <CardBody className="p-4">
                                 <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-1">Total Contributors</p>
                                 <div className="flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-blue-500" />
+                                    <Users className="w-5 h-5 text-emerald-500" />
                                     <h3 className="text-xl font-black text-primary">{analytics.total_contributors}</h3>
                                 </div>
                             </CardBody>
@@ -722,8 +755,8 @@ const PiggyBankDetail = () => {
                     <Card className="w-full max-w-md shadow-2xl scale-in-center">
                         <CardBody className="p-8">
                             <div className="flex justify-center mb-6">
-                                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow-sm">
-                                    <PiggyBank className="w-8 h-8 text-blue-600" />
+                                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center border-4 border-white shadow-sm">
+                                    <PiggyBank className="w-8 h-8 text-emerald-600" />
                                 </div>
                             </div>
                             <h3 className="text-2xl font-black text-center text-primary mb-2">Fund your Piggy Bank</h3>
@@ -742,7 +775,7 @@ const PiggyBankDetail = () => {
                                         value={contributeAmount}
                                         onChange={(e) => setContributeAmount(e.target.value)}
                                         placeholder="0.00"
-                                        className="block w-full pl-12 pr-4 py-4 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-blue-500 text-2xl font-bold transition-colors shadow-inner"
+                                        className="block w-full pl-12 pr-4 py-4 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-emerald-500 text-2xl font-bold transition-colors shadow-inner"
                                     />
                                 </div>
                                 
@@ -759,7 +792,7 @@ const PiggyBankDetail = () => {
                                         type="submit"
                                         variant="primary"
                                         disabled={!contributeAmount}
-                                        className="flex-1 py-3 shadow-md bg-blue-600 hover:bg-blue-700 text-white"
+                                        className="flex-1 py-3 shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
                                     >
                                         Proceed to Checkout
                                     </Button>
@@ -879,9 +912,9 @@ const PiggyBankDetail = () => {
                                     />
                                 </div>
 
-                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex gap-2">
-                                    <Info className="w-5 h-5 text-blue-500 shrink-0" />
-                                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex gap-2">
+                                    <Info className="w-5 h-5 text-emerald-500 shrink-0" />
+                                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
                                         Based on the approval mode, members who approve will either transfer to the new group (split) or funds will move to parent group. Those who reject will receive their savings back.
                                     </p>
                                 </div>
@@ -959,7 +992,7 @@ const PiggyBankDetail = () => {
 
                                 <div className="pt-4 border-t border-theme">
                                     <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
-                                        <Zap className="w-4 h-4 text-purple-500" />
+                                        <Zap className="w-4 h-4 text-amber-500" />
                                         Automation
                                     </h4>
                                     

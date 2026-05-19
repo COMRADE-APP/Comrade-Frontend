@@ -11,7 +11,7 @@ import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
 
 const CATEGORIES = [
-    { value: 'education', label: 'Education', color: 'bg-blue-50 text-blue-700 border-blue-100' },
+    { value: 'education', label: 'Education', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
     { value: 'health', label: 'Health', color: 'bg-rose-50 text-rose-700 border-rose-100' },
     { value: 'environment', label: 'Environment', color: 'bg-green-50 text-green-700 border-green-100' },
     { value: 'community', label: 'Community', color: 'bg-amber-50 text-amber-700 border-amber-100' },

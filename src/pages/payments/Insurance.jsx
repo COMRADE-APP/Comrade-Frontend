@@ -13,12 +13,12 @@ import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const CATEGORIES = [
     { id: 'health', label: 'Health', icon: Heart, color: 'from-rose-500 to-pink-600', emoji: '❤️' },
-    { id: 'device', label: 'Device / Phone', icon: Smartphone, color: 'from-blue-500 to-indigo-600', emoji: '📱' },
-    { id: 'travel', label: 'Travel', icon: Plane, color: 'from-cyan-500 to-blue-600', emoji: '✈️' },
+    { id: 'device', label: 'Device / Phone', icon: Smartphone, color: 'from-emerald-500 to-amber-600', emoji: '📱' },
+    { id: 'travel', label: 'Travel', icon: Plane, color: 'from-emerald-500 to-emerald-600', emoji: '✈️' },
     { id: 'crop', label: 'Crop Insurance', icon: Wheat, color: 'from-emerald-500 to-green-600', emoji: '🌾' },
     { id: 'business', label: 'Business', icon: Briefcase, color: 'from-amber-500 to-orange-600', emoji: '💼' },
     { id: 'asset', label: 'Asset Protection', icon: Building2, color: 'from-primary-500 to-primary-700', emoji: '🏠' },
-    { id: 'education', label: 'Education Plan', icon: GraduationCap, color: 'from-teal-500 to-cyan-600', emoji: '🎓' },
+    { id: 'education', label: 'Education Plan', icon: GraduationCap, color: 'from-teal-500 to-emerald-600', emoji: '🎓' },
     { id: 'funeral', label: 'Funeral Cover', icon: Shield, color: 'from-gray-500 to-slate-700', emoji: '🕊️' },
 ];
 

@@ -11,10 +11,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     Heart, MessageCircle, Repeat2, Bookmark, Quote,
     MoreHorizontal, ChevronDown, ChevronUp, Send,
-    EyeOff, Ban, Flag, HelpCircle
+    EyeOff, Ban, Flag, HelpCircle, Smile
 } from 'lucide-react';
 import { formatTimeAgo } from '../../utils/dateFormatter';
 import { renderContentWithMentions } from '../../utils/textFormatters';
+import { insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../../utils/emoji';
+import data from '@emoji-mart/data/sets/15/apple.json';
+import Picker from '@emoji-mart/react';
 
 const OpinionComment = ({
     comment,
@@ -40,7 +43,19 @@ const OpinionComment = ({
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [goldenLikeAnim, setGoldenLikeAnim] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const replyComposerRef = useRef(null);
     const lastTapRef = useRef(0);
+
+    useEffect(() => {
+        if (showReplyInput && replyComposerRef.current) {
+            replyComposerRef.current.focus();
+            // If it's placeholder, clear it
+            if (replyComposerRef.current.innerText === replyComposerRef.current.getAttribute('data-placeholder')) {
+                replyComposerRef.current.innerText = '';
+            }
+        }
+    }, [showReplyInput]);
 
     const hasReplies = comment.replies && comment.replies.length > 0;
     const canReply = depth < maxDepth;
@@ -77,11 +92,15 @@ const OpinionComment = ({
     };
 
     const handleSubmitReply = async () => {
-        if (!replyContent.trim() || isSubmitting) return;
+        const html = replyComposerRef.current?.innerHTML || '';
+        const textWithEmojis = convertHTMLToTextWithEmojis(html);
+        
+        if (!textWithEmojis.trim() || isSubmitting) return;
         setIsSubmitting(true);
         try {
-            await onReply(comment.id, replyContent.trim());
+            await onReply(comment.id, textWithEmojis.trim());
             setReplyContent('');
+            if (replyComposerRef.current) replyComposerRef.current.innerText = replyComposerRef.current.getAttribute('data-placeholder');
             setShowReplyInput(false);
         } catch (error) {
             console.error('Error posting reply:', error);
@@ -325,15 +344,55 @@ const OpinionComment = ({
                                         )}
                                     </div>
                                     <div className="flex-1 flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={replyContent}
-                                            onChange={(e) => setReplyContent(e.target.value)}
-                                            placeholder={`Reply to @${userHandle}...`}
-                                            className="flex-1 px-3 py-1.5 text-sm bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary"
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSubmitReply()}
-                                            autoFocus
-                                        />
+                                        <div className="relative flex-1">
+                                            <div 
+                                                ref={replyComposerRef}
+                                                contentEditable 
+                                                className="w-full px-3 py-1.5 text-sm bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary min-h-[34px]"
+                                                onInput={(e) => {
+                                                    setReplyContent(e.target.innerHTML);
+                                                }}
+                                                onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
+                                                onBlur={(e) => {
+                                                    const text = convertHTMLToTextWithEmojis(e.target.innerHTML);
+                                                    if (text.trim() === '') {
+                                                        e.target.innerText = e.target.getAttribute('data-placeholder');
+                                                    }
+                                                }}
+                                                data-placeholder={`Reply to @${userHandle}...`}
+                                                dangerouslySetInnerHTML={{ __html: `Reply to @${userHandle}...` }}
+                                            ></div>
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                    className="p-1 hover:bg-tertiary/20 rounded-full text-secondary hover:text-primary transition-colors"
+                                                >
+                                                    <Smile className="w-4 h-4" />
+                                                </button>
+                                                {showEmojiPicker && (
+                                                    <div 
+                                                        className="absolute bottom-full right-0 mb-2 z-[9999] shadow-2xl rounded-xl overflow-hidden border border-theme"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                    >
+                                                        <Picker 
+                                                            data={data} 
+                                                            onEmojiSelect={(emoji) => { 
+                                                                replyComposerRef.current.focus();
+                                                                insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="16px"></em-emoji>&#8203;`);
+                                                                setReplyContent(replyComposerRef.current.innerHTML);
+                                                                // Do not close on select to allow multiple picking
+                                                            }} 
+                                                            set="apple" 
+                                                            theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                                                            previewPosition="none"
+                                                            skinTonePosition="none"
+                                                            backgroundImageFn={(set, sheetSize) => `${window.location.origin}/apple-sheets-64.png`}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={handleSubmitReply}
                                             disabled={!replyContent.trim() || isSubmitting}

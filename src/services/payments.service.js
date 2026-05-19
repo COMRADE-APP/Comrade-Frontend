@@ -429,7 +429,12 @@ export const paymentsService = {
     },
 
     async searchAutomationTargets(query, type = 'all') {
-        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET}search_automation_targets/?q=${encodeURIComponent(query)}&type=${type}`);
+        const response = await api.get(`${API_ENDPOINTS.SEARCH_AUTOMATION_TARGETS}?q=${encodeURIComponent(query)}&type=${type}`);
+        return response.data;
+    },
+
+    async getServiceProducts() {
+        const response = await api.get(API_ENDPOINTS.RECOMMENDATIONS);
         return response.data;
     },
 
@@ -598,6 +603,75 @@ export const paymentsService = {
         return response.data;
     },
 
+    // ========== Loans ==========
+    async getLoanProducts() {
+        const response = await api.get('/payments/loan-products/');
+        return response.data;
+    },
+
+    async getProviderLoanProducts() {
+        const response = await api.get('/payments/service-products/?service_type=loan');
+        return response.data;
+    },
+
+    async getProviderApplications(groupId = null) {
+        let url = '/payments/provider-applications/';
+        if (groupId) {
+            url += `?group=${groupId}`;
+        }
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    async submitProviderApplication(data) {
+        const response = await api.post('/payments/provider-applications/', data);
+        return response.data;
+    },
+
+    async getGroupLoans(groupId) {
+        let url = '/payments/loan-applications/';
+        if (groupId) {
+            url += `?group=${groupId}`;
+        }
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    async applyForLoan(groupId, data) {
+        const payload = { ...data };
+        if (groupId) {
+            payload.group = groupId;
+        }
+        const response = await api.post('/payments/loan-applications/', payload);
+        return response.data;
+    },
+
+    // ========== Funding Ventures & Businesses ==========
+    async getGroupVentures(groupId) {
+        let url = '/api/funding/ventures/';
+        if (groupId) url += `?payment_group=${groupId}`;
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    async createGroupVenture(data) {
+        const response = await api.post('/api/funding/ventures/', data);
+        return response.data;
+    },
+
+    async getGroupBusinesses(groupId) {
+        let url = '/api/funding/businesses/';
+        if (groupId) url += `?payment_group=${groupId}`;
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    async registerBusiness(data) {
+        const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined;
+        const response = await api.post('/api/funding/businesses/', data, { headers });
+        return response.data;
+    },
+
     async approveCheckoutRequest(groupId, requestId, payload = {}) {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/checkout_requests/${requestId}/approve/`, payload);
         return response.data;
@@ -756,6 +830,32 @@ export const paymentsService = {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_automations/`, data);
         return response.data;
     },
+
+    async updateGroupAutomation(groupId, automationId, data) {
+        const response = await api.patch(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/group_automations/`, { automation_id: automationId, ...data });
+        return response.data;
+    },
+
+    async voteGroupAutomation(groupId, automationId, vote) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/vote_automation/`, { automation_id: automationId, vote });
+        return response.data;
+    },
+
+    async getUserAutomations() {
+        const response = await api.get('/api/payments/automations/');
+        return response.data;
+    },
+
+    async toggleUserAutomation(id, isActive) {
+        const response = await api.post(`/api/payments/automations/${id}/toggle_active/`, { is_active: isActive });
+        return response.data;
+    },
+
+    async cancelUserAutomation(id) {
+        const response = await api.post(`/api/payments/automations/${id}/cancel/`);
+        return response.data;
+    },
+
 
     async requestWithdrawal(groupId, data) {
         const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUPS}${groupId}/request_withdrawal/`, data);

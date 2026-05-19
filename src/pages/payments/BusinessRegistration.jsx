@@ -12,7 +12,7 @@ const BusinessRegistration = () => {
             description: 'Join as a distributor, affiliate, or content creator.',
             icon: Users,
             path: '/partners/become',
-            color: 'bg-blue-500/10 text-blue-600'
+            color: 'bg-emerald-500/10 text-emerald-600'
         },
         {
             title: 'Become an Agent',

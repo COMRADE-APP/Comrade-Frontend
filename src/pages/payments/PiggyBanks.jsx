@@ -278,17 +278,17 @@ const PiggyBanks = () => {
                                             <PiggyBank className={`w-5 h-5 ${isAchieved ? 'text-green-600' : 'text-pink-600'}`} />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-primary text-sm group-hover:text-blue-700 transition-colors line-clamp-1">{piggy.name}</h3>
+                                            <h3 className="font-semibold text-primary text-sm group-hover:text-emerald-700 transition-colors line-clamp-1">{piggy.name}</h3>
                                             <p className="text-xs text-secondary line-clamp-1 mt-0.5">{piggy.description || 'No description'}</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-blue-500 transition-colors shrink-0 mt-1" />
+                                    <ChevronRight className="w-4 h-4 text-tertiary group-hover:text-emerald-500 transition-colors shrink-0 mt-1" />
                                 </div>
 
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-1.5 mb-3">
                                     {piggy.payment_group && (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                                             <Users className="w-3 h-3" /> Group
                                         </span>
                                     )}
@@ -317,7 +317,7 @@ const PiggyBanks = () => {
                                 {/* Progress */}
                                 <div className="h-2 bg-secondary/10 rounded-full overflow-hidden mb-2">
                                     <div className={`h-full rounded-full transition-all duration-700 ${
-                                        isAchieved ? 'bg-green-500' : 'bg-blue-500'
+                                        isAchieved ? 'bg-green-500' : 'bg-emerald-500'
                                     }`} style={{ width: `${Math.min(100, progress)}%` }} />
                                 </div>
 
@@ -330,7 +330,7 @@ const PiggyBanks = () => {
                                         className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                                             isAchieved 
                                                 ? 'bg-green-50 text-green-700 cursor-default'
-                                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                         }`}
                                         disabled={isAchieved}
                                     >
@@ -361,7 +361,7 @@ const PiggyBanks = () => {
                                 {[1, 2].map(s => (
                                     <React.Fragment key={s}>
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                                            s < createStep ? 'bg-green-500 text-white' : s === createStep ? 'bg-blue-600 text-white' : 'bg-secondary/10 text-secondary'
+                                            s < createStep ? 'bg-green-500 text-white' : s === createStep ? 'bg-emerald-600 text-white' : 'bg-secondary/10 text-secondary'
                                         }`}>
                                             {s < createStep ? <CheckCircle className="w-4 h-4" /> : s}
                                         </div>
@@ -382,7 +382,7 @@ const PiggyBanks = () => {
                                             <textarea value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 rows={2} placeholder="What are you saving for?"
-                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
+                                                className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none text-sm"
                                             />
                                         </div>
                                         <div>
@@ -390,16 +390,16 @@ const PiggyBanks = () => {
                                             <div className="flex gap-3">
                                                 <button type="button" onClick={() => setFormData({ ...formData, piggy_type: 'individual', payment_group: null })}
                                                     className={`flex-1 p-3 rounded-lg border-2 transition-all ${
-                                                        formData.piggy_type === 'individual' ? 'border-blue-500 bg-blue-50' : 'border-theme hover:border-blue-200'
+                                                        formData.piggy_type === 'individual' ? 'border-emerald-500 bg-emerald-50' : 'border-theme hover:border-emerald-200'
                                                     }`}>
-                                                    <User className={`w-5 h-5 mx-auto mb-1 ${formData.piggy_type === 'individual' ? 'text-blue-600' : 'text-tertiary'}`} />
+                                                    <User className={`w-5 h-5 mx-auto mb-1 ${formData.piggy_type === 'individual' ? 'text-emerald-600' : 'text-tertiary'}`} />
                                                     <p className="font-medium text-xs text-primary">Personal</p>
                                                 </button>
                                                 <button type="button" onClick={() => setFormData({ ...formData, piggy_type: 'group' })}
                                                     className={`flex-1 p-3 rounded-lg border-2 transition-all ${
-                                                        formData.piggy_type === 'group' ? 'border-blue-500 bg-blue-50' : 'border-theme hover:border-blue-200'
+                                                        formData.piggy_type === 'group' ? 'border-emerald-500 bg-emerald-50' : 'border-theme hover:border-emerald-200'
                                                     }`}>
-                                                    <Users className={`w-5 h-5 mx-auto mb-1 ${formData.piggy_type === 'group' ? 'text-blue-600' : 'text-tertiary'}`} />
+                                                    <Users className={`w-5 h-5 mx-auto mb-1 ${formData.piggy_type === 'group' ? 'text-emerald-600' : 'text-tertiary'}`} />
                                                     <p className="font-medium text-xs text-primary">Group</p>
                                                 </button>
                                             </div>
@@ -409,13 +409,13 @@ const PiggyBanks = () => {
                                                 <label className="block text-sm font-medium text-secondary mb-1">Link to Group *</label>
                                                 <select value={formData.payment_group || ''} required={formData.piggy_type === 'group'}
                                                     onChange={(e) => setFormData({ ...formData, payment_group: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                                                    className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
                                                     <option value="">Choose a group...</option>
                                                     {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                                                 </select>
                                                 {groups.length === 0 && (
                                                     <p className="text-xs text-secondary mt-1">
-                                                        No groups. <button type="button" onClick={() => navigate('/payments/create-group')} className="text-blue-600 underline">Create one first</button>
+                                                        No groups. <button type="button" onClick={() => navigate('/payments/create-group')} className="text-emerald-600 underline">Create one first</button>
                                                     </p>
                                                 )}
                                             </div>
@@ -441,11 +441,11 @@ const PiggyBanks = () => {
                                                     { value: 'locked', title: 'Locked Savings', desc: 'Save strictly until maturity' },
                                                     { value: 'fixed_deposit', title: 'Fixed Deposit', desc: 'Earn interest. 2% penalty for early withdrawal' },
                                                 ].map(opt => (
-                                                    <label key={opt.value} className="flex items-center gap-3 p-3 rounded-lg border-2 border-theme hover:bg-secondary/5 cursor-pointer has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                                                    <label key={opt.value} className="flex items-center gap-3 p-3 rounded-lg border-2 border-theme hover:bg-secondary/5 cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
                                                         <input type="radio" name="savings_type" value={opt.value}
                                                             checked={formData.savings_type === opt.value}
                                                             onChange={(e) => setFormData({ ...formData, savings_type: e.target.value, locking_status: e.target.value !== 'normal' ? 'locked' : formData.locking_status })}
-                                                            className="text-blue-600 focus:ring-blue-500"
+                                                            className="text-emerald-600 focus:ring-emerald-500"
                                                         />
                                                         <div>
                                                             <p className="font-medium text-sm text-primary">{opt.title}</p>
@@ -462,7 +462,7 @@ const PiggyBanks = () => {
                                                     {['equal', 'proportional'].map(m => (
                                                         <button key={m} type="button" onClick={() => setFormData({ ...formData, contribution_mode: m })}
                                                             className={`flex-1 p-2.5 rounded-lg border-2 text-center text-xs font-medium capitalize ${
-                                                                formData.contribution_mode === m ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-theme text-secondary'
+                                                                formData.contribution_mode === m ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-theme text-secondary'
                                                             }`}>
                                                             {m === 'equal' ? 'Equal Split' : 'Custom Proportions'}
                                                         </button>
@@ -501,14 +501,14 @@ const PiggyBanks = () => {
                                 </button>
                             </div>
                             <form onSubmit={handleContribute} className="space-y-4">
-                                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-blue-800">Current Balance</span>
-                                        <span className="font-bold text-blue-900">${parseFloat(showContributeModal.current_amount || 0).toFixed(2)}</span>
+                                        <span className="text-emerald-800">Current Balance</span>
+                                        <span className="font-bold text-emerald-900">${parseFloat(showContributeModal.current_amount || 0).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-blue-800">Target</span>
-                                        <span className="font-bold text-blue-900">${parseFloat(showContributeModal.target_amount || 0).toFixed(2)}</span>
+                                        <span className="text-emerald-800">Target</span>
+                                        <span className="font-bold text-emerald-900">${parseFloat(showContributeModal.target_amount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div className="relative">
@@ -517,7 +517,7 @@ const PiggyBanks = () => {
                                     </div>
                                     <input type="number" min="0.01" step="0.01" required value={contributionAmount}
                                         onChange={(e) => setContributionAmount(e.target.value)} placeholder="0.00"
-                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-blue-500 text-xl font-bold text-center"
+                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-emerald-500 text-xl font-bold text-center"
                                     />
                                 </div>
                                 <div className="flex gap-2 pt-2">
@@ -537,7 +537,7 @@ const PiggyBanks = () => {
                         <CardBody className="p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                                    <ArrowRightLeft className="w-5 h-5 text-blue-600" /> Transfer Between Kitties
+                                    <ArrowRightLeft className="w-5 h-5 text-emerald-600" /> Transfer Between Kitties
                                 </h3>
                                 <button onClick={() => setShowTransferModal(false)} className="p-1 hover:bg-secondary/10 rounded">
                                     <X className="w-5 h-5 text-secondary" />
@@ -547,7 +547,7 @@ const PiggyBanks = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-secondary mb-1">From Kitty</label>
                                     <select value={transferFrom} onChange={(e) => setTransferFrom(e.target.value)} required
-                                        className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                                        className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                                         <option value="">Select source kitty</option>
                                         {piggyBanks.filter(p => p.locking_status !== 'locked').map(p => (
                                             <option key={p.id} value={p.id}>{p.name} (${parseFloat(p.current_amount || 0).toFixed(2)})</option>
@@ -557,7 +557,7 @@ const PiggyBanks = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-secondary mb-1">To Kitty</label>
                                     <select value={transferTo} onChange={(e) => setTransferTo(e.target.value)} required
-                                        className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                                        className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                                         <option value="">Select destination kitty</option>
                                         {piggyBanks.filter(p => p.id !== parseInt(transferFrom)).map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -570,7 +570,7 @@ const PiggyBanks = () => {
                                     </div>
                                     <input type="number" min="0.01" step="0.01" required value={transferAmount}
                                         onChange={(e) => setTransferAmount(e.target.value)} placeholder="Amount to transfer"
-                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-blue-500 text-lg font-bold text-center"
+                                        className="block w-full pl-10 pr-4 py-3 border-2 border-theme bg-elevated text-primary rounded-xl focus:ring-0 focus:border-emerald-500 text-lg font-bold text-center"
                                     />
                                 </div>
                                 <div className="flex gap-2 pt-2">

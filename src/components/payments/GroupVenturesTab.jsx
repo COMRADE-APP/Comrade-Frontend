@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, TrendingUp, DollarSign, Activity, PieChart, ArrowUpRight, X, Info, Briefcase, BarChart3 } from 'lucide-react';
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
@@ -10,6 +11,7 @@ import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const GroupVenturesTab = ({ groupId }) => {
     const toast = useToast();
+    const navigate = useNavigate();
     const [ventures, setVentures] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -18,7 +20,7 @@ const GroupVenturesTab = ({ groupId }) => {
     const totalSteps = 3;
 
     const [formData, setFormData] = useState({
-        venture_name: '',
+        name: '',
         description: '',
         total_fund: '',
         available_fund: '',
@@ -71,7 +73,7 @@ const GroupVenturesTab = ({ groupId }) => {
 
     const resetForm = () => {
         setFormData({
-            venture_name: '',
+            name: '',
             description: '',
             total_fund: '',
             available_fund: '',
@@ -134,7 +136,7 @@ const GroupVenturesTab = ({ groupId }) => {
                                     </div>
 
                                     <div>
-                                        <h4 className="font-bold text-primary truncate">{venture.venture_name}</h4>
+                                        <h4 className="font-bold text-primary truncate">{venture.name}</h4>
                                         <p className="text-xs text-secondary line-clamp-2 mt-1 leading-relaxed">{venture.description || 'No description provided'}</p>
                                     </div>
 
@@ -158,9 +160,24 @@ const GroupVenturesTab = ({ groupId }) => {
                                         </span>
                                     </div>
 
-                                    <Button variant="outline" size="sm" className="w-full gap-2 group hover:border-emerald-500 hover:text-emerald-600 transition-colors">
-                                        View Portfolio <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            variant="primary" 
+                                            size="sm" 
+                                            className="flex-1 gap-2 !bg-emerald-600 shadow-lg shadow-emerald-500/20 hover:!bg-emerald-700"
+                                            onClick={() => navigate(`/funding/ventures/${venture.id}`)}
+                                        >
+                                            View Details <ArrowUpRight className="w-3.5 h-3.5" />
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="gap-2 group hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                                            onClick={() => navigate(`/payments/groups/${groupId}/portfolio`)}
+                                        >
+                                            Portfolio <PieChart className="w-3.5 h-3.5" />
+                                        </Button>
+                                    </div>
                                 </CardBody>
                             </Card>
                         );
@@ -209,8 +226,8 @@ const GroupVenturesTab = ({ groupId }) => {
                             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                 {step === 1 && (
                                     <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                                        <Input label="Venture Name *" value={formData.venture_name}
-                                            onChange={(e) => setFormData({ ...formData, venture_name: e.target.value })}
+                                        <Input label="Venture Name *" value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             required placeholder="e.g., Qomrade Real Estate Fund" icon={Briefcase}
                                         />
                                         <div>
@@ -282,7 +299,7 @@ const GroupVenturesTab = ({ groupId }) => {
                                         <div className="bg-secondary/5 rounded-2xl p-6 border border-theme space-y-4 shadow-inner">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-primary">{formData.venture_name}</h3>
+                                                    <h3 className="text-xl font-bold text-primary">{formData.name}</h3>
                                                     <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider mt-1 inline-block">
                                                         {formData.investment_focus || 'General Investment'}
                                                     </span>
@@ -314,9 +331,9 @@ const GroupVenturesTab = ({ groupId }) => {
                                             </div>
                                         </div>
 
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
-                                            <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                                            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800 flex gap-3">
+                                            <Info className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
                                                 By finalizing, you launch this venture for group participation. Members will be able to contribute funds based on the defined buy-in limits.
                                             </p>
                                         </div>
@@ -333,7 +350,7 @@ const GroupVenturesTab = ({ groupId }) => {
                                 )}
                                 
                                 {step < totalSteps ? (
-                                    <Button type="button" variant="primary" className="flex-1 !bg-emerald-600" onClick={() => setStep(step + 1)} disabled={step === 1 ? !formData.venture_name || !formData.description : !formData.total_fund}>
+                                    <Button type="button" variant="primary" className="flex-1 !bg-emerald-600" onClick={() => setStep(step + 1)} disabled={step === 1 ? !formData.name || !formData.description : !formData.total_fund}>
                                         Continue
                                     </Button>
                                 ) : (

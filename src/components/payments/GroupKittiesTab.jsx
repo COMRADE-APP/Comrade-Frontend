@@ -92,15 +92,15 @@ const GroupKittiesTab = ({ groupId }) => {
                     <h3 className="text-lg font-bold text-primary">Group Kitties</h3>
                     <p className="text-sm text-secondary">Manage sub-funds and specialized pools for the group.</p>
                 </div>
-                <Button variant="primary" className="gap-2 !bg-indigo-600" onClick={() => setShowCreateModal(true)}>
+                <Button variant="primary" className="gap-2 !bg-amber-600" onClick={() => setShowCreateModal(true)}>
                     <Plus className="w-4 h-4" /> New Kitty
                 </Button>
             </div>
 
             {kitties.length === 0 ? (
                 <div className="bg-elevated border border-theme rounded-xl p-12 text-center flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-4">
-                        <Wallet className="w-8 h-8 text-indigo-500" />
+                    <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center mb-4">
+                        <Wallet className="w-8 h-8 text-amber-500" />
                     </div>
                     <h4 className="text-lg font-bold text-primary mb-2">No Kitties Yet</h4>
                     <p className="text-secondary max-w-sm mb-6">
@@ -118,10 +118,10 @@ const GroupKittiesTab = ({ groupId }) => {
                             : 0;
                         
                         return (
-                            <Card key={kitty.id} className="border-theme hover:border-indigo-300 transition-all hover:shadow-md">
+                            <Card key={kitty.id} className="border-theme hover:border-amber-300 transition-all hover:shadow-md">
                                 <CardBody className="p-4 space-y-4">
                                     <div className="flex justify-between items-start">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 border border-indigo-100 dark:border-indigo-800 shadow-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 border border-amber-100 dark:border-amber-800 shadow-sm">
                                             <Wallet className="w-5 h-5" />
                                         </div>
                                         <div className="text-right">
@@ -143,7 +143,7 @@ const GroupKittiesTab = ({ groupId }) => {
                                             </div>
                                             <div className="h-1.5 w-full bg-secondary/10 rounded-full overflow-hidden">
                                                 <div 
-                                                    className="h-full bg-indigo-500 transition-all duration-700 shadow-[0_0_8px_rgba(79,70,229,0.4)]" 
+                                                    className="h-full bg-amber-500 transition-all duration-700 shadow-[0_0_8px_rgba(79,70,229,0.4)]" 
                                                     style={{ width: `${progress}%` }}
                                                 />
                                             </div>
@@ -153,7 +153,7 @@ const GroupKittiesTab = ({ groupId }) => {
                                         </div>
                                     )}
 
-                                    <Button variant="outline" size="sm" className="w-full gap-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 font-bold transition-all group" onClick={() => navigate(`/payments/groups/${kitty.id}?tab=overview`)}>
+                                    <Button variant="outline" size="sm" className="w-full gap-2 border-amber-100 text-amber-600 hover:bg-amber-50 font-bold transition-all group" onClick={() => navigate(`/payments/groups/${groupId}/kitty/${kitty.id}`)}>
                                         Open Kitty <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                                     </Button>
                                 </CardBody>
@@ -169,11 +169,11 @@ const GroupKittiesTab = ({ groupId }) => {
                     <Card className="w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl border-theme">
                         <CardBody className="p-0 overflow-hidden flex flex-col">
                             {/* Modal Header */}
-                            <div className="p-6 border-b border-theme bg-gradient-to-r from-indigo-500/10 to-transparent">
+                            <div className="p-6 border-b border-theme bg-gradient-to-r from-amber-500/10 to-transparent">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-                                            <div className="p-2 bg-indigo-500 rounded-lg text-white shadow-lg shadow-indigo-500/20">
+                                            <div className="p-2 bg-amber-500 rounded-lg text-white shadow-lg shadow-amber-500/20">
                                                 <Wallet className="w-5 h-5" />
                                             </div>
                                             Create New Kitty
@@ -193,8 +193,8 @@ const GroupKittiesTab = ({ groupId }) => {
                                         { id: 3, label: 'Review' }
                                     ].map((s) => (
                                         <div key={s.id} className="flex-1 flex flex-col gap-1.5">
-                                            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= s.id ? 'bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.5)]' : 'bg-secondary/10'}`} />
-                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${step === s.id ? 'text-indigo-500' : 'text-tertiary'}`}>{s.label}</span>
+                                            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= s.id ? 'bg-amber-500 shadow-[0_0_8px_rgba(79,70,229,0.5)]' : 'bg-secondary/10'}`} />
+                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${step === s.id ? 'text-amber-500' : 'text-tertiary'}`}>{s.label}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -213,7 +213,7 @@ const GroupKittiesTab = ({ groupId }) => {
                                             <textarea value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 rows={4} placeholder="What is this fund for?"
-                                                className="w-full px-4 py-3 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm transition-all shadow-sm"
+                                                className="w-full px-4 py-3 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-amber-500 outline-none resize-none text-sm transition-all shadow-sm"
                                             />
                                         </div>
                                     </div>
@@ -221,20 +221,12 @@ const GroupKittiesTab = ({ groupId }) => {
 
                                 {step === 2 && (
                                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="relative">
-                                                <Input label="Target Goal" type="number" min="0" step="0.01"
-                                                    value={formData.target_amount}
-                                                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                                                    placeholder="0.00"
-                                                />
-                                                <span className="absolute right-4 bottom-3 text-xs font-bold text-tertiary">USD</span>
-                                            </div>
+                                        <div className="space-y-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-secondary mb-1.5">Frequency</label>
                                                 <select value={formData.frequency}
                                                     onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all shadow-sm"
+                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm transition-all shadow-sm"
                                                 >
                                                     <option value="one_time">One Time Pool</option>
                                                     <option value="daily">Daily Contributions</option>
@@ -244,9 +236,9 @@ const GroupKittiesTab = ({ groupId }) => {
                                             </div>
                                         </div>
 
-                                        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 rounded-xl flex gap-3">
-                                            <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                                            <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed font-medium">
+                                        <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-xl flex gap-3">
+                                            <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed font-medium">
                                                 Kitties inherit the group's existing member base. All members will be able to see and contribute to this kitty immediately upon creation.
                                             </p>
                                         </div>
@@ -260,14 +252,14 @@ const GroupKittiesTab = ({ groupId }) => {
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <h3 className="text-xl font-bold text-primary">{formData.name}</h3>
-                                                        <span className="px-2 py-0.5 bg-indigo-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider mt-1 inline-block">
+                                                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider mt-1 inline-block">
                                                             {formData.frequency.replace('_', ' ')} KITTY
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[10px] text-tertiary font-bold uppercase">Target Goal</p>
-                                                        <p className="text-lg font-bold text-indigo-600">
-                                                            {formData.target_amount ? formatMoneySimple(formData.target_amount, 'USD') : 'Flexible Pool'}
+                                                        <p className="text-[10px] text-tertiary font-bold uppercase">Type</p>
+                                                        <p className="text-lg font-bold text-amber-600">
+                                                            Fund Pool
                                                         </p>
                                                     </div>
                                                 </div>
@@ -300,11 +292,11 @@ const GroupKittiesTab = ({ groupId }) => {
                                 )}
                                 
                                 {step < totalSteps ? (
-                                    <Button type="button" variant="primary" className="flex-1 !bg-indigo-600" onClick={() => setStep(step + 1)} disabled={step === 1 && !formData.name}>
+                                    <Button type="button" variant="primary" className="flex-1 !bg-amber-600" onClick={() => setStep(step + 1)} disabled={step === 1 && !formData.name}>
                                         Continue
                                     </Button>
                                 ) : (
-                                    <Button type="button" variant="primary" className="flex-1 !bg-indigo-600 shadow-lg shadow-indigo-500/30" onClick={handleCreate} disabled={createLoading}>
+                                    <Button type="button" variant="primary" className="flex-1 !bg-amber-600 shadow-lg shadow-amber-500/30" onClick={handleCreate} disabled={createLoading}>
                                         {createLoading ? 'Creating...' : 'Confirm & Launch Kitty'}
                                     </Button>
                                 )}

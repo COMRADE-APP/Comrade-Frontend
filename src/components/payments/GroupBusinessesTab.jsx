@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Briefcase, Building2, ExternalLink, ShieldCheck, MapPin, X, Info, Globe, Building } from 'lucide-react';
+import { Plus, Briefcase, Building2, ExternalLink, ShieldCheck, MapPin, X, Info, Globe, Building, AlertTriangle } from 'lucide-react';
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
 import Input from '../common/Input';
 import paymentsService from '../../services/payments.service';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
@@ -12,6 +13,9 @@ const GroupBusinessesTab = ({ groupId }) => {
     const [businesses, setBusinesses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showSwitchModal, setShowSwitchModal] = useState(false);
+    const [switchTargetBiz, setSwitchTargetBiz] = useState(null);
+    const navigate = useNavigate();
     const [createLoading, setCreateLoading] = useState(false);
     const [step, setStep] = useState(1);
     const [logo, setLogo] = useState(null);
@@ -25,6 +29,7 @@ const GroupBusinessesTab = ({ groupId }) => {
         website: '',
         city: '',
         country: 'Kenya',
+        business_type: 'fundable', // 'fundable' or 'running'
     });
 
     useEffect(() => {
@@ -84,6 +89,7 @@ const GroupBusinessesTab = ({ groupId }) => {
             country_code: '+254',
             valuation: '',
             is_charity: false,
+            business_type: 'fundable',
         });
         setLogo(null);
         setStep(1);
@@ -107,8 +113,8 @@ const GroupBusinessesTab = ({ groupId }) => {
 
             {businesses.length === 0 ? (
                 <div className="bg-elevated border border-theme rounded-xl p-12 text-center flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                        <Briefcase className="w-8 h-8 text-blue-500" />
+                    <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4">
+                        <Briefcase className="w-8 h-8 text-emerald-500" />
                     </div>
                     <h4 className="text-lg font-bold text-primary mb-2">No Businesses Registered</h4>
                     <p className="text-secondary max-w-sm mb-6">
@@ -121,18 +127,20 @@ const GroupBusinessesTab = ({ groupId }) => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {businesses.map(biz => (
-                        <Card key={biz.id} className="border-theme hover:border-blue-300 transition-colors">
+                        <Card key={biz.id} className="border-theme hover:border-emerald-300 transition-colors">
                             <CardBody className="p-5 space-y-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                                        <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                                             {biz.logo ? <img src={biz.logo} alt="" className="w-full h-full object-cover rounded-lg" /> : <Building2 className="w-6 h-6" />}
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-primary text-base">{biz.name}</h4>
                                             <div className="flex items-center gap-3 text-xs text-secondary mt-0.5">
-                                                <span className="flex items-center gap-1 font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded capitalize">{biz.industry}</span>
-                                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {biz.city || 'Remote'}</span>
+                                                <span className="flex items-center gap-1 font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded capitalize">{biz.industry}</span>
+                                                <span className="flex items-center gap-1 font-medium text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded capitalize">
+                                                    {biz.stage === 'growth' ? 'Running Operation' : 'Fundable Startup'}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -161,7 +169,17 @@ const GroupBusinessesTab = ({ groupId }) => {
                                 </div>
 
                                 <div className="flex gap-2">
-                                    <Button variant="primary" size="sm" className="flex-1 text-xs !bg-blue-600">Manage Venture</Button>
+                                    <Button 
+                                        variant="primary" 
+                                        size="sm" 
+                                        className="flex-1 text-xs !bg-emerald-600"
+                                        onClick={() => {
+                                            setSwitchTargetBiz(biz);
+                                            setShowSwitchModal(true);
+                                        }}
+                                    >
+                                        Manage Business
+                                    </Button>
                                     {biz.website && (
                                         <Button variant="outline" size="sm" className="aspect-square p-0" onClick={() => window.open(biz.website, '_blank')}>
                                             <ExternalLink className="w-4 h-4" />
@@ -180,11 +198,11 @@ const GroupBusinessesTab = ({ groupId }) => {
                     <Card className="w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl border-theme">
                         <CardBody className="p-0 overflow-hidden flex flex-col">
                             {/* Modal Header */}
-                            <div className="p-6 border-b border-theme bg-gradient-to-r from-blue-500/10 to-transparent">
+                            <div className="p-6 border-b border-theme bg-gradient-to-r from-emerald-500/10 to-transparent">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-                                            <div className="p-2 bg-blue-500 rounded-lg text-white">
+                                            <div className="p-2 bg-emerald-500 rounded-lg text-white">
                                                 <Building2 className="w-5 h-5" />
                                             </div>
                                             Register Group Business
@@ -205,8 +223,8 @@ const GroupBusinessesTab = ({ groupId }) => {
                                         { id: 4, label: 'Review' }
                                     ].map((s) => (
                                         <div key={s.id} className="flex-1 flex flex-col gap-1.5">
-                                            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= s.id ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-secondary/10'}`} />
-                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${step === s.id ? 'text-blue-500' : 'text-tertiary'}`}>{s.label}</span>
+                                            <div className={`h-1.5 rounded-full transition-all duration-300 ${step >= s.id ? 'bg-emerald-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-secondary/10'}`} />
+                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${step === s.id ? 'text-emerald-500' : 'text-tertiary'}`}>{s.label}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -216,14 +234,14 @@ const GroupBusinessesTab = ({ groupId }) => {
                             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                 {step === 1 && (
                                     <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                                        <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl">
-                                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer shrink-0">
+                                        <div className="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer shrink-0">
                                                 {logo ? (
                                                     <img src={URL.createObjectURL(logo)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="flex flex-col items-center">
-                                                        <Plus className="w-5 h-5 text-blue-500" />
-                                                        <span className="text-[10px] font-bold text-blue-500 uppercase">Logo</span>
+                                                        <Plus className="w-5 h-5 text-emerald-500" />
+                                                        <span className="text-[10px] font-bold text-emerald-500 uppercase">Logo</span>
                                                     </div>
                                                 )}
                                                 <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setLogo(e.target.files[0])} />
@@ -231,6 +249,32 @@ const GroupBusinessesTab = ({ groupId }) => {
                                             <div>
                                                 <h4 className="text-sm font-bold text-primary">Venture Branding</h4>
                                                 <p className="text-xs text-secondary leading-relaxed">Upload a clear logo or brand mark for this business.</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-secondary mb-3">Business Type *</label>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <label className={`flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                    formData.business_type === 'fundable' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10' : 'border-theme hover:bg-secondary/5'
+                                                }`}>
+                                                    <input type="radio" name="business_type" value="fundable" className="sr-only"
+                                                        checked={formData.business_type === 'fundable'}
+                                                        onChange={() => setFormData({ ...formData, business_type: 'fundable', stage: 'idea' })}
+                                                    />
+                                                    <span className="font-bold text-primary text-sm mb-1">Fundable Startup</span>
+                                                    <span className="text-xs text-secondary">A new venture seeking investment rounds.</span>
+                                                </label>
+                                                <label className={`flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                    formData.business_type === 'running' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10' : 'border-theme hover:bg-secondary/5'
+                                                }`}>
+                                                    <input type="radio" name="business_type" value="running" className="sr-only"
+                                                        checked={formData.business_type === 'running'}
+                                                        onChange={() => setFormData({ ...formData, business_type: 'running', stage: 'growth' })}
+                                                    />
+                                                    <span className="font-bold text-primary text-sm mb-1">Running Operation</span>
+                                                    <span className="text-xs text-secondary">An existing, operational business.</span>
+                                                </label>
                                             </div>
                                         </div>
 
@@ -244,7 +288,7 @@ const GroupBusinessesTab = ({ groupId }) => {
                                                 <label className="block text-sm font-medium text-secondary mb-1.5">Industry *</label>
                                                 <select value={formData.industry}
                                                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all shadow-sm"
+                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all shadow-sm"
                                                 >
                                                     <option value="tech">Technology</option>
                                                     <option value="agri">Agriculture</option>
@@ -261,14 +305,15 @@ const GroupBusinessesTab = ({ groupId }) => {
                                                 <label className="block text-sm font-medium text-secondary mb-1.5">Current Stage *</label>
                                                 <select value={formData.stage}
                                                     onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all shadow-sm"
+                                                    disabled={formData.business_type === 'running'}
+                                                    className="w-full px-4 py-2.5 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <option value="idea">Idea Phase</option>
                                                     <option value="mvp">MVP (Prototype)</option>
                                                     <option value="pre_seed">Pre-Seed</option>
                                                     <option value="seed">Seed</option>
                                                     <option value="series_a">Series A</option>
-                                                    <option value="growth">Growth</option>
+                                                    <option value="growth">Growth / Operating</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -326,12 +371,12 @@ const GroupBusinessesTab = ({ groupId }) => {
                                             <textarea value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 rows={4} required placeholder="What problem does this business solve? What is the value proposition?"
-                                                className="w-full px-4 py-3 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm transition-all shadow-sm"
+                                                className="w-full px-4 py-3 border border-theme bg-elevated text-primary rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none resize-none text-sm transition-all shadow-sm"
                                             />
                                         </div>
 
                                         <label className="flex items-center gap-3 p-4 bg-secondary/5 rounded-xl border border-theme cursor-pointer hover:bg-secondary/10 transition-colors">
-                                            <input type="checkbox" checked={formData.is_charity} onChange={(e) => setFormData({ ...formData, is_charity: e.target.checked })} className="w-5 h-5 rounded border-theme text-blue-600 focus:ring-blue-500" />
+                                            <input type="checkbox" checked={formData.is_charity} onChange={(e) => setFormData({ ...formData, is_charity: e.target.checked })} className="w-5 h-5 rounded border-theme text-emerald-600 focus:ring-emerald-500" />
                                             <div className="flex-1">
                                                 <div className="text-sm font-bold text-primary">Is this a Charity / Non-Profit?</div>
                                                 <p className="text-xs text-secondary mt-0.5">Check this if the business operates as a social enterprise or foundation.</p>
@@ -343,19 +388,22 @@ const GroupBusinessesTab = ({ groupId }) => {
                                 {step === 4 && (
                                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                         <div className="flex items-center gap-5 pb-6 border-b border-theme">
-                                            <div className="w-20 h-20 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center border border-blue-100 dark:border-blue-800 shrink-0">
+                                            <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-800 shrink-0">
                                                 {logo ? (
                                                     <img src={URL.createObjectURL(logo)} alt="" className="w-full h-full object-cover rounded-2xl" />
                                                 ) : (
-                                                    <Building2 className="w-10 h-10 text-blue-500" />
+                                                    <Building2 className="w-10 h-10 text-emerald-500" />
                                                 )}
                                             </div>
                                             <div>
                                                 <h3 className="text-xl font-bold text-primary">{formData.name}</h3>
                                                 <div className="flex flex-wrap gap-2 mt-1">
-                                                    <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider">{formData.industry}</span>
+                                                    <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider">{formData.industry}</span>
+                                                    <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider">
+                                                        {formData.business_type === 'running' ? 'Running Operation' : 'Fundable Startup'}
+                                                    </span>
                                                     <span className="px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold uppercase rounded-md tracking-wider">{formData.stage.replace('_', ' ')}</span>
-                                                    {formData.is_charity && <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider">Charity</span>}
+                                                    {formData.is_charity && <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-bold uppercase rounded-md tracking-wider">Charity</span>}
                                                 </div>
                                             </div>
                                         </div>
@@ -381,12 +429,12 @@ const GroupBusinessesTab = ({ groupId }) => {
                                             </div>
                                         </div>
 
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
-                                            <div className="p-1.5 bg-blue-500 rounded-full text-white shrink-0 h-fit">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800 flex gap-3">
+                                            <div className="p-1.5 bg-emerald-500 rounded-full text-white shrink-0 h-fit">
                                                 <ShieldCheck className="w-4 h-4" />
                                             </div>
-                                            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                                                By proceeding, you verify that this venture is authorized to be managed within the <span className="font-bold text-blue-900 dark:text-blue-100">Group Portal</span>. All group members will have visibility into its funding and metrics.
+                                            <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                                                By proceeding, you verify that this venture is authorized to be managed within the <span className="font-bold text-emerald-900 dark:text-emerald-100">Group Portal</span>. All group members will have visibility into its funding and metrics.
                                             </p>
                                         </div>
                                     </div>
@@ -402,11 +450,11 @@ const GroupBusinessesTab = ({ groupId }) => {
                                 )}
                                 
                                 {step < totalSteps ? (
-                                    <Button type="button" variant="primary" className="flex-1 !bg-blue-600" onClick={() => setStep(step + 1)} disabled={step === 1 && !formData.name}>
+                                    <Button type="button" variant="primary" className="flex-1 !bg-emerald-600" onClick={() => setStep(step + 1)} disabled={step === 1 && !formData.name}>
                                         Next Step
                                     </Button>
                                 ) : (
-                                    <Button type="button" variant="primary" className="flex-1 !bg-blue-600 shadow-lg shadow-blue-500/30" onClick={handleCreate} disabled={createLoading}>
+                                    <Button type="button" variant="primary" className="flex-1 !bg-emerald-600 shadow-lg shadow-emerald-500/30" onClick={handleCreate} disabled={createLoading}>
                                         {createLoading ? 'Finalizing...' : 'Register Business'}
                                     </Button>
                                 )}
@@ -415,8 +463,64 @@ const GroupBusinessesTab = ({ groupId }) => {
                     </Card>
                 </div>
             )}
-        </div>
 
+            {/* Switch to Provider Confirmation Modal */}
+            {showSwitchModal && switchTargetBiz && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-in fade-in duration-300">
+                    <Card className="w-full max-w-md shadow-2xl border-theme">
+                        <CardBody className="p-6 space-y-5">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-amber-100 dark:bg-amber-900/20 rounded-xl text-amber-600">
+                                    <AlertTriangle className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-primary">Switch to Provider View</h3>
+                                    <p className="text-sm text-secondary mt-0.5">You are about to leave the group view.</p>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl space-y-2">
+                                <p className="text-sm text-amber-900 dark:text-amber-100 font-medium">
+                                    You are switching to the <strong>Provider Management Dashboard</strong> for:
+                                </p>
+                                <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-700">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                        {switchTargetBiz.logo ? <img src={switchTargetBiz.logo} alt="" className="w-full h-full object-cover rounded-lg" /> : <Building2 className="w-5 h-5" />}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-primary text-sm">{switchTargetBiz.name}</p>
+                                        <p className="text-xs text-secondary capitalize">{switchTargetBiz.industry} • {switchTargetBiz.stage?.replace('_', ' ')}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                                    This will take you to a separate management interface where you can configure products, view orders, and manage business operations.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button 
+                                    variant="outline" 
+                                    className="flex-1" 
+                                    onClick={() => { setShowSwitchModal(false); setSwitchTargetBiz(null); }}
+                                >
+                                    Stay Here
+                                </Button>
+                                <Button 
+                                    variant="primary" 
+                                    className="flex-1 !bg-amber-600 shadow-lg shadow-amber-500/20 hover:!bg-amber-700" 
+                                    onClick={() => {
+                                        setShowSwitchModal(false);
+                                        navigate(`/providers/dashboard`);
+                                    }}
+                                >
+                                    Switch to Provider
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
+        </div>
     );
 };
 

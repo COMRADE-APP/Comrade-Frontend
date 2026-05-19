@@ -3,22 +3,100 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
-import { CreditCard, DollarSign, Download, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, ArrowDownLeft, ArrowLeftRight, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, Filter, ChevronRight, ChevronDown, Clock, RefreshCw, ShoppingCart, Heart, Building, Gift, BarChart3 } from 'lucide-react';
+import { 
+    CreditCard, DollarSign, Download, Wallet, Plus, Users, ArrowDownCircle, ArrowUpCircle, 
+    ArrowDownLeft, ArrowLeftRight, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, 
+    Filter, ChevronRight, ChevronDown, Clock, RefreshCw, ShoppingCart, Heart, Building, 
+    Gift, BarChart3, Zap, Coins, BookOpen, ShieldCheck, Landmark, Smartphone, 
+    CheckCircle2, Circle, Settings, Calendar 
+} from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
 import { formatDate } from '../utils/dateFormatter';
 import { formatMoneySimple } from '../utils/moneyUtils.jsx';
 import { ROUTES } from '../constants/routes';
+import { useToast } from '../contexts/ToastContext';
 
+const AUTOMATION_TYPES = [
+    { key: 'contribute', label: 'Contribute', icon: Coins, color: 'emerald', desc: 'Auto-contribute to group rounds or kitties' },
+    { key: 'save', label: 'Save', icon: PiggyBank, color: 'blue', desc: 'Auto-save to a piggy bank target' },
+    { key: 'purchase', label: 'Purchase', icon: ShoppingCart, color: 'purple', desc: 'Auto-purchase products on schedule' },
+    { key: 'course', label: 'Courses', icon: BookOpen, color: 'amber', desc: 'Auto-pay for courses and learning paths' },
+    { key: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle, color: 'amber', desc: 'Auto-withdraw to your wallet' },
+    { key: 'loan_repayment', label: 'Loan Repayment', icon: Landmark, color: 'rose', desc: 'Auto-repay group or subscribed loans' },
+    { key: 'insurance', label: 'Insurance', icon: ShieldCheck, color: 'sky', desc: 'Auto-pay insurance premiums' },
+    { key: 'bills', label: 'Bills & Airtime', icon: Smartphone, color: 'orange', desc: 'Auto-pay bills, utilities, and airtime' },
+    { key: 'investment', label: 'Investment', icon: TrendingUp, color: 'indigo', desc: 'Auto-invest in group or external opportunities' },
+    { key: 'donation', label: 'Donation', icon: Heart, color: 'pink', desc: 'Auto-donate to campaigns or charities' },
+];
+
+const getTransactionTitle = (txn) => {
+    const type = txn.transaction_type || txn.type || '';
+    const hasGroup = !!(txn.group_id || txn.group_name || txn.transaction_details?.group_id || txn.transaction_details?.group_name);
+    const direction = txn.direction || '';
+
+    switch (type) {
+        case 'contribution':
+            return hasGroup ? 'Group Contribution' : 'Contribution';
+        case 'piggy_bank_contribution':
+        case 'savings_deposit':
+            return 'Piggy Bank Contribution';
+        case 'piggy_bank_withdrawal':
+        case 'savings_withdrawal':
+            return 'Piggy Bank Withdrawal';
+        case 'withdrawal':
+            return hasGroup ? 'Group Withdrawal' : 'Withdrawal';
+        case 'payout':
+            return hasGroup ? 'Group Benefits' : 'Payout';
+        case 'purchase':
+            return hasGroup ? 'Group Purchase' : 'Purchase';
+        case 'transfer':
+            return 'Transfer';
+        case 'loan_repayment':
+            return 'Loan Payment';
+        case 'loan_disbursement':
+            return direction === 'received' ? 'Loan Received' : 'Loan Payment';
+        case 'deposit':
+            return 'Deposit';
+        case 'bill_payment':
+            return 'Bill Payment';
+        case 'escrow_release':
+            return 'Escrow Release';
+        case 'escrow_refund':
+            return 'Escrow Refund';
+        case 'insurance_premium':
+            return 'Insurance Premium';
+        case 'insurance_claim_payout':
+            return 'Insurance Payout';
+        case 'kitty_withdrawal':
+            return 'Kitty Withdrawal';
+        case 'investment_withdrawal':
+            return 'Investment Withdrawal';
+        case 'fee':
+            return 'Fee Payment';
+        case 'refund':
+            return 'Refund';
+        case 'reversal':
+            return 'Reversal';
+        default:
+            if (type) {
+                return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            }
+            return 'Transaction';
+    }
+};
 
 const Payments = () => {
     const { user, isAuthenticated, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const toast = useToast();
     
     const [paymentProfile, setPaymentProfile] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [checkoutRequests, setCheckoutRequests] = useState([]);
+    const [automations, setAutomations] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
@@ -65,16 +143,18 @@ const Payments = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [profile, historyData, reqs] = await Promise.all([
+            const [profile, historyData, reqs, autos] = await Promise.all([
                 paymentsService.getProfile().catch(() => null),
                 paymentsService.getTransactionHistory().catch(() => []),
-                paymentsService.getMyCheckoutRequests().catch(() => [])
+                paymentsService.getMyCheckoutRequests().catch(() => []),
+                paymentsService.getUserAutomations().catch(() => [])
             ]);
             setPaymentProfile(profile);
             // Use transaction history which has proper IDs for reversal
             const txns = Array.isArray(historyData) ? historyData : (historyData?.results || []);
             setTransactions(txns);
             setCheckoutRequests(Array.isArray(reqs) ? reqs : (reqs?.results || []));
+            setAutomations(Array.isArray(autos) ? autos : (autos?.results || []));
         } catch (error) {
             console.error('Error loading payment data:', error);
             // Fallback to regular transactions endpoint
@@ -98,7 +178,28 @@ const Payments = () => {
         }
     };
 
+    const handleToggleAutomation = async (id, currentStatus) => {
+        try {
+            const updated = await paymentsService.toggleUserAutomation(id, !currentStatus);
+            setAutomations(prev => prev.map(a => a.id === id ? { ...a, is_active: updated.is_active, status: updated.status } : a));
+        } catch (error) {
+            console.error('Error toggling automation:', error);
+            alert(error.response?.data?.error || 'Failed to toggle automation');
+        }
+    };
 
+    const handleCancelAutomation = async (id) => {
+        if (!window.confirm("Are you sure you want to cancel this automation?")) return;
+        try {
+            await paymentsService.cancelUserAutomation(id);
+            setAutomations(prev => prev.map(a => a.id === id ? { ...a, is_active: false, status: 'rejected' } : a));
+        } catch (error) {
+            console.error('Error cancelling automation:', error);
+            alert(error.response?.data?.error || 'Failed to cancel automation');
+        }
+    };
+
+    const getTypeConfig = (type) => AUTOMATION_TYPES.find(t => t.key === type) || AUTOMATION_TYPES[0];
 
     const filteredTransactions = filter === 'all'
         ? transactions
@@ -194,6 +295,14 @@ const Payments = () => {
                     >
                         <Wallet className="w-4 h-4 mr-2" />
                         My Kitties
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate('/payments/create-automation')}
+                        className="border-theme hover:border-primary hover:bg-primary/5 text-primary"
+                    >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Automations
                     </Button>
                     <Button variant="primary" onClick={() => navigate('/payments/send')}>
                         <Send className="w-4 h-4 mr-2" />
@@ -315,6 +424,17 @@ const Payments = () => {
                         </span>
                     )}
                 </button>
+                <button
+                    onClick={() => setActiveMainTab('automations')}
+                    className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeMainTab === 'automations' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-primary'} flex items-center gap-2`}
+                >
+                    Automations
+                    {automations.filter(a => a.is_active).length > 0 && (
+                        <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                            {automations.filter(a => a.is_active).length}
+                        </span>
+                    )}
+                </button>
             </div>
 
             {activeMainTab === 'transactions' && (
@@ -387,19 +507,7 @@ const Payments = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                                         <h4 className="font-bold text-primary truncate">
-                                                            {txn.transaction_details?.group_name || txn.group_name ? (
-                                                                <Link to={`/payments/groups/${txn.transaction_details?.group_id || txn.group_id}`} className="hover:underline" onClick={e => e.stopPropagation()}>
-                                                                    {txn.transaction_details?.group_name || txn.group_name}
-                                                                </Link>
-                                                            ) : txn.transaction_type === 'group_transaction' ? (
-                                                                <span>Group Transaction</span>
-                                                            ) : txn.transaction_type === 'purchase' && (txn.transaction_details?.group_id || txn.group_id) ? (
-                                                                <span>Group Purchase</span>
-                                                            ) : txn.transaction_type === 'purchase' ? (
-                                                                <span>Purchase</span>
-                                                            ) : (
-                                                                txn.transaction_category || (txn.transaction_type ? txn.transaction_type.charAt(0).toUpperCase() + txn.transaction_type.slice(1) : 'Transaction')
-                                                            )}
+                                                            {getTransactionTitle(txn)}
                                                         </h4>
                                                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                             txn.status === 'completed' || txn.status === 'completed' ? 'bg-green-500/10 text-green-700' :
@@ -420,15 +528,42 @@ const Payments = () => {
                                                         <span className="flex items-center gap-1">
                                                             <Clock size={14} /> {formatDate(txn.created_at)}
                                                         </span>
-                                                        {txn.transaction_details?.recipient_name && (
+                                                        {(txn.transaction_details?.group_name || txn.group_name) && (
                                                             <span className="flex items-center gap-1">
-                                                                To: <span className="font-medium text-primary">{txn.transaction_details.recipient_name}</span>
+                                                                Group: <Link to={`/payments/groups/${txn.transaction_details?.group_id || txn.group_id}`} className="font-medium text-primary hover:underline" onClick={e => e.stopPropagation()}>{txn.transaction_details?.group_name || txn.group_name}</Link>
                                                             </span>
                                                         )}
-                                                        {txn.transaction_details?.initiator_name && (
-                                                            <span className="flex items-center gap-1">
-                                                                From: <span className="font-medium text-primary">{txn.transaction_details.initiator_name}</span>
-                                                            </span>
+                                                        {txn.transaction_type === 'withdrawal' ? (
+                                                            <>
+                                                                <span className="flex items-center gap-1">
+                                                                    From: <span className="font-medium text-primary">{txn.group_name || txn.transaction_details?.group_name || 'Wallet'}</span>
+                                                                </span>
+                                                                <span className="flex items-center gap-1">
+                                                                    To: <span className="font-medium text-primary">{(txn.group_name || txn.transaction_details?.group_name) ? 'Wallet' : (txn.payment_option || txn.transaction_details?.payment_option || 'External')}</span>
+                                                                </span>
+                                                            </>
+                                                        ) : txn.transaction_type === 'deposit' ? (
+                                                            <>
+                                                                <span className="flex items-center gap-1">
+                                                                    From: <span className="font-medium text-primary">{txn.payment_option || txn.transaction_details?.payment_option || 'External'}</span>
+                                                                </span>
+                                                                <span className="flex items-center gap-1">
+                                                                    To: <span className="font-medium text-primary">Wallet</span>
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                {txn.transaction_details?.initiator_name && (txn.transaction_details?.initiator_name !== txn.transaction_details?.recipient_name) && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        From: <span className="font-medium text-primary">{txn.transaction_details.initiator_name}</span>
+                                                                    </span>
+                                                                )}
+                                                                {txn.transaction_details?.recipient_name && (txn.transaction_details?.initiator_name !== txn.transaction_details?.recipient_name) && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        To: <span className="font-medium text-primary">{txn.transaction_details.recipient_name}</span>
+                                                                    </span>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
@@ -436,16 +571,28 @@ const Payments = () => {
                                                     <span className={`font-bold text-lg ${txn.direction === 'received' ? 'text-green-600' : 'text-red-600'}`}>
                                                         {txn.direction === 'received' ? '+' : '-'}{formatMoneySimple(parseFloat(txn.amount))}
                                                     </span>
-                                                    {txn.direction === 'received' && (txn.initiator_name || txn.sender_name) && (
-                                                        <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
-                                                            From {txn.initiator_name || txn.sender_name}
-                                                        </span>
-                                                    )}
-                                                    {txn.direction === 'sent' && (txn.recipient_name || txn.recipient_name) && (
-                                                        <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
-                                                            To {txn.recipient_name || txn.recipient_name}
-                                                        </span>
-                                                    )}
+                                                    {txn.transaction_type === 'withdrawal' ? (
+                                                         <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                             To {((txn.group_name || txn.transaction_details?.group_name) || txn.payment_option === 'comrade_balance' || txn.transaction_details?.payment_option === 'comrade_balance') ? 'Wallet' : (txn.payment_option || txn.transaction_details?.payment_option || 'External')}
+                                                         </span>
+                                                     ) : txn.transaction_type === 'deposit' ? (
+                                                         <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                             From {((txn.group_name || txn.transaction_details?.group_name) || txn.payment_option === 'comrade_balance' || txn.transaction_details?.payment_option === 'comrade_balance') ? 'Wallet' : (txn.payment_option || txn.transaction_details?.payment_option || 'External')}
+                                                         </span>
+                                                     ) : (
+                                                         <>
+                                                             {txn.direction === 'received' && (txn.initiator_name || txn.sender_name) && (txn.initiator_name !== txn.recipient_name) && (
+                                                                 <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                                     From {txn.initiator_name || txn.sender_name}
+                                                                 </span>
+                                                             )}
+                                                             {txn.direction === 'sent' && (txn.recipient_name || txn.recipient_name) && (txn.initiator_name !== txn.recipient_name) && (
+                                                                 <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
+                                                                     To {txn.recipient_name || txn.recipient_name}
+                                                                 </span>
+                                                             )}
+                                                         </>
+                                                     )}
                                                     {txn.transaction_type === 'group_transaction' && (txn.transaction_details?.group_id || txn.group_id) && (
                                                         <span className="text-xs text-white bg-primary-600 px-2 py-0.5 rounded-full border border-primary-700">
                                                             Group
@@ -515,6 +662,8 @@ const Payments = () => {
                                                             <p className="text-xs text-secondary mb-2 font-medium">Details</p>
                                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                                                                 {Object.entries(txn.transaction_details).map(([key, val]) => {
+                                                                     const duplicates = ['id', 'transaction_code', 'transaction_type', 'transaction_category', 'amount', 'status', 'description', 'payment_profile', 'recipient_profile', 'sender_email', 'recipient_email', 'initiator_name', 'recipient_name', 'direction', 'group_id', 'group_name', 'group_cover_photo', 'created_at'];
+                                                                     if (!val || duplicates.includes(key)) return null;
                                                                     if (!val || key === 'group_id' || key === 'group_name' || key === 'group_cover_photo') return null;
                                                                     return (
                                                                         <div key={key} className="bg-white/50 dark:bg-black/10 rounded-lg p-2">
@@ -654,6 +803,160 @@ const Payments = () => {
                                 </CardBody>
                             </Card>
                         ))
+                    )}
+                </div>
+            )}
+
+            {activeMainTab === 'automations' && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-amber-500" />
+                                Smart Automations
+                            </h3>
+                            <p className="text-sm text-secondary">Automate contributions, savings, purchases, and withdrawals.</p>
+                        </div>
+                        <Button variant="primary" size="sm" className="gap-2 !bg-emerald-600" onClick={() => navigate('/payments/create-automation')}>
+                            <Plus className="w-4 h-4 mr-1" /> New Automation
+                        </Button>
+                    </div>
+
+                    {/* Feature Highlights / Category Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        {AUTOMATION_TYPES.map(t => {
+                            const Icon = t.icon;
+                            const count = automations.filter(a => a.automation_type === t.key).length;
+                            const isSelected = selectedCategory === t.key;
+                            return (
+                                <div 
+                                    key={t.key} 
+                                    onClick={() => setSelectedCategory(isSelected ? null : t.key)}
+                                    className={`bg-${t.color}-50 dark:bg-${t.color}-900/10 border ${
+                                        isSelected 
+                                            ? `border-${t.color}-500 ring-2 ring-${t.color}-500/20` 
+                                            : `border-${t.color}-100 dark:border-${t.color}-800`
+                                    } rounded-xl p-3 flex gap-3 items-center cursor-pointer hover:shadow-sm transition-all`}
+                                >
+                                    <div className={`p-2 bg-${t.color}-100 dark:bg-${t.color}-800/30 rounded-lg text-${t.color}-600`}>
+                                        <Icon className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className={`text-xs font-bold text-${t.color}-900 dark:text-${t.color}-100`}>{t.label}</h4>
+                                        <p className={`text-[10px] text-${t.color}-700 dark:text-${t.color}-300`}>{count} active</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {loading ? (
+                        <div className="p-8 text-center"><div className="animate-spin h-8 w-8 border-b-2 border-emerald-600 mx-auto rounded-full"></div></div>
+                    ) : automations.length === 0 ? (
+                        <Card>
+                            <CardBody className="py-12 text-center">
+                                <RefreshCw className="w-12 h-12 text-secondary mx-auto mb-4 opacity-50" />
+                                <h3 className="text-lg font-medium text-primary mb-1">No automations active</h3>
+                                <p className="text-secondary">Set up recurring savings, contributions, or purchase plans to automate your wealth.</p>
+                                <Button variant="primary" className="mt-4" onClick={() => navigate('/payments/create-automation')}>
+                                    Create First Automation
+                                </Button>
+                            </CardBody>
+                        </Card>
+                    ) : (
+                        <div className="space-y-4">
+                            {/* Filter Summary */}
+                            {selectedCategory && (
+                                <div className="flex items-center justify-between bg-secondary/5 px-4 py-2 rounded-lg text-xs text-secondary">
+                                    <span>Showing only <strong>{AUTOMATION_TYPES.find(c => c.key === selectedCategory)?.label}</strong> automations</span>
+                                    <button onClick={() => setSelectedCategory(null)} className="font-bold text-primary hover:underline">Clear Filter</button>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {automations
+                                    .filter(auto => !selectedCategory || auto.automation_type === selectedCategory)
+                                    .map((auto) => {
+                                        const cfg = getTypeConfig(auto.automation_type || 'contribute');
+                                        const TypeIcon = cfg.icon;
+
+                                        return (
+                                            <Card key={auto.id} className={`border-theme hover:border-${cfg.color}-300 transition-colors`}>
+                                                <CardBody className="p-5 relative overflow-hidden">
+                                                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                                        <TypeIcon className="w-24 h-24" />
+                                                    </div>
+                                                    <div className="flex justify-between items-start mb-4 relative z-10">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`p-2.5 rounded-xl ${auto.is_active ? `bg-${cfg.color}-100 text-${cfg.color}-600` : 'bg-gray-100 text-gray-500'}`}>
+                                                                <TypeIcon className="w-5 h-5" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-tertiary font-bold uppercase tracking-wider mb-0.5">
+                                                                    {cfg.label} Automation
+                                                                </p>
+                                                                <div className="flex items-center gap-2">
+                                                                    {auto.is_active ? (
+                                                                        <span className={`flex items-center gap-1 text-xs text-${cfg.color}-600 font-medium bg-${cfg.color}-50 px-2 py-0.5 rounded-md border border-${cfg.color}-100`}>
+                                                                            <CheckCircle2 className="w-3 h-3" /> Active
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="flex items-center gap-1 text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+                                                                            <Circle className="w-3 h-3" /> Paused
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Action / Settings Button */}
+                                                        <button 
+                                                            onClick={() => handleToggleAutomation(auto.id, auto.is_active)}
+                                                            className="text-secondary hover:text-primary transition-colors p-1"
+                                                            title={auto.is_active ? 'Pause' : 'Activate'}
+                                                        >
+                                                            <Settings className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-theme relative z-10">
+                                                        <div>
+                                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-1">Amount</p>
+                                                            <p className="text-lg font-bold text-primary">{formatMoneySimple(parseFloat(auto.amount))}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[10px] text-tertiary font-bold uppercase mb-1">Frequency</p>
+                                                            <p className="text-sm font-medium text-secondary capitalize">{auto.frequency}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Additional Info & Cancel Action */}
+                                                    <div className="mt-4 flex items-center justify-between text-xs relative z-10 gap-4">
+                                                        <div className="flex items-center gap-1.5 text-secondary">
+                                                            <Calendar className="w-3.5 h-3.5" />
+                                                            <span>Next Run: <strong>{auto.next_contribution_date ? formatDate(auto.next_contribution_date) : (auto.frequency === 'monthly' ? `Day ${auto.execution_day}` : 'Upcoming')}</strong></span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2">
+                                                            {auto.group_name && (
+                                                                <span className="text-[10px] bg-secondary/10 px-2 py-0.5 rounded text-secondary font-medium max-w-[120px] truncate" title={auto.group_name}>
+                                                                    {auto.group_name}
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleCancelAutomation(auto.id)}
+                                                                className="text-red-500 hover:text-red-700 font-semibold hover:underline"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </CardBody>
+                                            </Card>
+                                        );
+                                    })}
+                            </div>
+                        </div>
                     )}
                 </div>
             )}

@@ -114,7 +114,7 @@ const Loans = () => {
                                 {products.map(p => (
                                     <motion.div key={p.id} whileHover={{ y: -4 }} onClick={() => setSelectedProduct(p)}
                                         className="bg-elevated border border-theme rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:border-primary-500 transition-all group">
-                                        <div className={`bg-gradient-to-br ${p.color || 'from-blue-500 to-cyan-600'} p-6 text-white flex flex-col justify-between`}>
+                                        <div className={`bg-gradient-to-br ${p.color || 'from-emerald-500 to-emerald-600'} p-6 text-white flex flex-col justify-between`}>
                                             <div>
                                                 <DollarSign className="w-8 h-8 mb-4 opacity-80" />
                                                 <h3 className="font-bold text-lg">{p.name}</h3>
@@ -152,7 +152,7 @@ const Loans = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2 bg-elevated border border-theme rounded-2xl p-6 space-y-5">
                                 <div className="flex items-center gap-4 pb-4 border-b border-theme">
-                                    <div className={`p-3 rounded-xl bg-gradient-to-br ${selectedProduct.color || 'from-blue-500 to-cyan-600'}`}>
+                                    <div className={`p-3 rounded-xl bg-gradient-to-br ${selectedProduct.color || 'from-emerald-500 to-emerald-600'}`}>
                                         <DollarSign className="w-6 h-6 text-white" />
                                     </div>
                                     <div><h3 className="font-bold text-lg text-primary">{selectedProduct.name}</h3><p className="text-xs text-tertiary">{selectedProduct.interest_rate}% monthly interest</p></div>
@@ -233,8 +233,8 @@ const Loans = () => {
                                     <h3 className="font-bold text-primary text-lg">Score Breakdown</h3>
                                     {[
                                         { label: 'Repayment History', score: creditScore.repayment_score, color: 'bg-emerald-500' },
-                                        { label: 'Savings Consistency', score: creditScore.savings_score, color: 'bg-blue-500' },
-                                        { label: 'Transaction Volume', score: creditScore.transaction_score, color: 'bg-indigo-500' },
+                                        { label: 'Savings Consistency', score: creditScore.savings_score, color: 'bg-emerald-500' },
+                                        { label: 'Transaction Volume', score: creditScore.transaction_score, color: 'bg-amber-500' },
                                         { label: 'Group Participation', score: creditScore.group_score, color: 'bg-primary-600' },
                                         { label: 'Platform Tenure', score: creditScore.tenure_score, color: 'bg-amber-500' },
                                     ].map((f, i) => (
@@ -274,7 +274,7 @@ const Loans = () => {
                                 <div key={loan.id} className="bg-elevated border border-theme rounded-2xl overflow-hidden">
                                     <div className="p-6 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-blue-500/15 text-blue-500' : 'bg-amber-500/15 text-amber-500'}`}>
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>
                                                 {loan.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
                                             </div>
                                             <div>
@@ -282,7 +282,7 @@ const Loans = () => {
                                                 <p className="text-xs text-tertiary">{formatMoneySimple(loan.amount)} • {loan.tenure_months} months</p>
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-blue-500/15 text-blue-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
                                     </div>
                                     
                                     {/* Progress Bar & Repayment Stats */}
@@ -293,7 +293,7 @@ const Loans = () => {
                                                 <span className="font-bold text-primary">{progress.toFixed(0)}%</span>
                                             </div>
                                             <div className="w-full h-2.5 bg-secondary/20 rounded-full overflow-hidden mb-3">
-                                                <div className={`h-full rounded-full transition-all duration-1000 ${progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${progress}%` }} />
+                                                <div className={`h-full rounded-full transition-all duration-1000 ${progress === 100 ? 'bg-emerald-500' : 'bg-emerald-500'}`} style={{ width: `${progress}%` }} />
                                             </div>
                                             <div className="flex justify-between text-xs sm:text-sm">
                                                 <div>

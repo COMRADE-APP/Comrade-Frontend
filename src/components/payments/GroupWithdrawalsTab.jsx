@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Download, Clock, CheckCircle, XCircle, AlertTriangle, FileText, Landmark } from 'lucide-react';
+import { Plus, Download, Clock, CheckCircle, XCircle, AlertTriangle, FileText, Landmark, Loader } from 'lucide-react';
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
 import paymentsService from '../../services/payments.service';
 import { formatDate } from '../../utils/dateFormatter';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
+import { useToast } from '../../contexts/ToastContext';
 
-const GroupWithdrawalsTab = ({ groupId, isAdmin }) => {
+const GroupWithdrawalsTab = ({ groupId, isAdmin, groupSettings }) => {
     const [withdrawals, setWithdrawals] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [requestData, setRequestData] = useState({
         amount: '',
@@ -16,6 +18,12 @@ const GroupWithdrawalsTab = ({ groupId, isAdmin }) => {
         type: 'excess_contribution'
     });
     const [submitting, setSubmitting] = useState(false);
+    const [processingAction, setProcessingAction] = useState(null);
+    const toast = useToast();
+
+    const canApproveWithdrawals = isAdmin || 
+        (groupSettings?.hierarchy_mode === 'flat') || 
+        (groupSettings?.transaction_trigger_role === 'any');
 
     useEffect(() => {
         loadWithdrawals();
@@ -24,11 +32,13 @@ const GroupWithdrawalsTab = ({ groupId, isAdmin }) => {
     const loadWithdrawals = async () => {
         if (!groupId) return;
         setLoading(true);
+        setLoadError(null);
         try {
             const data = await paymentsService.getGroupWithdrawals(groupId);
             setWithdrawals(Array.isArray(data) ? data : (data?.results || []));
         } catch (error) {
             console.error('Error loading withdrawals:', error);
+            setLoadError('Failed to load withdrawal requests. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -41,29 +51,50 @@ const GroupWithdrawalsTab = ({ groupId, isAdmin }) => {
             await paymentsService.requestWithdrawal(groupId, requestData);
             setShowRequestModal(false);
             setRequestData({ amount: '', reason: '', type: 'excess_contribution' });
+            toast.success('Withdrawal request submitted successfully');
             loadWithdrawals();
         } catch (error) {
             console.error('Error requesting withdrawal:', error);
+            toast.error(error.response?.data?.error || 'Failed to submit withdrawal request');
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleAction = async (id, action) => {
+        setProcessingAction({ id, action });
         try {
             if (action === 'approve') {
                 await paymentsService.approveWithdrawal(id);
+                toast.success('Withdrawal approved');
             } else {
                 await paymentsService.rejectWithdrawal(id);
+                toast.success('Withdrawal rejected');
             }
             loadWithdrawals();
         } catch (error) {
             console.error(`Error ${action}ing withdrawal:`, error);
+            toast.error(error.response?.data?.error || `Failed to ${action} withdrawal`);
+        } finally {
+            setProcessingAction(null);
         }
     };
 
     if (loading) {
         return <div className="p-8 text-center"><div className="animate-spin h-8 w-8 border-b-2 border-primary mx-auto rounded-full"></div></div>;
+    }
+
+    if (loadError) {
+        return (
+            <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <AlertTriangle className="w-8 h-8 text-rose-500" />
+                </div>
+                <h4 className="text-lg font-bold text-primary mb-2">Failed to Load Withdrawals</h4>
+                <p className="text-secondary max-w-sm mb-6 mx-auto">{loadError}</p>
+                <Button variant="outline" onClick={loadWithdrawals}>Try Again</Button>
+            </div>
+        );
     }
 
     return (
@@ -121,15 +152,39 @@ const GroupWithdrawalsTab = ({ groupId, isAdmin }) => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {isAdmin && req.status === 'pending' && (
+                                        {canApproveWithdrawals && req.status === 'pending' && (
                                             <>
-                                                <Button variant="outline" size="sm" onClick={() => handleAction(req.id, 'reject')} className="text-rose-600 border-rose-200">Reject</Button>
-                                                <Button variant="primary" size="sm" onClick={() => handleAction(req.id, 'approve')} className="!bg-emerald-600">Approve</Button>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    onClick={() => handleAction(req.id, 'reject')} 
+                                                    disabled={processingAction?.id === req.id}
+                                                    className="text-rose-600 border-rose-200">
+                                                    {processingAction?.id === req.id && processingAction?.action === 'reject' ? <Loader className="w-3 h-3 animate-spin mr-1" /> : null}
+                                                    Reject
+                                                </Button>
+                                                <Button 
+                                                    variant="primary" 
+                                                    size="sm" 
+                                                    onClick={() => handleAction(req.id, 'approve')} 
+                                                    disabled={processingAction?.id === req.id}
+                                                    className="!bg-emerald-600">
+                                                    {processingAction?.id === req.id && processingAction?.action === 'approve' ? <Loader className="w-3 h-3 animate-spin mr-1" /> : null}
+                                                    Approve
+                                                </Button>
                                             </>
                                         )}
                                         <Button variant="outline" size="sm" className="p-2"><FileText className="w-4 h-4" /></Button>
                                     </div>
                                 </div>
+                                {req.status === 'pending' && groupSettings?.hierarchy_mode !== 'dictator' && (
+                                    <div className="px-4 py-2 bg-secondary/5 border-t border-theme flex items-center justify-between text-xs text-secondary">
+                                        <span>Approvals: <strong>{req.approvals_count || 0}</strong> / {req.required_approvals || 'Threshold'}</span>
+                                        <div className="w-32 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((req.approvals_count || 0) / (req.required_approvals || 1)) * 100)}%` }}></div>
+                                        </div>
+                                    </div>
+                                )}
                                 {req.immature_exit_deduction > 0 && (
                                     <div className="px-4 py-2 bg-rose-500/5 border-t border-rose-500/10 flex items-center gap-2 text-[10px] text-rose-700">
                                         <AlertTriangle className="w-3 h-3" />

@@ -28,7 +28,7 @@ const TYPE_ICONS = {
 const TYPE_COLORS = {
     deposit: 'from-green-500 to-emerald-600',
     withdraw: 'from-orange-500 to-amber-600',
-    send: 'from-blue-500 to-indigo-600',
+    send: 'from-emerald-500 to-amber-600',
     checkout: 'from-primary-600 to-primary-600',
 };
 
