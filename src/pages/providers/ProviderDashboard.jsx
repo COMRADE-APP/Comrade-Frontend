@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, Activity, AlertCircle, FileText, Settings, Users, ArrowRight, CheckCircle, RefreshCcw } from 'lucide-react';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import api from '../../services/api';
+import providerService from '../../services/provider.service';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
 const MetricCard = ({ title, value, icon: Icon, colorClass }) => (
@@ -35,14 +35,13 @@ const ProviderDashboard = () => {
         setError(null);
         try {
             // First get the list of provider registrations for this user
-            const response = await api.get('/api/v1/payments/provider-registrations/');
-            const providerList = response.data.results || response.data;
+            const providerList = await providerService.getMyRegistrations();
             
             // For each provider, fetch their dashboard stats
             const providersWithStats = await Promise.all(providerList.map(async (provider) => {
                 try {
-                    const statsRes = await api.get(`/api/v1/payments/provider-registrations/${provider.id}/dashboard/`);
-                    return { ...provider, stats: statsRes.data };
+                    const stats = await providerService.getDashboardStats(provider.id);
+                    return { ...provider, stats };
                 } catch (e) {
                     console.error('Failed to load stats for provider', provider.id, e);
                     return provider;
@@ -161,7 +160,7 @@ const ProviderDashboard = () => {
                                                 size="sm" 
                                                 className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
                                                 onClick={async () => {
-                                                    await api.post(`/api/v1/payments/provider-registrations/${provider.id}/submit/`);
+                                                    await providerService.submitRegistration(provider.id);
                                                     loadProviders();
                                                 }}
                                             >

@@ -598,24 +598,24 @@ export const paymentsService = {
         return response.data;
     },
 
-    async getMyCheckoutRequests() {
-        const response = await api.get('/payments/profiles/my_checkout_requests/');
+    async getMyPendingApprovals() {
+        const response = await api.get('/api/payments/profiles/pending_approvals/');
         return response.data;
     },
 
     // ========== Loans ==========
     async getLoanProducts() {
-        const response = await api.get('/payments/loan-products/');
+        const response = await api.get('/api/payments/loan-products/');
         return response.data;
     },
 
     async getProviderLoanProducts() {
-        const response = await api.get('/payments/service-products/?service_type=loan');
+        const response = await api.get('/api/payments/service-products/?service_type=loan');
         return response.data;
     },
 
     async getProviderApplications(groupId = null) {
-        let url = '/payments/provider-applications/';
+        let url = '/api/payments/provider-applications/';
         if (groupId) {
             url += `?group=${groupId}`;
         }
@@ -624,12 +624,12 @@ export const paymentsService = {
     },
 
     async submitProviderApplication(data) {
-        const response = await api.post('/payments/provider-applications/', data);
+        const response = await api.post('/api/payments/provider-applications/', data);
         return response.data;
     },
 
     async getGroupLoans(groupId) {
-        let url = '/payments/loan-applications/';
+        let url = '/api/payments/loan-applications/';
         if (groupId) {
             url += `?group=${groupId}`;
         }
@@ -642,7 +642,7 @@ export const paymentsService = {
         if (groupId) {
             payload.group = groupId;
         }
-        const response = await api.post('/payments/loan-applications/', payload);
+        const response = await api.post('/api/payments/loan-applications/', payload);
         return response.data;
     },
 

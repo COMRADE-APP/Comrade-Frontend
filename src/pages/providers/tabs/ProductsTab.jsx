@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, MoreVertical, Power, PowerOff, Edit2, Trash2, X, Tag, DollarSign, Layers } from 'lucide-react';
 import Card, { CardBody, CardHeader } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 import { formatMoneySimple } from '../../../utils/moneyUtils.jsx';
 
 const SERVICE_TYPES = [
@@ -57,8 +57,8 @@ const ProductsTab = ({ provider, onRefresh }) => {
     const loadProducts = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/v1/payments/service-products/', { params: { provider_id: provider.id } });
-            setProducts(res.data.results || res.data || []);
+            const res = await providerService.getServiceProducts({ provider_id: provider.id });
+            setProducts(res.results || res || []);
         } catch (e) {
             console.error('Failed to load products:', e);
         } finally {
@@ -73,9 +73,9 @@ const ProductsTab = ({ provider, onRefresh }) => {
         try {
             const payload = { ...form, provider: provider.id };
             if (editingProduct) {
-                await api.patch(`/api/v1/payments/service-products/${editingProduct.id}/`, payload);
+                await providerService.updateServiceProduct(editingProduct.id, payload);
             } else {
-                await api.post('/api/v1/payments/service-products/', payload);
+                await providerService.createServiceProduct(payload);
             }
             setShowModal(false);
             setEditingProduct(null);
@@ -89,18 +89,18 @@ const ProductsTab = ({ provider, onRefresh }) => {
     };
 
     const handleActivate = async (productId) => {
-        await api.post(`/api/v1/payments/service-products/${productId}/activate/`);
+        await providerService.activateProduct(productId);
         loadProducts();
     };
 
     const handleSuspend = async (productId) => {
-        await api.post(`/api/v1/payments/service-products/${productId}/suspend/`);
+        await providerService.suspendProduct(productId);
         loadProducts();
     };
 
     const handleDelete = async (productId) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        await api.delete(`/api/v1/payments/service-products/${productId}/`);
+        await providerService.deleteProduct(productId);
         loadProducts();
     };
 

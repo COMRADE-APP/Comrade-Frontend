@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Search, MoreVertical, CheckCircle, XCircle, Clock, Eye, MessageSquare, AlertCircle } from 'lucide-react';
 import Card, { CardBody } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 
 const STATUS_CONFIG = {
     draft: { color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300', icon: Clock, label: 'Draft' },
@@ -31,8 +31,8 @@ const ApplicationsTab = ({ provider, onRefresh }) => {
     const loadApplications = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/v1/payments/provider-applications/', { params: { provider_id: provider.id } });
-            setApplications(res.data.results || res.data || []);
+            const res = await providerService.getProviderApplications({ provider_id: provider.id });
+            setApplications(res.results || res || []);
         } catch (e) {
             console.error('Failed to load applications:', e);
         } finally {
@@ -45,7 +45,7 @@ const ApplicationsTab = ({ provider, onRefresh }) => {
         setSubmitting(true);
         setError(null);
         try {
-            await api.post(`/api/v1/payments/provider-applications/${selectedApp.id}/review/`, reviewForm);
+            await providerService.reviewApplication(selectedApp.id, reviewForm);
             setShowReviewModal(false);
             loadApplications();
         } catch (err) {

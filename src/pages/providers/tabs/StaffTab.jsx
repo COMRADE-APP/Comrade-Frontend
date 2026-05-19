@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Plus, Search, Shield, Power, PowerOff, Settings, X, Mail, Clock, MoreVertical } from 'lucide-react';
 import Card, { CardBody } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 
 const ROLE_OPTIONS = [
     { value: 'admin', label: 'Admin', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20' },
@@ -40,8 +40,8 @@ const StaffTab = ({ provider, onRefresh }) => {
     const loadStaff = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/v1/payments/provider-staff/by_provider/', { params: { provider_id: provider.id } });
-            setStaff(res.data.results || res.data || []);
+            const res = await providerService.getProviderStaff(provider.id);
+            setStaff(res.results || res || []);
         } catch (e) {
             console.error('Failed to load staff:', e);
         } finally {
@@ -54,7 +54,7 @@ const StaffTab = ({ provider, onRefresh }) => {
         setSubmitting(true);
         setError(null);
         try {
-            await api.post('/api/v1/payments/provider-staff/', {
+            await providerService.addStaff({
                 provider: provider.id,
                 email: inviteForm.email,
                 role: inviteForm.role,
@@ -70,12 +70,12 @@ const StaffTab = ({ provider, onRefresh }) => {
     };
 
     const handleActivate = async (staffId) => {
-        await api.post(`/api/v1/payments/provider-staff/${staffId}/activate/`);
+        await providerService.activateStaff(staffId);
         loadStaff();
     };
 
     const handleDeactivate = async (staffId) => {
-        await api.post(`/api/v1/payments/provider-staff/${staffId}/deactivate/`);
+        await providerService.deactivateStaff(staffId);
         loadStaff();
     };
 
@@ -96,7 +96,7 @@ const StaffTab = ({ provider, onRefresh }) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.post(`/api/v1/payments/provider-staff/${selectedStaff.id}/update_permissions/`, permissions);
+            await providerService.updateStaffPermissions(selectedStaff.id, permissions);
             setShowPermissionsModal(false);
             setSelectedStaff(null);
             loadStaff();

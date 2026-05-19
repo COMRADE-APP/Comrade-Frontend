@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, FileText, Package, Users, MessageSquare, TrendingUp, Clock, Wallet, ArrowUpRight } from 'lucide-react';
 import Card, { CardBody, CardHeader } from '../../../components/common/Card';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 import { formatMoneySimple } from '../../../utils/moneyUtils.jsx';
 
 const MetricCard = ({ title, value, icon: Icon, colorClass, subtitle }) => (
@@ -32,11 +32,11 @@ const OverviewTab = ({ provider, stats, onRefresh }) => {
         setLoadingActivity(true);
         try {
             const [txRes, queryRes] = await Promise.all([
-                api.get('/api/v1/payments/provider-transactions/', { params: { page_size: 5 } }).catch(() => ({ data: { results: [] } })),
-                api.get('/api/v1/payments/provider-queries/', { params: { page_size: 5 } }).catch(() => ({ data: { results: [] } })),
+                providerService.getProviderTransactions({ page_size: 5 }).catch(() => ({ results: [] })),
+                providerService.getProviderQueries({ page_size: 5 }).catch(() => ({ results: [] })),
             ]);
-            setRecentTransactions(txRes.data.results || txRes.data || []);
-            setRecentQueries(queryRes.data.results || queryRes.data || []);
+            setRecentTransactions(txRes.results || txRes || []);
+            setRecentQueries(queryRes.results || queryRes || []);
         } catch (e) {
             console.error('Failed to load activity:', e);
         } finally {

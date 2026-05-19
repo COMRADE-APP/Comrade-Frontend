@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Activity, Search, Filter, Download, DollarSign, FileText, Printer, CheckCircle, RefreshCw, ArrowUpRight, X, Banknote, AlertTriangle } from 'lucide-react';
 import Card, { CardBody } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 import { formatMoneySimple } from '../../../utils/moneyUtils.jsx';
 
 const STATUS_COLORS = {
@@ -46,11 +46,11 @@ const TransactionsTab = ({ provider, onRefresh }) => {
         setLoading(true);
         try {
             const [txRes, sumRes] = await Promise.all([
-                api.get('/api/v1/payments/provider-transactions/', { params: { provider_id: provider.id } }),
-                api.get('/api/v1/payments/provider-transactions/summary/', { params: { provider_id: provider.id } }).catch(() => ({ data: null }))
+                providerService.getProviderTransactions({ provider_id: provider.id }),
+                providerService.getTransactionSummary(provider.id).catch(() => null)
             ]);
-            setTransactions(txRes.data.results || txRes.data || []);
-            setSummary(sumRes.data);
+            setTransactions(txRes.results || txRes || []);
+            setSummary(sumRes);
         } catch (e) {
             console.error('Failed to load transactions:', e);
         } finally {
@@ -61,7 +61,7 @@ const TransactionsTab = ({ provider, onRefresh }) => {
     const handleProcess = async (id) => {
         setProcessingId(id);
         try {
-            await api.post(`/api/v1/payments/provider-transactions/${id}/process/`);
+            await providerService.processTransaction(id);
             loadData();
         } catch (e) {
             alert('Failed to process transaction');
@@ -82,7 +82,7 @@ const TransactionsTab = ({ provider, onRefresh }) => {
         setRefundLoading(true);
         setRefundError('');
         try {
-            await api.post(`/api/v1/payments/provider-transactions/${refundModal.id}/refund/`, {
+            await providerService.refundTransaction(refundModal.id, {
                 amount: refundAmount,
                 reason: refundReason,
             });
@@ -101,12 +101,12 @@ const TransactionsTab = ({ provider, onRefresh }) => {
         setPayoutError('');
         setPayoutSuccess('');
         try {
-            const res = await api.post(`/api/v1/payments/provider-registrations/${provider.id}/request_payout/`, {
+            const res = await providerService.requestPayout(provider.id, {
                 amount: payoutAmount,
                 method: payoutMethod,
                 destination_account: payoutAccount,
             });
-            setPayoutSuccess(`Payout of ${formatMoneySimple(res.data.amount)} processed successfully!`);
+            setPayoutSuccess(`Payout of ${formatMoneySimple(res.amount)} processed successfully!`);
             setPayoutAmount('');
             setPayoutAccount('');
             setShowPayoutForm(false);

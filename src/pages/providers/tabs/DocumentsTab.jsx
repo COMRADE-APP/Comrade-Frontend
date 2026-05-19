@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Upload, Download, CheckCircle, XCircle, Clock, AlertTriangle, X, Eye, Trash2, File } from 'lucide-react';
 import Card, { CardBody } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 
 const DOC_TYPES = [
     { value: 'business_license', label: 'Business License' },
@@ -44,11 +44,10 @@ const DocumentsTab = ({ provider, onRefresh }) => {
     const loadDocuments = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/v1/payments/provider-documents/', { params: { provider_id: provider.id } });
-            setDocuments(res.data.results || res.data || []);
+            const res = await providerService.getProviderDocuments(provider.id);
+            setDocuments(res.results || res || []);
         } catch (e) {
             console.error('Failed to load documents:', e);
-            // Fallback: try from provider's documents field
             if (provider.documents) {
                 setDocuments(provider.documents);
             }
@@ -72,7 +71,7 @@ const DocumentsTab = ({ provider, onRefresh }) => {
             formData.append('file', uploadForm.file);
             if (uploadForm.expiry_date) formData.append('expiry_date', uploadForm.expiry_date);
 
-            await api.post('/api/v1/payments/provider-documents/', formData);
+            await providerService.uploadDocument(formData);
             setShowUploadModal(false);
             setUploadForm({ document_type: 'business_license', title: '', description: '', file: null, expiry_date: '' });
             loadDocuments();
@@ -86,7 +85,7 @@ const DocumentsTab = ({ provider, onRefresh }) => {
     const handleDelete = async (docId) => {
         if (!confirm('Are you sure you want to delete this document?')) return;
         try {
-            await api.delete(`/api/v1/payments/provider-documents/${docId}/`);
+            await providerService.deleteDocument(docId);
             loadDocuments();
         } catch (e) {
             console.error('Failed to delete document:', e);

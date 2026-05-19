@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Search, Filter, AlertTriangle, CheckCircle, Clock, Send, Info } from 'lucide-react';
 import Card, { CardBody } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 
 const STATUS_CONFIG = {
     open: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30', label: 'Open' },
@@ -28,8 +28,8 @@ const QueriesTab = ({ provider, onRefresh }) => {
     const loadQueries = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/v1/payments/provider-queries/', { params: { provider_id: provider.id } });
-            setQueries(res.data.results || res.data || []);
+            const res = await providerService.getProviderQueries({ provider_id: provider.id });
+            setQueries(res.results || res || []);
         } catch (e) {
             console.error('Failed to load queries:', e);
         } finally {
@@ -42,7 +42,7 @@ const QueriesTab = ({ provider, onRefresh }) => {
         try {
             let payload = {};
             if (action === 'resolve') payload = { resolution_notes: resolveNotes };
-            await api.post(`/api/v1/payments/provider-queries/${selectedQuery.id}/${action}/`, payload);
+            await providerService.handleQueryAction(selectedQuery.id, action, payload);
             if (action === 'resolve') setResolveNotes('');
             setSelectedQuery(null);
             loadQueries();

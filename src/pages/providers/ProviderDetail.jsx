@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import api from '../../services/api';
+import providerService from '../../services/provider.service';
 import OverviewTab from './tabs/OverviewTab';
 import ProductsTab from './tabs/ProductsTab';
 import StaffTab from './tabs/StaffTab';
@@ -76,12 +76,12 @@ const ProviderDetail = () => {
         setLoading(true);
         setError(null);
         try {
-            const [providerRes, statsRes] = await Promise.all([
-                api.get(`/api/v1/payments/provider-registrations/${providerId}/`),
-                api.get(`/api/v1/payments/provider-registrations/${providerId}/dashboard/`).catch(() => ({ data: {} })),
+            const [providerData, statsData] = await Promise.all([
+                providerService.getRegistrationDetail(providerId),
+                providerService.getDashboardStats(providerId).catch(() => ({})),
             ]);
-            setProvider(providerRes.data);
-            setStats(statsRes.data);
+            setProvider(providerData);
+            setStats(statsData);
         } catch (err) {
             console.error('Failed to load provider:', err);
             setError('Could not load provider details. It may not exist or you may not have permission.');
@@ -228,7 +228,7 @@ const ProviderDetail = () => {
                                     variant="outline"
                                     className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
                                     onClick={async () => {
-                                        await api.post(`/api/v1/payments/provider-registrations/${providerId}/submit/`);
+                                        await providerService.submitRegistration(providerId);
                                         loadProvider();
                                     }}
                                 >

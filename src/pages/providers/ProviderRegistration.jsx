@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, FileText, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import Button from '../../components/common/Button';
-import api from '../../services/api';
+import providerService from '../../services/provider.service';
 
 const ProviderRegistration = () => {
     const navigate = useNavigate();
@@ -41,10 +41,9 @@ const ProviderRegistration = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.post('/api/v1/payments/provider-registrations/', formData);
-            if (response.data) {
-                // Submit immediately for review
-                await api.post(`/api/v1/payments/provider-registrations/${response.data.id}/submit/`);
+            const response = await providerService.createRegistration(formData);
+            if (response) {
+                await providerService.submitRegistration(response.id);
                 navigate('/providers/dashboard');
             }
         } catch (err) {

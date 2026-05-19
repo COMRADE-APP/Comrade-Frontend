@@ -8,7 +8,7 @@ import {
     ArrowDownLeft, ArrowLeftRight, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, 
     Filter, ChevronRight, ChevronDown, Clock, RefreshCw, ShoppingCart, Heart, Building, 
     Gift, BarChart3, Zap, Coins, BookOpen, ShieldCheck, Landmark, Smartphone, 
-    CheckCircle2, Circle, Settings, Calendar 
+    CheckCircle2, Circle, Settings, Calendar, Briefcase, Shield 
 } from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
@@ -94,7 +94,7 @@ const Payments = () => {
     
     const [paymentProfile, setPaymentProfile] = useState(null);
     const [transactions, setTransactions] = useState([]);
-    const [checkoutRequests, setCheckoutRequests] = useState([]);
+    const [pendingApprovals, setPendingApprovals] = useState([]);
     const [automations, setAutomations] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -146,14 +146,14 @@ const Payments = () => {
             const [profile, historyData, reqs, autos] = await Promise.all([
                 paymentsService.getProfile().catch(() => null),
                 paymentsService.getTransactionHistory().catch(() => []),
-                paymentsService.getMyCheckoutRequests().catch(() => []),
+                paymentsService.getMyPendingApprovals().catch(() => []),
                 paymentsService.getUserAutomations().catch(() => [])
             ]);
             setPaymentProfile(profile);
             // Use transaction history which has proper IDs for reversal
             const txns = Array.isArray(historyData) ? historyData : (historyData?.results || []);
             setTransactions(txns);
-            setCheckoutRequests(Array.isArray(reqs) ? reqs : (reqs?.results || []));
+            setPendingApprovals(Array.isArray(reqs) ? reqs : (reqs?.results || []));
             setAutomations(Array.isArray(autos) ? autos : (autos?.results || []));
         } catch (error) {
             console.error('Error loading payment data:', error);
@@ -210,17 +210,46 @@ const Payments = () => {
                 : transactions.filter(t => t.transaction_type === filter);
 
 
-    const handleReviewRequest = async (groupId, requestId, action) => {
+    const handleReviewRequest = async (req, action) => {
         try {
-            if (action === 'approve') {
-                await paymentsService.approveCheckoutRequest(groupId, requestId);
+            const { request_type, group_id, id, target_id } = req;
+            let response;
+            
+            if (request_type === 'checkout') {
+                if (action === 'approve') response = await paymentsService.approveCheckoutRequest(group_id, id);
+                else response = await paymentsService.rejectCheckoutRequest(group_id, id);
+            } else if (request_type === 'withdrawal') {
+                // Assuming standard endpoints, you might need to adapt these methods in your service
+                response = await api.post(`/api/payments/withdrawal-requests/${id}/${action}/`);
+            } else if (request_type === 'piggy_bank') {
+                response = await api.post(`/api/payments/targets/${target_id}/vote_conversion/${id}/`, { vote: action });
+            } else if (request_type === 'loan') {
+                response = await api.post(`/api/payments/loan-applications/${id}/${action}/`);
+            } else if (request_type === 'group_invitation') {
+                const endpointAction = action === 'approve' ? 'accept' : 'decline';
+                response = await api.post(`/api/payments/invitations/${id}/${endpointAction}/`);
+            } else if (request_type === 'escrow') {
+                const endpointAction = action === 'approve' ? 'release_funds' : 'dispute';
+                response = await api.post(`/api/payments/escrow/${id}/${endpointAction}/`);
+            } else if (request_type === 'automation') {
+                response = await api.post(`/api/payments/groups/${group_id}/vote_automation/`, { automation_id: id, vote: action });
             } else {
-                await paymentsService.rejectCheckoutRequest(groupId, requestId);
+                throw new Error("Unknown request type");
             }
+            
+            toast({
+                title: "Success",
+                description: `Successfully processed ${request_type} request.`,
+                status: "success",
+            });
             loadData();
         } catch (error) {
             console.error('Error reviewing request:', error);
-            alert(error.response?.data?.error || 'Failed to review request');
+            toast({
+                title: "Error",
+                description: error.response?.data?.error || 'Failed to review request',
+                status: "error",
+            });
         }
     };
 
@@ -418,9 +447,9 @@ const Payments = () => {
                     className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeMainTab === 'approvals' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-primary'} flex items-center gap-2`}
                 >
                     Pending Approvals
-                    {checkoutRequests.filter(r => r.status === 'pending').length > 0 && (
+                    {pendingApprovals.length > 0 && (
                         <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                            {checkoutRequests.filter(r => r.status === 'pending').length}
+                            {pendingApprovals.length}
                         </span>
                     )}
                 </button>
@@ -692,113 +721,99 @@ const Payments = () => {
                         <div className="text-center py-12">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
                         </div>
-                    ) : checkoutRequests.length === 0 ? (
+                    ) : pendingApprovals.length === 0 ? (
                         <Card>
                             <CardBody className="py-12 text-center">
                                 <CheckCircle className="w-12 h-12 text-secondary mx-auto mb-4 opacity-50" />
                                 <h3 className="text-lg font-medium text-primary mb-1">No pending approvals</h3>
-                                <p className="text-secondary">You don't have any checkout requests waiting for your approval right now.</p>
+                                <p className="text-secondary">You don't have any items waiting for your approval right now.</p>
                             </CardBody>
                         </Card>
                     ) : (
-                        checkoutRequests.map((req) => (
+                        pendingApprovals.map((req) => (
                             <Card key={req.id}>
                                 <CardBody className="p-4">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-start gap-4">
-                                            <div className="w-12 h-12 rounded bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                                <CreditCard className="w-6 h-6 text-blue-600" />
+                                            <div className={`w-12 h-12 rounded flex items-center justify-center flex-shrink-0 ${
+                                                req.request_type === 'checkout' ? 'bg-blue-500/10 text-blue-600' :
+                                                req.request_type === 'withdrawal' ? 'bg-orange-500/10 text-orange-600' :
+                                                req.request_type === 'piggy_bank' ? 'bg-pink-500/10 text-pink-600' :
+                                                req.request_type === 'loan' ? 'bg-purple-500/10 text-purple-600' :
+                                                req.request_type === 'escrow' ? 'bg-teal-500/10 text-teal-600' :
+                                                req.request_type === 'group_invitation' ? 'bg-green-500/10 text-green-600' :
+                                                'bg-gray-500/10 text-gray-600'
+                                            }`}>
+                                                {req.request_type === 'checkout' ? <CreditCard className="w-6 h-6" /> :
+                                                 req.request_type === 'withdrawal' ? <ArrowUpCircle className="w-6 h-6" /> :
+                                                 req.request_type === 'piggy_bank' ? <TrendingUp className="w-6 h-6" /> :
+                                                 req.request_type === 'loan' ? <Briefcase className="w-6 h-6" /> :
+                                                 req.request_type === 'escrow' ? <Shield className="w-6 h-6" /> :
+                                                 <CheckCircle className="w-6 h-6" />}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="font-bold text-lg text-primary">
-                                                        {formatMoneySimple(parseFloat(req.amount))}
+                                                        {req.title} {req.amount !== "0.00" && `- ${formatMoneySimple(parseFloat(req.amount))}`}
                                                     </span>
-                                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                                                        req.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                                        req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                        req.status === 'failed' ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                        {req.status.toUpperCase()}
+                                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700`}>
+                                                        {req.request_type.toUpperCase().replace('_', ' ')}
                                                     </span>
                                                 </div>
                                                 <div className="text-sm text-secondary flex items-center gap-2 mt-2 flex-wrap">
-                                                    <span>Requested by</span>
-                                                    <div className="flex items-center gap-1.5 bg-secondary/5 pr-2 rounded-full border border-theme overflow-hidden">
-                                                        {req.initiator_profile_picture ? (
-                                                            <img src={req.initiator_profile_picture} alt="profile" className="w-6 h-6 object-cover" />
-                                                        ) : (
-                                                            <div className="w-6 h-6 bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                                                                {req.initiator_name ? req.initiator_name.charAt(0) : 'U'}
-                                                            </div>
-                                                        )}
-                                                        {req.initiator_username ? (
-                                                            <Link to={`/profile/${req.initiator_username}`} className="font-medium text-primary hover:underline text-xs">
-                                                                {req.initiator_name}
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="font-medium text-primary text-xs">{req.initiator_name || 'A member'}</span>
-                                                        )}
-                                                    </div>
+                                                    <span>From</span>
+                                                    <span className="font-medium text-primary text-xs">{req.initiator_name || 'System'}</span>
                                                     <span>on {formatDate(req.created_at)}</span>
                                                     {req.group_name && (
                                                         <span className="text-xs ml-2 bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
-                                                            Group: <Link to={`/payments/groups/${req.group}`} className="hover:underline font-medium text-primary">{req.group_name}</Link>
+                                                            Group: <Link to={`/payments/groups/${req.group_id}`} className="hover:underline font-medium text-primary">{req.group_name}</Link>
                                                         </span>
                                                     )}
                                                 </div>
-                                                {req.recipient_info && (
-                                                    <div className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-secondary/5 rounded-lg border border-theme inline-flex">
-                                                        <span className="text-xs text-secondary font-medium">To:</span>
-                                                        {req.recipient_info.profile_picture ? (
-                                                            <img src={req.recipient_info.profile_picture} alt="recipient" className="w-5 h-5 rounded-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-5 h-5 rounded-full border border-theme bg-white flex items-center justify-center text-[10px] font-bold text-primary">
-                                                                {req.recipient_info.name.charAt(0)}
-                                                            </div>
-                                                        )}
-                                                        {req.recipient_info.type === 'funding' && req.recipient_info.id ? (
-                                                            <Link to={`/funding/business/${req.recipient_info.id}`} className="text-sm font-medium text-primary hover:underline hover:text-blue-600">
-                                                                {req.recipient_info.name}
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="text-sm font-medium text-primary">{req.recipient_info.name}</span>
-                                                        )}
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-secondary/5 rounded-lg p-3 text-sm">
-                                        <ul className="list-disc list-inside text-secondary space-y-1">
-                                            {req.items_payload?.map((item, idx) => (
-                                                <li key={idx} className="line-clamp-1">
-                                                    <span className="capitalize">{item.type}</span>: {item.name} (x{item.qty || 1})
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                                    {req.metadata && Object.keys(req.metadata).length > 0 && (
+                                        <div className="bg-secondary/5 rounded-lg p-3 text-sm mb-4">
+                                            {req.request_type === 'checkout' && Array.isArray(req.metadata.items_payload) ? (
+                                                <ul className="list-disc list-inside text-secondary space-y-1">
+                                                    {req.metadata.items_payload.map((item, idx) => (
+                                                        <li key={idx} className="line-clamp-1">
+                                                            <span className="capitalize">{item?.type || 'item'}</span>: {item?.name || 'Unknown'} (x{item?.qty || 1})
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <div className="text-secondary">
+                                                    {Object.entries(req.metadata).map(([key, value]) => (
+                                                        <p key={key}><span className="capitalize font-medium">{key.replace('_', ' ')}:</span> {typeof value === 'object' ? JSON.stringify(value) : String(value)}</p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-theme">
                                         <div className="text-sm">
-                                            <span className="text-green-600 font-medium">Approvals: {req.approvals_count}</span>
-                                            <span className="text-secondary mx-2">/</span>
-                                            <span className="text-red-600 font-medium">Rejections: {req.rejections_count}</span>
-                                            <span className="text-secondary mx-2">/</span>
-                                            <span className="text-primary font-medium">Required: {req.total_members}</span>
+                                            {req.total_members > 1 && (
+                                                <>
+                                                    <span className="text-green-600 font-medium">Approvals: {req.approvals_count}</span>
+                                                    <span className="text-secondary mx-2">/</span>
+                                                    <span className="text-red-600 font-medium">Rejections: {req.rejections_count}</span>
+                                                    <span className="text-secondary mx-2">/</span>
+                                                    <span className="text-primary font-medium">Required: {req.total_members}</span>
+                                                </>
+                                            )}
                                         </div>
-                                        {req.status === 'pending' && (
-                                            <div className="flex gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => handleReviewRequest(req.group, req.id, 'reject')} className="border-red-500 text-red-600 hover:bg-red-50">
-                                                    Reject
-                                                </Button>
-                                                <Button variant="primary" size="sm" onClick={() => handleReviewRequest(req.group, req.id, 'approve')} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
-                                                    Approve
-                                                </Button>
-                                            </div>
-                                        )}
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => handleReviewRequest(req, 'reject')} className="border-red-500 text-red-600 hover:bg-red-50">
+                                                {req.request_type === 'group_invitation' ? 'Decline' : req.request_type === 'escrow' ? 'Dispute' : 'Reject'}
+                                            </Button>
+                                            <Button variant="primary" size="sm" onClick={() => handleReviewRequest(req, 'approve')} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
+                                                {req.request_type === 'group_invitation' ? 'Accept' : req.request_type === 'escrow' ? 'Release Funds' : 'Approve'}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </CardBody>
                             </Card>

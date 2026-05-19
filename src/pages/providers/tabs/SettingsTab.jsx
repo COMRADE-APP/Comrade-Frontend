@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Save, Upload, AlertTriangle, Globe, Phone, Mail, MapPin, Building2, Hash, FileText, Percent, DollarSign, CreditCard } from 'lucide-react';
 import Card, { CardBody, CardHeader } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import api from '../../../services/api';
+import providerService from '../../../services/provider.service';
 
 const PROVIDER_TYPES = [
     { value: 'bill_provider', label: 'Bill Provider' },
@@ -62,7 +62,7 @@ const SettingsTab = ({ provider, onRefresh }) => {
                 payload = { ...form };
             }
 
-            await api.patch(`/api/v1/payments/provider-registrations/${provider.id}/`, payload);
+            await providerService.updateRegistration(provider.id, payload);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
             if (onRefresh) onRefresh();
