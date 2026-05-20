@@ -14,6 +14,7 @@
     "@emoji-mart/react": "^1.1.1",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.1",
+    "@stomp/stompjs": "^7.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-image": "^3.20.1",
     "@tiptap/extension-link": "^3.20.1",
@@ -40,8 +41,12 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.21.0",
     "recharts": "^3.8.1",
+    "sockjs-client": "^1.6.1",
     "tailwindcss-animate": "^1.0.7",
     "twemoji": "^14.0.2"
+  },
+  "overrides": {
+    "node-fetch": ">=2.6.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
