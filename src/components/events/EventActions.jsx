@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import {
     Heart, Star, Bell, Send, Pin, MoreVertical,
-    AlertCircle, Flag, Copy, Facebook, Twitter, Linkedin, Mail
+    AlertCircle, Flag, Copy, MessageCircle, Bird, Briefcase, Mail
 } from 'lucide-react';
 import eventsService from '../../services/events.service';
 
@@ -229,21 +229,21 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
                                 onClick={() => handleShare('facebook')}
                                 className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
-                                <Facebook className="w-4 h-4 text-blue-600" />
+                                <MessageCircle className="w-4 h-4 text-blue-600" />
                                 <span>Facebook</span>
                             </button>
                             <button
                                 onClick={() => handleShare('twitter')}
                                 className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
-                                <Twitter className="w-4 h-4 text-sky-500" />
+                                <Bird className="w-4 h-4 text-sky-500" />
                                 <span>Twitter</span>
                             </button>
                             <button
                                 onClick={() => handleShare('linkedin')}
                                 className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"
                             >
-                                <Linkedin className="w-4 h-4 text-blue-700" />
+                                <Briefcase className="w-4 h-4 text-blue-700" />
                                 <span>LinkedIn</span>
                             </button>
                             <button

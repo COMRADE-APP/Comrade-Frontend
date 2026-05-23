@@ -34,7 +34,7 @@
     "framer-motion": "^12.30.0",
     "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.298.0",
+    "lucide-react": "^1.16.0",
     "playwright": "^1.58.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
@@ -48,7 +48,11 @@
     "twemoji": "^14.0.2"
   },
   "overrides": {
-    "node-fetch": ">=2.6.7"
+    "node-fetch": ">=2.6.7",
+    "@emoji-mart/react": {
+      "react": "19.2.6",
+      "react-dom": "19.2.6"
+    }
   },
   "devDependencies": {
     "@types/react": "^19.2.15",
