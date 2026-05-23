@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { ArrowLeft, Clock, Calendar, User, Heart, MessageCircle, Bookmark, Share, Send, Flag, DollarSign, Shield, Crown, Lock } from 'lucide-react';
 import Button from '../components/common/Button';
 import articlesService from '../services/articles.service';
@@ -89,8 +90,18 @@ const ArticleDetail = () => {
                 console.log('Error sharing:', error);
             }
         } else {
-            navigator.clipboard.writeText(window.location.href);
-            toast.success('Link copied to clipboard');
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                toast.success('Link copied to clipboard');
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = window.location.href;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                toast.success('Link copied to clipboard');
+            }
         }
     };
 
@@ -238,7 +249,7 @@ const ArticleDetail = () => {
                 {/* Article Content */}
                 <div
                     className="prose prose-lg prose-headings:font-bold prose-headings:text-primary prose-a:text-primary prose-p:text-secondary prose-strong:text-primary prose-li:text-secondary max-w-none mb-12"
-                    dangerouslySetInnerHTML={{ __html: article.content }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
                 />
 
                 {/* Attachments */}

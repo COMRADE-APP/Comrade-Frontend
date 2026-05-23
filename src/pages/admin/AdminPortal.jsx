@@ -26,6 +26,8 @@ const NAV = [
     { key: 'verifications', label: 'Verifications', icon: '✅', route: ROUTES.ADMIN_VERIFICATIONS, badgeKey: 'verifications' },
     { key: 'deletions', label: 'Deletions', icon: '🗑️', route: ROUTES.ADMIN_DELETION_REVIEW, badgeKey: 'deletions' },
     { key: 'analytics', label: 'Analytics', icon: '📈', route: ROUTES.ADMIN_ANALYTICS },
+    { key: 'escrow', label: 'Escrow Disputes', icon: '⚖️', route: ROUTES.ADMIN_ESCROW_DISPUTES },
+    { key: 'kyc', label: 'KYC Verification', icon: '🪪', route: ROUTES.ADMIN_KYC },
     { key: 'settings', label: 'Settings', icon: '⚙️', route: ROUTES.ADMIN_SETTINGS },
 ];
 

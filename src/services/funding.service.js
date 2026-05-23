@@ -111,6 +111,12 @@ const fundingService = {
         return response.data;
     },
 
+    // Alias for MyBusinesses component
+    getMyFundingRequests: async () => {
+        const response = await api.get(`${API_ENDPOINTS.FUNDING.REQUESTS}my_requests/`);
+        return { results: response.data };
+    },
+
     // Get business detail
     getBusinessDetail: async (id) => {
         const response = await api.get(`${API_ENDPOINTS.FUNDING.BUSINESSES}${id}/`);

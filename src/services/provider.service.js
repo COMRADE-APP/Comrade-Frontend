@@ -172,9 +172,47 @@ export const providerService = {
         return response.data;
     },
 
+    // ========== User Query Methods ==========
+    async getMyQueries() {
+        const response = await api.get(`${BASE_V1}/provider-queries/my_queries/`);
+        return response.data.results || response.data;
+    },
+
+    async submitQuery(data) {
+        const response = await api.post(`${BASE_V1}/provider-queries/`, data);
+        return response.data;
+    },
+
+    async getQueryDetail(queryId) {
+        const response = await api.get(`${BASE_V1}/provider-queries/${queryId}/`);
+        return response.data;
+    },
+
+    async rateQuery(queryId, rating, comment = '') {
+        const response = await api.post(`${BASE_V1}/provider-queries/${queryId}/rate/`, { rating, comment });
+        return response.data;
+    },
+
+    // ========== List providers for user to submit queries to ==========
+    async getActiveProviders(params = {}) {
+        const response = await api.get(`${BASE_V1}/provider-registrations/active/`, { params });
+        return response.data.results || response.data;
+    },
+
+    async getProviderDetail(providerId) {
+        const response = await api.get(`${BASE_V1}/provider-registrations/${providerId}/`);
+        return response.data;
+    },
+
     // ========== Notifications ==========
     async getProviderNotifications(providerId) {
         const response = await api.get(`${BASE_V1}/provider-notifications/`, { params: { provider_id: providerId } });
+        return response.data;
+    },
+
+    // ========== Analytics ==========
+    async getAnalytics(providerId) {
+        const response = await api.get(`${BASE_V1}/provider-analytics/${providerId}/`);
         return response.data;
     },
 

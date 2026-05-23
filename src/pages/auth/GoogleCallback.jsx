@@ -10,6 +10,9 @@ const GoogleCallback = () => {
 
     useEffect(() => {
         const handleCallback = async () => {
+            // Strip tokens from URL immediately to prevent leakage via browser history/referrer
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             // Check for URL params (from our custom callback)
             const accessToken = searchParams.get('access_token');
             const refreshToken = searchParams.get('refresh_token');

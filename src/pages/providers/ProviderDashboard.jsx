@@ -5,6 +5,7 @@ import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import providerService from '../../services/provider.service';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
+import { ROUTES } from '../../constants/routes';
 
 const MetricCard = ({ title, value, icon: Icon, colorClass }) => (
     <Card className="border-theme">
@@ -84,7 +85,7 @@ const ProviderDashboard = () => {
                 <p className="text-secondary mb-8 max-w-md">
                     You haven't registered any business as a service provider yet. Start the registration process to access the provider tools.
                 </p>
-                <Button onClick={() => navigate('/providers/register')} variant="primary" size="lg">
+                <Button onClick={() => navigate(ROUTES.PROVIDER_REGISTRATION)} variant="primary" size="lg">
                     Register a Business <ArrowRight size={18} className="ml-2" />
                 </Button>
             </div>
@@ -103,7 +104,7 @@ const ProviderDashboard = () => {
                         <Button variant="outline" onClick={loadProviders} className="hidden sm:flex">
                             <RefreshCcw size={16} className="mr-2" /> Refresh
                         </Button>
-                        <Button variant="primary" onClick={() => navigate('/providers/register')}>
+                        <Button variant="primary" onClick={() => navigate(ROUTES.PROVIDER_REGISTRATION)}>
                             New Provider
                         </Button>
                     </div>

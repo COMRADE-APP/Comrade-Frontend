@@ -1808,8 +1808,17 @@ const PaymentGroupDetail = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button className="p-4 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center gap-2 text-center"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(window.location.href);
+                                        onClick={async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(window.location.href);
+                                            } catch (err) {
+                                                const textArea = document.createElement('textarea');
+                                                textArea.value = window.location.href;
+                                                document.body.appendChild(textArea);
+                                                textArea.select();
+                                                document.execCommand('copy');
+                                                document.body.removeChild(textArea);
+                                            }
                                             setModalMessage('Link copied to clipboard!');
                                             setShowSuccessModal(true);
                                             setShowShareModal(false);

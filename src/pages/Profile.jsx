@@ -11,11 +11,12 @@ import {
     Shield, Settings, Share2, Flag, Ban, X, Check, Loader2,
     Heart, MessageSquare, Repeat2, Bookmark, Users,
     FileText, Layers, PenLine, Calendar, ClipboardList,
-    BookOpen, Award, Plus, Trash2
+    BookOpen, Award, Plus, Trash2, Hand
 } from 'lucide-react';
 import profileService from '../services/profile.service';
 import EditProfileForm from '../components/profile/EditProfileForm';
 import opinionsService from '../services/opinions.service';
+import messagesService from '../services/messages.service';
 import api from '../services/api';
 
 const Profile = () => {
@@ -277,13 +278,23 @@ const Profile = () => {
         } catch (error) { console.error('Error following:', error); }
     };
 
-    const handleShare = async (opinion) => {
+const handleShare = async (opinion) => {
         const url = `${window.location.origin}/opinions/${opinion.id}`;
         if (navigator.share) {
-            try { await navigator.share({ title: 'Check this out', text: opinion.content?.substring(0, 100), url }); } catch (err) { }
+            try { await navigator.share({ title: 'Check out this opinion', text: opinion.content?.substring(0, 100), url }); } catch (err) { }
         } else {
-            navigator.clipboard.writeText(url);
-            alert('Link copied!');
+            try {
+                await navigator.clipboard.writeText(url);
+                alert('Link copied!');
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied!');
+            }
         }
     };
 
@@ -399,6 +410,20 @@ const Profile = () => {
             return;
         }
         navigate(`/messages?user=${profile.user_id}`);
+    };
+
+    const handleHello = async () => {
+        if (profile?.allow_messages === 'none') {
+            alert('This user does not accept messages');
+            return;
+        }
+        try {
+            await messagesService.startConversation(profile.user_id, 'Hello! 👋');
+            navigate(`/messages?user=${profile.user_id}`);
+        } catch (error) {
+            console.error('Error sending hello:', error);
+            alert('Failed to send hello');
+        }
     };
 
     const handleLikePost = async (postId) => {
@@ -550,6 +575,9 @@ const Profile = () => {
                                     ) : (
                                         <><UserPlus className="w-4 h-4 mr-1" /> Follow</>
                                     )}
+                                </Button>
+                                <Button variant="secondary" size="sm" onClick={handleHello}>
+                                    <Hand className="w-4 h-4 mr-1" /> Hello
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={handleMessage}>
                                     <MessageCircle className="w-4 h-4 mr-1" /> Message

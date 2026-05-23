@@ -8,6 +8,7 @@ import {
 import Button from '../components/common/Button';
 import articlesService from '../services/articles.service';
 import { useAuth } from '../contexts/AuthContext';
+import DOMPurify from 'dompurify';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TipTapImage from '@tiptap/extension-image';
@@ -368,7 +369,7 @@ const CreateArticle = () => {
                         </div>
                         <div
                             className="prose prose-lg prose-headings:font-bold prose-headings:text-primary prose-a:text-primary prose-p:text-secondary prose-strong:text-primary prose-li:text-secondary max-w-none mb-12"
-                            dangerouslySetInnerHTML={{ __html: content }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
                         />
                     </div>
                 ) : (

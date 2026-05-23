@@ -76,7 +76,17 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
         try {
             if (platform === 'link') {
                 const link = await eventsService.generateShareLink(event.id);
-                await navigator.clipboard.writeText(`${window.location.origin}/events/${event.id}?ref=${link.data.token}`);
+                const shareLink = `${window.location.origin}/events/${event.id}?ref=${link.data.token}`;
+                try {
+                    await navigator.clipboard.writeText(shareLink);
+                } catch (err) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = shareLink;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
                 alert('Link copied to clipboard!');
             } else {
                 await eventsService.shareEvent(event.id, { share_type: platform });

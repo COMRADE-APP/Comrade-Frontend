@@ -1,6 +1,41 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark-hc (&:where(.dark-hc, .dark-hc *));
+@custom-variant ambient (&:where(.ambient, .ambient *));
+
+@plugin "@tailwindcss/typography";
+
+@theme {
+    --font-sans: 'Inter', sans-serif;
+
+    --color-primary-50: #f0fdf4;
+    --color-primary-100: #dcfce7;
+    --color-primary-200: #bbf7d0;
+    --color-primary-300: #86efac;
+    --color-primary-400: #4ade80;
+    --color-primary-500: #22c55e;
+    --color-primary-600: #155e2e;
+    --color-primary-700: #0d401e;
+    --color-primary-800: #082b13;
+    --color-primary-900: #04170a;
+
+    --color-bg-primary: var(--bg-primary);
+    --color-bg-secondary: var(--bg-secondary);
+    --color-bg-tertiary: var(--bg-tertiary);
+    --color-bg-elevated: var(--bg-elevated);
+
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-tertiary: var(--text-tertiary);
+    --color-text-inverse: var(--text-inverse);
+
+    --color-border-DEFAULT: var(--border-color);
+    --color-border-light: var(--border-light);
+
+    --default-border-color: var(--border-color);
+}
 
 /* ==============================================================================
    THEME SYSTEM - CSS Custom Properties
@@ -132,105 +167,115 @@
    BASE STYLES
    ============================================================================== */
 
-@layer base {
-  body {
-    @apply font-sans antialiased;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
+body {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@layer components {
-  .btn-primary {
-    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-    background: var(--accent-gradient);
-    color: var(--text-inverse);
-  }
+/* ==============================================================================
+   COMPONENT UTILITIES
+   ============================================================================== */
 
-  .btn-primary:hover {
-    filter: brightness(1.1);
-  }
+.btn-primary {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  background: var(--accent-gradient);
+  color: var(--text-inverse);
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  .btn-secondary {
-    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-  }
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+.btn-secondary:hover {
+  background-color: var(--bg-secondary);
+}
 
-  .btn-secondary:hover {
-    background-color: var(--bg-secondary);
-  }
+.btn-outline {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background: transparent;
+}
+.btn-outline:hover {
+  background-color: var(--bg-secondary);
+}
 
-  .btn-outline {
-    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    background: transparent;
-  }
+.input-field {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+.input-field:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(21, 94, 46, 0.1);
+}
+.input-field::placeholder {
+  color: var(--text-tertiary);
+}
 
-  .btn-outline:hover {
-    background-color: var(--bg-secondary);
-  }
+.card {
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
 
-  .input-field {
-    @apply w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-opacity-50 outline-none transition-all duration-200;
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-  }
+.ambient .card {
+  box-shadow: var(--ambient-glow);
+}
 
-  .input-field:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(21, 94, 46, 0.1);
-  }
+/* Text utilities */
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-tertiary {
+  color: var(--text-tertiary);
+}
 
-  .input-field::placeholder {
-    color: var(--text-tertiary);
-  }
+/* Background utilities */
+.bg-elevated {
+  background-color: var(--bg-elevated);
+}
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+.bg-base {
+  background-color: var(--bg-primary);
+}
 
-  .card {
-    @apply rounded-2xl overflow-hidden;
-    background-color: var(--bg-elevated);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* Ambient theme card glow */
-  .ambient .card {
-    box-shadow: var(--ambient-glow);
-  }
-
-  /* Text utilities */
-  .text-primary {
-    color: var(--text-primary);
-  }
-
-  .text-secondary {
-    color: var(--text-secondary);
-  }
-
-  .text-tertiary {
-    color: var(--text-tertiary);
-  }
-
-  /* Background utilities */
-  .bg-elevated {
-    background-color: var(--bg-elevated);
-  }
-
-  .bg-secondary {
-    background-color: var(--bg-secondary);
-  }
-
-  .bg-base {
-    background-color: var(--bg-primary);
-  }
-
-  /* Border utilities */
-  .border-theme {
-    border-color: var(--border-color);
-  }
+/* Border utilities */
+.border-theme {
+  border-color: var(--border-color);
 }
 
 /* Smooth theme transitions */
@@ -248,12 +293,10 @@
   --user-scale: 1;
 }
 
-/* Apply user scale to content area only (not navigation/chrome) */
 .scalable-content {
   font-size: calc(1rem * var(--user-scale));
 }
 
-/* Cards inherit scale */
 .scalable-content .card {
   transform: scale(var(--user-scale));
   transform-origin: top left;
@@ -263,7 +306,6 @@
    RESPONSIVE – Small-screen card grids & layout
    ============================================================================== */
 
-/* Responsive card grid utility */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -284,9 +326,7 @@
   }
 }
 
-/* Responsive product/shop card adjustments */
 @media (max-width: 640px) {
-
   .card img,
   .card video {
     max-height: 180px;
@@ -302,13 +342,11 @@
   }
 }
 
-/* Fix horizontal overflow on small screens */
 @media (max-width: 480px) {
   body {
     overflow-x: hidden;
   }
 
-  /* Compact padding for detail pages */
   .max-w-2xl,
   .max-w-3xl,
   .max-w-4xl {
@@ -316,7 +354,6 @@
     padding-right: 0.75rem;
   }
 
-  /* Tab bars scroll horizontally */
   [role="tablist"],
   .tab-bar {
     overflow-x: auto;

@@ -99,9 +99,18 @@ const FeedItem = ({
             }
         } else {
             // Copy to clipboard
-            navigator.clipboard.writeText(
-                window.location.origin + (item.action_url || `/opinions/${item.id}`)
-            );
+            try {
+                await navigator.clipboard.writeText(
+                    window.location.origin + (item.action_url || `/opinions/${item.id}`)
+                );
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = window.location.origin + (item.action_url || `/opinions/${item.id}`);
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
             if (onShare) onShare(item.id);
         }
     };

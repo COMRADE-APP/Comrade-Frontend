@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -21,6 +22,7 @@ const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '
 
 const Messages = () => {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState('chats'); // chats, requests, circles
     const [conversations, setConversations] = useState([]);
     const [circles, setCircles] = useState([]);
@@ -52,6 +54,13 @@ const Messages = () => {
     useEffect(() => {
         loadData();
     }, [activeTab]);
+
+    useEffect(() => {
+        const userId = searchParams.get('user');
+        if (userId && !loading) {
+            handleStartConversation(parseInt(userId)).catch(err => console.error('Error selecting conversation:', err));
+        }
+    }, [searchParams, loading]);
 
     useEffect(() => {
         if (selectedConversation) {

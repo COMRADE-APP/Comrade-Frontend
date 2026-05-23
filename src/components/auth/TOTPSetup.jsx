@@ -52,9 +52,20 @@ const TOTPSetup = ({ onComplete, onCancel }) => {
         URL.revokeObjectURL(url);
     };
 
-    const copyBackupCodes = () => {
-        navigator.clipboard.writeText(backupCodes.join('\n'));
-        alert('Backup codes copied to clipboard!');
+    const copyBackupCodes = async () => {
+        try {
+            await navigator.clipboard.writeText(backupCodes.join('\n'));
+            alert('Backup codes copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            const textArea = document.createElement('textarea');
+            textArea.value = backupCodes.join('\n');
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Backup codes copied to clipboard!');
+        }
     };
 
     return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import {
@@ -449,7 +450,7 @@ const LessonViewer = ({ lesson, isCompleted, onComplete, isEnrolled }) => (
             {/* Text Content */}
             {lesson.content_text && (
                 <div className="prose prose-sm dark:prose-invert max-w-none text-primary leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: lesson.content_text.replace(/\n/g, '<br/>') }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content_text.replace(/\n/g, '<br/>')) }}
                 />
             )}
 

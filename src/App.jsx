@@ -22,6 +22,7 @@ import { learningRoutes } from './routes/learning.routes';
 import { adminRoutes } from './routes/admin.routes';
 import { portalRoutes } from './routes/portal.routes';
 import { verificationRoutes } from './routes/verification.routes';
+import { providerRoutes } from './routes/provider.routes';
 
 const Lazy = (importFn) => (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>}>
@@ -83,6 +84,8 @@ function App() {
                 <Routes>
                     {publicRoutes}
                     {protectedRoutes}
+
+                    {providerRoutes}
 
                     <Route path="/institutions/create" element={<ProtectedRoute>{Lazy(() => import('./pages/institutions/CreateInstitution'))}</ProtectedRoute>} />
                     <Route path="/institutions/portal/create" element={<ProtectedRoute>{Lazy(() => import('./components/entities/EntityCreationPortal'))}</ProtectedRoute>} />

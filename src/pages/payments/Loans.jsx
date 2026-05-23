@@ -74,6 +74,22 @@ const Loans = () => {
         }
     };
 
+    const handleDisburse = async (loanId) => {
+        if (!window.confirm('Disburse this loan to your wallet? The funds will be transferred to your account balance.')) return;
+        setApplying(true);
+        try {
+            await loansService.disburseLoan(loanId);
+            const lRes = await loansService.getMyLoans();
+            setMyLoans(lRes.data?.results || lRes.data || []);
+            alert('Loan disbursed successfully! Funds have been added to your wallet.');
+        } catch (e) {
+            console.error(e);
+            alert(e.response?.data?.error || 'Failed to disburse loan. Please try again.');
+        } finally {
+            setApplying(false);
+        }
+    };
+
     const tabs = [
         { id: 'marketplace', label: 'Loan Products', icon: DollarSign },
         { id: 'credit', label: 'Credit Score', icon: Award },
@@ -284,6 +300,11 @@ const Loans = () => {
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
                                     </div>
+                                    {loan.status === 'approved' && (
+                                        <Button variant="primary" size="sm" className="mt-2" onClick={() => handleDisburse(loan.id)} disabled={applying}>
+                                            Disburse to Wallet
+                                        </Button>
+                                    )}
                                     
                                     {/* Progress Bar & Repayment Stats */}
                                     {totalDue > 0 && (

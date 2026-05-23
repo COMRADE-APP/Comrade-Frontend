@@ -115,12 +115,21 @@ const OpinionComment = ({
         }
     };
 
-    const handleShare = () => {
+    const handleShare = async () => {
         const url = `${window.location.origin}/opinions/${opinionId || ''}/comments/${comment.id}`;
         if (navigator.share) {
             navigator.share({ title: 'Comment', text: comment.content?.substring(0, 100), url }).catch(() => {});
         } else {
-            navigator.clipboard.writeText(url);
+            try {
+                await navigator.clipboard.writeText(url);
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
         }
     };
 

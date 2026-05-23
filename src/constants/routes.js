@@ -29,6 +29,8 @@ export const ROUTES = {
     ADMIN_ANALYTICS: '/admin/analytics',
     ADMIN_SETTINGS: '/admin/settings',
     ADMIN_DELETION_REVIEW: '/admin/deletion-review',
+    ADMIN_ESCROW_DISPUTES: '/admin/escrow-disputes',
+    ADMIN_KYC: '/admin/kyc',
     
     VERIFICATION_APPLY: '/verification/apply',
     VERIFICATION_DETAIL: '/verification/:id',
@@ -127,6 +129,16 @@ export const ROUTES = {
     MODERATOR_PORTAL: '/portal/moderator',
     LECTURER_PORTAL: '/portal/lecturer',
     INSTITUTION_PORTAL: '/portal/institution',
+
+    // Provider Portal
+    PROVIDER_DASHBOARD: '/provider',
+    PROVIDER_PRODUCTS: '/provider/products',
+    PROVIDER_ORDERS: '/provider/orders',
+    PROVIDER_TRANSACTIONS: '/provider/transactions',
+    PROVIDER_QUERIES: '/provider/queries',
+    PROVIDER_STAFF: '/provider/staff',
+    PROVIDER_SETTINGS: '/provider/settings',
+    PROVIDER_REGISTRATION: '/provider/register',
 
     // System Operations
     ML_DASHBOARD: '/admin/ml-dashboard',

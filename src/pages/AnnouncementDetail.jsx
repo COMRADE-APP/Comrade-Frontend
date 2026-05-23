@@ -150,6 +150,15 @@ const AnnouncementDetail = () => {
             }
         } catch (err) {
             console.error('Share failed:', err);
+            if (!navigator.share) {
+                const textArea = document.createElement('textarea');
+                textArea.value = window.location.href;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard!');
+            }
         }
     };
 

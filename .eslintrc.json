@@ -1,0 +1,58 @@
+{
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": { "jsx": true }
+  },
+  "env": { "browser": true, "es2021": true, "node": true },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "plugins": ["react", "react-hooks", "react-refresh"],
+  "globals": {
+    "React": "readonly",
+    "parseFloat": "readonly",
+    "parseInt": "readonly",
+    "Math": "readonly",
+    "setTimeout": "readonly",
+    "clearTimeout": "readonly",
+    "Promise": "readonly",
+    "console": "readonly",
+    "window": "readonly",
+    "alert": "readonly",
+    "document": "readonly",
+    "navigator": "readonly",
+    "localStorage": "readonly",
+    "sessionStorage": "readonly",
+    "fetch": "readonly",
+    "FileReader": "readonly",
+    "URL": "readonly",
+    "FormData": "readonly",
+    "Blob": "readonly",
+    "Image": "readonly",
+    "HTMLElement": "readonly",
+    "Element": "readonly",
+    "Node": "readonly",
+    "Event": "readonly",
+    "process": "readonly",
+    "Buffer": "readonly",
+    "global": "readonly",
+    "setImmediate": "readonly",
+    "__dirname": "readonly",
+    "require": "readonly"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "no-undef": "off",
+    "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "ignorePatterns": ["dist/", "node_modules/", "*.config.js", "playwright.config.js"]
+}

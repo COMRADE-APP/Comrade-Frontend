@@ -11,6 +11,14 @@ const api = axios.create({
     },
 });
 
+// Helper to read a cookie by name (for CSRF token)
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+};
+
 // Helper to get token from the correct storage
 const getToken = (key) => {
     const rememberMe = localStorage.getItem('remember_me') === 'true';
@@ -32,6 +40,15 @@ api.interceptors.request.use(
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
         }
+        
+        // Add CSRF token for mutating requests
+        if (config.method && !['get', 'head', 'options', 'trace'].includes(config.method.toLowerCase())) {
+            const csrfToken = getCookie('csrftoken');
+            if (csrfToken) {
+                config.headers['X-CSRFToken'] = csrfToken;
+            }
+        }
+        
         return config;
     },
     (error) => {

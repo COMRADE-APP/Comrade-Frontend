@@ -43,6 +43,14 @@ const adminService = {
     // Analytics
     getAnalytics: (params = {}) => api.get(`${BASE}/analytics/`, { params }),
 
+    // Escrow Disputes
+    getEscrowDisputes: (params = {}) => api.get('/api/payments/escrow/', { params }),
+
+    // KYC Document Verification
+    getKYCRequests: (params = {}) => api.get('/api/verification/documents/', { params }),
+    reviewKYCRequest: (id, action, notes = '') =>
+        api.post(`/api/verification/documents/${id}/review/`, { status: action, review_notes: notes }),
+
     // System
     getSystemInfo: () => api.get(`${BASE}/system-info/`),
 };

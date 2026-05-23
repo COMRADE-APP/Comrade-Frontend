@@ -158,8 +158,18 @@ const AnnouncementCard = ({ announcement }) => {
                     url: `${window.location.origin}/announcements/${announcement.id}`,
                 });
             } else {
-                await navigator.clipboard.writeText(`${window.location.origin}/announcements/${announcement.id}`);
-                alert('Link copied to clipboard!');
+                try {
+                    await navigator.clipboard.writeText(`${window.location.origin}/announcements/${announcement.id}`);
+                    alert('Link copied to clipboard!');
+                } catch (err) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = `${window.location.origin}/announcements/${announcement.id}`;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Link copied to clipboard!');
+                }
             }
         } catch (err) {
             console.error('Share failed:', err);

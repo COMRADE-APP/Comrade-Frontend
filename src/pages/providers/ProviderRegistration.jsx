@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, FileText, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import Button from '../../components/common/Button';
 import providerService from '../../services/provider.service';
+import { ROUTES } from '../../constants/routes';
 
 const ProviderRegistration = () => {
     const navigate = useNavigate();
@@ -44,7 +45,7 @@ const ProviderRegistration = () => {
             const response = await providerService.createRegistration(formData);
             if (response) {
                 await providerService.submitRegistration(response.id);
-                navigate('/providers/dashboard');
+                navigate(ROUTES.PROVIDER_DASHBOARD);
             }
         } catch (err) {
             console.error('Registration failed:', err);

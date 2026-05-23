@@ -335,8 +335,18 @@ const Opinions = () => {
                 console.log('Share cancelled');
             }
         } else {
-            navigator.clipboard.writeText(url);
-            alert('Link copied to clipboard!');
+            try {
+                await navigator.clipboard.writeText(url);
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard!');
+            }
         }
         // Track share
         try {

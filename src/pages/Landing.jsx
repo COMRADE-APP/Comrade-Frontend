@@ -332,18 +332,53 @@ const Landing = () => {
 
             {/* ═══════════ FOOTER ═══════════ */}
             <footer className="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-white/10 py-12">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-2">
-                        <img src="/qomrade_svg.svg" alt="Qomrade" className="w-8 h-8 opacity-80 dark:opacity-60 grayscale hover:grayscale-0 transition-all" />
-                        <span className="text-lg font-bold text-gray-700 dark:text-gray-400 tracking-tight">Qomrade</span>
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                        <div className="md:col-span-1">
+                            <div className="flex items-center gap-2 mb-4">
+                                <img src="/qomrade_svg.svg" alt="Qomrade" className="w-8 h-8 opacity-80 dark:opacity-60 grayscale hover:grayscale-0 transition-all" />
+                                <span className="text-lg font-bold text-gray-700 dark:text-gray-400 tracking-tight">Qomrade</span>
+                            </div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                The smartest way to manage your payments, organizations, and marketplace needs.
+                            </p>
+                        </div>
+                        
+                        <div className="md:col-span-1">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Quick Links</h4>
+                            <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                <Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</Link>
+                                <Link to="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms of Service</Link>
+                                <Link to="/help" className="hover:text-gray-900 dark:hover:text-white transition-colors">Help Center</Link>
+                            </div>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Contact Us</h4>
+                            <form className="flex flex-col sm:flex-row gap-2" onSubmit={(e) => { e.preventDefault(); alert('Thank you for contacting us!'); }}>
+                                <input 
+                                    type="email" 
+                                    placeholder="Your email address"
+                                    required
+                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button 
+                                    type="submit"
+                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-yellow-400 hover:!text-gray-900 text-white text-sm font-medium transition-colors"
+                                >
+                                    Send
+                                </button>
+                            </form>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                Have a detailed inquiry? <a href="mailto:support@qomrade.com" className="text-blue-600 hover:underline">support@qomrade.com</a>
+                            </p>
+                        </div>
                     </div>
-                    <div className="text-sm font-medium text-gray-500">
-                        &copy; {new Date().getFullYear()} Qomrade. All rights reserved.
-                    </div>
-                    <div className="flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-400">
-                        <Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</Link>
-                        <Link to="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms of Service</Link>
-                        <Link to="/help" className="hover:text-gray-900 dark:hover:text-white transition-colors">Help Center</Link>
+                    
+                    <div className="pt-6 border-t border-gray-200 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-sm font-medium text-gray-500">
+                            &copy; {new Date().getFullYear()} Qomrade. All rights reserved.
+                        </div>
                     </div>
                 </div>
             </footer>

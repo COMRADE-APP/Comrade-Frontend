@@ -21,7 +21,9 @@ const CareersPage = () => {
         industry: '',
         job_type: '',
         experience_level: '',
-        is_remote: null
+        is_remote: null,
+        salary_min: '',
+        salary_max: ''
     });
 
     const industries = [
@@ -327,6 +329,34 @@ const CareersPage = () => {
                         Remote Only
                     </label>
                 </div>
+
+                <div className="flex items-center gap-2 bg-background border border-theme rounded-lg px-3 py-2 flex-grow md:flex-grow-0">
+                    <DollarSign size={16} className="text-tertiary" />
+                    <input
+                        type="number"
+                        placeholder="Min Salary"
+                        value={filters.salary_min}
+                        onChange={(e) => setFilters({ ...filters, salary_min: e.target.value })}
+                        className="bg-transparent border-none outline-none text-primary text-sm w-24"
+                    />
+                    <span className="text-secondary text-sm">-</span>
+                    <input
+                        type="number"
+                        placeholder="Max Salary"
+                        value={filters.salary_max}
+                        onChange={(e) => setFilters({ ...filters, salary_max: e.target.value })}
+                        className="bg-transparent border-none outline-none text-primary text-sm w-24"
+                    />
+                </div>
+
+                {(filters.salary_min || filters.salary_max) && (
+                    <button
+                        onClick={() => setFilters({ ...filters, salary_min: '', salary_max: '' })}
+                        className="text-xs text-red-500 hover:text-red-600 px-2"
+                    >
+                        Clear Salary
+                    </button>
+                )}
             </div>
 
             {/* Content */}

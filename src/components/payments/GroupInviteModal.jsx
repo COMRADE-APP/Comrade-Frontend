@@ -94,11 +94,23 @@ const GroupInviteModal = ({ isOpen, onClose, groupId, groupName, onInviteSent })
             onClose();
         };
 
-    const copyToClipboard = () => {
+    const copyToClipboard = async () => {
         if (!inviteLink) return;
-        navigator.clipboard.writeText(inviteLink);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        try {
+            await navigator.clipboard.writeText(inviteLink);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            const textArea = document.createElement('textarea');
+            textArea.value = inviteLink;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     if (!isOpen) return null;

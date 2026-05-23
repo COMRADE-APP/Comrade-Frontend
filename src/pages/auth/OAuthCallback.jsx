@@ -9,6 +9,9 @@ const OAuthCallback = ({ provider }) => {
 
     useEffect(() => {
         const handleCallback = async () => {
+            // Strip tokens from URL immediately to prevent leakage via browser history/referrer
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             const accessToken = searchParams.get('access_token');
             const refreshToken = searchParams.get('refresh_token');
             const userId = searchParams.get('user_id');

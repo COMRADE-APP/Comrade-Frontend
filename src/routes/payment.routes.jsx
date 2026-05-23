@@ -41,6 +41,17 @@ const RegisterAgent = () => Lazy(() => import('../pages/payments/RegisterAgent')
 const RegisterSupplier = () => Lazy(() => import('../pages/payments/RegisterSupplier'));
 const RegisterShop = () => Lazy(() => import('../pages/payments/RegisterShop'));
 
+// Query Management
+const MyQueries = () => Lazy(() => import('../pages/payments/MyQueries'));
+const SubmitQuery = () => Lazy(() => import('../pages/payments/SubmitQuery'));
+const QueryDetail = () => Lazy(() => import('../pages/payments/QueryDetail'));
+
+// Investment Portfolio
+const MyInvestments = () => Lazy(() => import('../pages/payments/MyInvestments'));
+
+// Businesses
+const MyBusinesses = () => Lazy(() => import('../pages/funding/MyBusinesses'));
+
 const ProductCatalog = () => Lazy(() => import('../pages/products/ProductCatalog'));
 const SubscriptionPlans = () => Lazy(() => import('../pages/subscription/SubscriptionPlans'));
 const TierPlans = () => Lazy(() => import('../pages/subscription/TierPlans'));
@@ -95,6 +106,14 @@ export const paymentRoutes = [
     <Route key="register-agent" path="/payments/register-agent" element={<RegisterAgent />} />,
     <Route key="register-supplier" path="/payments/register-supplier" element={<RegisterSupplier />} />,
     <Route key="register-shop" path="/payments/register-shop" element={<RegisterShop />} />,
+
+    // Query Management
+    <Route key="my-queries" path="/payments/queries" element={<MyQueries />} />,
+    <Route key="submit-query" path="/payments/queries/submit" element={<SubmitQuery />} />,
+    <Route key="query-detail" path="/payments/queries/:queryId" element={<QueryDetail />} />,
+
+    // Investment Portfolio
+    <Route key="my-investments" path="/payments/investments" element={<MyInvestments />} />,
 
     <Route key="products" path="/products" element={<ProductCatalog />} />,
     <Route key="subscriptions" path="/subscriptions" element={<SubscriptionPlans />} />,

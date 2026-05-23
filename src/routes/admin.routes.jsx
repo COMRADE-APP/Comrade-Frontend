@@ -12,6 +12,8 @@ const AdminVerifications = () => Lazy(() => import('../pages/admin/AdminVerifica
 const AdminAnalytics = () => Lazy(() => import('../pages/admin/AdminAnalytics'));
 const AdminSettings = () => Lazy(() => import('../pages/admin/AdminSettings'));
 const AdminDeletionReview = () => Lazy(() => import('../pages/admin/AdminDeletionReview'));
+const AdminEscrowDisputes = () => Lazy(() => import('../pages/admin/AdminEscrowDisputes'));
+const AdminKYC = () => Lazy(() => import('../pages/admin/AdminKYC'));
 const AdminBills = () => Lazy(() => import('../pages/admin/AdminBills'));
 const AdminLoans = () => Lazy(() => import('../pages/admin/AdminLoans'));
 const AdminInsurance = () => Lazy(() => import('../pages/admin/AdminInsurance'));
@@ -25,6 +27,8 @@ const ScrapingDashboard = () => Lazy(() => import('../pages/ml/ScrapingDashboard
 
 export const adminRoutes = [
     <Route key="admin-deletion" path={ROUTES.ADMIN_DELETION_REVIEW} element={<AdminDeletionReview />} />,
+    <Route key="admin-escrow" path={ROUTES.ADMIN_ESCROW_DISPUTES} element={<AdminEscrowDisputes />} />,
+    <Route key="admin-kyc" path={ROUTES.ADMIN_KYC} element={<AdminKYC />} />,
     <Route key="admin-portal" path={ROUTES.ADMIN_PORTAL} element={<AdminPortal />} />,
     <Route key="admin-users" path={ROUTES.ADMIN_USERS} element={<AdminUsers />} />,
     <Route key="admin-content" path={ROUTES.ADMIN_CONTENT} element={<AdminContent />} />,
