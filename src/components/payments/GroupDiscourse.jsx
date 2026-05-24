@@ -8,8 +8,7 @@ import { formatDate } from '../../utils/dateFormatter';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
-import data from '@emoji-mart/data/sets/15/apple.json';
-import Picker from '@emoji-mart/react';
+import { emojiData, Picker } from '../../utils/emojiData';
 import { init } from 'emoji-mart';
 import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, QUICK_EMOJIS } from '../../utils/emoji';
 

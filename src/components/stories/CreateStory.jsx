@@ -45,12 +45,16 @@ export default function CreateStory({ onClose, onSuccess }) {
         const type = isVideo ? 'video' : 'image';
         setMediaType(type);
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setMediaPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
+        setMediaPreview(URL.createObjectURL(file));
     };
+
+    useEffect(() => {
+        return () => {
+            if (mediaPreview && mediaPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(mediaPreview);
+            }
+        };
+    }, [mediaPreview]);
 
     const handleSubmit = async () => {
         if (mode === 'media' && !mediaFile) {

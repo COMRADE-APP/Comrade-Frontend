@@ -6,6 +6,7 @@ import FeedItem from '../components/feed/FeedItem';
 import OpinionComment from '../components/feed/OpinionComment';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTimeAgo } from '../utils/dateFormatter';
+import LazyImg from '../components/common/LazyImg';
 
 // Emoji picker data
 const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀'];
@@ -302,7 +303,7 @@ const OpinionDetail = () => {
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                                 {opinion.quoted_opinion.user?.avatar_url ? (
-                                    <img src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    <LazyImg src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     opinion.quoted_opinion.user?.first_name?.[0] || 'U'
                                 )}
@@ -363,7 +364,7 @@ const OpinionDetail = () => {
                         {commentMedia && (
                             <div className="mb-2 relative inline-block">
                                 {commentMedia.type?.startsWith('image/') ? (
-                                    <img src={URL.createObjectURL(commentMedia)} alt="" className="h-16 rounded-lg" />
+                                    <LazyImg src={URL.createObjectURL(commentMedia)} alt="" className="h-16 rounded-lg" />
                                 ) : (
                                     <div className="px-3 py-1.5 bg-secondary rounded-lg text-sm text-primary">
                                         📎 {commentMedia.name}
@@ -381,9 +382,9 @@ const OpinionDetail = () => {
                         <div className="flex gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                                 {user?.avatar ? (
-                                    <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                                    <LazyImg src={user.avatar} alt="" className="w-full h-full object-cover" />
                                 ) : user?.avatar_url ? (
-                                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    <LazyImg src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     user?.first_name?.[0] || 'U'
                                 )}

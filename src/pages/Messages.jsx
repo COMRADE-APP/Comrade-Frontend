@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -13,9 +14,9 @@ import messagesService from '../services/messages.service';
 import opinionsService from '../services/opinions.service';
 import roomsService from '../services/rooms.service';
 import { formatTimeAgo } from '../utils/dateFormatter';
-import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../utils/emoji';
-import data from '@emoji-mart/data/sets/15/apple.json';
-import Picker from '@emoji-mart/react';
+import { renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../utils/emoji';
+import { emojiData, Picker } from '../utils/emojiData';
+import LazyImg from '../components/common/LazyImg';
 
 // Common emojis for picker
 const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀', '💬', '🙂', '😎', '🤝'];
@@ -50,6 +51,10 @@ const Messages = () => {
     const [typingUsers, setTypingUsers] = useState([]);
     const lastTypingRef = useRef(0);
     const typingTimeoutRef = useRef(null);
+    const selectedConvRef = useRef(null);
+    selectedConvRef.current = selectedConversation;
+    const loadMessagesRef = useRef(loadMessages);
+    loadMessagesRef.current = loadMessages;
 
     useEffect(() => {
         loadData();
@@ -74,29 +79,54 @@ const Messages = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Poll for new messages and typing (Real-time feel)
     useEffect(() => {
-        if (!selectedConversation) return;
-
-        const interval = setInterval(() => {
+        if (selectedConversation) {
             loadMessages(selectedConversation.id, false);
-        }, 1000);
+        }
+    }, [selectedConversation?.id]);
 
-        // Poll for typing users
-        const typingInterval = setInterval(async () => {
-            try {
-                const users = await roomsService.getTypingUsers(selectedConversation.id, 'dm');
-                setTypingUsers(Array.isArray(users) ? users.filter(u => u.id !== user?.id) : []);
-            } catch (error) {
-                console.error('Error fetching typing users:', error);
+    // WebSocket for real-time DM messages and typing
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const wsUrl = useMemo(() =>
+        selectedConversation ? `${protocol}//${wsHost}/ws/dm/${selectedConversation.id}/?token=${token}` : null,
+        [selectedConversation?.id]
+    );
+
+    const handleWsMessage = useCallback((data) => {
+        if (data.type === 'dm_message') {
+            if (String(data.sender_id) !== String(user?.id)) {
+                setMessages(prev => [...prev, {
+                    id: data.msg_id,
+                    content: data.message,
+                    sender: data.sender_id,
+                    sender_info: { first_name: data.sender_name?.split(' ')[0] || '' },
+                    is_own: false,
+                    time_stamp: data.time_stamp,
+                    status: 'delivered',
+                }]);
+            } else {
+                const conv = selectedConvRef.current;
+                if (conv) loadMessagesRef.current(conv.id, false);
             }
-        }, 1000);
+        } else if (data.type === 'typing') {
+            setTypingUsers(prev => {
+                if (data.user_id === user?.id) return prev;
+                const exists = prev.some(u => u.id === data.user_id);
+                if (exists) return prev;
+                return [...prev, { id: data.user_id, first_name: data.first_name, avatar_url: data.avatar_url }];
+            });
+            setTimeout(() => {
+                setTypingUsers(prev => prev.filter(u => u.id !== data.user_id));
+            }, 3000);
+        }
+    }, [user?.id]);
 
-        return () => {
-            clearInterval(interval);
-            clearInterval(typingInterval);
-        };
-    }, [selectedConversation]);
+    const { send: wsSend } = useWebSocket(wsUrl, {
+        onMessage: handleWsMessage,
+        enabled: !!selectedConversation,
+    });
 
     // Play notification sound for new messages
     const playNotificationSound = () => {
@@ -192,7 +222,7 @@ const Messages = () => {
 
         const now = Date.now();
         if (now - lastTypingRef.current > 2000) {
-            roomsService.sendTyping(selectedConversation.id, 'dm').catch(err => console.error(err));
+            wsSend({ type: 'typing' });
             lastTypingRef.current = now;
         }
     };
@@ -439,7 +469,7 @@ const Messages = () => {
                                             <div className="relative flex-shrink-0">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                     {other?.avatar_url ? (
-                                                        <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        <LazyImg src={other.avatar_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (
                                                         other?.first_name?.[0] || 'U'
                                                     )}
@@ -488,7 +518,7 @@ const Messages = () => {
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                 {req.sender?.avatar_url ? (
-                                                    <img src={req.sender.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    <LazyImg src={req.sender.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     req.sender?.first_name?.[0] || 'U'
                                                 )}
@@ -531,7 +561,7 @@ const Messages = () => {
                                     >
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                             {circle.user?.avatar_url || circle.avatar_url ? (
-                                                <img src={circle.user?.avatar_url || circle.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                <LazyImg src={circle.user?.avatar_url || circle.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 circle.user?.first_name?.[0] || circle.first_name?.[0] || 'U'
                                             )}
@@ -573,7 +603,7 @@ const Messages = () => {
                                         <div className="relative">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
                                                 {other?.avatar_url ? (
-                                                    <img src={other.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    <LazyImg src={other.avatar_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                     other?.first_name?.[0] || 'U'
                                                 )}
@@ -652,7 +682,7 @@ const Messages = () => {
                                                 {!isOwn && (
                                                     <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 mr-2 overflow-hidden self-end mb-1">
                                                         {message.sender_info?.avatar_url ? (
-                                                            <img src={message.sender_info.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                            <LazyImg src={message.sender_info.avatar_url} alt="" className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-xs font-medium text-secondary">
                                                                 {message.sender_info?.first_name?.[0] || '?'}
@@ -665,7 +695,7 @@ const Messages = () => {
                                                     {message.file && (
                                                         <div className="mb-2">
                                                             {message.file.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                                                <img src={message.file} alt="" className="rounded-lg max-h-60 w-full object-cover cursor-pointer" onClick={() => window.open(message.file, '_blank')} />
+                                                                <LazyImg src={message.file} alt="" className="rounded-lg max-h-60 w-full object-cover cursor-pointer" onClick={() => window.open(message.file, '_blank')} />
                                                             ) : message.file.match(/\.(mp3|wav|webm|ogg)$/i) ? (
                                                                 <audio src={message.file} controls className="w-full" />
                                                             ) : (
@@ -694,7 +724,7 @@ const Messages = () => {
                                                     <div className="flex items-end gap-2">
                                                         <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
                                                             {u.avatar_url ? (
-                                                                <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                                <LazyImg src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-[10px] font-medium text-secondary">
                                                                     {u.first_name?.[0] || '?'}
@@ -718,7 +748,7 @@ const Messages = () => {
                             {selectedMedia && (
                                 <div className="mb-2 relative inline-block">
                                     {selectedMedia.type?.startsWith('image/') ? (
-                                        <img src={URL.createObjectURL(selectedMedia)} alt="" className="h-16 rounded-lg" />
+                                        <LazyImg src={URL.createObjectURL(selectedMedia)} alt="" className="h-16 rounded-lg" />
                                     ) : selectedMedia.type?.startsWith('audio/') ? (
                                         <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
                                             <Mic size={18} className="text-primary-600" />
@@ -750,7 +780,7 @@ const Messages = () => {
                                             onMouseDown={(e) => e.preventDefault()}
                                         >
                                             <Picker 
-                                                data={data} 
+                                                data={emojiData} 
                                                 onEmojiSelect={(emoji) => { 
                                                     composerRef.current.focus();
                                                     insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);
@@ -847,7 +877,7 @@ const Messages = () => {
                                         {searchResults.map((searchUser) => (
                                             <button key={searchUser.id} onClick={() => handleStartConversation(searchUser.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
-                                                    {searchUser.avatar_url ? <img src={searchUser.avatar_url} alt="" className="w-full h-full object-cover" /> : searchUser.first_name?.[0] || 'U'}
+                                                    {searchUser.avatar_url ? <LazyImg src={searchUser.avatar_url} alt="" className="w-full h-full object-cover" /> : searchUser.first_name?.[0] || 'U'}
                                                 </div>
                                                 <div className="text-left">
                                                     <p className="font-medium text-primary">{searchUser.first_name} {searchUser.last_name}</p>
@@ -866,7 +896,7 @@ const Messages = () => {
                                                 {followers.slice(0, 10).map((follower) => (
                                                     <button key={follower.id} onClick={() => handleStartConversation(follower.id)} className="w-full p-3 flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors">
                                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold overflow-hidden">
-                                                            {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="w-full h-full object-cover" /> : follower.first_name?.[0] || 'U'}
+                                                            {follower.avatar_url ? <LazyImg src={follower.avatar_url} alt="" className="w-full h-full object-cover" /> : follower.first_name?.[0] || 'U'}
                                                         </div>
                                                         <div className="text-left">
                                                             <p className="font-medium text-primary">{follower.first_name} {follower.last_name}</p>

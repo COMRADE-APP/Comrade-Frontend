@@ -4,8 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import roomsService from '../../services/rooms.service';
 import api from '../../services/api';
 import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../../utils/emoji';
-import data from '@emoji-mart/data/sets/15/apple.json';
-import Picker from '@emoji-mart/react';
+import { emojiData, Picker } from '../../utils/emojiData';
+import LazyImg from '../common/LazyImg';
 
 function getCaretCharacterOffsetWithin(element) {
     let caretOffset = 0;
@@ -70,13 +70,13 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
     // Get avatar display
     const getAvatarDisplay = () => {
         if (activeProfile?.avatar) {
-            return <img src={activeProfile.avatar} alt="" className="w-full h-full object-cover" />;
+            return <LazyImg src={activeProfile.avatar} alt="" className="w-full h-full object-cover" />;
         }
         if (activeProfile?.type !== 'personal') {
             return <ProfileIcon className="w-5 h-5" />;
         }
         if (user?.avatar_url) {
-            return <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />;
+            return <LazyImg src={user.avatar_url} alt="" className="w-full h-full object-cover" />;
         }
         return (user?.first_name?.[0] || 'U').toUpperCase();
     };
@@ -95,6 +95,17 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
             }
         };
         loadRooms();
+    }, []);
+
+    // Cleanup blob URLs on unmount
+    useEffect(() => {
+        return () => {
+            mediaFiles.forEach(m => {
+                if (m.preview && m.preview.startsWith('blob:')) {
+                    URL.revokeObjectURL(m.preview);
+                }
+            });
+        };
     }, []);
 
     // @-mention search
@@ -202,19 +213,14 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
         const files = Array.from(e.target.files);
         const newFiles = files.slice(0, 4 - mediaFiles.length);
         newFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
+            if (file.type.startsWith('image') || file.type.startsWith('video')) {
                 setMediaFiles(prev => [...prev, {
                     file,
-                    preview: e.target.result,
+                    preview: URL.createObjectURL(file),
                     type: file.type.startsWith('video') ? 'video' :
-                        file.type.includes('gif') ? 'gif' :
-                            file.type.startsWith('image') ? 'image' : 'file',
+                        file.type.includes('gif') ? 'gif' : 'image',
                     name: file.name
                 }]);
-            };
-            if (file.type.startsWith('image') || file.type.startsWith('video')) {
-                reader.readAsDataURL(file);
             } else {
                 setMediaFiles(prev => [...prev, {
                     file, preview: null, type: 'file', name: file.name
@@ -373,7 +379,7 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
                                     >
                                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                                             {u.avatar_url ? (
-                                                <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                <LazyImg src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 (u.first_name?.[0] || 'U').toUpperCase()
                                             )}
@@ -441,7 +447,7 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
                                             <span className="text-sm text-primary truncate">{media.name}</span>
                                         </div>
                                     ) : (
-                                        <img src={media.preview} alt="" className="w-full h-32 object-cover" />
+                                        <LazyImg src={media.preview} alt="" className="w-full h-32 object-cover" />
                                     )}
                                     <button
                                         onClick={() => removeFile(index)}
@@ -474,7 +480,7 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
                     <div className="flex items-start gap-2">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
                             {quotedOpinion.user?.avatar_url ? (
-                                <img src={quotedOpinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                <LazyImg src={quotedOpinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                                 quotedOpinion.user?.first_name?.[0] || 'U'
                             )}
@@ -527,7 +533,7 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
                                 onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Picker 
-                                    data={data} 
+                                    data={emojiData}
                                     onEmojiSelect={(emoji) => { 
                                         textareaRef.current.focus();
                                         insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);

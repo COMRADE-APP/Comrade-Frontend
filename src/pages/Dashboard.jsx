@@ -5,6 +5,7 @@ import { useCart } from '../contexts/CartContext';
 import Card, { CardHeader, CardBody, CardFooter } from '../components/common/Card';
 import Button from '../components/common/Button';
 import FeedItem from '../components/feed/FeedItem';
+import LazyImg from '../components/common/LazyImg';
 import OpinionComposer from '../components/feed/OpinionComposer';
 import {
     ClipboardList, Megaphone, Calendar, MapPin, ThumbsUp, MessageSquare,
@@ -73,7 +74,7 @@ const ShopProductCard = ({ item }) => {
             {/* Image Box */}
             <div className="relative h-36 sm:h-40 lg:h-44 w-full bg-secondary/5 overflow-hidden shrink-0">
                 {resolvedImage ? (
-                    <img src={resolvedImage} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <LazyImg src={resolvedImage} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary-900/20 via-secondary/5 to-indigo-900/20 flex items-center justify-center">
                         <ShoppingBag size={36} className="text-tertiary opacity-40" />

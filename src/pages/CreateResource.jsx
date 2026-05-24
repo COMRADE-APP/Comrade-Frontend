@@ -63,13 +63,16 @@ const CreateResource = () => {
     const handleCoverUpload = (file) => {
         if (!file) return;
         setCoverImage(file);
-        const reader = new FileReader();
-        reader.onloadend = () => setCoverPreview(reader.result);
-        reader.readAsDataURL(file);
+        setCoverPreview(URL.createObjectURL(file));
     };
 
     useEffect(() => {
         authService.getCurrentUser().then(setUser);
+        return () => {
+            if (coverPreview && coverPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(coverPreview);
+            }
+        };
     }, []);
 
     useEffect(() => {

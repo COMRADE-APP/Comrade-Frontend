@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { formatTimeAgo } from '../../utils/dateFormatter';
 import { renderContentWithMentions } from '../../utils/textFormatters';
+import LazyImg from '../common/LazyImg';
 
 /**
  * Shared OpinionCard component — used by both Opinions page and Profile page.
@@ -136,7 +137,7 @@ const OpinionCard = ({
                             >
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center overflow-hidden ring-2 ring-yellow-200">
                                     {allReposters[0].avatar_url ? (
-                                        <img src={allReposters[0].avatar_url} alt="" className="w-full h-full object-cover" />
+                                        <LazyImg src={allReposters[0].avatar_url} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <span className="text-white text-xs font-bold">
                                             {(allReposters[0].name || allReposters[0].first_name || 'U')[0]}
@@ -167,7 +168,7 @@ const OpinionCard = ({
                                             style={{ zIndex: 3 - idx }}
                                         >
                                             {reposter.avatar_url ? (
-                                                <img src={reposter.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                <LazyImg src={reposter.avatar_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-white text-xs font-bold">
                                                     {(reposter.name || reposter.first_name || 'U')[0]}
@@ -205,7 +206,7 @@ const OpinionCard = ({
                         <Link to={`/${entityAuthor.type === 'organisation' ? 'organizations' : 'institutions'}/${entityAuthor.id}`} className="shrink-0">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden ring-2 ring-blue-200">
                                 {entityAuthor.avatar ? (
-                                    <img src={entityAuthor.avatar} alt="" className="w-full h-full object-cover" />
+                                    <LazyImg src={entityAuthor.avatar} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     entityAuthor.name?.[0] || 'O'
                                 )}
@@ -215,7 +216,7 @@ const OpinionCard = ({
                         <Link to={`/profile/${opinion.user?.id}`} className="shrink-0">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                                 {opinion.user?.avatar_url ? (
-                                    <img src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    <LazyImg src={opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     opinion.user?.first_name?.[0] || 'U'
                                 )}
@@ -368,7 +369,7 @@ const OpinionCard = ({
                                                 <ExternalLink size={14} className="text-tertiary ml-auto" />
                                             </a>
                                         ) : (
-                                            <img src={media.url} alt={media.caption || ''} className="w-full max-h-80 object-cover" />
+                                            <LazyImg src={media.url} alt={media.caption || ''} className="w-full max-h-80 object-cover" />
                                         )}
                                         {media.caption && (
                                             <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
@@ -386,7 +387,7 @@ const OpinionCard = ({
                                 {opinion.media_type === 'video' ? (
                                     <video src={opinion.media_url} className="w-full max-h-80 object-cover" controls />
                                 ) : (
-                                    <img src={opinion.media_url} alt="" className="w-full max-h-80 object-cover" />
+                                    <LazyImg src={opinion.media_url} alt="" className="w-full max-h-80 object-cover" />
                                 )}
                             </div>
                         )}
@@ -397,7 +398,7 @@ const OpinionCard = ({
                                 <div className="flex items-start gap-3">
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden flex-shrink-0">
                                         {opinion.quoted_opinion.user?.avatar_url ? (
-                                            <img src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            <LazyImg src={opinion.quoted_opinion.user.avatar_url} alt="" className="w-full h-full object-cover" />
                                         ) : (
                                             opinion.quoted_opinion.user?.first_name?.[0] || 'U'
                                         )}

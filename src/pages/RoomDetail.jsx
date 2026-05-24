@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody, CardHeader } from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -15,9 +16,9 @@ import TypingIndicator from '../components/common/TypingIndicator';
 import roomsService from '../services/rooms.service';
 import { formatTimeAgo, formatLocalTime } from '../utils/dateFormatter';
 import { ROUTES } from '../constants/routes';
-import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../utils/emoji';
-import data from '@emoji-mart/data/sets/15/apple.json';
-import Picker from '@emoji-mart/react';
+import { renderContentWithEmojis, insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../utils/emoji';
+import { emojiData, Picker } from '../utils/emojiData';
+import LazyImg from '../components/common/LazyImg';
 
 // Message status tick component
 const MessageTicks = ({ status, isOwn }) => {
@@ -92,7 +93,7 @@ const MessageBubble = ({ message, isOwn, onReply, onForward, onDelete, canDelete
             {!isOwn && (
                 <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 mr-2 overflow-hidden">
                     {message.sender_avatar ? (
-                        <img src={message.sender_avatar} alt="" className="w-full h-full object-cover" />
+                        <LazyImg src={message.sender_avatar} alt="" className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-xs font-medium text-secondary">
                             {message.sender_info?.first_name?.[0]}{message.sender_info?.last_name?.[0]}
@@ -273,7 +274,7 @@ const MemberItem = ({ member, role, roomId, currentUserId, onFollow }) => {
         <div className="flex items-center gap-3 py-2 px-2 hover:bg-secondary/50 rounded-lg transition-colors">
             <div className="w-10 h-10 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
                 {member.avatar_url ? (
-                    <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <LazyImg src={member.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-sm font-medium text-secondary">
                         {member.first_name?.[0]}{member.last_name?.[0]}
@@ -584,58 +585,31 @@ const RoomDetail = () => {
     }, [messages]);
 
     // WebSocket for real-time messaging
-    useEffect(() => {
-        if (!id || activeTab !== 'chat') return;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const wsUrl = useMemo(() =>
+        id && activeTab === 'chat' ? `${protocol}//${wsHost}/ws/chat/${id}/?token=${token}` : null,
+        [id, activeTab]
+    );
 
-        // Ensure we load initial chats immediately
-        loadChats();
-
-        // Establish WebSocket connection
-        // For development, hardcode port 8000 for Django backend if running locally
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
-        const wsUrl = `${protocol}//${wsHost}/ws/chat/${id}/`;
-        
-        let ws;
-        try {
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('Connected to real-time chat websocket');
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.message || data.type === 'chat_message') {
-                    // Instantly refresh chats on receiving a new message ping
-                    loadChats();
-                }
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-
-            ws.onclose = () => {
-                console.log('WebSocket disconnected');
-            };
-        } catch (e) {
-            console.error('Failed to connect to WebSocket, falling back to manual refresh', e);
+    const handleWsMessage = useCallback((data) => {
+        if (data.type === 'chat_message') {
+            loadChats();
+        } else if (data.type === 'typing') {
+            setTypingUsers(prev => {
+                if (data.user_id === user?.id) return prev;
+                const exists = prev.some(u => u.id === data.user_id);
+                if (exists) return prev;
+                return [...prev.filter(u => u.id !== data.user_id), { id: data.user_id, first_name: data.first_name, avatar_url: data.avatar_url }];
+            });
+            setTimeout(() => {
+                setTypingUsers(prev => prev.filter(u => u.id !== data.user_id));
+            }, 3000);
         }
+    }, [user?.id]);
 
-        // Keep the typing users polling for now as it's separate from WS
-        const typingInterval = setInterval(async () => {
-            try {
-                const users = await roomsService.getTypingUsers(id, 'room');
-                setTypingUsers(users);
-            } catch (error) {}
-        }, 2000);
-
-        return () => {
-            if (ws) ws.close();
-            clearInterval(typingInterval);
-        };
-    }, [id, activeTab, messageFilter]);
+    const { send: wsSend } = useWebSocket(wsUrl, { onMessage: handleWsMessage, enabled: !!(id && activeTab === 'chat') });
 
     const loadRoomData = async () => {
         setLoading(true);
@@ -670,8 +644,8 @@ const RoomDetail = () => {
     };
 
     const handleTyping = useCallback(() => {
-        roomsService.sendTyping(id, 'room');
-    }, [id]);
+        wsSend({ type: 'typing' });
+    }, [wsSend]);
 
     const onInputChange = (e) => {
         setNewMessage(e.target.value);
@@ -831,7 +805,7 @@ const RoomDetail = () => {
                     </button>
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center overflow-hidden">
                         {room.avatar ? (
-                            <img src={room.avatar} alt="" className="w-full h-full object-cover" />
+                            <LazyImg src={room.avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
                             <MessageSquare className="w-5 h-5 text-white" />
                         )}
@@ -912,7 +886,7 @@ const RoomDetail = () => {
                                                 <div className="flex items-end gap-2">
                                                     <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 overflow-hidden">
                                                         {u.avatar_url ? (
-                                                            <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                            <LazyImg src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-[10px] font-medium text-secondary">
                                                                 {u.first_name?.[0] || '?'}
@@ -1004,7 +978,7 @@ const RoomDetail = () => {
                                                     onMouseDown={(e) => e.preventDefault()}
                                                 >
                                                     <Picker 
-                                                        data={data} 
+                                                        data={emojiData} 
                                                         onEmojiSelect={(emoji) => { 
                                                             composerRef.current.focus();
                                                             insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);

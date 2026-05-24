@@ -16,8 +16,7 @@ import {
 import { formatTimeAgo } from '../../utils/dateFormatter';
 import { renderContentWithMentions } from '../../utils/textFormatters';
 import { insertHTMLAtCursor, convertHTMLToTextWithEmojis } from '../../utils/emoji';
-import data from '@emoji-mart/data/sets/15/apple.json';
-import Picker from '@emoji-mart/react';
+import { emojiData, Picker } from '../../utils/emojiData';
 
 const OpinionComment = ({
     comment,
@@ -373,7 +372,7 @@ const OpinionComment = ({
                                                         onMouseDown={(e) => e.preventDefault()}
                                                     >
                                                         <Picker 
-                                                            data={data} 
+                                                            data={emojiData} 
                                                             onEmojiSelect={(emoji) => { 
                                                                 replyComposerRef.current.focus();
                                                                 insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="16px"></em-emoji>&#8203;`);

@@ -51,6 +51,19 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom') || id.includes('node_modules/react/')) return 'vendor';
+          if (id.includes('node_modules/@emoji-mart') || id.includes('node_modules/emoji-mart')) return 'emoji';
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/recharts') || id.includes('node_modules/framer-motion')) return 'ui';
+          if (id.includes('node_modules/@tiptap')) return 'tiptap';
+          if (id.includes('node_modules/@stripe')) return 'stripe';
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
     proxy: {

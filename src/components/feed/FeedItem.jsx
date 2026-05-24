@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import opinionsService from '../../services/opinions.service';
 import { renderContentWithMentions } from '../../utils/textFormatters';
+import LazyImg from '../common/LazyImg';
 
 /**
  * FeedItem - Unified feed item component for opinions, research, articles, announcements, products
@@ -163,7 +164,7 @@ const FeedItem = ({
                     <Repeat2 size={14} />
                     <Link to={`/profile/${item.reposted_by_user.id}`} className="flex items-center gap-1.5 hover:underline font-medium">
                         {item.reposted_by_user.avatar_url && (
-                            <img src={item.reposted_by_user.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                            <LazyImg src={item.reposted_by_user.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
                         )}
                         {item.reposted_by_user.name || item.reposted_by_user.first_name || 'Someone'} reposted
                     </Link>
@@ -362,7 +363,7 @@ const FeedItem = ({
                         {item.media_type === 'video' ? (
                             <video src={item.media_url} className="w-full max-h-96 object-cover" controls />
                         ) : (
-                            <img src={item.media_url} alt="" className="w-full max-h-96 object-cover" />
+                            <LazyImg src={item.media_url} alt="" className="w-full max-h-96 object-cover" />
                         )}
                     </div>
                 )}
@@ -470,7 +471,7 @@ const FeedItem = ({
                                         className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors"
                                     >
                                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
-                                            {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.first_name?.[0] || 'U').toUpperCase()}
+                                            {u.avatar_url ? <LazyImg src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.first_name?.[0] || 'U').toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-primary truncate">{u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'User'}</p>
