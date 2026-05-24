@@ -303,6 +303,17 @@ body {
 }
 
 /* ==============================================================================
+   CONTENTEDITABLE PLACEHOLDER – prevents React re-render erasure
+   ============================================================================== */
+
+[contenteditable]:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    cursor: text;
+}
+
+/* ==============================================================================
    RESPONSIVE – Small-screen card grids & layout
    ============================================================================== */
 

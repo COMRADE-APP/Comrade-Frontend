@@ -139,6 +139,10 @@ const TaskDetail = () => {
         if (task?.settings?.no_tab_leaving) {
             const handleVisibility = () => {
                 if (document.hidden) {
+                    const active = document.activeElement;
+                    const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+                    if (isTyping) return;
+
                     setTabSwitches(prev => {
                         const newCount = prev + 1;
                         if (task?.settings?.auto_submit_on_tab_change) {

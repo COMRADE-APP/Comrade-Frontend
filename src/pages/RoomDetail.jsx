@@ -687,8 +687,8 @@ const RoomDetail = () => {
         const html = composerRef.current?.innerHTML || '';
         const textWithEmojis = convertHTMLToTextWithEmojis(html);
         
-        const content = composerRef.current?.innerText === composerRef.current?.getAttribute('data-placeholder') ? '' : textWithEmojis;
-        if (!content.trim() && selectedFiles.length === 0) return;
+        const content = textWithEmojis.trim();
+        if (!content && selectedFiles.length === 0) return;
 
         try {
             await roomsService.sendChat(id, {
@@ -697,7 +697,7 @@ const RoomDetail = () => {
                 reply_to: replyTo?.id,
             });
             setNewMessage('');
-            if (composerRef.current) composerRef.current.innerText = composerRef.current.getAttribute('data-placeholder');
+            if (composerRef.current) composerRef.current.innerHTML = '';
             setSelectedFiles([]);
             setReplyTo(null);
             await loadChats();
@@ -976,9 +976,9 @@ const RoomDetail = () => {
                                         <Paperclip className="w-5 h-5" />
                                     </button>
                                     <div className="relative flex-1">
-                                        <div 
+                                        <div
                                             ref={composerRef}
-                                            contentEditable 
+                                            contentEditable
                                             className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none min-h-[40px]"
                                             onInput={(e) => {
                                                 setNewMessage(e.target.innerHTML);
@@ -988,10 +988,8 @@ const RoomDetail = () => {
                                                     lastTypingRef.current = now;
                                                 }
                                             }}
-                                            onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
-                                            onBlur={(e) => { if (e.target.innerText === '') e.target.innerText = e.target.getAttribute('data-placeholder'); }}
                                             data-placeholder="Type a message..."
-                                        >Type a message...</div>
+                                        ></div>
                                         <div className="absolute right-2 top-1/2 -translate-y-1/2">
                                             <button
                                                 type="button"

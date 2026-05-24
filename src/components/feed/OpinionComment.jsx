@@ -50,10 +50,6 @@ const OpinionComment = ({
     useEffect(() => {
         if (showReplyInput && replyComposerRef.current) {
             replyComposerRef.current.focus();
-            // If it's placeholder, clear it
-            if (replyComposerRef.current.innerText === replyComposerRef.current.getAttribute('data-placeholder')) {
-                replyComposerRef.current.innerText = '';
-            }
         }
     }, [showReplyInput]);
 
@@ -100,7 +96,7 @@ const OpinionComment = ({
         try {
             await onReply(comment.id, textWithEmojis.trim());
             setReplyContent('');
-            if (replyComposerRef.current) replyComposerRef.current.innerText = replyComposerRef.current.getAttribute('data-placeholder');
+            if (replyComposerRef.current) replyComposerRef.current.innerHTML = '';
             setShowReplyInput(false);
         } catch (error) {
             console.error('Error posting reply:', error);
@@ -354,23 +350,15 @@ const OpinionComment = ({
                                     </div>
                                     <div className="flex-1 flex gap-2">
                                         <div className="relative flex-1">
-                                            <div 
-                                                ref={replyComposerRef}
-                                                contentEditable 
-                                                className="w-full px-3 py-1.5 text-sm bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary placeholder-tertiary min-h-[34px]"
-                                                onInput={(e) => {
-                                                    setReplyContent(e.target.innerHTML);
-                                                }}
-                                                onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
-                                                onBlur={(e) => {
-                                                    const text = convertHTMLToTextWithEmojis(e.target.innerHTML);
-                                                    if (text.trim() === '') {
-                                                        e.target.innerText = e.target.getAttribute('data-placeholder');
-                                                    }
-                                                }}
-                                                data-placeholder={`Reply to @${userHandle}...`}
-                                                dangerouslySetInnerHTML={{ __html: `Reply to @${userHandle}...` }}
-                                            ></div>
+                                    <div
+                                        ref={replyComposerRef}
+                                        contentEditable
+                                        className="w-full px-3 py-1.5 text-sm bg-secondary border border-theme rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-primary min-h-[34px]"
+                                        onInput={(e) => {
+                                            setReplyContent(e.target.innerHTML);
+                                        }}
+                                        data-placeholder={`Reply to @${userHandle}...`}
+                                    ></div>
                                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                                 <button
                                                     type="button"

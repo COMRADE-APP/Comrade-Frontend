@@ -651,14 +651,12 @@ const Dashboard = () => {
                             <p className="text-sm text-white/80 mb-4 line-clamp-2">
                                 Offer your services to the Qomrade community. Manage your products, staff, and transactions from our dedicated portal.
                             </p>
-                            <a 
-                                href={import.meta.env.VITE_PROVIDER_URL || 'http://localhost:3001'} 
-                                target="_blank" 
-                                rel="noreferrer"
+                            <Link 
+                                to="/providers/dashboard"
                                 className="block w-full py-2.5 bg-white text-primary-700 font-bold text-sm text-center rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
                             >
                                 Open Provider Portal
-                            </a>
+                            </Link>
                         </CardBody>
                     </Card>
                 </div>

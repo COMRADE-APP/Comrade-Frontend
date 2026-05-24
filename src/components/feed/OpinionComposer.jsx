@@ -29,7 +29,7 @@ function getCaretCharacterOffsetWithin(element) {
  * OpinionComposer - Create new opinions with media upload, room tagging, and @-mentions
  * Supports entity authorship (post as personal, organisation, or institution)
  */
-const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOpinion = null, onClearQuote = null }) => {
+const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = false, quotedOpinion = null, onClearQuote = null }) => {
     const { user, activeProfile } = useAuth();
     const [content, setContent] = useState('');
     const [mediaFiles, setMediaFiles] = useState([]);
@@ -127,7 +127,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
 
         const cursorPos = getCaretCharacterOffsetWithin(e.target);
         // Look backwards from cursor for an @ that starts a mention
-        const textBeforeCursor = value.substring(0, cursorPos);
+        const textBeforeCursor = textWithEmojis.substring(0, cursorPos);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
         if (lastAtIndex >= 0) {
@@ -302,7 +302,7 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
             setMediaFiles([]);
             setTaggedRooms([]);
             if (textareaRef.current) {
-                textareaRef.current.innerHTML = textareaRef.current.getAttribute('data-placeholder') || '';
+                textareaRef.current.innerHTML = '';
             }
             setTaggedUsers([]);
             setIsAnonymous(false);
@@ -344,28 +344,17 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
 
                 <div className="flex-1 relative">
                     <div className="relative w-full">
-                        <div 
-                            key={activeProfile?.id}
+                        <div
                             ref={textareaRef}
-                            contentEditable 
-                            className="w-full px-0 py-2 border-0 focus:ring-0 text-primary placeholder-tertiary text-lg min-h-[80px] bg-transparent outline-none"
+                            contentEditable
+                            className="w-full px-0 py-2 border-0 focus:ring-0 text-primary text-lg min-h-[80px] bg-transparent outline-none"
                             onInput={(e) => {
                                 handleContentChange(e);
                             }}
                             onKeyDown={handleTextareaKeyDown}
-                            onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
-                            onBlur={(e) => {
-                                const text = convertHTMLToTextWithEmojis(e.target.innerHTML);
-                                if (text.trim() === '') {
-                                    e.target.innerText = e.target.getAttribute('data-placeholder');
-                                }
-                            }}
                             data-placeholder={activeProfile?.type !== 'personal'
                                 ? `What does ${activeProfile?.name} want to share?`
                                 : "What's on your mind? Use @ to mention people"}
-                            dangerouslySetInnerHTML={{ __html: activeProfile?.type !== 'personal'
-                                ? `What does ${activeProfile?.name} want to share?`
-                                : "What's on your mind? Use @ to mention people" }}
                         ></div>
                     </div>
 
@@ -688,6 +677,6 @@ const OpinionComposer = ({ onSubmit, maxChars = 500, isPremium = false, quotedOp
             </div>
         </div>
     );
-};
+});
 
 export default OpinionComposer;

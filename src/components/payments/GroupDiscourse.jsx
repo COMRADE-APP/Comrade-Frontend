@@ -123,13 +123,12 @@ const GroupDiscourse = ({ groupId, isAdmin }) => {
 
     const handleCreatePost = async (e) => {
         e.preventDefault();
-        const content = composerRef.current?.innerText === composerRef.current?.getAttribute('data-placeholder') ? '' : newPostContent;
-        if (!content.trim()) return;
+        if (!newPostContent.trim()) return;
         setActionLoading(true);
         try { 
-            await paymentsService.createGroupPost({ group: groupId, content: content }); 
+            await paymentsService.createGroupPost({ group: groupId, content: newPostContent }); 
             setNewPostContent(''); 
-            if (composerRef.current) composerRef.current.innerText = composerRef.current.getAttribute('data-placeholder');
+            if (composerRef.current) composerRef.current.innerHTML = '';
             loadPosts(); 
         }
         catch (error) { toast.error('Failed to post'); }
@@ -341,15 +340,13 @@ const GroupDiscourse = ({ groupId, isAdmin }) => {
                 <CardBody className="p-4">
                     <form onSubmit={handleCreatePost} className="flex flex-col gap-3">
                         <div className="relative">
-                            <div 
+                            <div
                                 ref={composerRef}
-                                contentEditable 
+                                contentEditable
                                 className="w-full px-4 py-3 bg-secondary/5 border border-theme rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none min-h-[100px] text-primary"
                                 onInput={(e) => setNewPostContent(e.target.innerHTML)}
-                                onFocus={(e) => { if (e.target.innerText === e.target.getAttribute('data-placeholder')) e.target.innerText = ''; }}
-                                onBlur={(e) => { if (e.target.innerText === '') e.target.innerText = e.target.getAttribute('data-placeholder'); }}
                                 data-placeholder="Share an update, ask a question, or start a discussion..."
-                            >Share an update, ask a question, or start a discussion...</div>
+                            ></div>
                             <div className="absolute bottom-3 right-3">
                                 <button
                                     type="button"
