@@ -118,6 +118,7 @@ const Sidebar = () => {
 
     const consumerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
+        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
         { path: ROUTES.ROOMS || '/rooms', label: 'Rooms', icon: Hash },
@@ -139,8 +140,7 @@ const Sidebar = () => {
         { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
         { path: ROUTES.GIGS, label: 'Gigs & Tasks', icon: ClipboardList },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
-        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
 
