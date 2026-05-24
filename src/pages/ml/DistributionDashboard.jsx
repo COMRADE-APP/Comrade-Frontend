@@ -27,8 +27,16 @@ const DistributionDashboard = () => {
         };
 
         fetchMLData();
-        const interval = setInterval(fetchMLData, 30000);
+        const interval = setInterval(() => {
+            if (!document.hidden) fetchMLData();
+        }, 30000);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const onVisible = () => { if (!document.hidden) fetchMLData(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, []);
 
     if (loading) {

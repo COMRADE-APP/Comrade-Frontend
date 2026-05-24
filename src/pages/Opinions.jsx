@@ -97,10 +97,18 @@ const Opinions = () => {
         loadOpinions();
     }, [activeTab]);
 
-    // Poll for new content
+    // Poll for new content (only when tab is visible)
     useEffect(() => {
-        const interval = setInterval(checkNewContent, 30000);
+        const interval = setInterval(() => {
+            if (!document.hidden) checkNewContent();
+        }, 30000);
         return () => clearInterval(interval);
+    }, [lastFetchTime]);
+
+    useEffect(() => {
+        const onVisible = () => { if (!document.hidden) checkNewContent(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, [lastFetchTime]);
 
     const loadOpinions = async () => {

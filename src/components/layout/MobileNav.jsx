@@ -66,8 +66,16 @@ const MobileNav = () => {
             }
         };
         checkUpdates();
-        const interval = setInterval(checkUpdates, 60000);
+        const interval = setInterval(() => {
+            if (!document.hidden) checkUpdates();
+        }, 60000);
         return () => clearInterval(interval);
+    }, [visitedPages]);
+
+    useEffect(() => {
+        const onVisible = () => { if (!document.hidden) checkUpdates(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, [visitedPages]);
 
     const isActive = (path) => location.pathname === path;

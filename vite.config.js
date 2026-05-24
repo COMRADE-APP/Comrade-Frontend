@@ -60,6 +60,10 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react') || id.includes('node_modules/recharts') || id.includes('node_modules/framer-motion')) return 'ui';
           if (id.includes('node_modules/@tiptap')) return 'tiptap';
           if (id.includes('node_modules/@stripe')) return 'stripe';
+          if (id.includes('node_modules/twemoji')) return 'twemoji';
+          if (id.includes('node_modules/html2canvas')) return 'html2canvas';
+          if (id.includes('node_modules/axios')) return 'axios';
+          if (id.includes('node_modules/sockjs-client') || id.includes('node_modules/@stomp')) return 'websocket-fallback';
         },
       },
     },

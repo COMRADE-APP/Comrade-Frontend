@@ -257,6 +257,7 @@ const CheckoutPage = () => {
         let interval;
         if (approvalPending && checkoutRequestId && selectedGroupId) {
             interval = setInterval(async () => {
+                if (document.hidden) return;
                 try {
                     const requests = await paymentsService.getGroupCheckoutRequests(selectedGroupId);
                     const currentRequest = requests.find(r => r.id === checkoutRequestId);
@@ -275,6 +276,30 @@ const CheckoutPage = () => {
             }, 3000);
         }
         return () => { if (interval) clearInterval(interval); };
+    }, [approvalPending, checkoutRequestId, selectedGroupId]);
+
+    useEffect(() => {
+        const onVisible = () => {
+            if (!document.hidden && approvalPending && checkoutRequestId && selectedGroupId) {
+                (async () => {
+                    try {
+                        const requests = await paymentsService.getGroupCheckoutRequests(selectedGroupId);
+                        const currentRequest = requests.find(r => r.id === checkoutRequestId);
+                        if (currentRequest) {
+                            if (currentRequest.status === 'approved') {
+                                setApprovalPending(false);
+                                setSuccess(true);
+                            } else if (currentRequest.status === 'rejected') {
+                                setApprovalPending(false);
+                                setError('Your checkout request was rejected by the group members.');
+                            }
+                        }
+                    } catch (e) {}
+                })();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, [approvalPending, checkoutRequestId, selectedGroupId]);
 
     if (approvalPending) {

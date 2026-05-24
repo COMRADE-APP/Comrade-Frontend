@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../constants/apiEndpoints';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 /**
  * NotificationBell - Header notification bell with unread count and dropdown
  */
 const NotificationBell = () => {
+    const { user } = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -15,10 +18,25 @@ const NotificationBell = () => {
 
     useEffect(() => {
         fetchUnreadCount();
-        // Poll for new notifications every 30 seconds
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
     }, []);
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    const wsUrl = useMemo(() =>
+        user?.id ? `${protocol}//${wsHost}/ws/notifications/${user.id}/?token=${token}` : null,
+        [user?.id]
+    );
+
+    const handleNotification = useCallback((data) => {
+        if (data.type === 'notification' && data.payload) {
+            if (data.payload.unread_count !== undefined) {
+                setUnreadCount(data.payload.unread_count);
+            }
+        }
+    }, []);
+
+    useWebSocket(wsUrl, { onMessage: handleNotification, enabled: !!wsUrl });
 
     const fetchUnreadCount = async () => {
         try {

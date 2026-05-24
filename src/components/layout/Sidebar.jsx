@@ -82,8 +82,16 @@ const Sidebar = () => {
             }
         };
         fetchUpdates();
-        const interval = setInterval(fetchUpdates, 60000);
+        const interval = setInterval(() => {
+            if (!document.hidden) fetchUpdates();
+        }, 60000);
         return () => clearInterval(interval);
+    }, [visitedPages]);
+
+    useEffect(() => {
+        const onVisible = () => { if (!document.hidden) fetchUpdates(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, [visitedPages]);
 
     const [hasBusinesses, setHasBusinesses] = useState(false);

@@ -10,7 +10,7 @@ const Profile = () => Lazy(() => import('../pages/Profile'));
 const Settings = () => Lazy(() => import('../pages/Settings'));
 const Notifications = () => Lazy(() => import('../pages/Notifications'));
 const ActivityLog = () => Lazy(() => import('../pages/ActivityLog'));
-const Devices = () => import('../pages/Devices');
+const Devices = () => Lazy(() => import('../pages/Devices'));
 const PermissionsSettings = () => Lazy(() => import('../pages/PermissionsSettings'));
 const TransactionHistory = () => Lazy(() => import('../pages/TransactionHistory'));
 

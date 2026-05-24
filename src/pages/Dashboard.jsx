@@ -187,10 +187,19 @@ const Dashboard = () => {
         loadDashboardData();
     }, [activeTab]);
 
-    // Poll for new content every 30 seconds
+    // Poll for new content every 30s (only when tab is visible)
     useEffect(() => {
-        const interval = setInterval(checkForNewContent, 30000);
+        const interval = setInterval(() => {
+            if (!document.hidden) checkForNewContent();
+        }, 30000);
         return () => clearInterval(interval);
+    }, [lastFetchTime]);
+
+    // Check immediately when tab becomes visible
+    useEffect(() => {
+        const onVisible = () => { if (!document.hidden) checkForNewContent(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
     }, [lastFetchTime]);
 
     const loadDashboardData = async () => {
