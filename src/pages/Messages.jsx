@@ -52,9 +52,7 @@ const Messages = () => {
     const lastTypingRef = useRef(0);
     const typingTimeoutRef = useRef(null);
     const selectedConvRef = useRef(null);
-    selectedConvRef.current = selectedConversation;
-    const loadMessagesRef = useRef(loadMessages);
-    loadMessagesRef.current = loadMessages;
+    const loadMessagesRef = useRef(null);
 
     useEffect(() => {
         loadData();
@@ -177,6 +175,8 @@ const Messages = () => {
             if (showLoading) setMessagesLoading(false);
         }
     };
+    selectedConvRef.current = selectedConversation;
+    loadMessagesRef.current = loadMessages;
 
     const getOtherParticipant = (conversation) => {
         if (!conversation) return null;
