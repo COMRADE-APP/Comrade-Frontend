@@ -81,8 +81,8 @@ const MobileNav = () => {
 
     return (
         <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 border-t border-theme z-50"
-            style={{ backgroundColor: 'var(--bg-primary)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            className="md:hidden fixed bottom-0 left-0 right-0 border-t border-theme z-50 bg-primary"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             <div className="flex justify-around items-center h-16 px-1">
                 {navItems.map((item) => {
@@ -93,7 +93,9 @@ const MobileNav = () => {
                         <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors relative ${active ? 'text-primary-600' : 'text-tertiary hover:text-primary'
+                            className={`flex flex-col items-center justify-center flex-1 py-2 rounded-lg mx-0.5 transition-colors relative ${active
+                                ? 'text-primary-700 bg-primary-50 dark:bg-primary-900/30'
+                                : 'text-tertiary hover:text-primary hover:bg-secondary'
                                 }`}
                         >
                             <div className="relative">
