@@ -586,7 +586,8 @@ const RoomDetail = () => {
 
     // WebSocket for real-time messaging
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    const wsHost = apiBase.replace(/^https?:\/\//, '');
     const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
     const wsUrl = useMemo(() =>
         id && activeTab === 'chat' ? `${protocol}//${wsHost}/ws/chat/${id}/?token=${token}` : null,
