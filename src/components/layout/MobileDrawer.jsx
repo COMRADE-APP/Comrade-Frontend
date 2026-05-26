@@ -4,7 +4,8 @@ import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
-    Sparkles, X, User, Heart, PieChart, PiggyBank
+    Sparkles, X, User, Heart, PieChart, PiggyBank, Hash, Banknote, DollarSign,
+    ShieldCheck, Shield, Target
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,28 +21,28 @@ const MobileDrawer = ({ isOpen, onClose }) => {
 
     const consumerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
+        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
-        { path: ROUTES.ROOMS, label: 'Rooms', icon: Users },
-        { path: ROUTES.ANNOUNCEMENTS, label: 'Announcements', icon: Megaphone },
-        { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
-        { path: ROUTES.TASKS, label: 'Tasks', icon: ClipboardList },
-        { path: ROUTES.RESOURCES, label: 'Resources', icon: FileText },
-        { path: ROUTES.RESEARCH, label: 'Research', icon: Search },
-        { path: ROUTES.ARTICLES, label: 'Articles', icon: BookOpen },
-        { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
-        { path: ROUTES.GIGS, label: 'Gigs', icon: Sparkles },
-        { path: ROUTES.CAREERS, label: 'Careers', icon: Briefcase },
-        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
-        { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: GraduationCap },
-        { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
-        { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
+        { path: ROUTES.ROOMS || '/rooms', label: 'Rooms', icon: Hash },
+        { path: ROUTES.PAYMENT_GROUPS, label: 'Payment Groups', icon: Users },
         { path: ROUTES.PIGGY_BANKS, label: 'Piggy Banks', icon: PiggyBank },
         { path: ROUTES.DONATIONS, label: 'Donations', icon: Heart },
         { path: ROUTES.GROUP_INVESTMENTS, label: 'Group Investments', icon: PieChart },
-        { path: ROUTES.INSTITUTIONS, label: 'Institutions', icon: Building2 },
-        { path: ROUTES.OPINIONS, label: 'Opinions', icon: MessageCircle },
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last
+        { path: ROUTES.EVENTS, label: 'Events', icon: Calendar },
+        { path: ROUTES.FUNDING, label: 'Funding Hub', icon: TrendingUp },
+        { path: ROUTES.OPPORTUNITIES, label: 'Opportunities', icon: Sparkles },
+        { path: ROUTES.SHOP, label: 'Marketplace', icon: ShoppingBag },
+        { path: ROUTES.PAYMENTS, label: 'Payments', icon: CreditCard },
+        { path: ROUTES.BILL_PAYMENTS, label: 'Bills & Airtime', icon: Banknote },
+        { path: ROUTES.LOANS, label: 'Loans', icon: DollarSign },
+        { path: ROUTES.ESCROW, label: 'Escrow', icon: ShieldCheck },
+        { path: ROUTES.INSURANCE, label: 'Insurance', icon: Shield },
+        { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: BookOpen },
+        { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
+        { path: ROUTES.GIGS, label: 'Gigs & Tasks', icon: ClipboardList },
+        { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
+        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
 

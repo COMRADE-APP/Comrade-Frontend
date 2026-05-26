@@ -263,6 +263,9 @@ body {
 }
 
 /* Background utilities */
+.bg-primary {
+  background-color: var(--bg-primary);
+}
 .bg-elevated {
   background-color: var(--bg-elevated);
 }

@@ -81,7 +81,7 @@ const MobileNav = () => {
 
     return (
         <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 border-t border-theme z-50 bg-primary"
+            className="md:hidden fixed bottom-0 left-0 right-0 border-t border-theme z-50 bg-primary backdrop-blur-sm"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             <div className="flex justify-around items-center h-16 px-1">
