@@ -70,7 +70,6 @@ const Sidebar = () => {
                     if (result.status === 'fulfilled') {
                         const data = result.value.data;
                         const count = Array.isArray(data) ? data.length : (data.count || 0);
-                        // Only show dot if there are items AND user hasn't visited this page yet
                         if (count > 0 && !visitedPages[endpoints[i].key]) {
                             updates[endpoints[i].key] = true;
                         }
@@ -78,20 +77,18 @@ const Sidebar = () => {
                 });
                 setHasUpdates(updates);
             } catch (err) {
-                // Silently ignore
             }
         };
         fetchUpdates();
         const interval = setInterval(() => {
             if (!document.hidden) fetchUpdates();
         }, 60000);
-        return () => clearInterval(interval);
-    }, [visitedPages]);
-
-    useEffect(() => {
         const onVisible = () => { if (!document.hidden) fetchUpdates(); };
         document.addEventListener('visibilitychange', onVisible);
-        return () => document.removeEventListener('visibilitychange', onVisible);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
     }, [visitedPages]);
 
     const [hasBusinesses, setHasBusinesses] = useState(false);

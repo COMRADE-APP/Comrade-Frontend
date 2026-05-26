@@ -27,13 +27,12 @@ const ScrapingDashboard = () => {
         const interval = setInterval(() => {
             if (!document.hidden) fetchMLData();
         }, 5000);
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
         const onVisible = () => { if (!document.hidden) fetchMLData(); };
         document.addEventListener('visibilitychange', onVisible);
-        return () => document.removeEventListener('visibilitychange', onVisible);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
     }, []);
 
     useEffect(() => {

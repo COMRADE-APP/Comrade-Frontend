@@ -29,13 +29,12 @@ const RecommendationDashboard = () => {
         const interval = setInterval(() => {
             if (!document.hidden) fetchMLData();
         }, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
         const onVisible = () => { if (!document.hidden) fetchMLData(); };
         document.addEventListener('visibilitychange', onVisible);
-        return () => document.removeEventListener('visibilitychange', onVisible);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
     }, []);
 
     if (loading) {
