@@ -96,18 +96,18 @@ const Messages = () => {
     const handleWsMessage = useCallback((data) => {
         if (data.type === 'dm_message') {
             if (String(data.sender_id) !== String(user?.id)) {
-                setMessages(prev => [...prev, {
-                    id: data.msg_id,
-                    content: data.message,
-                    sender: data.sender_id,
-                    sender_info: { first_name: data.sender_name?.split(' ')[0] || '' },
-                    is_own: false,
-                    time_stamp: data.time_stamp,
-                    status: 'delivered',
-                }]);
-            } else {
-                const conv = selectedConvRef.current;
-                if (conv) loadMessagesRef.current(conv.id, false);
+                setMessages(prev => prev.some(m => String(m.id) === String(data.msg_id))
+                    ? prev
+                    : [...prev, {
+                        id: data.msg_id,
+                        content: data.message,
+                        sender: data.sender_id,
+                        sender_info: { first_name: data.sender_name?.split(' ')[0] || '' },
+                        is_own: false,
+                        time_stamp: data.time_stamp,
+                        status: 'delivered',
+                    }]
+                );
             }
         } else if (data.type === 'typing') {
             setTypingUsers(prev => {
@@ -245,8 +245,9 @@ const Messages = () => {
         const otherUser = getOtherParticipant(selectedConversation);
 
         try {
+            let sentMsg;
             if (selectedMedia) {
-                await messagesService.sendMediaMessage(
+                sentMsg = await messagesService.sendMediaMessage(
                     selectedConversation.id,
                     selectedMedia,
                     content.trim(),
@@ -254,7 +255,7 @@ const Messages = () => {
                 );
                 setSelectedMedia(null);
             } else {
-                await messagesService.sendMessage(
+                sentMsg = await messagesService.sendMessage(
                     selectedConversation.id,
                     content.trim(),
                     otherUser?.id
@@ -262,7 +263,16 @@ const Messages = () => {
             }
             setNewMessage('');
             if (composerRef.current) composerRef.current.innerHTML = '';
-            loadMessages(selectedConversation.id, false);
+            const senderId = sentMsg?.sender?.id ?? sentMsg?.sender ?? user?.id;
+            setMessages(prev => [...prev, {
+                id: sentMsg.id,
+                content: content.trim(),
+                sender: senderId,
+                sender_info: { first_name: user?.first_name || '' },
+                is_own: true,
+                time_stamp: sentMsg.time_stamp || new Date().toISOString(),
+                status: 'sent',
+            }]);
         } catch (error) {
             console.error('Failed to send message:', error);
             alert('Failed to send message');
@@ -393,7 +403,7 @@ const Messages = () => {
     return (
         <div className="h-[calc(100vh-200px)] flex gap-4">
             {/* Conversations List */}
-            <div className={`w-80 flex-shrink-0 flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-80 flex-shrink-0 flex-col ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
                 <Card className="h-full flex flex-col">
                     <div className="p-4 border-b border-theme">
                         <div className="flex items-center justify-between mb-4">
@@ -583,13 +593,13 @@ const Messages = () => {
             </div>
 
             {/* Chat Area */}
-            <div className={`flex-1 ${!selectedConversation ? 'hidden md:block' : ''}`}>
+            <div className={`flex-1 ${!selectedConversation ? 'hidden lg:block' : ''}`}>
                 {selectedConversation ? (
                     <Card className="h-full flex flex-col">
                         {/* Chat Header */}
                         <div className="p-4 border-b border-theme flex items-center gap-3">
                             <button
-                                className="md:hidden p-1 text-secondary hover:bg-secondary rounded"
+                                className="lg:hidden p-1 text-secondary hover:bg-secondary rounded"
                                 onClick={() => setSelectedConversation(null)}
                             >
                                 <ChevronLeft size={24} />
