@@ -150,6 +150,11 @@ export const paymentsService = {
         return response.data;
     },
 
+    async leavePaymentGroup(groupId) {
+        const response = await api.post(`${API_ENDPOINTS.PAYMENT_GROUP_DETAIL(groupId)}leave/`);
+        return response.data;
+    },
+
     async contributeToGroup(groupId, amount, notes = '', paymentMethod = 'wallet', phoneNumber = '') {
         const data = { amount, notes, payment_method: paymentMethod };
         if (paymentMethod === 'mpesa' && phoneNumber) {
@@ -345,10 +350,15 @@ export const paymentsService = {
     },
 
     // ========== Piggy Banks (Group Targets) ==========
-    async getPiggyBanks() {
-        const response = await api.get(API_ENDPOINTS.GROUP_TARGETS);
-        return response.data;
-    },
+async getPiggyBanks() {
+    const response = await api.get(API_ENDPOINTS.GROUP_TARGETS);
+    return response.data;
+},
+
+async getDiscoverPiggyBanks() {
+    const response = await api.get(`${API_ENDPOINTS.GROUP_TARGETS}discover/`);
+    return response.data;
+},
 
     async createPiggyBank(data) {
         const response = await api.post(API_ENDPOINTS.GROUP_TARGETS, data);
@@ -398,6 +408,21 @@ export const paymentsService = {
         return response.data;
     },
 
+    async joinPiggyBank(id) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}join/`);
+        return response.data;
+    },
+
+    async leavePiggyBank(id, data = {}) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}leave/`, data);
+        return response.data;
+    },
+
+    async getPiggyMemberStats(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}member_stats/`);
+        return response.data;
+    },
+
     async requestPiggyConversion(id, data) {
         const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}request_conversion/`, data);
         return response.data;
@@ -425,6 +450,65 @@ export const paymentsService = {
 
     async executePiggyAutomation(id) {
         const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}execute_automation/`);
+        return response.data;
+    },
+
+    async extendPiggyBankMaturity(id, maturityDate, reason = '') {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}extend_maturity/`, {
+            maturity_date: maturityDate,
+            reason
+        });
+        return response.data;
+    },
+
+    async dissolvePiggyBank(id, reason = '') {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}dissolve/`, {
+            reason
+        });
+        return response.data;
+    },
+
+    async getPiggyBankActionRequests(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}action_requests/`);
+        return response.data;
+    },
+
+    async votePiggyBankAction(id, requestId, vote) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}vote_action/`, {
+            request_id: requestId,
+            vote
+        });
+        return response.data;
+    },
+
+    async transferPiggyBank(fromId, toId, amount) {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(fromId)}transfer/`, {
+            target_id: toId,
+            amount
+        });
+        return response.data;
+    },
+
+    async getAvailableForMerge(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}available_for_merge/`);
+        return response.data;
+    },
+
+    async requestMerge(id, sourceIds, reason = '') {
+        const response = await api.post(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}request_merge/`, {
+            source_ids: sourceIds,
+            reason
+        });
+        return response.data;
+    },
+
+    async getMyMergeRequests(id) {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL(id)}my_merge_requests/`);
+        return response.data;
+    },
+
+    async getPendingApprovals() {
+        const response = await api.get(`${API_ENDPOINTS.GROUP_TARGET_DETAIL('').replace('/targets//', '/targets/')}pending_approvals/`);
         return response.data;
     },
 

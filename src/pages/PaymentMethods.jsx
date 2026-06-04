@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
 import { CreditCard, Smartphone, Mail, Building2, Edit2, Trash2, Star, X, Save, Loader2, Plus, Shield } from 'lucide-react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-
 const PaymentMethods = () => {
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -12,13 +10,9 @@ const PaymentMethods = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
-
-    const stripe = useStripe();
-    const elements = useElements();
-
     // New method form
     const [newMethod, setNewMethod] = useState({
-        method_type: 'card',
+        method_type: 'mpesa',
         nickname: '',
         billing_zip: '',
         phone_number: '',
@@ -128,33 +122,9 @@ const PaymentMethods = () => {
 
             switch (newMethod.method_type) {
                 case 'card':
-                    if (!stripe || !elements) {
-                        setError('Stripe has not loaded yet. Please try again or refresh the page.');
-                        setSaving(false);
-                        return;
-                    }
-
-                    const cardElement = elements.getElement(CardElement);
-                    
-                    const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
-                        type: 'card',
-                        card: cardElement,
-                        billing_details: {
-                            address: {
-                                postal_code: newMethod.billing_zip || undefined,
-                            }
-                        }
-                    });
-
-                    if (stripeError) {
-                        setError(stripeError.message);
-                        setSaving(false);
-                        return;
-                    }
-
-                    payload.provider_token = paymentMethod.id;
-                    if (newMethod.billing_zip) payload.billing_zip = newMethod.billing_zip;
-                    break;
+                    setError('To add a new card, please securely save it during your next checkout.');
+                    setSaving(false);
+                    return;
                 case 'mpesa':
                     payload.phone_number = newMethod.phone_number;
                     break;
@@ -174,12 +144,7 @@ const PaymentMethods = () => {
             await paymentProcessingService.savePaymentMethod(payload);
             setSuccessMsg('Payment method added!');
             setShowAddModal(false);
-            setNewMethod({ method_type: 'card', nickname: '', billing_zip: '', phone_number: '', paypal_email: '', account_number: '', bank_name: '', is_default: false });
-            // Clear the CardElement explicitly
-            if (elements) {
-                const cardElement = elements.getElement(CardElement);
-                if (cardElement) cardElement.clear();
-            }
+            setNewMethod({ method_type: 'mpesa', nickname: '', billing_zip: '', phone_number: '', paypal_email: '', account_number: '', bank_name: '', is_default: false });
             fetchPaymentMethods();
         } catch (err) {
             const errData = err?.response?.data;
@@ -503,7 +468,6 @@ const PaymentMethods = () => {
                                 <label className="block text-sm font-medium text-secondary mb-2">Payment Type</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[
-                                        { value: 'card', label: 'Card', icon: <CreditCard size={16} /> },
                                         { value: 'mpesa', label: 'M-Pesa', icon: <Smartphone size={16} /> },
                                         { value: 'paypal', label: 'PayPal', icon: <Mail size={16} /> },
                                         { value: 'bank_transfer', label: 'Bank', icon: <Building2 size={16} /> },
@@ -534,48 +498,6 @@ const PaymentMethods = () => {
                                 />
                             </div>
 
-                            {/* Card fields */}
-                            {newMethod.method_type === 'card' && (
-                                <>
-                                    <div className="bg-primary/50 border border-theme rounded-xl p-4">
-                                        <label className="block text-sm font-medium text-secondary mb-3">Card Details</label>
-                                        <div className="bg-white px-3 py-3 rounded-lg border border-gray-200 shadow-sm">
-                                            <CardElement
-                                                options={{
-                                                    style: {
-                                                        base: {
-                                                            fontSize: '15px',
-                                                            color: '#32325d',
-                                                            fontFamily: '"Inter", "Helvetica Neue", Helvetica, sans-serif',
-                                                            '::placeholder': {
-                                                                color: '#aab7c4',
-                                                            },
-                                                        },
-                                                        invalid: {
-                                                            color: '#ef4444',
-                                                            iconColor: '#ef4444',
-                                                        },
-                                                    },
-                                                    hidePostalCode: true,
-                                                }}
-                                            />
-                                        </div>
-                                        <p className="text-xs text-secondary mt-3">
-                                            Your card details are securely tokenized and processed by Stripe. We do not store your raw card information.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-secondary mb-1">Billing Zip</label>
-                                        <input
-                                            type="text"
-                                            value={newMethod.billing_zip}
-                                            onChange={(e) => handleNewMethodChange('billing_zip', e.target.value)}
-                                            placeholder="00100"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-theme bg-primary text-primary focus:ring-2 focus:ring-primary-600 outline-none text-sm"
-                                        />
-                                    </div>
-                                </>
-                            )}
 
                             {/* M-Pesa fields */}
                             {newMethod.method_type === 'mpesa' && (

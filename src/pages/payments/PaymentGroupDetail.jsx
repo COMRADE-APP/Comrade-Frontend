@@ -93,6 +93,9 @@ const PaymentGroupDetail = () => {
     const [contributeNotes, setContributeNotes] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [joinAnonymousLoading, setJoinAnonymousLoading] = useState(false);
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
+    const [leaveReason, setLeaveReason] = useState('');
+    const [leaveLoading, setLeaveLoading] = useState(false);
 
     // Group lifecycle state
     const [groupStatus, setGroupStatus] = useState(null);
@@ -232,6 +235,21 @@ const PaymentGroupDetail = () => {
             loadGroupData();
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to update role');
+        }
+    };
+
+    const handleLeaveGroup = async () => {
+        setLeaveLoading(true);
+        try {
+            const result = await paymentsService.leavePaymentGroup(groupId);
+            toast.success(result.status || 'Successfully left the group');
+            setShowLeaveModal(false);
+            setLeaveReason('');
+            navigate('/payments/groups');
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to leave group');
+        } finally {
+            setLeaveLoading(false);
         }
     };
 
@@ -937,10 +955,17 @@ const PaymentGroupDetail = () => {
                 <Card>
                     <CardHeader className="p-4 border-b border-theme flex items-center justify-between">
                         <h3 className="font-semibold text-primary">Members ({members.length})</h3>
-                        <Button variant="outline" size="sm" onClick={() => setShowInviteModal(true)}>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Invite Member
-                        </Button>
+                        <div className="flex gap-2">
+                            {!members.find(m => (m.user === user?.id || m.payment_profile?.user?.id === user?.id) && m.is_admin) && (
+                                <Button variant="outline" size="sm" onClick={() => setShowLeaveModal(true)} className="!border-red-300 !text-red-600 hover:!bg-red-50">
+                                    Leave Group
+                                </Button>
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => setShowInviteModal(true)}>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Invite Member
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardBody className="p-0">
                         {members.length === 0 ? (
@@ -2048,6 +2073,64 @@ const PaymentGroupDetail = () => {
                     </div>
                 )
             }
+
+            {/* Leave Group Modal */}
+            {showLeaveModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-md shadow-2xl">
+                        <CardBody className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-red-600 flex items-center gap-2">
+                                    Leave Group
+                                </h3>
+                                <button onClick={() => { setShowLeaveModal(false); setLeaveReason(''); }} className="p-1 hover:bg-secondary/10 rounded">
+                                    <X className="w-5 h-5 text-secondary" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-sm text-secondary">
+                                    Are you sure you want to leave <strong className="text-primary">{group?.name}</strong>?
+                                    Your contributed balance will be returned to your wallet, minus any applicable early exit penalties.
+                                </p>
+                                {group && !group.is_matured && group.immature_exit_penalty_rate > 0 && (
+                                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 rounded-lg">
+                                        <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+                                            Early exit penalty: {group.immature_exit_penalty_rate}% will be deducted before the group matures.
+                                        </p>
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Reason (optional)</label>
+                                    <textarea
+                                        value={leaveReason}
+                                        onChange={(e) => setLeaveReason(e.target.value)}
+                                        rows={3}
+                                        placeholder="Let your group know why you're leaving..."
+                                        className="w-full px-4 py-2 border border-theme bg-elevated text-primary rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none"
+                                    />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => { setShowLeaveModal(false); setLeaveReason(''); }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        className="flex-1 !bg-red-600 hover:!bg-red-700 text-white"
+                                        onClick={handleLeaveGroup}
+                                        disabled={leaveLoading}
+                                    >
+                                        {leaveLoading ? 'Leaving...' : 'Confirm Leave'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            )}
 
         </div >
     );

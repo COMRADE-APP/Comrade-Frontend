@@ -5,12 +5,14 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send, MoreVertical, Trash2, Heart, Reply, Pin } from 'lucide-react';
 import eventsService from '../../services/events.service';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDateTimeAmPm } from '../../utils/dateFormatter';
+import { useToast } from '../../contexts/ToastContext';
 
 const EventComments = ({ eventId }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState(null);
+    const toast = useToast();
     const [loading, setLoading] = useState(true);
     const inputRef = React.useRef(null);
 
@@ -42,7 +44,7 @@ const EventComments = ({ eventId }) => {
             setReplyTo(null);
             loadComments();
         } catch (error) {
-            alert('Failed to post comment');
+            toast.error('Failed to post comment');
         }
     };
 
@@ -52,7 +54,7 @@ const EventComments = ({ eventId }) => {
                 await eventsService.deleteComment(commentId);
                 loadComments();
             } catch (error) {
-                alert('Failed to delete comment');
+                toast.error('Failed to delete comment');
             }
         }
     };
@@ -145,7 +147,7 @@ const CommentItem = ({ comment, onReply, onDelete, depth = 0 }) => {
     };
 
     const safeDate = (dateStr) => {
-        try { return formatDistanceToNow(new Date(dateStr), { addSuffix: true }); }
+        try { return formatDateTimeAmPm(dateStr); }
         catch { return ''; }
     };
 

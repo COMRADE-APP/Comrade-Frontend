@@ -6,6 +6,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import authService from '../../services/auth.service';
 import { User, MapPin, Briefcase, Heart, Camera, Check, ArrowRight, ArrowLeft, Lock } from 'lucide-react';
+import countries from '../../data/countries.json';
 
 const STEPS = [
     { id: 1, title: 'Basic Info', icon: User },
@@ -46,6 +47,7 @@ const ProfileSetup = () => {
         confirmPassword: '',
         bio: '',
         location: '',
+        country: '',
         occupation: '',
         company: '',
         interests: [],
@@ -92,9 +94,22 @@ const ProfileSetup = () => {
         navigate(ROUTES.DASHBOARD);
     };
 
+    // Check if we need to update country_of_origin on the user profile
+    const updateUserCountry = async () => {
+        if (!formData.country) return;
+        try {
+            await authService.updateProfile({ country_of_origin: formData.country });
+        } catch (e) {
+            // non-critical, continue
+        }
+    };
+
     const handleComplete = async () => {
         setLoading(true);
         try {
+            // Save country_of_origin to user profile
+            await updateUserCountry();
+
             // Prepare profile data
             const profileData = {
                 bio: formData.bio,
@@ -254,13 +269,27 @@ const ProfileSetup = () => {
                         <div className="space-y-4 animate-fadeIn">
                             <h3 className="text-lg font-semibold text-primary">Where are you based?</h3>
                             <p className="text-sm text-secondary">This helps us connect you with nearby opportunities.</p>
+                            <div>
+                                <label className="block text-sm font-medium text-secondary mb-1">Country of Origin</label>
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 bg-elevated border border-theme text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                >
+                                    <option value="">Select your country</option>
+                                    {countries.map(c => (
+                                        <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
+                                    ))}
+                                </select>
+                            </div>
                             <Input
-                                label="Location"
+                                label="City / Town"
                                 type="text"
                                 name="location"
                                 value={formData.location}
                                 onChange={handleChange}
-                                placeholder="Nairobi, Kenya"
+                                placeholder="Nairobi"
                                 required
                             />
                             <Input

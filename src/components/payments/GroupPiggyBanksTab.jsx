@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, PiggyBank, Lock, Unlock, Users, ChevronRight, X, CheckCircle, User, DollarSign } from 'lucide-react';
+import { Plus, PiggyBank, Lock, Unlock, Users, ChevronRight, X, CheckCircle, User, DollarSign, Info, Target, Calendar as CalendarIcon } from 'lucide-react';
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
 import Input from '../common/Input';

@@ -16,6 +16,10 @@ const eventsService = {
         return api.get(`${BASE_URL}/events/`, { params });
     },
 
+    getEventCategories: () => {
+        return api.get(`${BASE_URL}/event_category/`);
+    },
+
     /**
      * Get event by ID
      */
@@ -223,6 +227,17 @@ const eventsService = {
      */
     getEventFeedback: (eventId) => {
         return api.get(`${BASE_URL}/events/${eventId}/reviews/`);
+    },
+
+    getEventReviews: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/reviews/`);
+    },
+
+    respondToReview: (eventId, feedbackId, responseMessage) => {
+        return api.post(`${BASE_URL}/events/${eventId}/respond_to_review/`, {
+            feedback_id: feedbackId,
+            response_message: responseMessage,
+        });
     },
 
     // ===== REMINDERS =====
@@ -668,12 +683,13 @@ const eventsService = {
 
     // ===== SLOT BOOKING =====
 
-    bookSlot: (eventId, ticketId = null, ticketTierId = null, quantity = 1) => {
+    bookSlot: (eventUuid, ticketTierId = null, attendees = [], groupName = '', quantity = 1) => {
         return api.post(`${BASE_URL}/slot_bookings/book_slot/`, {
-            event_id: eventId,
-            ticket_id: ticketId,
+            event_uuid: eventUuid,
             ticket_tier_id: ticketTierId,
-            quantity: quantity
+            attendees: attendees,
+            group_name: groupName,
+            quantity: quantity,
         });
     },
 
@@ -685,12 +701,20 @@ const eventsService = {
         return api.get(`${BASE_URL}/slot_bookings/availability/${eventId}/`);
     },
 
-    cancelBooking: (bookingId) => {
-        return api.post(`${BASE_URL}/slot_bookings/${bookingId}/cancel/`);
+    cancelBooking: (bookingUuid) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingUuid}/cancel/`);
     },
 
-    confirmPayment: (bookingId) => {
-        return api.post(`${BASE_URL}/slot_bookings/${bookingId}/confirm_payment/`);
+    confirmPayment: (bookingUuid) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingUuid}/confirm_payment/`);
+    },
+
+    shareTicket: (bookingUuid, userId) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingUuid}/share_ticket/`, { user_id: userId });
+    },
+
+    unshareTicket: (bookingUuid, userId) => {
+        return api.post(`${BASE_URL}/slot_bookings/${bookingUuid}/unshare_ticket/`, { user_id: userId });
     },
 
     // ===== SPONSORSHIP =====
@@ -700,31 +724,53 @@ const eventsService = {
     },
 
     getSponsorshipApplications: (eventId) => {
-        return api.get(`${BASE_URL}/sponsorship_applications/by_event/?event_id=${eventId}`);
+        return api.get(`${BASE_URL}/event_sponsorship_application/by_event/?event_id=${eventId}`);
     },
 
     getMySponsorshipApplications: () => {
-        return api.get(`${BASE_URL}/sponsorship_applications/my_applications/`);
+        return api.get(`${BASE_URL}/event_sponsorship_application/my_applications/`);
     },
 
     applySponsorshipApplication: (data) => {
-        return api.post(`${BASE_URL}/sponsorship_applications/`, data);
+        return api.post(`${BASE_URL}/event_sponsorship_application/`, data);
     },
 
     approveSponsorshipApplication: (applicationId, data = {}) => {
-        return api.post(`${BASE_URL}/sponsorship_applications/${applicationId}/approve/`, data);
+        return api.post(`${BASE_URL}/event_sponsorship_application/${applicationId}/approve/`, data);
     },
 
     rejectSponsorshipApplication: (applicationId, data = {}) => {
-        return api.post(`${BASE_URL}/sponsorship_applications/${applicationId}/reject/`, data);
+        return api.post(`${BASE_URL}/event_sponsorship_application/${applicationId}/reject/`, data);
     },
 
     getSponsorshipDashboard: (eventId) => {
-        return api.get(`${BASE_URL}/sponsorship_applications/sponsorship_dashboard/?event_id=${eventId}`);
+        return api.get(`${BASE_URL}/event_sponsorship_application/sponsorship_dashboard/?event_id=${eventId}`);
     },
 
     getEventSponsors: (eventId) => {
         return api.get(`${BASE_URL}/sponsors/?event=${eventId}`);
+    },
+
+    createSponsorshipLevel: (data) => {
+        return api.post(`${BASE_URL}/sponsorship_levels/`, data);
+    },
+
+    updateSponsorshipLevel: (levelId, data) => {
+        return api.patch(`${BASE_URL}/sponsorship_levels/${levelId}/`, data);
+    },
+
+    deleteSponsorshipLevel: (levelId) => {
+        return api.delete(`${BASE_URL}/sponsorship_levels/${levelId}/`);
+    },
+
+    // ===== SPONSOR REQUESTS =====
+
+    sendSponsorRequest: (eventId, data) => {
+        return api.post(`${BASE_URL}/events/${eventId}/send_sponsor_request/`, data);
+    },
+
+    getSponsorRequests: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/sponsor_requests/`);
     },
 };
 

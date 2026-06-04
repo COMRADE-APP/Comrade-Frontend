@@ -2,7 +2,6 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../components/layout/MainLayout';
-import StripeProvider from '../contexts/StripeProvider';
 import { Lazy } from './auth.routes';
 
 const Payments = () => Lazy(() => import('../pages/Payments'));
@@ -13,7 +12,10 @@ const CheckoutPage = () => Lazy(() => import('../pages/payments/CheckoutPage'));
 const VerifyAccount = () => Lazy(() => import('../pages/payments/VerifyAccount'));
 
 const PiggyBanks = () => Lazy(() => import('../pages/payments/PiggyBanks'));
+const CreatePiggyBank = () => Lazy(() => import('../pages/payments/CreatePiggyBank'));
 const PiggyBankDetail = () => Lazy(() => import('../pages/payments/PiggyBankDetail'));
+const MergePiggyBanks = () => Lazy(() => import('../pages/payments/MergePiggyBanks'));
+const MergeRequests = () => Lazy(() => import('../pages/payments/MergeRequests'));
 const Donations = () => Lazy(() => import('../pages/payments/Donations'));
 const DonationDetail = () => Lazy(() => import('../pages/payments/DonationDetail'));
 const GroupInvestments = () => Lazy(() => import('../pages/payments/GroupInvestments'));
@@ -76,7 +78,10 @@ export const paymentRoutes = [
     <Route key="verify-account" path="/payments/verify-account" element={<VerifyAccount />} />,
 
     <Route key="piggy-banks" path={ROUTES.PIGGY_BANKS} element={<PiggyBanks />} />,
+    <Route key="piggy-create" path="/payments/piggy-banks/create" element={<CreatePiggyBank />} />,
     <Route key="piggy-detail" path="/payments/piggy-banks/:id" element={<PiggyBankDetail />} />,
+    <Route key="piggy-merge" path="/payments/piggy-banks/merge" element={<MergePiggyBanks />} />,
+    <Route key="piggy-merge-requests" path="/payments/piggy-banks/merge-requests" element={<MergeRequests />} />,
     <Route key="donations" path={ROUTES.DONATIONS} element={<Donations />} />,
     <Route key="donation-detail" path="/payments/donations/:id" element={<DonationDetail />} />,
     <Route key="donations-funding" path="/funding/donations" element={<Donations />} />,

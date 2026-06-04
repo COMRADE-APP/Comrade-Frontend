@@ -8,11 +8,12 @@ import {
     ArrowDownLeft, ArrowLeftRight, PiggyBank, CheckCircle, Send, AlertTriangle, TrendingUp, 
     Filter, ChevronRight, ChevronDown, Clock, RefreshCw, ShoppingCart, Heart, Building, 
     Gift, BarChart3, Zap, Coins, BookOpen, ShieldCheck, Landmark, Smartphone, 
-    CheckCircle2, Circle, Settings, Calendar, Briefcase, Shield 
+    CheckCircle2, Circle, Settings, Calendar, Briefcase, Shield, ArrowRightLeft, Vote,
+    HandCoins, Repeat2, Receipt, Banknote, Star, History as HistoryIcon
 } from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import { paymentProcessingService } from '../services/paymentProcessing.service';
-import { formatDate } from '../utils/dateFormatter';
+import { formatDate, formatDateTimeAmPm } from '../utils/dateFormatter';
 import { formatMoneySimple } from '../utils/moneyUtils.jsx';
 import { ROUTES } from '../constants/routes';
 import { useToast } from '../contexts/ToastContext';
@@ -86,8 +87,57 @@ const getTransactionTitle = (txn) => {
     }
 };
 
+// ── Transaction icon & color config ─────────────────────────────────────────
+const TX_TYPE_CONFIG = {
+    // ── Inflows ──────────────────────────────────────────────────────────────
+    deposit:                   { Icon: ArrowDownLeft,  bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    refund:                    { Icon: Repeat2,        bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    reversal:                  { Icon: RefreshCw,      bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    loan_disbursement:         { Icon: Banknote,       bg: 'bg-sky-500/15',     color: 'text-sky-600'     },
+    insurance_claim_payout:    { Icon: ShieldCheck,    bg: 'bg-sky-500/15',     color: 'text-sky-600'     },
+    payout:                    { Icon: Banknote,       bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    escrow_release:            { Icon: ShieldCheck,    bg: 'bg-sky-500/15',     color: 'text-sky-600'     },
+    kitty_withdrawal:          { Icon: Coins,          bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    investment_withdrawal:     { Icon: TrendingUp,     bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    piggy_bank_withdrawal:     { Icon: PiggyBank,      bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    savings_withdrawal:        { Icon: PiggyBank,      bg: 'bg-emerald-500/15', color: 'text-emerald-600' },
+    // ── Outflows ─────────────────────────────────────────────────────────────
+    withdrawal:                { Icon: ArrowUpCircle,  bg: 'bg-red-500/15',     color: 'text-red-600'     },
+    purchase:                  { Icon: ShoppingCart,   bg: 'bg-amber-500/15',   color: 'text-amber-600'   },
+    loan_repayment:            { Icon: Landmark,       bg: 'bg-rose-500/15',    color: 'text-rose-600'    },
+    insurance_premium:         { Icon: ShieldCheck,    bg: 'bg-rose-500/15',    color: 'text-rose-600'    },
+    bill_payment:              { Icon: Receipt,        bg: 'bg-orange-500/15',  color: 'text-orange-600'  },
+    fee:                       { Icon: CreditCard,     bg: 'bg-red-500/15',     color: 'text-red-600'     },
+    escrow_refund:             { Icon: RefreshCw,      bg: 'bg-orange-500/15',  color: 'text-orange-600'  },
+    piggy_bank_contribution:   { Icon: PiggyBank,      bg: 'bg-blue-500/15',    color: 'text-blue-600'    },
+    savings_deposit:           { Icon: PiggyBank,      bg: 'bg-blue-500/15',    color: 'text-blue-600'    },
+    // ── Group/shared ─────────────────────────────────────────────────────────
+    contribution:              { Icon: HandCoins,      bg: 'bg-violet-500/15',  color: 'text-violet-600'  },
+    group_transaction:         { Icon: Users,          bg: 'bg-violet-500/15',  color: 'text-violet-600'  },
+    donation:                  { Icon: Heart,          bg: 'bg-pink-500/15',    color: 'text-pink-600'    },
+    // ── Neutral ──────────────────────────────────────────────────────────────
+    transfer:                  { Icon: ArrowRightLeft, bg: 'bg-blue-500/15',    color: 'text-blue-600'    },
+    investment:                { Icon: TrendingUp,     bg: 'bg-indigo-500/15',  color: 'text-indigo-600'  },
+};
+
+const getTxnIconConfig = (txn) => {
+    const type = txn.transaction_type || txn.type || '';
+    // Group-purchase gets its own violet style to distinguish from personal purchase
+    if (type === 'purchase' && (txn.transaction_details?.group_id || txn.group_id)) {
+        return { Icon: ShoppingCart, bg: 'bg-violet-500/15', color: 'text-violet-600' };
+    }
+    return TX_TYPE_CONFIG[type] || { Icon: DollarSign, bg: 'bg-secondary/10', color: 'text-secondary' };
+};
+
+const getTxnIcon = (txn) => {
+    const { Icon, color } = getTxnIconConfig(txn);
+    return <Icon className={`w-5 h-5 ${color}`} />;
+};
+
+
 const Payments = () => {
     const { user, isAuthenticated, loading: authLoading } = useAuth();
+
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const toast = useToast();
@@ -233,6 +283,8 @@ const Payments = () => {
                 response = await api.post(`/api/payments/escrow/${id}/${endpointAction}/`);
             } else if (request_type === 'automation') {
                 response = await api.post(`/api/payments/groups/${group_id}/vote_automation/`, { automation_id: id, vote: action });
+            } else if (request_type === 'piggy_bank_action') {
+                response = await api.post(`/api/payments/targets/${target_id}/vote_action/`, { request_id: id, vote: action });
             } else {
                 throw new Error("Unknown request type");
             }
@@ -468,20 +520,38 @@ const Payments = () => {
 
             {activeMainTab === 'transactions' && (
                 <>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {['all', 'purchase', 'deposit', 'withdrawal', 'transfer', 'group_transaction', 'investment', 'donation'].map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => { setFilter(f); setTxnPage(1); }}
-                                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${filter === f
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5'
-                                    }`}
-                            >
-                                {f === 'group_transaction' ? 'Group Transactions' : f.charAt(0).toUpperCase() + f.slice(1)}
-                            </button>
-                        ))}
-                    </div>
+                    {/* Filter tabs with icons */}
+                    {(() => {
+                        const FILTER_TABS = [
+                            { id: 'all',               label: 'All',               Icon: HistoryIcon },
+                            { id: 'purchase',          label: 'Purchase',          Icon: ShoppingCart },
+                            { id: 'deposit',           label: 'Deposit',           Icon: ArrowDownLeft },
+                            { id: 'withdrawal',        label: 'Withdrawal',        Icon: ArrowUpCircle },
+                            { id: 'transfer',          label: 'Transfer',          Icon: ArrowLeftRight },
+                            { id: 'group_transaction', label: 'Group',             Icon: Users },
+                            { id: 'investment',        label: 'Investment',        Icon: TrendingUp },
+                            { id: 'donation',          label: 'Donation',          Icon: Heart },
+                        ];
+                        return (
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                {FILTER_TABS.map(({ id, label, Icon }) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => { setFilter(id); setTxnPage(1); }}
+                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
+                                            filter === id
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'bg-elevated text-secondary border border-theme hover:bg-secondary/5 hover:text-primary'
+                                        }`}
+                                    >
+                                        <Icon size={14} />
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        );
+                    })()}
+
 
                     {loading ? (
                         <div className="text-center py-20">
@@ -499,6 +569,7 @@ const Payments = () => {
                         <div className="space-y-3">
                             {filteredTransactions.map((txn, idx) => {
                                 const isExpanded = expandedTxnId === txn.id;
+                                const isPositiveTx = txn.direction === 'received' || ['deposit', 'refund', 'reversal'].includes(txn.transaction_type) || txn.status === 'refunded';
                                 return (
                                     <Card
                                         key={idx}
@@ -510,27 +581,8 @@ const Payments = () => {
                                                 onClick={() => setExpandedTxnId(isExpanded ? null : txn.id)}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                        txn.direction === 'received' ? 'bg-green-500/10' :
-                                                        txn.direction === 'sent' ? 'bg-red-500/10' :
-                                                        txn.transaction_type === 'deposit' ? 'bg-green-500/10' :
-                                                        txn.transaction_type === 'withdrawal' ? 'bg-red-500/10' :
-                                                        txn.transaction_type === 'transfer' ? 'bg-blue-500/10' :
-                                                        txn.transaction_type === 'purchase' && txn.transaction_details?.group_id ? 'bg-primary-600/10' :
-                                                        txn.transaction_type === 'purchase' ? 'bg-amber-500/10' :
-                                                        txn.transaction_type === 'group_transaction' ? 'bg-primary-600/10' :
-                                                        txn.transaction_type === 'investment' ? 'bg-amber-500/10' :
-                                                        'bg-secondary/10'
-                                                    }`}>
-                                                        {txn.direction === 'received' ? <ArrowDownLeft className="w-5 h-5 text-green-600" /> :
-                                                         txn.direction === 'sent' ? <ArrowUpCircle className="w-5 h-5 text-red-600" /> :
-                                                         txn.transaction_type === 'deposit' ? <ArrowDownLeft className="w-5 h-5 text-green-600" /> :
-                                                         txn.transaction_type === 'withdrawal' ? <ArrowUpCircle className="w-5 h-5 text-red-600" /> :
-                                                         txn.transaction_type === 'transfer' ? <ArrowLeftRight className="w-5 h-5 text-blue-600" /> :
-                                                         txn.transaction_type === 'purchase' ? <ShoppingCart className={`w-5 h-5 ${txn.transaction_details?.group_id ? 'text-primary' : 'text-amber-600'}`} /> :
-                                                         txn.transaction_type === 'group_transaction' ? <Users className="w-5 h-5 text-primary" /> :
-                                                         txn.transaction_type === 'investment' ? <TrendingUp className="w-5 h-5 text-amber-600" /> :
-                                                         <DollarSign className="w-5 h-5 text-secondary" />}
+                                                    <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${getTxnIconConfig(txn).bg}`}>
+                                                        {getTxnIcon(txn)}
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -555,7 +607,7 @@ const Payments = () => {
                                                     </div>
                                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-secondary">
                                                         <span className="flex items-center gap-1">
-                                                            <Clock size={14} /> {formatDate(txn.created_at)}
+                                                            <Clock size={14} /> {formatDateTimeAmPm(txn.created_at)}
                                                         </span>
                                                         {(txn.transaction_details?.group_name || txn.group_name) && (
                                                             <span className="flex items-center gap-1">
@@ -597,9 +649,16 @@ const Payments = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className={`font-bold text-lg ${txn.direction === 'received' ? 'text-green-600' : 'text-red-600'}`}>
-                                                        {txn.direction === 'received' ? '+' : '-'}{formatMoneySimple(parseFloat(txn.amount))}
-                                                    </span>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <span className={`font-bold text-lg ${isPositiveTx ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {isPositiveTx ? '+' : '-'}{formatMoneySimple(parseFloat(txn.amount))}
+                                                        </span>
+                                                        {txn.balance_after !== null && txn.balance_after !== undefined && (
+                                                            <span className="text-[10px] text-secondary font-medium whitespace-nowrap bg-secondary/10 px-2 py-0.5 rounded-full border border-theme mt-0.5">
+                                                                Bal: {formatMoneySimple(parseFloat(txn.balance_after))}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     {txn.transaction_type === 'withdrawal' ? (
                                                          <span className="text-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-theme">
                                                              To {((txn.group_name || txn.transaction_details?.group_name) || txn.payment_option === 'comrade_balance' || txn.transaction_details?.payment_option === 'comrade_balance') ? 'Wallet' : (txn.payment_option || txn.transaction_details?.payment_option || 'External')}
@@ -683,7 +742,7 @@ const Payments = () => {
                                                         </div>
                                                         <div>
                                                             <p className="text-xs text-secondary mb-1">Date</p>
-                                                            <p className="font-medium text-primary">{formatDate(txn.created_at)}</p>
+                                                            <p className="font-medium text-primary">{formatDateTimeAmPm(txn.created_at)}</p>
                                                         </div>
                                                     </div>
                                                     {txn.transaction_details && Object.keys(txn.transaction_details).length > 0 && (
@@ -742,6 +801,7 @@ const Payments = () => {
                                                 req.request_type === 'loan' ? 'bg-purple-500/10 text-purple-600' :
                                                 req.request_type === 'escrow' ? 'bg-teal-500/10 text-teal-600' :
                                                 req.request_type === 'group_invitation' ? 'bg-green-500/10 text-green-600' :
+                                                req.request_type === 'piggy_bank_action' ? 'bg-amber-500/10 text-amber-600' :
                                                 'bg-gray-500/10 text-gray-600'
                                             }`}>
                                                 {req.request_type === 'checkout' ? <CreditCard className="w-6 h-6" /> :
@@ -749,6 +809,7 @@ const Payments = () => {
                                                  req.request_type === 'piggy_bank' ? <TrendingUp className="w-6 h-6" /> :
                                                  req.request_type === 'loan' ? <Briefcase className="w-6 h-6" /> :
                                                  req.request_type === 'escrow' ? <Shield className="w-6 h-6" /> :
+                                                 req.request_type === 'piggy_bank_action' ? <Vote className="w-6 h-6" /> :
                                                  <CheckCircle className="w-6 h-6" />}
                                             </div>
                                             <div>

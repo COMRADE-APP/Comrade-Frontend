@@ -2,8 +2,6 @@ import React, { Suspense } from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import MainLayout from '../components/layout/MainLayout';
-import StripeProvider from '../contexts/StripeProvider';
-
 const Lazy = (importFn) => {
     const Component = React.lazy(importFn);
     return (

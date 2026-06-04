@@ -60,6 +60,14 @@ export const paymentProcessingService = {
     },
 
     /**
+     * Verify a Flutterwave inline payment
+     */
+    async verifyFlutterwavePayment(data) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/flutterwave/verify/`, data);
+        return response.data;
+    },
+
+    /**
      * Initiate a Pesapal payment (returns redirect URL to hosted page)
      */
     async initiatePesapalPayment({ amount, currency = 'KES', email = '', phone = '', description = '' }) {

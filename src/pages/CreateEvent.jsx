@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import {
     ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send,
     Megaphone, X, Globe, Building2, GraduationCap, User, CheckCircle,
-    AlertCircle, ChevronRight, ChevronLeft, Ticket, FileText, Upload, Plus, Trash2, HeartHandshake
+    AlertCircle, ChevronRight, ChevronLeft, Ticket, FileText, Upload, Plus, Trash2, HeartHandshake, DollarSign
 } from 'lucide-react';
 import api from '../services/api';
 import eventsService from '../services/events.service';
@@ -56,6 +56,10 @@ const CreateEvent = () => {
     const [materials, setMaterials] = useState([]);
     const [existingMaterials, setExistingMaterials] = useState([]);
     const [isParsingDoc, setIsParsingDoc] = useState(false);
+
+    const [categories, setCategories] = useState([]);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+    const [sponsorshipLevels, setSponsorshipLevels] = useState([]);
 
     useEffect(() => {
         if (id) {
@@ -110,6 +114,31 @@ const CreateEvent = () => {
                 .catch(err => console.error("Could not fetch tickets for edit", err));
         }
     }, [id]);
+
+    useEffect(() => {
+        eventsService.getEventCategories().then(r => {
+            const data = r?.data || r || [];
+            setCategories(Array.isArray(data) ? data : []);
+        }).catch(() => {});
+    }, []);
+
+    const toggleCategory = (catId) => {
+        setSelectedCategoryIds(prev =>
+            prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+        );
+    };
+
+    const addSponsorshipLevel = () => {
+        setSponsorshipLevels(prev => [...prev, { level_name: '', level_benefits: '', level_price: '' }]);
+    };
+
+    const updateSponsorshipLevel = (idx, field, value) => {
+        setSponsorshipLevels(prev => prev.map((l, i) => i === idx ? { ...l, [field]: value } : l));
+    };
+
+    const removeSponsorshipLevel = (idx) => {
+        setSponsorshipLevels(prev => prev.filter((_, i) => i !== idx));
+    };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -239,7 +268,12 @@ const CreateEvent = () => {
                     group_size_allowed: parseInt(t.group_size_allowed) || 1,
                     min_age: parseInt(t.min_age) || null,
                     max_age: parseInt(t.max_age) || null,
-                }))
+                })),
+                categories: selectedCategoryIds,
+                sponsorship_levels: sponsorshipLevels.map(l => ({
+                    ...l,
+                    level_price: parseFloat(l.level_price) || 0,
+                })),
             };
 
             if (roomId) submitData.room = roomId;
@@ -642,6 +676,27 @@ const CreateEvent = () => {
                                                 <div className="text-right text-sm text-secondary mt-1">{parseInt(formData.duration)} hours</div>
                                             </div>
 
+                                            {categories.length > 0 && (
+                                                <div className="pt-4 border-t border-theme">
+                                                    <h4 className="text-md font-semibold text-primary mb-4 flex items-center gap-2">
+                                                        <FileText size={18} className="text-indigo-500" /> Categories
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {categories.map(cat => {
+                                                            const isSelected = selectedCategoryIds.includes(cat.id);
+                                                            return (
+                                                                <button key={cat.id} type="button" onClick={() => toggleCategory(cat.id)}
+                                                                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                                                        isSelected ? 'bg-primary-600 text-white' : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                                                                    }`}>
+                                                                    {cat.name}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="pt-4 border-t border-theme">
                                                 <h4 className="text-md font-semibold text-primary mb-4 flex items-center gap-2">
                                                     <HeartHandshake size={18} className="text-pink-500" /> Partnerships & Sponsorships
@@ -667,6 +722,51 @@ const CreateEvent = () => {
                                                     </label>
                                                 </div>
                                             </div>
+
+                                            {formData.seeking_sponsors && (
+                                                <div className="pt-4 border-t border-theme">
+                                                    <h4 className="text-md font-semibold text-primary mb-4 flex items-center gap-2">
+                                                        <DollarSign size={18} className="text-green-500" /> Sponsorship Levels
+                                                    </h4>
+                                                    {sponsorshipLevels.length > 0 && (
+                                                        <div className="space-y-3 mb-4">
+                                                            {sponsorshipLevels.map((level, idx) => (
+                                                                <div key={idx} className="p-4 border border-theme rounded-lg bg-secondary/5 relative">
+                                                                    <button type="button" onClick={() => removeSponsorshipLevel(idx)}
+                                                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 p-1">
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pr-8">
+                                                                        <div>
+                                                                            <label className="block text-xs text-secondary mb-1">Level Name</label>
+                                                                            <input type="text" value={level.level_name}
+                                                                                onChange={e => updateSponsorshipLevel(idx, 'level_name', e.target.value)}
+                                                                                placeholder="e.g. Platinum"
+                                                                                className="w-full px-2 py-1 text-sm bg-background border border-theme rounded outline-none text-primary" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs text-secondary mb-1">Price ($)</label>
+                                                                            <input type="number" min="0" value={level.level_price}
+                                                                                onChange={e => updateSponsorshipLevel(idx, 'level_price', e.target.value)}
+                                                                                className="w-full px-2 py-1 text-sm bg-background border border-theme rounded outline-none text-primary" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs text-secondary mb-1">Benefits</label>
+                                                                            <input type="text" value={level.level_benefits}
+                                                                                onChange={e => updateSponsorshipLevel(idx, 'level_benefits', e.target.value)}
+                                                                                placeholder="Key benefits"
+                                                                                className="w-full px-2 py-1 text-sm bg-background border border-theme rounded outline-none text-primary" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <Button type="button" variant="outline" onClick={addSponsorshipLevel} className="border-dashed text-primary flex items-center justify-center py-2">
+                                                        <Plus size={16} className="mr-2" /> Add Sponsorship Level
+                                                    </Button>
+                                                </div>
+                                            )}
 
                                             <div className="pt-4 border-t border-theme">
                                                 <div className="flex items-center justify-between mb-4">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     DollarSign, TrendingUp, Shield, Clock, AlertTriangle, CheckCircle,
@@ -11,9 +11,21 @@ import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 
+const VALID_TABS = ['marketplace', 'credit', 'my-loans'];
+
 const Loans = () => {
     const navigate = useNavigate();
-    const [tab, setTab] = useState('marketplace');
+    const { tab: routeTab } = useParams();
+    const [tab, setTab] = useState(
+        VALID_TABS.includes(routeTab) ? routeTab : 'marketplace'
+    );
+
+    useEffect(() => {
+        if (routeTab && VALID_TABS.includes(routeTab) && routeTab !== tab) {
+            setTab(routeTab);
+        }
+    }, [routeTab]);
+
     const [products, setProducts] = useState([]);
     const [myLoans, setMyLoans] = useState([]);
     const [creditScore, setCreditScore] = useState(null);
@@ -51,8 +63,12 @@ const Loans = () => {
             }
             await loansService.applyForLoan(payload);
             setSelectedProduct(null); setAmount(''); setTenure(6); setPurpose('');
-            setTab('my-loans');
-        } catch (e) { console.error(e); }
+            navigate('/loans/my-loans');
+        } catch (e) {
+            const msg = e.response?.data?.error || e.response?.data?.detail || 'Failed to submit application.';
+            alert(msg);
+            console.error(e);
+        }
         finally { setApplying(false); }
     };
 
@@ -106,7 +122,7 @@ const Loans = () => {
             {/* Tabs */}
             <div className="flex gap-2 overflow-x-auto pb-1">
                 {tabs.map(t => (
-                    <button key={t.id} onClick={() => { setTab(t.id); setSelectedProduct(null); }}
+                    <button key={t.id} onClick={() => { navigate(`/loans/${t.id}`); setSelectedProduct(null); }}
                         className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all whitespace-nowrap ${tab === t.id ? 'bg-primary-600 text-white shadow-md' : 'bg-elevated border border-theme text-secondary hover:bg-secondary/10'}`}>
                         <t.icon className="w-4 h-4" /> {t.label}
                     </button>
@@ -152,6 +168,11 @@ const Loans = () => {
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-tertiary">
                                                 {p.requires_guarantor ? <><Users className="w-3.5 h-3.5" /> Guarantor needed</> : <><Shield className="w-3.5 h-3.5 text-emerald-500" /> No guarantor</>}
+                                                {p.min_credit_score > 0 && (
+                                                    <span className={`ml-auto flex items-center gap-1 ${creditScore && creditScore.score < p.min_credit_score ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                                        <Award className="w-3 h-3" /> Min score: {p.min_credit_score}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -164,7 +185,7 @@ const Loans = () => {
                 {/* APPLICATION FORM */}
                 {tab === 'marketplace' && selectedProduct && (
                     <motion.div key="apply" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-                        <button onClick={() => setSelectedProduct(null)} className="flex items-center text-secondary hover:text-primary text-sm"><ArrowLeft className="w-4 h-4 mr-1" /> Back</button>
+                            <button onClick={() => { setSelectedProduct(null); navigate('/loans/marketplace'); }} className="flex items-center text-secondary hover:text-primary text-sm"><ArrowLeft className="w-4 h-4 mr-1" /> Back</button>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2 bg-elevated border border-theme rounded-2xl p-6 space-y-5">
                                 <div className="flex items-center gap-4 pb-4 border-b border-theme">
@@ -189,8 +210,20 @@ const Loans = () => {
                                     <textarea value={purpose} onChange={e => setPurpose(e.target.value)} rows={2} placeholder="What will you use this loan for?"
                                         className="w-full px-4 py-3 bg-secondary/5 border border-theme rounded-xl text-primary placeholder:text-tertiary focus:ring-2 focus:ring-primary/30 outline-none resize-none" />
                                 </div>
+                                {creditScore && selectedProduct.min_credit_score > 0 && creditScore.score < selectedProduct.min_credit_score && (
+                                    <div className="flex items-start gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+                                        <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-semibold text-rose-500">Credit Score Too Low</p>
+                                            <p className="text-xs text-tertiary mt-0.5">
+                                                Your credit score ({creditScore.score}) is below the minimum ({selectedProduct.min_credit_score}) required for {selectedProduct.name}.
+                                                Improve your score by saving consistently, making on-time repayments, and staying active in groups.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                                 <PaymentTypeSelector purchaseType={purchaseType} setPurchaseType={setPurchaseType} selectedGroupId={selectedGroupId} setSelectedGroupId={setSelectedGroupId} />
-                                <Button variant="primary" className="w-full py-3 font-bold text-lg rounded-xl" onClick={handleApply} disabled={!amount || applying || (purchaseType === 'group' && !selectedGroupId)}>
+                                <Button variant="primary" className="w-full py-3 font-bold text-lg rounded-xl" onClick={handleApply} disabled={!amount || applying || (purchaseType === 'group' && !selectedGroupId) || (creditScore && selectedProduct.min_credit_score > 0 && creditScore.score < selectedProduct.min_credit_score)}>
                                     {applying ? <RefreshCw className="w-5 h-5 animate-spin mx-auto" /> : 'Submit Application'}
                                 </Button>
                             </div>
@@ -245,23 +278,54 @@ const Loans = () => {
                                         {creditScore.risk_display || creditScore.risk_level} Risk
                                     </span>
                                 </div>
-                                <div className="bg-elevated border border-theme rounded-2xl p-6 space-y-4">
+                                <div className="bg-elevated border border-theme rounded-2xl p-6 space-y-5">
                                     <h3 className="font-bold text-primary text-lg">Score Breakdown</h3>
                                     {[
-                                        { label: 'Repayment History', score: creditScore.repayment_score, color: 'bg-emerald-500' },
-                                        { label: 'Savings Consistency', score: creditScore.savings_score, color: 'bg-emerald-500' },
-                                        { label: 'Transaction Volume', score: creditScore.transaction_score, color: 'bg-amber-500' },
-                                        { label: 'Group Participation', score: creditScore.group_score, color: 'bg-primary-600' },
-                                        { label: 'Platform Tenure', score: creditScore.tenure_score, color: 'bg-amber-500' },
+                                        {
+                                            label: 'Repayment History', score: creditScore.repayment_score, weight: '30%', color: 'bg-emerald-500',
+                                            desc: 'Your track record of repaying loans on time.',
+                                            metric: `${creditScore.factors?.completed_loans || 0} loans completed, ${creditScore.factors?.on_time_rate || 0}% paid on time`,
+                                        },
+                                        {
+                                            label: 'Savings Consistency', score: creditScore.savings_score, weight: '25%', color: 'bg-emerald-500',
+                                            desc: 'How regularly you save and your wallet balance.',
+                                            metric: `$${formatMoneySimple(creditScore.factors?.wallet_balance || 0)} balance, ${creditScore.factors?.active_deposit_months || 0}/12 months with deposits`,
+                                        },
+                                        {
+                                            label: 'Group Participation', score: creditScore.group_score, weight: '15%', color: 'bg-primary-600',
+                                            desc: 'Your involvement in groups and contribution consistency.',
+                                            metric: `${creditScore.factors?.active_groups || 0} groups, ${creditScore.factors?.contributions_6m || 0} contributions in 6 months`,
+                                        },
+                                        {
+                                            label: 'Transaction Volume', score: creditScore.transaction_score, weight: '15%', color: 'bg-amber-500',
+                                            desc: 'How actively you transact — volume, value, and variety.',
+                                            metric: `${creditScore.factors?.transactions_12m || 0} transactions in 12 months`,
+                                        },
+                                        {
+                                            label: 'Platform Tenure', score: creditScore.tenure_score, weight: '15%', color: 'bg-amber-500',
+                                            desc: 'How long you have been a Qomrade member. Maxes at 2 years.',
+                                            metric: `${creditScore.factors?.days_on_platform || 0} days on Qomrade`,
+                                        },
                                     ].map((f, i) => (
-                                        <div key={i} className="space-y-1">
-                                            <div className="flex justify-between text-sm"><span className="text-secondary">{f.label}</span><span className="font-bold text-primary">{f.score}%</span></div>
-                                            <div className="w-full h-2 bg-secondary/10 rounded-full overflow-hidden">
-                                                <div className={`h-full ${f.color} rounded-full transition-all duration-700`} style={{ width: `${f.score}%` }} />
+                                        <div key={i} className="space-y-1.5">
+                                            <div className="flex justify-between text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-secondary font-medium">{f.label}</span>
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-tertiary font-semibold">{f.weight}</span>
+                                                </div>
+                                                <span className="font-bold text-primary">{f.score}</span>
                                             </div>
+                                            <div className="w-full h-2 bg-secondary/10 rounded-full overflow-hidden">
+                                                <div className={`h-full ${f.color} rounded-full transition-all duration-700`} style={{ width: `${Math.min(f.score, 100)}%` }} />
+                                            </div>
+                                            <p className="text-xs text-tertiary">{f.desc}</p>
+                                            <p className="text-[11px] text-secondary font-medium">{f.metric}</p>
                                         </div>
                                     ))}
-                                    <p className="text-xs text-tertiary mt-4 pt-4 border-t border-theme">Your credit score is computed using your savings patterns, loan repayments, group activity, transaction history, and how long you've been on Qomrade.</p>
+                                    <p className="text-xs text-tertiary pt-4 border-t border-theme">
+                                        Your overall score of <span className="font-bold text-primary">{creditScore.score}</span> out of 900 is a weighted combination of these 5 factors.
+                                        Repayment history carries the most weight (30%). Scores update in real time as you use the platform.
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -278,7 +342,7 @@ const Loans = () => {
                                 <FileText className="w-12 h-12 text-tertiary mx-auto mb-3" />
                                 <h3 className="font-bold text-primary">No Loans Yet</h3>
                                 <p className="text-tertiary text-sm mt-1">Browse loan products to get started.</p>
-                                <Button variant="primary" className="mt-4 rounded-xl" onClick={() => setTab('marketplace')}>Browse Products</Button>
+                                <Button variant="primary" className="mt-4 rounded-xl" onClick={() => navigate('/loans/marketplace')}>Browse Products</Button>
                             </div>
                         ) : myLoans.map(loan => {
                             const totalDue = loan.repayments?.reduce((sum, r) => sum + parseFloat(r.amount_due) + (parseFloat(r.penalty || 0)), 0) || 0;
@@ -290,15 +354,20 @@ const Loans = () => {
                                 <div key={loan.id} className="bg-elevated border border-theme rounded-2xl overflow-hidden">
                                     <div className="p-6 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>
-                                                {loan.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'rejected' ? 'bg-rose-500/15 text-rose-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>
+                                                {loan.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : loan.status === 'rejected' ? <XCircle className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-primary">{loan.product_name || loan.loan_product?.name || 'Loan'}</h4>
                                                 <p className="text-xs text-tertiary">{formatMoneySimple(loan.amount)} • {loan.tenure_months} months</p>
+                                                {loan.status === 'rejected' && loan.rejection_reason && (
+                                                    <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                                                        <AlertTriangle className="w-3 h-3" /> {loan.rejection_reason}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${loan.status === 'completed' ? 'bg-emerald-500/15 text-emerald-500' : loan.status === 'rejected' ? 'bg-rose-500/15 text-rose-500' : loan.status === 'repaying' || loan.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>{loan.status}</span>
                                     </div>
                                     {loan.status === 'approved' && (
                                         <Button variant="primary" size="sm" className="mt-2" onClick={() => handleDisburse(loan.id)} disabled={applying}>

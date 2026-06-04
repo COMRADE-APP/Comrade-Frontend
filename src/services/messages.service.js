@@ -43,14 +43,12 @@ const messagesService = {
         };
     },
 
-    // Send a direct message
+    // Send a direct message — uses the send action which returns full
+    // message data (id, sender, time_stamp, etc.) for proper optimistic rendering.
     sendMessage: async (dmRoomId, content, receiverId = null) => {
-        const response = await api.post('/api/rooms/direct_messages/', {
-            dm_room: dmRoomId,
-            content: content,
-            receiver: receiverId,
-            message_type: 'text'
-        });
+        const payload = { dm_room: dmRoomId, content };
+        if (receiverId) payload.receiver = receiverId;
+        const response = await api.post('/api/rooms/direct_messages/send/', payload);
         return response.data;
     },
 
@@ -60,12 +58,9 @@ const messagesService = {
         formData.append('dm_room', dmRoomId);
         formData.append('content', caption);
         formData.append('file', file);
-        if (receiverId) {
-            formData.append('receiver', receiverId);
-        }
-        formData.append('message_type', 'file');
+        if (receiverId) formData.append('receiver', receiverId);
 
-        const response = await api.post('/api/rooms/direct_messages/', formData, {
+        const response = await api.post('/api/rooms/direct_messages/send/', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;

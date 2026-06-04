@@ -3,7 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
     ArrowLeft, Wallet, ArrowDownLeft, ArrowUpRight, RefreshCw, CreditCard,
     ChevronRight, ChevronDown, Loader2, Calendar, Clock, CheckCircle, XCircle,
-    AlertCircle, History, ArrowRightLeft, ShoppingBag, Landmark, Gift, Repeat
+    AlertCircle, History as HistoryIcon, ArrowRightLeft, ShoppingBag, Landmark, Gift, Repeat,
+    Users, Heart, TrendingUp, PiggyBank, ShoppingCart, Banknote, HandCoins,
+    Coins, ShieldCheck, Receipt, ArrowUpCircle, Repeat2, DollarSign
 } from 'lucide-react';
 import paymentsService from '../services/payments.service';
 import Card, { CardBody } from '../components/common/Card';
@@ -22,14 +24,36 @@ const STATUS_CONFIG = {
 };
 
 const TYPE_CONFIG = {
-    deposit: { icon: ArrowDownLeft, bg: 'bg-green-500/10', color: 'text-green-600', label: 'Deposit' },
-    withdrawal: { icon: ArrowUpRight, bg: 'bg-red-500/10', color: 'text-red-600', label: 'Withdrawal' },
-    transfer: { icon: ArrowRightLeft, bg: 'bg-blue-500/10', color: 'text-blue-600', label: 'Transfer' },
-    purchase: { icon: ShoppingBag, bg: 'bg-purple-500/10', color: 'text-purple-600', label: 'Purchase' },
-    contribution: { icon: Landmark, bg: 'bg-teal-500/10', color: 'text-teal-600', label: 'Contribution' },
-    refund: { icon: RefreshCw, bg: 'bg-amber-500/10', color: 'text-amber-600', label: 'Refund' },
-    reversal: { icon: RefreshCw, bg: 'bg-orange-500/10', color: 'text-orange-600', label: 'Reversal' },
-    default: { icon: CreditCard, bg: 'bg-gray-500/10', color: 'text-gray-600', label: 'Payment' },
+    // ── Inflows ────────────────────────────────────────────────────────────
+    deposit:                 { icon: ArrowDownLeft,  bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Deposit' },
+    refund:                  { icon: Repeat2,        bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Refund' },
+    reversal:                { icon: RefreshCw,      bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Reversal' },
+    payout:                  { icon: Banknote,       bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Payout' },
+    loan_disbursement:       { icon: Banknote,       bg: 'bg-sky-500/15',     color: 'text-sky-600',      label: 'Loan Received' },
+    insurance_claim_payout:  { icon: ShieldCheck,    bg: 'bg-sky-500/15',     color: 'text-sky-600',      label: 'Insurance Payout' },
+    escrow_release:          { icon: ShieldCheck,    bg: 'bg-sky-500/15',     color: 'text-sky-600',      label: 'Escrow Release' },
+    kitty_withdrawal:        { icon: Coins,          bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Kitty Withdrawal' },
+    investment_withdrawal:   { icon: TrendingUp,     bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Investment Out' },
+    piggy_bank_withdrawal:   { icon: PiggyBank,      bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Piggy Withdrawal' },
+    savings_withdrawal:      { icon: PiggyBank,      bg: 'bg-emerald-500/15', color: 'text-emerald-600',  label: 'Savings Withdrawal' },
+    // ── Outflows ──────────────────────────────────────────────────────────
+    withdrawal:              { icon: ArrowUpCircle,  bg: 'bg-red-500/15',     color: 'text-red-600',      label: 'Withdrawal' },
+    purchase:                { icon: ShoppingCart,   bg: 'bg-amber-500/15',   color: 'text-amber-600',    label: 'Purchase' },
+    loan_repayment:          { icon: Landmark,       bg: 'bg-rose-500/15',    color: 'text-rose-600',     label: 'Loan Repayment' },
+    insurance_premium:       { icon: ShieldCheck,    bg: 'bg-rose-500/15',    color: 'text-rose-600',     label: 'Insurance' },
+    bill_payment:            { icon: Receipt,        bg: 'bg-orange-500/15',  color: 'text-orange-600',   label: 'Bill Payment' },
+    fee:                     { icon: CreditCard,     bg: 'bg-red-500/15',     color: 'text-red-600',      label: 'Fee' },
+    escrow_refund:           { icon: RefreshCw,      bg: 'bg-orange-500/15',  color: 'text-orange-600',   label: 'Escrow Refund' },
+    piggy_bank_contribution: { icon: PiggyBank,      bg: 'bg-blue-500/15',    color: 'text-blue-600',     label: 'Piggy Contribution' },
+    savings_deposit:         { icon: PiggyBank,      bg: 'bg-blue-500/15',    color: 'text-blue-600',     label: 'Savings' },
+    // ── Group / shared ────────────────────────────────────────────────────
+    contribution:            { icon: HandCoins,      bg: 'bg-violet-500/15',  color: 'text-violet-600',   label: 'Contribution' },
+    group_transaction:       { icon: Users,          bg: 'bg-violet-500/15',  color: 'text-violet-600',   label: 'Group Transaction' },
+    donation:                { icon: Heart,          bg: 'bg-pink-500/15',    color: 'text-pink-600',     label: 'Donation' },
+    // ── Neutral ───────────────────────────────────────────────────────────
+    transfer:                { icon: ArrowRightLeft, bg: 'bg-blue-500/15',    color: 'text-blue-600',     label: 'Transfer' },
+    investment:              { icon: TrendingUp,     bg: 'bg-indigo-500/15',  color: 'text-indigo-600',   label: 'Investment' },
+    default:                 { icon: DollarSign,     bg: 'bg-secondary/10',   color: 'text-secondary',    label: 'Transaction' },
 };
 
 const getTransactionTitle = (txn) => {
@@ -112,7 +136,7 @@ const TransactionHistory = () => {
     };
 
     const getTabs = () => [
-        { id: 'all', label: 'All Transactions', icon: History },
+        { id: 'all', label: 'All Transactions', icon: HistoryIcon },
         { id: 'money_in', label: 'Money In', icon: ArrowDownLeft },
         { id: 'money_out', label: 'Money Out', icon: ArrowUpRight },
         { id: 'transfers', label: 'Transfers', icon: ArrowRightLeft },
@@ -138,16 +162,31 @@ const TransactionHistory = () => {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+        } catch {
+            return '';
+        }
     };
 
     const isPositive = (tx) => {
+        const type = (tx.transaction_type || tx.type || '').toLowerCase();
+        if (['deposit', 'refund', 'reversal'].includes(type) || tx.status === 'refunded') {
+            return true;
+        }
         if (tx.direction) {
             return tx.direction === 'received';
         }
-        return ['deposit', 'refund', 'reversal'].includes(tx.transaction_type) || tx.status === 'refunded';
+        return false;
     };
 
     const toggleExpand = (id) => {
@@ -162,7 +201,7 @@ const TransactionHistory = () => {
                 </button>
 
                 <h1 className="text-3xl font-bold text-primary flex items-center gap-3 mb-8">
-                    <History /> Transaction History
+                    <HistoryIcon /> Transaction History
                 </h1>
 
                 {/* Tabs */}
@@ -262,9 +301,18 @@ const TransactionHistory = () => {
                         {filtered.map(transaction => {
                             const statusCfg = STATUS_CONFIG[transaction.status] || STATUS_CONFIG.pending;
                             const StatusIcon = statusCfg.icon;
-                            const typeCfg = TYPE_CONFIG[transaction.transaction_type] || TYPE_CONFIG.default;
+                            // Resolve icon from transaction_type; group-purchase gets its own distinct style
+                            const resolvedTypeCfg = (() => {
+                                const type = transaction.transaction_type || transaction.type || '';
+                                if (type === 'purchase' && (transaction.group_id || transaction.transaction_details?.group_id))
+                                    return { icon: ShoppingCart, bg: 'bg-violet-500/15', color: 'text-violet-600' };
+                                return TYPE_CONFIG[type] || TYPE_CONFIG.default;
+                            })();
+                            const typeCfg = resolvedTypeCfg;
                             const TypeIcon = typeCfg.icon;
                             const isIn = isPositive(transaction);
+
+
 
                             return (
                                 <Card
@@ -352,10 +400,15 @@ const TransactionHistory = () => {
                                             </div>
 
                                             <div className="flex items-center gap-4">
-                                                <div className="text-right">
+                                                <div className="flex flex-col items-end gap-1 text-right">
                                                     <p className={`font-bold text-xl ${isIn ? 'text-green-600' : 'text-primary'}`}>
-                                                        {isIn ? '+' : '-'} {formatMoneySimple(transaction.amount)}
+                                                        {isIn ? '+' : '-'}{formatMoneySimple(parseFloat(transaction.amount))}
                                                     </p>
+                                                    {transaction.balance_after !== null && transaction.balance_after !== undefined && (
+                                                        <span className="text-[10px] text-secondary font-medium whitespace-nowrap bg-secondary/10 px-2 py-0.5 rounded-full border border-theme mt-0.5">
+                                                            Bal: {formatMoneySimple(parseFloat(transaction.balance_after))}
+                                                        </span>
+                                                    )}
                                                     {transaction.exchange_rate && transaction.exchange_rate !== 1 && (
                                                         <p className="text-xs text-tertiary">
                                                             Rate: {transaction.exchange_rate.toFixed(4)}
@@ -399,11 +452,24 @@ const TransactionHistory = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Description */}
-                                                {transaction.description && (
-                                                    <div className="mb-4 p-3 bg-elevated rounded-lg border border-theme">
-                                                        <p className="text-xs text-secondary mb-1">Description</p>
-                                                        <p className="text-sm text-primary">{transaction.description}</p>
+                                                {/* Description and Balance */}
+                                                {(transaction.description || transaction.balance_after) && (
+                                                    <div className="mb-4 grid gap-4">
+                                                        {transaction.description && (
+                                                            <div className="p-3 bg-elevated rounded-lg border border-theme">
+                                                                <p className="text-xs text-secondary mb-1">Description</p>
+                                                                <p className="text-sm text-primary">{transaction.description}</p>
+                                                            </div>
+                                                        )}
+                                                        {transaction.balance_after && (
+                                                            <div className="p-3 bg-elevated rounded-lg border border-theme flex justify-between items-center">
+                                                                <div>
+                                                                    <p className="text-xs text-secondary mb-1">Wallet Balance After</p>
+                                                                    <p className="text-lg font-bold text-primary">${formatMoneySimple(transaction.balance_after)}</p>
+                                                                </div>
+                                                                <Wallet className="w-8 h-8 text-secondary opacity-50" />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -415,7 +481,7 @@ const TransactionHistory = () => {
                                                         </Button>
                                                     )}
                                                     <Button variant="outline" size="sm" className="text-xs">
-                                                        <History size={14} /> View Receipt
+                                                        <HistoryIcon size={14} /> View Receipt
                                                     </Button>
                                                     {transaction.status === 'completed' && (
                                                         <Button variant="outline" size="sm" className="text-xs">

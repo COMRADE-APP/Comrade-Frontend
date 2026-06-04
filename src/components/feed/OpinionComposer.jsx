@@ -25,6 +25,19 @@ function getCaretCharacterOffsetWithin(element) {
     return caretOffset;
 }
 
+// Memoized contentEditable — isolates the editor from parent re-renders
+// so React never reconciles its DOM children (fixes text loss after emoji insert).
+const ComposerEditor = React.memo(({ textareaRef, onInput, onKeyDown, placeholder }) => (
+    <div
+        ref={textareaRef}
+        contentEditable
+        className="w-full px-0 py-2 border-0 focus:ring-0 text-primary text-lg min-h-[80px] bg-transparent outline-none"
+        onInput={onInput}
+        onKeyDown={onKeyDown}
+        data-placeholder={placeholder}
+    ></div>
+));
+
 /**
  * OpinionComposer - Create new opinions with media upload, room tagging, and @-mentions
  * Supports entity authorship (post as personal, organisation, or institution)
@@ -45,6 +58,10 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
+    const editorOnInputRef = useRef(null);
+    const editorOnKeyDownRef = useRef(null);
+    const stableEditorOnInput = useCallback((e) => editorOnInputRef.current?.(e), []);
+    const stableEditorOnKeyDown = useCallback((e) => editorOnKeyDownRef.current?.(e), []);
 
     // @-mention state
     const [mentionQuery, setMentionQuery] = useState('');
@@ -164,6 +181,8 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
         setMentionStartPos(-1);
     };
 
+    editorOnInputRef.current = handleContentChange;
+
     // Insert mention into content
     const insertMention = (mentionUser) => {
         const displayName = mentionUser.username || mentionUser.first_name || mentionUser.email?.split('@')[0] || 'user';
@@ -208,6 +227,8 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
             }
         }
     };
+
+    editorOnKeyDownRef.current = handleTextareaKeyDown;
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -350,18 +371,14 @@ const OpinionComposer = React.memo(({ onSubmit, maxChars = 500, isPremium = fals
 
                 <div className="flex-1 relative">
                     <div className="relative w-full">
-                        <div
-                            ref={textareaRef}
-                            contentEditable
-                            className="w-full px-0 py-2 border-0 focus:ring-0 text-primary text-lg min-h-[80px] bg-transparent outline-none"
-                            onInput={(e) => {
-                                handleContentChange(e);
-                            }}
-                            onKeyDown={handleTextareaKeyDown}
-                            data-placeholder={activeProfile?.type !== 'personal'
+                        <ComposerEditor
+                            textareaRef={textareaRef}
+                            onInput={stableEditorOnInput}
+                            onKeyDown={stableEditorOnKeyDown}
+                            placeholder={activeProfile?.type !== 'personal'
                                 ? `What does ${activeProfile?.name} want to share?`
                                 : "What's on your mind? Use @ to mention people"}
-                        ></div>
+                        />
                     </div>
 
                     {/* @-mention dropdown */}

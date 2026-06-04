@@ -127,6 +127,12 @@ export const organizationsService = {
         return response.data;
     },
 
+    // Search organizations (for sponsor request picker)
+    async searchOrganizations(query) {
+        const response = await api.get(API_ENDPOINTS.ORGANIZATIONS, { params: { search: query } });
+        return response.data.results || response.data;
+    },
+
     // Follow organization
     async follow(id) {
         const response = await api.post(`${API_ENDPOINTS.ORGANIZATION_DETAIL(id)}follow/`);

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, CheckCheck, Trash2, Settings, Filter } from 'lucide-react';
 import api from '../services/api';
+import paymentsService from '../services/payments.service';
+import Button from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
@@ -15,6 +17,8 @@ const Notifications = () => {
     const [showUnreadOnly, setShowUnreadOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [invitations, setInvitations] = useState([]);
+    const [invitationsLoading, setInvitationsLoading] = useState(false);
 
     const notificationTypes = {
         interactions: ['like', 'comment', 'repost', 'reply', 'mention'],
@@ -26,6 +30,43 @@ const Notifications = () => {
     useEffect(() => {
         loadNotifications();
     }, []);
+
+    useEffect(() => {
+        if (category === 'invites' && invitations.length === 0) {
+            loadInvitations();
+        }
+    }, [category]);
+
+    const loadInvitations = async () => {
+        setInvitationsLoading(true);
+        try {
+            const data = await paymentsService.getInvitations();
+            setInvitations(data.results || data || []);
+        } catch (error) {
+            console.error('Failed to load invitations:', error);
+        } finally {
+            setInvitationsLoading(false);
+        }
+    };
+
+    const handleAcceptInvitation = async (id) => {
+        try {
+            await paymentsService.acceptInvitation(id);
+            setInvitations(prev => prev.filter(inv => inv.id !== id));
+        } catch (error) {
+            console.error('Failed to accept:', error);
+        }
+    };
+
+    const handleRejectInvitation = async (id) => {
+        try {
+            await paymentsService.rejectInvitation(id);
+            setInvitations(prev => prev.filter(inv => inv.id !== id));
+        } catch (error) {
+            console.error('Failed to reject:', error);
+        }
+    };
+
 
     const loadNotifications = async (loadMore = false) => {
         if (!loadMore) setLoading(true);
@@ -137,7 +178,7 @@ const Notifications = () => {
 
             {/* Category tabs */}
             <div className="flex overflow-x-auto gap-2 mb-4 pb-2 scrollbar-hide">
-                {['all', 'interactions', 'following', 'recommendations', 'system'].map(cat => (
+                {['all', 'interactions', 'following', 'recommendations', 'system', 'invites'].map(cat => (
                     <button
                         key={cat}
                         onClick={() => setCategory(cat)}
@@ -188,7 +229,36 @@ const Notifications = () => {
 
             {/* Notifications list */}
             <div className="bg-elevated rounded-xl border border-theme overflow-hidden">
-                {loading ? (
+                
+                {category === 'invites' ? (
+                    invitationsLoading ? (
+                        <div className="p-8 text-center text-secondary">
+                            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                            Loading invites...
+                        </div>
+                    ) : invitations.length === 0 ? (
+                        <div className="p-12 text-center text-secondary">
+                            <h3 className="font-medium text-primary mb-1">No Pending Invites</h3>
+                            <p className="text-sm">You have no pending group or piggy bank invitations.</p>
+                        </div>
+                    ) : (
+                        <div>
+                            {invitations.map(inv => (
+                                <div key={inv.id} className="p-4 border-b border-theme hover:bg-tertiary/5 transition-colors flex items-center justify-between">
+                                    <div>
+                                        <p className="text-primary font-bold">{inv.payment_group_name || inv.group_name || 'Group Invitation'}</p>
+                                        <p className="text-sm text-secondary">Invited by: {inv.invited_by_name || 'Someone'}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => handleAcceptInvitation(inv.id)}>Accept</Button>
+                                        <Button variant="outline" size="sm" className="text-red-600 border-red-200" onClick={() => handleRejectInvitation(inv.id)}>Reject</Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                ) : loading ? (
+
                     <div className="p-8 text-center text-secondary">
                         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
                         Loading notifications...
@@ -283,6 +353,7 @@ const Notifications = () => {
                         )}
                     </>
                 )}
+
             </div>
         </div>
     );

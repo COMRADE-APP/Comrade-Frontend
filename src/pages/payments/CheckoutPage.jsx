@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, ShieldCheck, Loader2, CheckCircle, Package, Smartphone, Building2, Globe } from 'lucide-react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAuth } from '../../contexts/AuthContext';
-import { useStripeContext } from '../../contexts/StripeProvider';
+import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import paymentsService from '../../services/payments.service';
 import paymentProcessingService from '../../services/paymentProcessing.service';
+import { detectCurrency } from '../../utils/currencyUtils';
 import Button from '../../components/common/Button';
 import Card, { CardBody } from '../../components/common/Card';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
@@ -26,12 +26,10 @@ const CARD_ELEMENT_OPTIONS = {
 };
 
 const CheckoutPage = () => {
+    const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const stripe = useStripe();
-    const elements = useElements();
-    const { gatewayConfig } = useStripeContext();
+    const [gatewayConfig, setGatewayConfig] = useState(null);
 
     // State coming from cart navigation
     const {
@@ -42,6 +40,71 @@ const CheckoutPage = () => {
         totalAmount = 0,
         isMultiDestination = false
     } = location.state || {};
+    
+    const flwConfig = {
+        public_key: gatewayConfig?.gateways?.flutterwave?.public_key || '',
+        tx_ref: Date.now().toString(),
+        amount: totalAmount || 0,
+        currency: detectCurrency('USD'),
+        payment_options: 'card,mobilemoney,ussd',
+        customer: {
+            email: user?.email || 'user@example.com',
+            phone_number: '',
+            name: user?.first_name || 'Customer',
+        },
+        customizations: {
+            title: 'Qomrade Checkout',
+            description: 'Payment for items',
+        },
+    };
+    const handleFlutterPayment = useFlutterwave(flwConfig);
+    
+    const triggerFlutterwave = (txRef, amount, method, phone) => {
+        handleFlutterPayment({
+            ...flwConfig,
+            tx_ref: txRef,
+            amount: amount,
+            currency: detectCurrency(method === 'mpesa' ? 'KES' : 'USD'),
+            customer: {
+                ...flwConfig.customer,
+                phone_number: phone,
+            },
+            callback: async (response) => {
+                closePaymentModal();
+                try {
+                    setLoading(true);
+                    await paymentProcessingService.verifyFlutterwavePayment({
+                        transaction_id: response.transaction_id,
+                        tx_ref: response.tx_ref
+                    });
+                    
+                    // If it was a group contribution, we need to call the contribution endpoint
+                    if (purchaseType === 'group_contribution') {
+                        const roundItem = cartItems.find(item => item.type === 'round_contribution');
+                        if (roundItem) {
+                            const roundId = roundItem.id || roundItem.roundId;
+                            const res = await paymentsService.contributeToRound(roundId, {
+                                amount: roundItem.price
+                            });
+                            window.lastRoundContribution = res;
+                        }
+                    } else if (purchaseType === 'group') {
+                        // Check if we need to manually trigger approval
+                        // Since it was funded, the backend escrow webhook will handle it or we can just show success
+                    }
+                    
+                    setSuccess(true);
+                } catch (e) {
+                    setError('Payment verification failed.');
+                } finally {
+                    setLoading(false);
+                }
+            },
+            onClose: () => {
+                setError('Payment modal closed.');
+            }
+        });
+    };
 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -66,6 +129,10 @@ const CheckoutPage = () => {
     const hasFlutterwave = gateways.flutterwave?.available;
 
     useEffect(() => {
+        paymentProcessingService.getGatewayConfig()
+            .then(res => setGatewayConfig(res))
+            .catch(console.error);
+            
         if (!location.state || cartItems.length === 0) {
             navigate('/shop');
             return;
@@ -145,74 +212,31 @@ const CheckoutPage = () => {
                 // Store the round response for success display
                 window.lastRoundContribution = response;
             }
-            // ── STRIPE CARD PAYMENT ──
-            else if (paymentMethod === 'stripe') {
-                if (!stripe || !elements) {
-                    throw new Error('Stripe not loaded. Please wait and try again.');
-                }
-                const cardElement = elements.getElement(CardElement);
-                if (!cardElement) throw new Error('Card input not ready.');
-
-                // Create PaymentMethod (tokenized — PCI compliant)
-                const { error: pmError, paymentMethod: pm } = await stripe.createPaymentMethod({
-                    type: 'card',
-                    card: cardElement,
-                });
-                if (pmError) throw new Error(pmError.message);
-
-                // Create PaymentIntent on backend
+            // ── FLUTTERWAVE / CARD / MPESA (Inline) ──
+            else if (paymentMethod === 'stripe' || paymentMethod === 'mpesa' || paymentMethod === 'flutterwave') {
+                if (paymentMethod === 'mpesa' && !phoneNumber) throw new Error('Phone number is required for M-Pesa.');
+                
+                // Get transaction token from backend
                 const intentResult = await paymentProcessingService.processPayment({
                     amount: totalAmount,
-                    currency: 'USD',
-                    payment_method: 'stripe',
-                    payment_method_id: pm.id,
-                    description: `Checkout: ${cartItems.length} items`,
-                });
-
-                // Confirm on client if needed
-                if (intentResult?.provider_response?.client_secret) {
-                    const { error: confirmError } = await stripe.confirmCardPayment(
-                        intentResult.provider_response.client_secret
-                    );
-                    if (confirmError) throw new Error(confirmError.message);
-                }
-            }
-            // ── M-PESA ──
-            else if (paymentMethod === 'mpesa') {
-                if (!phoneNumber) throw new Error('Phone number is required for M-Pesa.');
-                await paymentProcessingService.processPayment({
-                    amount: totalAmount,
-                    currency: 'KES',
-                    payment_method: 'mpesa',
+                    currency: detectCurrency(paymentMethod === 'mpesa' ? 'KES' : 'USD'),
+                    payment_method: paymentMethod,
                     phone_number: phoneNumber,
                     description: `Checkout: ${cartItems.length} items`,
                 });
-            }
-            // ── PAYPAL (redirect) ──
-            else if (paymentMethod === 'paypal') {
-                const result = await paymentProcessingService.processPayment({
-                    amount: totalAmount,
-                    currency: 'USD',
-                    payment_method: 'paypal',
-                    description: `Checkout: ${cartItems.length} items`,
-                });
-                if (result?.provider_response?.approve_url) {
-                    window.location.href = result.provider_response.approve_url;
-                    return;
+                
+                if (intentResult?.provider_response?.status !== 'ready_for_inline') {
+                     throw new Error('Failed to initialize payment gateway.');
                 }
-            }
-            // ── FLUTTERWAVE (redirect) ──
-            else if (paymentMethod === 'flutterwave') {
-                const result = await paymentProcessingService.initiateFlutterwavePayment({
-                    amount: totalAmount,
-                    currency: 'KES',
-                    email: user?.email || '',
-                    description: `Checkout: ${cartItems.length} items`,
-                });
-                if (result?.provider_response?.payment_link) {
-                    window.location.href = result.provider_response.payment_link;
-                    return;
-                }
+                
+                const txRef = intentResult.transaction?.transaction_code;
+                
+                // We use standard fetch here to avoid hook rule violations, or we can just call handleFlutterPayment
+                // But handleFlutterPayment comes from useFlutterwave. We must declare it at the top level of the component!
+                // We will handle it by setting a state to trigger the modal, or we can just use the hook function directly.
+                // We'll call triggerFlutterwave which is defined above.
+                triggerFlutterwave(txRef, totalAmount, paymentMethod, phoneNumber);
+                return; // Return early, success will be set by the callback
             }
             // ── WALLET (existing flow) ──
             else {
@@ -575,17 +599,6 @@ const CheckoutPage = () => {
                                     )}
                                 </div>
 
-                                {/* Stripe Card Element */}
-                                {paymentMethod === 'stripe' && !isGroupPurchase && (
-                                    <div className="p-4 bg-secondary/5 rounded-xl border border-theme">
-                                        <p className="text-xs text-secondary mb-3 font-medium">Enter card details</p>
-                                        <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                            <CardElement options={CARD_ELEMENT_OPTIONS} />
-                                        </div>
-                                        <p className="text-xs text-tertiary mt-2">🔒 Secured by Stripe — we never see your card number</p>
-                                    </div>
-                                )}
-
                                 {/* M-Pesa Phone Input */}
                                 {paymentMethod === 'mpesa' && !isGroupPurchase && (
                                     <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20">
@@ -597,7 +610,7 @@ const CheckoutPage = () => {
                                             onChange={e => setPhoneNumber(e.target.value)}
                                             className="w-full px-4 py-3 bg-secondary/10 border border-theme rounded-lg text-primary placeholder:text-tertiary focus:outline-none focus:border-green-500 transition-colors"
                                         />
-                                        <p className="text-xs text-tertiary mt-2">📱 You'll receive an STK push on your phone</p>
+                                        <p className="text-xs text-tertiary mt-2">📱 Used for M-Pesa mobile money checkout</p>
                                     </div>
                                 )}
 

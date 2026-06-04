@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { ROUTES } from './constants/routes';
 import MainLayout from './components/layout/MainLayout';
-import StripeProvider from './contexts/StripeProvider';
 import { CartProvider } from './contexts/CartContext';
 import CartDrawer from './components/shop/CartDrawer';
 import { ToastProvider } from './contexts/ToastContext';
@@ -46,18 +45,11 @@ const ProtectedRoute = ({ children }) => {
     return isAuthenticated ? children : <Navigate to={ROUTES.LOGIN} replace />;
 };
 
-const wrapLayout = (children, stripe = false) => {
-    const content = <MainLayout>{children}</MainLayout>;
-    return stripe ? <StripeProvider>{content}</StripeProvider> : content;
-};
-
-const Protected = ({ children, stripe = false }) => (
+const Protected = ({ children }) => (
     <ProtectedRoute>
-        {wrapLayout(children, stripe)}
+        <MainLayout>{children}</MainLayout>
     </ProtectedRoute>
 );
-
-const stripeRoutes = new Set(['payment-methods', 'payment-methods-alt', 'checkout']);
 
 function App() {
     const protectedRoutes = [
@@ -75,7 +67,7 @@ function App() {
         ...portalRoutes,
         ...verificationRoutes,
     ].map(r => React.cloneElement(r, {
-        element: <Protected stripe={stripeRoutes.has(r.key)}>{r.props.element}</Protected>
+        element: <Protected>{r.props.element}</Protected>
     }));
 
     return (

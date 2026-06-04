@@ -92,7 +92,7 @@ export const ROUTES = {
     OPPORTUNITIES: '/opportunities',
     CREATE_BUSINESS: '/business/create',
     BILL_PAYMENTS: '/bill-payments',
-    LOANS: '/loans',
+    LOANS: '/loans/:tab?',
     ESCROW: '/escrow',
     INSURANCE: '/insurance',
 
@@ -103,6 +103,7 @@ export const ROUTES = {
 
     // Create Content
     CREATE_EVENT: '/events/create',
+    EVENT_SPONSORSHIP: '/events/:id/sponsorship',
     CREATE_TASK: '/tasks/create',
     CREATE_ROOM: '/rooms/create',
     CREATE_RESOURCE: '/resources/create',

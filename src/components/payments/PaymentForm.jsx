@@ -4,34 +4,18 @@
  * and saved payment methods selector.
  */
 import React, { useState, useEffect } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useStripeContext } from '../../contexts/StripeProvider';
+import { useAuth } from '../../contexts/AuthContext';
+import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import paymentProcessingService from '../../services/paymentProcessing.service';
+import { detectCurrency } from '../../utils/currencyUtils';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import './PaymentForm.css';
 
-// Stripe CardElement styling (matches dark theme)
-const CARD_ELEMENT_OPTIONS = {
-    style: {
-        base: {
-            fontSize: '16px',
-            color: '#e2e8f0',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            '::placeholder': { color: '#64748b' },
-            iconColor: '#6366f1',
-        },
-        invalid: {
-            color: '#ef4444',
-            iconColor: '#ef4444',
-        },
-    },
-    hidePostalCode: false,
-};
+// Removed Stripe CardElement options
 
 const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCancel }) => {
-    const stripe = useStripe();
-    const elements = useElements();
-    const { gatewayConfig } = useStripeContext();
+    const { user } = useAuth();
+    const [gatewayConfig, setGatewayConfig] = useState(null);
 
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
@@ -54,8 +38,12 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
     const hasFlutterwave = gateways.flutterwave?.available;
     const hasPesapal = gateways.pesapal?.available;
 
-    // Load saved payment methods
+    // Load saved payment methods & gateway config
     useEffect(() => {
+        paymentProcessingService.getGatewayConfig()
+            .then(res => setGatewayConfig(res))
+            .catch(console.error);
+            
         const loadSaved = async () => {
             try {
                 const data = await paymentProcessingService.getSavedMethods();
@@ -65,6 +53,52 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
         };
         loadSaved();
     }, []);
+
+    const flwConfig = {
+        public_key: gatewayConfig?.gateways?.flutterwave?.public_key || '',
+        tx_ref: Date.now().toString(),
+        amount: parseFloat(amount) || 0,
+        currency: detectCurrency(currency),
+        payment_options: 'card,mobilemoney,ussd',
+        customer: {
+            email: user?.email || 'user@example.com',
+            phone_number: phoneNumber,
+            name: user?.first_name || 'Customer',
+        },
+        customizations: {
+            title: 'Qomrade Payment',
+            description,
+        },
+    };
+    const handleFlutterPayment = useFlutterwave(flwConfig);
+    
+    const triggerFlutterwave = (txRef, method) => {
+        handleFlutterPayment({
+            ...flwConfig,
+            tx_ref: txRef,
+            currency: detectCurrency(method === 'mpesa' ? 'KES' : currency),
+            callback: async (response) => {
+                closePaymentModal();
+                try {
+                    setProcessing(true);
+                    await paymentProcessingService.verifyFlutterwavePayment({
+                        transaction_id: response.transaction_id,
+                        tx_ref: response.tx_ref
+                    });
+                    
+                    if (onSuccess) onSuccess(response);
+                } catch (e) {
+                    setError('Payment verification failed.');
+                } finally {
+                    setProcessing(false);
+                }
+            },
+            onClose: () => {
+                setError('Payment modal closed.');
+                setProcessing(false);
+            }
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -88,90 +122,41 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     description,
                 });
 
-            } else if (methodType === 'card') {
-                // PCI-compliant: use Stripe Elements to create a PaymentMethod
-                if (!stripe || !elements) {
-                    setError('Payment system is loading. Please wait a moment.');
-                    setProcessing(false);
-                    return;
-                }
-
-                const cardElement = elements.getElement(CardElement);
-                if (!cardElement) {
-                    setError('Card input not available.');
-                    setProcessing(false);
-                    return;
-                }
-
-                // Create PaymentMethod using Stripe.js (card data never touches our server)
-                const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
-                    type: 'card',
-                    card: cardElement,
-                });
-
-                if (stripeError) {
-                    setError(stripeError.message);
-                    setProcessing(false);
-                    return;
-                }
-
-                // Send only the tokenized PM ID to our backend
-                response = await paymentProcessingService.processPayment({
-                    amount: parseFloat(amount),
-                    currency,
-                    payment_method: 'stripe',
-                    payment_method_id: paymentMethod.id,
-                    description,
-                });
-
-                // If backend returns client_secret, confirm on client
-                if (response?.provider_response?.client_secret) {
-                    const { error: confirmError } = await stripe.confirmCardPayment(
-                        response.provider_response.client_secret
-                    );
-                    if (confirmError) {
-                        setError(confirmError.message);
-                        setProcessing(false);
-                        return;
-                    }
-                }
-
-                // Save method for future use if requested
-                if (saveDetails && paymentMethod?.id) {
-                    try {
-                        await paymentProcessingService.savePaymentMethod({
-                            method_type: 'card',
-                            provider_token: paymentMethod.id,
-                            provider: 'stripe',
-                            last_four: paymentMethod.card?.last4 || '',
-                            card_brand: paymentMethod.card?.brand || '',
-                            is_default: savedMethods.length === 0,
-                            nickname: `${paymentMethod.card?.brand || 'Card'} •••• ${paymentMethod.card?.last4 || ''}`,
-                        });
-                    } catch { /* non-blocking */ }
-                }
-
-            } else if (methodType === 'mpesa') {
-                if (!phoneNumber) {
+            } else if (methodType === 'card' || methodType === 'mpesa' || methodType === 'flutterwave') {
+                if (methodType === 'mpesa' && !phoneNumber) {
                     setError('Phone number is required for M-Pesa.');
                     setProcessing(false);
                     return;
                 }
+                
+                // Save method preference
                 if (saveDetails) {
                     try {
                         await paymentProcessingService.savePaymentMethod({
-                            method_type: 'mpesa',
+                            method_type: methodType === 'card' ? 'card' : 'mpesa',
                             phone_number: phoneNumber,
+                            is_default: savedMethods.length === 0,
+                            nickname: methodType === 'mpesa' ? phoneNumber : 'Card'
                         });
                     } catch { /* non-blocking */ }
                 }
+
+                // Initialize via backend
                 response = await paymentProcessingService.processPayment({
                     amount: parseFloat(amount),
-                    currency: 'USD',
-                    payment_method: 'mpesa',
+                    currency: detectCurrency(methodType === 'mpesa' ? 'KES' : currency),
+                    payment_method: methodType,
                     phone_number: phoneNumber,
                     description,
                 });
+                
+                if (response?.provider_response?.status !== 'ready_for_inline') {
+                     throw new Error('Failed to initialize payment gateway.');
+                }
+                
+                const txRef = response.transaction?.transaction_code;
+                triggerFlutterwave(txRef, methodType);
+                return; // callback handles success
 
             } else if (methodType === 'paypal') {
                 response = await paymentProcessingService.processPayment({
@@ -186,16 +171,6 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     return;
                 }
 
-            } else if (methodType === 'flutterwave') {
-                response = await paymentProcessingService.initiateFlutterwavePayment({
-                    amount: parseFloat(amount),
-                    currency: currency === 'USD' ? 'KES' : currency,
-                    description,
-                });
-                if (response?.provider_response?.payment_link) {
-                    window.location.href = response.provider_response.payment_link;
-                    return;
-                }
 
             } else if (methodType === 'pesapal') {
                 response = await paymentProcessingService.initiatePesapalPayment({
@@ -268,14 +243,11 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     ))}
                 </div>
 
-                {/* ─── Stripe Card Element (PCI Compliant) ─── */}
+                {/* ─── Card Fields ─── */}
                 {methodType === 'card' && (
                     <div className="card-fields">
-                        <div className="stripe-card-element-wrapper">
-                            <CardElement options={CARD_ELEMENT_OPTIONS} />
-                        </div>
                         <p className="help-text">
-                            🔒 Card details are securely processed by Stripe. We never see your card number.
+                            💳 You'll be redirected to a secure page to enter your card details.
                         </p>
                     </div>
                 )}
@@ -283,16 +255,17 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                 {/* ─── M-Pesa ─── */}
                 {methodType === 'mpesa' && (
                     <div className="mpesa-input">
-                        <input
-                            id="mpesa-phone"
-                            type="tel"
-                            placeholder="Phone number (e.g. 0712345678)"
-                            className="form-input"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            required
-                        />
-                        <p className="help-text">You'll receive an STK push on your phone</p>
+                        <div className="form-group mb-4">
+                            <label>M-Pesa Phone Number</label>
+                            <input
+                                type="tel"
+                                className="form-control"
+                                placeholder="e.g. 0712345678"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                            />
+                            <p className="helper-text mt-2 text-xs text-tertiary">📱 Used for mobile money checkout</p>
+                        </div>
                     </div>
                 )}
 

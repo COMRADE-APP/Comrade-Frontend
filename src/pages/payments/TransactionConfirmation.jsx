@@ -8,6 +8,10 @@ import {
     ArrowUpCircle, Send, ShoppingBag, CreditCard, Smartphone, Mail,
     Building2, Wallet, AlertTriangle
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
+import { paymentProcessingService } from '../../services/paymentProcessing.service';
+import { detectCurrency } from '../../utils/currencyUtils';
 
 const METHOD_ICONS = {
     card: CreditCard,
@@ -37,9 +41,18 @@ const TransactionConfirmation = () => {
     const location = useLocation();
     const transactionData = location.state?.transactionData;
 
+    const { user } = useAuth();
     const [step, setStep] = useState('review'); // 'review', 'processing', 'success', 'error'
     const [resultMessage, setResultMessage] = useState('');
     const [transactionId, setTransactionId] = useState(null);
+    const [gatewayConfig, setGatewayConfig] = useState(null);
+
+    // Fetch gateway config
+    useEffect(() => {
+        paymentProcessingService.getGatewayConfig()
+            .then(res => setGatewayConfig(res))
+            .catch(console.error);
+    }, []);
 
     // If no transaction data, redirect back
     useEffect(() => {
@@ -67,6 +80,62 @@ const TransactionConfirmation = () => {
         if (selectedMethod?.method_type === 'bank_transfer') return `${selectedMethod?.bank_name || 'Bank'} ${selectedMethod?.bank_account_last_four ? '••••' + selectedMethod.bank_account_last_four : ''}`;
         return paymentMethod || 'Payment Method';
     };
+
+    const [flwReadyToPay, setFlwReadyToPay] = useState(false);
+
+    const methodType = selectedMethod?.method_type || paymentMethod;
+
+    const flwConfig = {
+        public_key: gatewayConfig?.gateways?.flutterwave?.public_key || '',
+        tx_ref: transactionId || Date.now().toString(),
+        amount: parseFloat(amount) || 0,
+        currency: detectCurrency(methodType === 'mpesa' ? 'KES' : 'USD'),
+        payment_options: 'card,mobilemoney,ussd',
+        customer: {
+            email: user?.email || 'user@example.com',
+            phone_number: phoneNumber || '',
+            name: user?.full_name || user?.username || 'User',
+        },
+        customizations: {
+            title: 'Qomrade Transaction',
+            description: `Processing ${type}`,
+            logo: 'https://qomrade.com/logo.png',
+        },
+    };
+
+    const handleFlutterPayment = useFlutterwave(flwConfig);
+
+    useEffect(() => {
+        if (flwReadyToPay && transactionId) {
+            handleFlutterPayment({
+                callback: async (response) => {
+                    closePaymentModal();
+                    if (response.status === 'successful') {
+                        try {
+                            await paymentProcessingService.verifyFlutterwavePayment({
+                                transaction_id: response.transaction_id,
+                                tx_ref: response.tx_ref
+                            });
+                            setResultMessage(`Successfully confirmed ${config.title}`);
+                            setStep('success');
+                        } catch (error) {
+                            setStep('error');
+                            setResultMessage('Payment verification failed.');
+                        }
+                    } else {
+                        setStep('error');
+                        setResultMessage('Payment was not completed.');
+                    }
+                },
+                onClose: () => {
+                    setStep('error');
+                    setResultMessage('Payment cancelled by user.');
+                    setFlwReadyToPay(false);
+                },
+            });
+            setFlwReadyToPay(false); // Reset so it doesn't fire again
+        }
+    }, [flwReadyToPay, transactionId, handleFlutterPayment]);
 
     const handleConfirm = async () => {
         setStep('processing');
@@ -116,6 +185,13 @@ const TransactionConfirmation = () => {
 
                 default:
                     throw new Error('Unknown transaction type');
+            }
+
+            if (result?.provider_response?.status === 'ready_for_inline') {
+                const txRef = result.transaction_code || result.transaction?.transaction_code || result.id || Date.now().toString();
+                setTransactionId(txRef);
+                setFlwReadyToPay(true);
+                return; // Stop execution here, useEffect handles success
             }
 
             setTransactionId(result?.transaction_id || result?.id || null);

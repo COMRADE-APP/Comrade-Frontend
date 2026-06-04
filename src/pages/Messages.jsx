@@ -21,6 +21,16 @@ import LazyImg from '../components/common/LazyImg';
 // Common emojis for picker
 const COMMON_EMOJIS = ['😀', '😂', '🥰', '😍', '🤔', '😢', '😡', '🔥', '❤️', '👍', '👎', '🎉', '💯', '✨', '🙏', '👀', '💬', '🙂', '😎', '🤝'];
 
+const ComposerContentEditable = React.memo(({ composerRef, onInput }) => (
+    <div
+        ref={composerRef}
+        contentEditable
+        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none min-h-[40px]"
+        onInput={onInput}
+        data-placeholder="Type a message..."
+    ></div>
+));
+
 const Messages = () => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
@@ -30,7 +40,7 @@ const Messages = () => {
     const [requests, setRequests] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
+    const [composerEmpty, setComposerEmpty] = useState(true);
     const [loading, setLoading] = useState(true);
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [showNewConversation, setShowNewConversation] = useState(false);
@@ -53,6 +63,10 @@ const Messages = () => {
     const typingTimeoutRef = useRef(null);
     const selectedConvRef = useRef(null);
     const loadMessagesRef = useRef(null);
+    const onInputRef = useRef(null);
+    const stableOnInput = useCallback((e) => {
+        onInputRef.current?.(e);
+    }, []);
 
     useEffect(() => {
         loadData();
@@ -95,20 +109,21 @@ const Messages = () => {
 
     const handleWsMessage = useCallback((data) => {
         if (data.type === 'dm_message') {
-            if (String(data.sender_id) !== String(user?.id)) {
-                setMessages(prev => prev.some(m => String(m.id) === String(data.msg_id))
-                    ? prev
-                    : [...prev, {
-                        id: data.msg_id,
-                        content: data.message,
-                        sender: data.sender_id,
-                        sender_info: { first_name: data.sender_name?.split(' ')[0] || '' },
-                        is_own: false,
-                        time_stamp: data.time_stamp,
-                        status: 'delivered',
-                    }]
-                );
-            }
+            setMessages(prev => prev.some(m => String(m.id) === String(data.msg_id))
+                ? prev
+                : [...prev, {
+                    id: data.msg_id,
+                    content: data.message,
+                    sender: data.sender_id,
+                    sender_info: {
+                        first_name: data.sender_name?.split(' ')[0] || '',
+                        avatar_url: data.sender_avatar,
+                    },
+                    is_own: String(data.sender_id) === String(user?.id),
+                    time_stamp: data.time_stamp,
+                    status: 'delivered',
+                }]
+            );
         } else if (data.type === 'typing') {
             setTypingUsers(prev => {
                 if (data.user_id === user?.id) return prev;
@@ -228,8 +243,8 @@ const Messages = () => {
         }
     };
 
-    const onInputChange = (e) => {
-        setNewMessage(e.target.value);
+    onInputRef.current = (e) => {
+        setComposerEmpty(e.target.innerText.trim().length === 0);
         handleTyping();
     };
 
@@ -261,7 +276,7 @@ const Messages = () => {
                     otherUser?.id
                 );
             }
-            setNewMessage('');
+            setComposerEmpty(true);
             if (composerRef.current) composerRef.current.innerHTML = '';
             const senderId = sentMsg?.sender?.id ?? sentMsg?.sender ?? user?.id;
             setMessages(prev => [...prev, {
@@ -795,8 +810,7 @@ const Messages = () => {
                                                 onEmojiSelect={(emoji) => { 
                                                     composerRef.current.focus();
                                                     insertHTMLAtCursor(`<em-emoji native="${emoji.native}" set="apple" size="18px"></em-emoji>&#8203;`);
-                                                    const html = composerRef.current.innerHTML;
-                                                    setNewMessage(convertHTMLToTextWithEmojis(html));
+                                                    setComposerEmpty(false);
                                                 }} 
                                                 set="apple" 
                                                 theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
@@ -821,19 +835,9 @@ const Messages = () => {
                                 )}
 
                                 <div className="relative flex-1">
-                                    <div
-                                        ref={composerRef}
-                                        contentEditable
-                                        className="w-full px-4 py-2 border border-theme bg-secondary text-primary rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none min-h-[40px]"
-                                        onInput={(e) => {
-                                            const html = e.target.innerHTML;
-                                            setNewMessage(convertHTMLToTextWithEmojis(html));
-                                            handleTyping();
-                                        }}
-                                        data-placeholder="Type a message..."
-                                    ></div>
+                                    <ComposerContentEditable composerRef={composerRef} onInput={stableOnInput} />
                                 </div>
-                                <button type="submit" className="p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50" disabled={!newMessage.trim() && !selectedMedia}>
+                                <button type="submit" className="p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50" disabled={composerEmpty && !selectedMedia}>
                                     <Send className="w-5 h-5" />
                                 </button>
                             </form>

@@ -8,8 +8,10 @@ import {
     AlertCircle, Flag, Copy, MessageCircle, Bird, Briefcase, Mail
 } from 'lucide-react';
 import eventsService from '../../services/events.service';
+import { useToast } from '../../contexts/ToastContext';
 
 const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => {
+    const toast = useToast();
     const [showShareMenu, setShowShareMenu] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [userReaction, setUserReaction] = useState(event?.user_reaction || null);
@@ -32,16 +34,17 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
             return;
         }
 
+        const prevReaction = userReaction;
+        setUserReaction(userReaction === reactionType ? null : reactionType);
+
         try {
-            if (userReaction === reactionType) {
+            if (prevReaction === reactionType) {
                 await eventsService.removeReaction(event.id);
-                setUserReaction(null);
             } else {
                 await eventsService.addReaction(event.id, reactionType);
-                setUserReaction(reactionType);
             }
-            onUpdate?.();
         } catch (error) {
+            setUserReaction(prevReaction);
             console.error('Failed to update reaction:', error);
         }
     };
@@ -87,7 +90,7 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
                 }
-                alert('Link copied to clipboard!');
+                toast.success('Link copied to clipboard!');
             } else {
                 await eventsService.shareEvent(event.id, { share_type: platform });
                 // Handle platform-specific sharing
@@ -118,10 +121,10 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
                     report_type: 'other',
                     description: reason
                 });
-                alert('Report submitted. Thank you for helping keep our community safe.');
+                toast.success('Report submitted. Thank you for helping keep our community safe.');
                 setShowMoreMenu(false);
             } catch (error) {
-                alert('Failed to submit report');
+                toast.error('Failed to submit report');
             }
         }
     };
@@ -130,11 +133,11 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
         if (confirm('Are you sure you want to block this event from your feed?')) {
             try {
                 await eventsService.blockEvent(event.id);
-                alert('Event blocked from your feed');
+                toast.success('Event blocked from your feed');
                 setShowMoreMenu(false);
                 onUpdate?.();
             } catch (error) {
-                alert('Failed to block event');
+                toast.error('Failed to block event');
             }
         }
     };
@@ -224,7 +227,7 @@ const EventActions = ({ event, onUpdate, onOpenReminders, compact = false }) => 
                     </button>
 
                     {showShareMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-elevated rounded-lg shadow-lg border border-theme py-1 z-50">
                             <button
                                 onClick={() => handleShare('facebook')}
                                 className="w-full px-4 py-2 text-left hover:bg-secondary flex items-center gap-2"

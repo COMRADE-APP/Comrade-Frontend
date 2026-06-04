@@ -135,7 +135,7 @@ const Sidebar = () => {
         { path: ROUTES.INSURANCE, label: 'Insurance', icon: Shield },
         { path: ROUTES.SPECIALIZATIONS, label: 'Learning Paths', icon: BookOpen },
         { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
-        { path: ROUTES.GIGS, label: 'Gigs & Tasks', icon: ClipboardList },
+        { path: ROUTES.GIGS, label: 'Gigs', icon: ClipboardList },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
         { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },

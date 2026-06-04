@@ -85,9 +85,24 @@ const Events = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const navigate = useNavigate();
 
-    useEffect(() => { loadEvents(); }, [filter]);
+    useEffect(() => {
+        eventsService.getEventCategories().then(r => {
+            const data = r?.data || r || [];
+            setCategories(Array.isArray(data) ? data : []);
+        }).catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => { loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
 
     const loadEvents = async () => {
         try {
@@ -97,6 +112,12 @@ const Events = () => {
                 params.interested = 'true';
             } else if (filter !== 'all' && filter !== 'happening_now' && filter !== 'past') {
                 params.status = filter;
+            }
+            if (selectedCategory) {
+                params.category = selectedCategory;
+            }
+            if (debouncedSearch.trim()) {
+                params.search = debouncedSearch.trim();
             }
             const response = await eventsService.getAllEvents(params);
             let data = [];
@@ -114,11 +135,6 @@ const Events = () => {
     };
 
     const filteredEvents = events
-        .filter(e =>
-            e.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.location?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
         .filter(e => {
             if (filter === 'past') return getTemporalStatus(e) === 'past';
             if (filter === 'happening_now') return getTemporalStatus(e) === 'happening_now';
@@ -126,8 +142,13 @@ const Events = () => {
         })
         .sort((a, b) => {
             const order = { upcoming: 0, happening_now: 1, past: 2 };
-            const diff = (order[getTemporalStatus(a)] ?? 1) - (order[getTemporalStatus(b)] ?? 1);
+            const statusA = getTemporalStatus(a);
+            const statusB = getTemporalStatus(b);
+            const diff = (order[statusA] ?? 1) - (order[statusB] ?? 1);
             if (diff !== 0) return diff;
+            if (statusA === 'past') {
+                return new Date(b.event_date || 0) - new Date(a.event_date || 0);
+            }
             return new Date(a.event_date || 0) - new Date(b.event_date || 0);
         });
 
@@ -140,7 +161,7 @@ const Events = () => {
                     <p className="text-secondary mt-1">Discover and join upcoming events</p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="outline" onClick={() => navigate('/funding/create-business?category=event_organizer')}>
+                    <Button variant="outline" onClick={() => navigate('/funding/create')}>
                         <UserPlus className="w-4 h-4 mr-2" />
                         Register as Organiser
                     </Button>
@@ -182,6 +203,35 @@ const Events = () => {
                     </button>
                 ))}
             </div>
+
+            {/* Category Tabs */}
+            {categories.length > 0 && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                    <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                            !selectedCategory
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                        }`}
+                    >
+                        All
+                    </button>
+                    {categories.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setSelectedCategory(String(cat.id))}
+                            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                                selectedCategory === String(cat.id)
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Events Grid */}
             {loading ? (

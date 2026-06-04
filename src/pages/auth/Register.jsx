@@ -7,6 +7,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { validateEmail, validatePassword, validateRequired, getErrorMessage } from '../../utils/validators';
 import { getBrowserLocale } from '../../utils/currency';
+import countries from '../../data/countries.json';
 
 const Register = () => {
     const { register } = useAuth();
@@ -20,6 +21,7 @@ const Register = () => {
         confirmPassword: '',
         userType: 'student',
         dateOfBirth: '',
+        country: '',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
@@ -52,8 +54,12 @@ const Register = () => {
 
         if (!validateRequired(formData.phoneNumber)) {
             newErrors.phoneNumber = 'Phone number is required';
-        } else if (formData.phoneNumber.length < 10) {
-            newErrors.phoneNumber = 'Phone number must be at least 10 digits';
+        } else if (formData.phoneNumber.replace(/\s/g, '').length < 4) {
+            newErrors.phoneNumber = 'Enter a valid phone number';
+        }
+
+        if (!validateRequired(formData.country)) {
+            newErrors.country = 'Country of origin is required';
         }
 
         if (!validateRequired(formData.password)) {
@@ -94,6 +100,7 @@ const Register = () => {
                 password: formData.password,
                 confirm_password: formData.confirmPassword,
                 user_type: formData.userType,
+                country_of_origin: formData.country,
                 browser_locale: getBrowserLocale(),
             };
 
@@ -211,16 +218,42 @@ const Register = () => {
                         required
                     />
 
-                    <Input
-                        label="Phone Number"
-                        type="tel"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        placeholder="+254700000000"
-                        error={errors.phoneNumber}
-                        required
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                        <div>
+                            <label className="block text-sm font-medium text-secondary mb-1">Country</label>
+                            <select
+                                name="country"
+                                value={formData.country}
+                                onChange={(e) => {
+                                    const c = countries.find(c => c.code === e.target.value);
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        country: e.target.value,
+                                        phoneNumber: c ? c.phone_code : prev.phoneNumber
+                                    }));
+                                }}
+                                className={`w-full px-3 py-2 bg-elevated border ${errors.country ? 'border-red-500' : 'border-theme'} text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm`}
+                            >
+                                <option value="">Select</option>
+                                {countries.map(c => (
+                                    <option key={c.code} value={c.code}>{c.code}</option>
+                                ))}
+                            </select>
+                            {errors.country && <p className="mt-1 text-xs text-red-500">{errors.country}</p>}
+                        </div>
+                        <div className="col-span-2">
+                            <Input
+                                label="Phone Number"
+                                type="tel"
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                placeholder="+254700000000"
+                                error={errors.phoneNumber}
+                                required
+                            />
+                        </div>
+                    </div>
 
                     <div>
                         <label htmlFor="dateOfBirth" className="block text-sm font-medium text-secondary mb-1">

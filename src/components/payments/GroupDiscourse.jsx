@@ -12,7 +12,7 @@ import { emojiData, Picker } from '../../utils/emojiData';
 import { init } from 'emoji-mart';
 import { AppleEmoji, renderContentWithEmojis, insertHTMLAtCursor, QUICK_EMOJIS } from '../../utils/emoji';
 
-init({ data });
+init({ data: emojiData });
 
 // ── Quick Reaction Bar (inline under posts/replies) ──────────
 const QuickReactionBar = ({ onReact, className = '' }) => {
@@ -45,7 +45,7 @@ const QuickReactionBar = ({ onReact, className = '' }) => {
             {showFull && (
                 <div className="absolute top-full mt-3 left-0 z-[9999] shadow-2xl rounded-xl overflow-hidden border border-theme animate-in fade-in zoom-in-95 duration-200" style={{ maxWidth: 'calc(100vw - 32px)' }}>
                     <Picker 
-                        data={data} 
+                        data={emojiData} 
                         onEmojiSelect={(emoji) => { onReact(emoji.native); setShowFull(false); }} 
                         set="apple" 
                         theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
