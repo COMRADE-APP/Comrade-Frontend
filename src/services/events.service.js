@@ -836,6 +836,10 @@ const eventsService = {
 
     // ===== ORGANIZER DISCOVERY & FOLLOW =====
 
+    getOrganizer: (id) => {
+        return api.get(`${BASE_URL}/organizer_profiles/${id}/`);
+    },
+
     getOrganizers: (params = {}) => {
         return api.get(`${BASE_URL}/organizer_profiles/discover/`, { params });
     },
@@ -850,6 +854,28 @@ const eventsService = {
 
     toggleOrganizerNotifications: (followId, enabled) => {
         return api.patch(`${BASE_URL}/organizer_follows/${followId}/toggle_notifications/`, { notifications_enabled: enabled });
+    },
+
+    // ===== SPONSOR DISCOVERY & FOLLOW =====
+
+    getSponsors: (params = {}) => {
+        return api.get(`${BASE_URL}/sponsor_profiles/discover/`, { params });
+    },
+
+    getSponsor: (id) => {
+        return api.get(`${BASE_URL}/sponsor_profiles/${id}/`);
+    },
+
+    followSponsor: (sponsorId) => {
+        return api.post(`${BASE_URL}/sponsor_profiles/${sponsorId}/follow/`);
+    },
+
+    getSponsorFollowing: () => {
+        return api.get(`${BASE_URL}/sponsor_follows/following/`);
+    },
+
+    toggleSponsorNotifications: (followId, enabled) => {
+        return api.patch(`${BASE_URL}/sponsor_follows/${followId}/toggle_notifications/`, { notifications_enabled: enabled });
     },
 
     // ===== SPONSOR REQUESTS =====

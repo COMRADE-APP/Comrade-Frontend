@@ -10,6 +10,8 @@ const CreateEvent = () => Lazy(() => import('../pages/CreateEvent'));
 const EventAnalytics = () => Lazy(() => import('../pages/EventAnalytics'));
 const SponsorshipManagement = () => Lazy(() => import('../pages/events/SponsorshipManagement'));
 const DiscoverOrganisers = () => Lazy(() => import('../pages/organiser/DiscoverOrganisers'));
+const OrganiserDetail = () => Lazy(() => import('../pages/organiser/OrganiserDetail'));
+const SponsorDetail = () => Lazy(() => import('../pages/sponsor/SponsorDetail'));
 
 export const eventRoutes = [
     <Route key="events" path={ROUTES.EVENTS} element={<Events />} />,
@@ -19,4 +21,6 @@ export const eventRoutes = [
     <Route key="event-analytics" path="/events/analytics" element={<EventAnalytics />} />,
     <Route key="event-sponsorship" path={ROUTES.EVENT_SPONSORSHIP} element={<SponsorshipManagement />} />,
     <Route key="discover-organisers" path={ROUTES.DISCOVER_ORGANISERS} element={<DiscoverOrganisers />} />,
+    <Route key="organiser-detail" path={ROUTES.ORGANISER_DETAIL} element={<OrganiserDetail />} />,
+    <Route key="sponsor-detail" path={ROUTES.SPONSOR_DETAIL} element={<SponsorDetail />} />,
 ];

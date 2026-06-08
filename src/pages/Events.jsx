@@ -6,6 +6,7 @@ import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
 import OrganizerCard from '../components/organisers/OrganizerCard';
+import SponsorCard from '../components/organisers/SponsorCard';
 import {
     Calendar, MapPin, Users, Clock, Ticket, Bell,
     X, ChevronRight, Plus, Search, BarChart3, UserPlus, Play, DollarSign, Briefcase, UserCog, Settings
@@ -69,7 +70,10 @@ const FILTERS = [
     { value: 'happening_now',  label: 'Happening Now' },
     { value: 'past',           label: 'Past' },
     { value: 'interested',     label: 'Interested' },
-    { value: 'sponsorship',    label: 'Sponsorship Opportunities' },
+    { value: 'sponsorship',    label: 'Sponsorship' },
+    { value: 'virtual',        label: 'Virtual' },
+    { value: 'hybrid',         label: 'Hybrid' },
+    { value: 'in_person',      label: 'In-Person' },
 ];
 
 const Events = () => {
@@ -85,8 +89,10 @@ const Events = () => {
     const [hasSponsorProfile, setHasSponsorProfile] = useState(false);
     const navigate = useNavigate();
 
+    // Tab state
+    const [activeView, setActiveView] = useState('events'); // 'events' | 'organisers' | 'sponsors'
+
     // Organizers tab state
-    const [viewingOrganisers, setViewingOrganisers] = useState(false);
     const [organizers, setOrganizers] = useState([]);
     const [orgLoading, setOrgLoading] = useState(false);
     const [orgSearch, setOrgSearch] = useState('');
@@ -94,18 +100,27 @@ const Events = () => {
     const [following, setFollowing] = useState(new Set());
     const [followData, setFollowData] = useState({});
 
+    // Sponsors tab state
+    const [sponsors, setSponsors] = useState([]);
+    const [sponsorLoading, setSponsorLoading] = useState(false);
+    const [sponsorSearch, setSponsorSearch] = useState('');
+    const [sponsorDebouncedSearch, setSponsorDebouncedSearch] = useState('');
+    const [sponsorFollowing, setSponsorFollowing] = useState(new Set());
+    const [sponsorFollowData, setSponsorFollowData] = useState({});
+
     useEffect(() => {
-        api.get('/api/events/organizer_profiles/my_profile/')
-            .then(() => setHasOrganizerProfile(true))
+        api.get('/api/events/organizer_profiles/my_profile/', { validateStatus: s => s < 500 })
+            .then(res => setHasOrganizerProfile(res.status === 200))
             .catch(() => setHasOrganizerProfile(false));
-        api.get('/api/events/sponsor_profiles/my_profile/')
-            .then(() => setHasSponsorProfile(true))
+        api.get('/api/events/sponsor_profiles/my_profile/', { validateStatus: s => s < 500 })
+            .then(res => setHasSponsorProfile(res.status === 200))
             .catch(() => setHasSponsorProfile(false));
     }, []);
 
     useEffect(() => {
         eventsService.getEventCategories().then(r => {
-            const data = r?.data || r || [];
+            const resp = r?.data || r || [];
+            const data = resp?.results || (Array.isArray(resp) ? resp : []);
             setCategories(Array.isArray(data) ? data : []);
         }).catch(() => {});
     }, []);
@@ -120,13 +135,20 @@ const Events = () => {
         return () => clearTimeout(timer);
     }, [orgSearch]);
 
-    useEffect(() => { if (!viewingOrganisers) loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
-    useEffect(() => { if (viewingOrganisers) loadOrganizers(); }, [orgDebouncedSearch]);
+    useEffect(() => {
+        const timer = setTimeout(() => setSponsorDebouncedSearch(sponsorSearch), 300);
+        return () => clearTimeout(timer);
+    }, [sponsorSearch]);
+
+    useEffect(() => { if (activeView === 'events') loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
+    useEffect(() => { if (activeView === 'organisers') loadOrganizers(); }, [orgDebouncedSearch]);
+    useEffect(() => { if (activeView === 'sponsors') loadSponsors(); }, [sponsorDebouncedSearch]);
 
     useEffect(() => {
-        if (!user || !viewingOrganisers) return;
-        loadFollowing();
-    }, [user, viewingOrganisers]);
+        if (!user) return;
+        if (activeView === 'organisers') loadFollowing();
+        if (activeView === 'sponsors') loadSponsorFollowing();
+    }, [user, activeView]);
 
     const loadEvents = async () => {
         try {
@@ -134,8 +156,12 @@ const Events = () => {
             const params = {};
             if (filter === 'interested') {
                 params.interested = 'true';
-            } else if (filter !== 'all' && filter !== 'happening_now' && filter !== 'past') {
-                params.status = filter;
+            }
+            if (filter === 'sponsorship') {
+                params.seeking_sponsors = 'true';
+            }
+            if (filter === 'past') {
+                params.ordering = '-event_date';
             }
             if (selectedCategory) {
                 params.category = selectedCategory;
@@ -225,20 +251,104 @@ const Events = () => {
         }
     };
 
+    // ---- Sponsor functions ----
+
+    const loadSponsors = async () => {
+        try {
+            setSponsorLoading(true);
+            const params = {};
+            if (sponsorDebouncedSearch.trim()) params.search = sponsorDebouncedSearch.trim();
+            const res = await eventsService.getSponsors(params);
+            const data = res?.data?.results || res?.data || [];
+            setSponsors(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to load sponsors', err);
+            setSponsors([]);
+        } finally {
+            setSponsorLoading(false);
+        }
+    };
+
+    const loadSponsorFollowing = async () => {
+        try {
+            const res = await eventsService.getSponsorFollowing();
+            const items = res?.data || [];
+            const ids = new Set();
+            const data = {};
+            items.forEach(f => {
+                ids.add(f.sponsor);
+                data[f.sponsor] = { follow_id: f.id, notifications_enabled: f.notifications_enabled };
+            });
+            setSponsorFollowing(ids);
+            setSponsorFollowData(data);
+        } catch (err) {
+            console.error('Failed to load sponsor following', err);
+        }
+    };
+
+    const toggleSponsorFollow = async (sponsorId) => {
+        try {
+            const res = await eventsService.followSponsor(sponsorId);
+            if (res.data.following) {
+                setSponsorFollowing(prev => new Set(prev).add(sponsorId));
+            } else {
+                setSponsorFollowing(prev => {
+                    const next = new Set(prev);
+                    next.delete(sponsorId);
+                    return next;
+                });
+            }
+            loadSponsorFollowing();
+            loadSponsors();
+        } catch (err) {
+            console.error('Failed to toggle sponsor follow', err);
+        }
+    };
+
+    const toggleSponsorNotifications = async (sponsor) => {
+        const data = sponsorFollowData[sponsor.id];
+        if (!data?.follow_id) return;
+        const newEnabled = !data.notifications_enabled;
+        try {
+            await eventsService.toggleSponsorNotifications(data.follow_id, newEnabled);
+            setSponsorFollowData(prev => ({
+                ...prev,
+                [sponsor.id]: { ...prev[sponsor.id], notifications_enabled: newEnabled }
+            }));
+        } catch (err) {
+            console.error('Failed to toggle sponsor notifications', err);
+        }
+    };
+
     const handleViewOrganisers = () => {
-        setViewingOrganisers(true);
+        setActiveView('organisers');
+    };
+
+    const handleViewSponsors = () => {
+        setActiveView('sponsors');
     };
 
     const handleViewEvents = () => {
-        setViewingOrganisers(false);
+        setActiveView('events');
+    };
+
+    const getLocationType = (e) => {
+        const val = e.event_location?.toLowerCase();
+        const txt = e.location?.toLowerCase() || '';
+        if (val === 'online' || txt.includes('virtual') || txt.includes('online') || txt.includes('zoom') || txt.includes('meet') || txt.includes('teams')) return 'virtual';
+        if (val === 'hybrid' || txt.includes('hybrid')) return 'hybrid';
+        return 'in_person';
     };
 
     const filteredEvents = events
         .filter(e => {
             if (filter === 'past') return getTemporalStatus(e) === 'past';
             if (filter === 'happening_now') return getTemporalStatus(e) === 'happening_now';
-            if (filter === 'interested') return e.user_reaction === 'interested';
+            if (filter === 'upcoming') return getTemporalStatus(e) === 'upcoming';
             if (filter === 'sponsorship') return e.seeking_sponsors === true;
+            if (filter === 'virtual') return getLocationType(e) === 'virtual';
+            if (filter === 'hybrid') return getLocationType(e) === 'hybrid';
+            if (filter === 'in_person') return getLocationType(e) === 'in_person';
             return true;
         })
         .sort((a, b) => {
@@ -306,15 +416,19 @@ const Events = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                 <input
                     type="text"
-                    placeholder={viewingOrganisers ? "Search organisers by name or location..." : "Search events by name, location..."}
-                    value={viewingOrganisers ? orgSearch : searchQuery}
-                    onChange={(e) => viewingOrganisers ? setOrgSearch(e.target.value) : setSearchQuery(e.target.value)}
+                    placeholder={activeView === 'organisers' ? "Search organisers by name or location..." : activeView === 'sponsors' ? "Search sponsors by name or industry..." : "Search events by name, location..."}
+                    value={activeView === 'organisers' ? orgSearch : activeView === 'sponsors' ? sponsorSearch : searchQuery}
+                    onChange={(e) => {
+                        if (activeView === 'organisers') setOrgSearch(e.target.value);
+                        else if (activeView === 'sponsors') setSponsorSearch(e.target.value);
+                        else setSearchQuery(e.target.value);
+                    }}
                     className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
             </div>
 
             {/* Filter Tabs */}
-            {!viewingOrganisers && (
+            {activeView === 'events' && (
                 <div className="flex flex-wrap gap-2">
                     {FILTERS.map(f => (
                         <button
@@ -331,9 +445,9 @@ const Events = () => {
                 </div>
             )}
 
-            {/* Category Tabs + Organisers Tab */}
+            {/* Category Tabs + View Toggles */}
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin items-center">
-                {categories.length > 0 && !viewingOrganisers && (
+                {categories.length > 0 && activeView === 'events' && (
                     <>
                         <button
                             onClick={() => setSelectedCategory(null)}
@@ -360,22 +474,42 @@ const Events = () => {
                         ))}
                     </>
                 )}
-                <div className={categories.length > 0 && !viewingOrganisers ? 'ml-auto pl-2 border-l border-theme' : ''}>
+                <div className={`${activeView === 'events' ? 'ml-auto pl-2 border-l border-theme' : 'ml-auto'} flex gap-1.5`}>
                     <button
-                        onClick={viewingOrganisers ? handleViewEvents : handleViewOrganisers}
+                        onClick={handleViewEvents}
                         className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                            viewingOrganisers
+                            activeView === 'events'
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
                         }`}
                     >
-                        {viewingOrganisers ? 'Events' : 'Organisers'}
+                        Events
+                    </button>
+                    <button
+                        onClick={handleViewOrganisers}
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                            activeView === 'organisers'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                        }`}
+                    >
+                        Organisers
+                    </button>
+                    <button
+                        onClick={handleViewSponsors}
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                            activeView === 'sponsors'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                        }`}
+                    >
+                        Sponsors
                     </button>
                 </div>
             </div>
 
             {/* Content */}
-            {viewingOrganisers ? (
+            {activeView === 'organisers' ? (
                 /* Organizers Grid */
                 orgLoading ? (
                     <div className="text-center py-12">
@@ -398,6 +532,33 @@ const Events = () => {
                                 notificationsEnabled={followData[org.id]?.notifications_enabled ?? false}
                                 onToggleFollow={toggleFollow}
                                 onToggleNotifications={toggleNotifications}
+                            />
+                        ))}
+                    </div>
+                )
+            ) : activeView === 'sponsors' ? (
+                /* Sponsors Grid */
+                sponsorLoading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    </div>
+                ) : sponsors.length === 0 ? (
+                    <Card>
+                        <CardBody className="text-center py-12">
+                            <Briefcase className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                            <p className="text-secondary">{sponsorDebouncedSearch ? 'No sponsors match your search' : 'No sponsors found'}</p>
+                        </CardBody>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {sponsors.map((sp) => (
+                            <SponsorCard
+                                key={sp.id}
+                                sponsor={sp}
+                                isFollowing={sponsorFollowing.has(sp.id)}
+                                notificationsEnabled={sponsorFollowData[sp.id]?.notifications_enabled ?? false}
+                                onToggleFollow={toggleSponsorFollow}
+                                onToggleNotifications={toggleSponsorNotifications}
                             />
                         ))}
                     </div>

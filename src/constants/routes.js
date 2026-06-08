@@ -94,6 +94,8 @@ export const ROUTES = {
     SPONSOR_DASHBOARD: '/dashboard/sponsor',
     DISCOVER_ORGANISERS: '/organisers/discover',
     ORGANISER_PROFILE_SETTINGS: '/organiser/profile/settings',
+    ORGANISER_DETAIL: '/organiser/:id',
+    SPONSOR_DETAIL: '/sponsor/:id',
 
     // Business Funding
     FUNDING: '/funding',
