@@ -1,19 +1,17 @@
-/**
- * Enhanced Events page — compact cards with cover images, booking fee, smart filters
- */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
+import OrganizerCard from '../components/organisers/OrganizerCard';
 import {
     Calendar, MapPin, Users, Clock, Ticket, Bell,
-    X, ChevronRight, Plus, Search, BarChart3, UserPlus, Play
+    X, ChevronRight, Plus, Search, BarChart3, UserPlus, Play, DollarSign, Briefcase, UserCog, Settings
 } from 'lucide-react';
 import eventsService from '../services/events.service';
-
-// ─── helpers ───────────────────────────────────────────────────
+import api from '../services/api';
 
 const shortDate = (iso) => {
     if (!iso) return '';
@@ -58,16 +56,12 @@ const getTemporalStatus = (event) => {
     return 'upcoming';
 };
 
-// Resolve the best available media for an event
 const getEventMedia = (event) => {
     const img = event.cover_image || event.image_url || event.image || event.banner;
     if (!img) return null;
-    // Detect video by extension
     const isVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(img);
     return { src: img, isVideo };
 };
-
-// ─── filters ───────────────────────────────────────────────────
 
 const FILTERS = [
     { value: 'all',            label: 'All' },
@@ -75,9 +69,8 @@ const FILTERS = [
     { value: 'happening_now',  label: 'Happening Now' },
     { value: 'past',           label: 'Past' },
     { value: 'interested',     label: 'Interested' },
+    { value: 'sponsorship',    label: 'Sponsorship Opportunities' },
 ];
-
-// ─── page component ────────────────────────────────────────────
 
 const Events = () => {
     const { user } = useAuth();
@@ -88,7 +81,27 @@ const Events = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [hasOrganizerProfile, setHasOrganizerProfile] = useState(false);
+    const [hasSponsorProfile, setHasSponsorProfile] = useState(false);
     const navigate = useNavigate();
+
+    // Organizers tab state
+    const [viewingOrganisers, setViewingOrganisers] = useState(false);
+    const [organizers, setOrganizers] = useState([]);
+    const [orgLoading, setOrgLoading] = useState(false);
+    const [orgSearch, setOrgSearch] = useState('');
+    const [orgDebouncedSearch, setOrgDebouncedSearch] = useState('');
+    const [following, setFollowing] = useState(new Set());
+    const [followData, setFollowData] = useState({});
+
+    useEffect(() => {
+        api.get('/api/events/organizer_profiles/my_profile/')
+            .then(() => setHasOrganizerProfile(true))
+            .catch(() => setHasOrganizerProfile(false));
+        api.get('/api/events/sponsor_profiles/my_profile/')
+            .then(() => setHasSponsorProfile(true))
+            .catch(() => setHasSponsorProfile(false));
+    }, []);
 
     useEffect(() => {
         eventsService.getEventCategories().then(r => {
@@ -102,7 +115,18 @@ const Events = () => {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    useEffect(() => { loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
+    useEffect(() => {
+        const timer = setTimeout(() => setOrgDebouncedSearch(orgSearch), 300);
+        return () => clearTimeout(timer);
+    }, [orgSearch]);
+
+    useEffect(() => { if (!viewingOrganisers) loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
+    useEffect(() => { if (viewingOrganisers) loadOrganizers(); }, [orgDebouncedSearch]);
+
+    useEffect(() => {
+        if (!user || !viewingOrganisers) return;
+        loadFollowing();
+    }, [user, viewingOrganisers]);
 
     const loadEvents = async () => {
         try {
@@ -134,10 +158,87 @@ const Events = () => {
         }
     };
 
+    const loadFollowing = async () => {
+        try {
+            const res = await eventsService.getFollowing();
+            const items = res?.data || [];
+            const ids = new Set();
+            const data = {};
+            items.forEach(f => {
+                ids.add(f.organizer);
+                data[f.organizer] = { follow_id: f.id, notifications_enabled: f.notifications_enabled };
+            });
+            setFollowing(ids);
+            setFollowData(data);
+        } catch (err) {
+            console.error('Failed to load following', err);
+        }
+    };
+
+    const loadOrganizers = async () => {
+        try {
+            setOrgLoading(true);
+            const params = {};
+            if (orgDebouncedSearch.trim()) params.search = orgDebouncedSearch.trim();
+            const res = await eventsService.getOrganizers(params);
+            const data = res?.data?.results || res?.data || [];
+            setOrganizers(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to load organizers', err);
+            setOrganizers([]);
+        } finally {
+            setOrgLoading(false);
+        }
+    };
+
+    const toggleFollow = async (organizerId) => {
+        try {
+            const res = await eventsService.followOrganizer(organizerId);
+            if (res.data.following) {
+                setFollowing(prev => new Set(prev).add(organizerId));
+            } else {
+                setFollowing(prev => {
+                    const next = new Set(prev);
+                    next.delete(organizerId);
+                    return next;
+                });
+            }
+            loadFollowing();
+            loadOrganizers();
+        } catch (err) {
+            console.error('Failed to toggle follow', err);
+        }
+    };
+
+    const toggleNotifications = async (organizer) => {
+        const data = followData[organizer.id];
+        if (!data?.follow_id) return;
+        const newEnabled = !data.notifications_enabled;
+        try {
+            await eventsService.toggleOrganizerNotifications(data.follow_id, newEnabled);
+            setFollowData(prev => ({
+                ...prev,
+                [organizer.id]: { ...prev[organizer.id], notifications_enabled: newEnabled }
+            }));
+        } catch (err) {
+            console.error('Failed to toggle notifications', err);
+        }
+    };
+
+    const handleViewOrganisers = () => {
+        setViewingOrganisers(true);
+    };
+
+    const handleViewEvents = () => {
+        setViewingOrganisers(false);
+    };
+
     const filteredEvents = events
         .filter(e => {
             if (filter === 'past') return getTemporalStatus(e) === 'past';
             if (filter === 'happening_now') return getTemporalStatus(e) === 'happening_now';
+            if (filter === 'interested') return e.user_reaction === 'interested';
+            if (filter === 'sponsorship') return e.seeking_sponsors === true;
             return true;
         })
         .sort((a, b) => {
@@ -161,10 +262,34 @@ const Events = () => {
                     <p className="text-secondary mt-1">Discover and join upcoming events</p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="outline" onClick={() => navigate('/funding/create')}>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Register as Organiser
-                    </Button>
+                    {hasOrganizerProfile ? (
+                        <>
+                            <Button variant="outline" onClick={() => navigate('/dashboard/organiser')}>
+                                <UserCog className="w-4 h-4 mr-2" />
+                                Organiser Profile
+                            </Button>
+                            <Button variant="outline" onClick={() => navigate(ROUTES.ORGANISER_PROFILE_SETTINGS)}>
+                                <Settings className="w-4 h-4 mr-2" />
+                                Profile Settings
+                            </Button>
+                        </>
+                    ) : (
+                        <Button variant="outline" onClick={() => navigate(ROUTES.REGISTER_ORGANISER)}>
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Register as Organiser
+                        </Button>
+                    )}
+                    {hasSponsorProfile ? (
+                        <Button variant="outline" onClick={() => navigate(ROUTES.SPONSOR_DASHBOARD)}>
+                            <Briefcase className="w-4 h-4 mr-2" />
+                            Sponsor Profile
+                        </Button>
+                    ) : (
+                        <Button variant="outline" onClick={() => navigate(ROUTES.REGISTER_SPONSOR)}>
+                            <Briefcase className="w-4 h-4 mr-2" />
+                            Register as Sponsor
+                        </Button>
+                    )}
                     <Button variant="secondary" onClick={() => navigate('/events/analytics')}>
                         <BarChart3 className="w-4 h-4 mr-2" />
                         Analytics
@@ -181,99 +306,149 @@ const Events = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tertiary" />
                 <input
                     type="text"
-                    placeholder="Search events by name, location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={viewingOrganisers ? "Search organisers by name or location..." : "Search events by name, location..."}
+                    value={viewingOrganisers ? orgSearch : searchQuery}
+                    onChange={(e) => viewingOrganisers ? setOrgSearch(e.target.value) : setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2">
-                {FILTERS.map(f => (
-                    <button
-                        key={f.value}
-                        onClick={() => setFilter(f.value)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f.value
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
-                            }`}
-                    >
-                        {f.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Category Tabs */}
-            {categories.length > 0 && (
-                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                    <button
-                        onClick={() => setSelectedCategory(null)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                            !selectedCategory
+            {!viewingOrganisers && (
+                <div className="flex flex-wrap gap-2">
+                    {FILTERS.map(f => (
+                        <button
+                            key={f.value}
+                            onClick={() => setFilter(f.value)}
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f.value
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
-                        }`}
-                    >
-                        All
-                    </button>
-                    {categories.map(cat => (
-                        <button
-                            key={cat.id}
-                            onClick={() => setSelectedCategory(String(cat.id))}
-                            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                                selectedCategory === String(cat.id)
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
-                            }`}
+                                }`}
                         >
-                            {cat.name}
+                            {f.label}
                         </button>
                     ))}
                 </div>
             )}
 
-            {/* Events Grid */}
-            {loading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            {/* Category Tabs + Organisers Tab */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin items-center">
+                {categories.length > 0 && !viewingOrganisers && (
+                    <>
+                        <button
+                            onClick={() => setSelectedCategory(null)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                                !selectedCategory
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                            }`}
+                        >
+                            All
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(String(cat.id))}
+                                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                                    selectedCategory === String(cat.id)
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                                }`}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                    </>
+                )}
+                <div className={categories.length > 0 && !viewingOrganisers ? 'ml-auto pl-2 border-l border-theme' : ''}>
+                    <button
+                        onClick={viewingOrganisers ? handleViewEvents : handleViewOrganisers}
+                        className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                            viewingOrganisers
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-secondary text-secondary hover:bg-tertiary/20 hover:text-primary'
+                        }`}
+                    >
+                        {viewingOrganisers ? 'Events' : 'Organisers'}
+                    </button>
                 </div>
-            ) : filteredEvents.length === 0 ? (
-                <Card>
-                    <CardBody className="text-center py-12">
-                        <Calendar className="w-12 h-12 text-tertiary mx-auto mb-4" />
-                        <p className="text-secondary">No events found{filter !== 'all' ? ' for this filter' : ''}. Create your first event!</p>
-                    </CardBody>
-                </Card>
+            </div>
+
+            {/* Content */}
+            {viewingOrganisers ? (
+                /* Organizers Grid */
+                orgLoading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    </div>
+                ) : organizers.length === 0 ? (
+                    <Card>
+                        <CardBody className="text-center py-12">
+                            <Briefcase className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                            <p className="text-secondary">{orgDebouncedSearch ? 'No organisers match your search' : 'No organisers found'}</p>
+                        </CardBody>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {organizers.map((org) => (
+                            <OrganizerCard
+                                key={org.id}
+                                organizer={org}
+                                isFollowing={following.has(org.id)}
+                                notificationsEnabled={followData[org.id]?.notifications_enabled ?? false}
+                                onToggleFollow={toggleFollow}
+                                onToggleNotifications={toggleNotifications}
+                            />
+                        ))}
+                    </div>
+                )
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {filteredEvents.map((event) => (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            onOpenDetails={() => navigate(`/events/${event.id}`)}
-                            onUpdate={loadEvents}
-                        />
-                    ))}
-                </div>
+                /* Events Grid */
+                loading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    </div>
+                ) : filteredEvents.length === 0 ? (
+                    <Card>
+                        <CardBody className="text-center py-12">
+                            <Calendar className="w-12 h-12 text-tertiary mx-auto mb-4" />
+                            <p className="text-secondary">No events found{filter !== 'all' ? ' for this filter' : ''}. Create your first event!</p>
+                        </CardBody>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {filteredEvents.map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                onOpenDetails={() => navigate(`/events/${event.id}`)}
+                                onUpdate={loadEvents}
+                            />
+                        ))}
+                    </div>
+                )
             )}
         </div>
     );
 };
-
-// ─── compact event card with cover image ───────────────────────
 
 const EventCard = ({ event, onOpenDetails, onUpdate }) => {
     const navigate = useNavigate();
     const temporal = getTemporalStatus(event);
     const isPast = temporal === 'past';
     const isFree = !event.price || event.price <= 0;
-    const organizerName = event.created_by_name || event.event_organizer_name || event.organisation?.name || event.institution?.name || 'Independent Organizer';
+    const organizerDetail = event.event_organizer_detail;
+    const organizerName = organizerDetail?.business_name || event.event_organizer_name || event.created_by_name || event.organisation?.name || event.institution?.name || 'Independent Organizer';
     const media = getEventMedia(event);
 
     const handleBookSlot = (e) => {
         e.stopPropagation();
         navigate(`/events/${event.id}?action=book`);
+    };
+
+    const handleSponsorClick = (e) => {
+        e.stopPropagation();
+        navigate(`/events/${event.id}?tab=sponsorship`);
     };
 
     const locationType = (() => {
@@ -328,10 +503,8 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                         <Calendar className="w-10 h-10 text-primary/30" />
                     </div>
                 )}
-                {/* Gradient overlay for readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-                {/* Badges over image */}
                 <div className="absolute top-2 left-2 right-2 flex items-start justify-between z-10">
                     <span className={`px-2 py-0.5 rounded-full text-[0.6rem] font-semibold uppercase tracking-wider backdrop-blur-sm ${temporalBadge.bg}`}>
                         {temporalBadge.label}
@@ -347,7 +520,6 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                     </span>
                 </div>
 
-                {/* Price badge on cover */}
                 <div className="absolute bottom-2 right-2 z-10">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-lg shadow-md backdrop-blur-sm ${
                         isFree
@@ -360,7 +532,6 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
             </div>
 
             <CardBody className="flex-1 py-3 px-3 space-y-2">
-                {/* Title */}
                 <h3
                     className="font-semibold text-sm text-primary line-clamp-2 cursor-pointer hover:text-primary-600 leading-snug"
                     onClick={onOpenDetails}
@@ -368,10 +539,13 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                     {event.name}
                 </h3>
 
-                {/* Organizer */}
-                <p className="text-xs text-secondary truncate">By {organizerName}</p>
+                <div className="flex items-center gap-1.5">
+                    {organizerDetail?.avatar && (
+                        <img src={organizerDetail.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                    )}
+                    <p className="text-xs text-secondary truncate">By {organizerName}</p>
+                </div>
 
-                {/* Info rows */}
                 <div className="space-y-1 text-xs text-secondary">
                     {event.event_date && (
                         <div className="flex items-center gap-1.5">
@@ -401,7 +575,6 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                 <EventActions event={event} onUpdate={onUpdate} compact />
             </CardBody>
 
-            {/* Footer buttons */}
             <div className="px-3 pb-3 pt-1 mt-auto flex gap-2">
                 <Button variant="outline" className="flex-1 justify-center text-xs py-1.5" onClick={onOpenDetails}>
                     Details
@@ -410,6 +583,12 @@ const EventCard = ({ event, onOpenDetails, onUpdate }) => {
                     <Button variant="primary" className="flex-1 justify-center text-xs py-1.5" onClick={handleBookSlot}>
                         <Ticket className="w-3.5 h-3.5 mr-1" />
                         Book
+                    </Button>
+                )}
+                {event.seeking_sponsors && (
+                    <Button variant="secondary" className="flex-1 justify-center text-xs py-1.5" onClick={handleSponsorClick}>
+                        <DollarSign className="w-3.5 h-3.5 mr-1" />
+                        Sponsor
                     </Button>
                 )}
             </div>

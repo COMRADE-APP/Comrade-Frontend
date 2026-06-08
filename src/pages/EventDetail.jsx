@@ -2,17 +2,19 @@
  * Event Detail Page
  * Comprehensive view with reactions (love/excited/remind-me), schedule, speakers, materials, analytics
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import html2canvas from 'html2canvas';
+import { toPng, toBlob } from 'html-to-image';
 import JSZip from 'jszip';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Card, { CardBody } from '../components/common/Card';
 import Button from '../components/common/Button';
 import EventActions from '../components/events/EventActions';
 import EventComments from '../components/events/EventComments';
 import EventAnalyticsDashboard from '../components/events/EventAnalyticsDashboard';
+import EventCheckIn from '../components/events/EventCheckIn';
+import EventSurvey from '../components/events/EventSurvey';
 import LogisticsSection from '../components/events/EventLogistics';
 import { useToast } from '../contexts/ToastContext';
 import {
@@ -20,7 +22,8 @@ import {
     ArrowLeft, Share2, Bookmark, MoreVertical, Globe, Building,
     FileText, DollarSign, Settings, ChevronRight, Star,
     BellRing, CalendarDays, Mic2, Paperclip, BarChart3, Download,
-    Plus, Trash2, X, Check, AlertCircle, Loader, CheckCircle, XCircle, Send
+    Plus, Trash2, X, Check, AlertCircle, Loader, CheckCircle, XCircle, Send, Eye,
+    Copy, ExternalLink, LifeBuoy, HelpCircle, ClipboardList
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import organizationsService from '../services/organizations.service';
@@ -62,6 +65,21 @@ const getTemporalStatus = (event) => {
     }
 };
 
+const skipFontsFilter = (node) => !(node.nodeType === 1 && node.tagName === 'LINK' && node.href && node.href.includes('fonts.googleapis'));
+
+const silentCapture = async (fn, ...args) => {
+    const orig = console.error;
+    console.error = (...msgs) => {
+        if (msgs.some(m => typeof m === 'string' && m.includes('fonts.googleapis'))) return;
+        orig.apply(console, msgs);
+    };
+    try {
+        return await fn(...args);
+    } finally {
+        console.error = orig;
+    }
+};
+
 const EventDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -69,7 +87,8 @@ const EventDetail = () => {
     const toast = useToast();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
     const [error, setError] = useState(null);
     const [tickets, setTickets] = useState([]);
     const [reviews, setReviews] = useState([]);
@@ -83,6 +102,20 @@ const EventDetail = () => {
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [userReminders, setUserReminders] = useState([]);
     const [reminderLoading, setReminderLoading] = useState(false);
+
+    // Organizer tools
+    const [showOrganizerMenu, setShowOrganizerMenu] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showConvertModal, setShowConvertModal] = useState(false);
+    const [retainEvent, setRetainEvent] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+    const menuRef = useRef(null);
+
+    // Help request
+    const [showHelpModal, setShowHelpModal] = useState(false);
+    const [helpSubject, setHelpSubject] = useState('');
+    const [helpMessage, setHelpMessage] = useState('');
+    const [helpPriority, setHelpPriority] = useState('medium');
 
     // Schedule editing
     const [showAddSchedule, setShowAddSchedule] = useState(false);
@@ -104,6 +137,7 @@ const EventDetail = () => {
     const [expandedBooking, setExpandedBooking] = useState(null);
     const [sharingTicketId, setSharingTicketId] = useState(null);
     const [shareEmail, setShareEmail] = useState('');
+    const [viewingTicketUuid, setViewingTicketUuid] = useState(null);
 
     // Sponsorship
     const [sponsorshipData, setSponsorshipData] = useState(null);
@@ -125,9 +159,9 @@ const EventDetail = () => {
 
     useEffect(() => {
         loadEvent();
-        const searchParams = new URLSearchParams(window.location.search);
-        if (searchParams.get('action') === 'book') setActiveTab('tickets');
-        if (searchParams.get('action') === 'remind') setShowReminderModal(true);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'book') setActiveTab('tickets');
+        if (params.get('action') === 'remind') setShowReminderModal(true);
     }, [id]);
 
     useEffect(() => {
@@ -321,6 +355,78 @@ const EventDetail = () => {
         }
     };
 
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setShowOrganizerMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleDeleteEvent = async () => {
+        setActionLoading(true);
+        try {
+            await eventsService.deleteEvent(event.id);
+            toast.success('Event deleted successfully');
+            navigate('/events');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to delete event');
+        } finally {
+            setActionLoading(false);
+            setShowDeleteConfirm(false);
+        }
+    };
+
+    const handleDuplicateEvent = async () => {
+        setActionLoading(true);
+        try {
+            await eventsService.duplicateEvent(event.id);
+            toast.success('Event duplicated successfully');
+            loadEvent();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to duplicate event');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleConvertToAnnouncement = async () => {
+        setActionLoading(true);
+        try {
+            await eventsService.convertToAnnouncement(event.id, retainEvent);
+            toast.success('Event converted to announcement successfully');
+            setShowConvertModal(false);
+            loadEvent();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to convert event');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleRequestHelp = async () => {
+        if (!helpSubject.trim() || !helpMessage.trim()) return;
+        setActionLoading(true);
+        try {
+            await eventsService.requestHelp(event.id, {
+                subject: helpSubject,
+                message: helpMessage,
+                priority: helpPriority
+            });
+            toast.success('Help request sent to organizers');
+            setShowHelpModal(false);
+            setHelpSubject('');
+            setHelpMessage('');
+            setHelpPriority('medium');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to send help request');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const isOrganizer = event?.created_by === user?.id || user?.is_staff;
 
     const tabs = [
@@ -331,6 +437,7 @@ const EventDetail = () => {
         { id: 'attendees', label: 'Attendees', icon: Users },
         { id: 'room', label: 'Discussion', icon: MessageSquare },
         { id: 'reviews', label: 'Reviews', icon: Star },
+        { id: 'surveys', label: 'Surveys', icon: ClipboardList },
         ...(isOrganizer ? [
             { id: 'logistics', label: 'Logistics', icon: Settings },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -359,7 +466,7 @@ const EventDetail = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <><div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button onClick={() => navigate('/events')} className="p-2 hover:bg-secondary rounded-full transition-colors">
@@ -367,13 +474,39 @@ const EventDetail = () => {
                 </button>
                 <h1 className="text-2xl md:text-3xl font-bold text-primary flex-1">{event.name}</h1>
                 <div className="flex gap-2">
-                    {isOrganizer && (
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/events/edit/${event.id}`)}>
-                            <Settings size={18} className="mr-2" /> Edit
+                    {!isOrganizer && (
+                        <Button variant="outline" size="sm" onClick={() => setShowHelpModal(true)}>
+                            <HelpCircle size={18} className="mr-2" /> Help
                         </Button>
                     )}
-                    <Button variant="ghost" size="sm"><Share2 size={18} /></Button>
-                    <Button variant="ghost" size="sm"><Bookmark size={18} /></Button>
+                    {isOrganizer && (
+                        <div className="relative" ref={menuRef}>
+                            <Button variant="outline" size="sm" onClick={() => setShowOrganizerMenu(!showOrganizerMenu)}>
+                                <Settings size={18} className="mr-2" /> Manage
+                            </Button>
+                            {showOrganizerMenu && (
+                                <div className="absolute right-0 top-full mt-1 w-56 bg-elevated border border-theme rounded-xl shadow-2xl z-50 py-2">
+                                    <button onClick={() => { navigate(`/events/edit/${event.id}`); setShowOrganizerMenu(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-secondary transition-colors">
+                                        <Settings size={16} /> Edit Event
+                                    </button>
+                                    <button onClick={() => { handleDuplicateEvent(); setShowOrganizerMenu(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-secondary transition-colors">
+                                        <Copy size={16} /> Duplicate Event
+                                    </button>
+                                    <button onClick={() => { setShowConvertModal(true); setShowOrganizerMenu(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-secondary transition-colors">
+                                        <ExternalLink size={16} /> Convert to Announcement
+                                    </button>
+                                    <div className="border-t border-theme my-1" />
+                                    <button onClick={() => { setShowDeleteConfirm(true); setShowOrganizerMenu(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                                        <Trash2 size={16} /> Delete Event
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -529,9 +662,12 @@ const EventDetail = () => {
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => {
-                                setActiveTab(tab.id);
-                            }}
+                                            onClick={() => {
+                                                setActiveTab(tab.id);
+                                                const params = new URLSearchParams(window.location.search);
+                                                params.set('tab', tab.id);
+                                                setSearchParams(params);
+                                            }}
                             className={`flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-secondary hover:text-primary hover:border-theme'
@@ -624,16 +760,29 @@ const EventDetail = () => {
                             <Card><CardBody>
                                 <h3 className="font-semibold mb-3 text-primary">Organized by</h3>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg">
-                                        {(event.created_by_name || event.organisation?.name || event.institution?.name || 'O')[0].toUpperCase()}
-                                    </div>
+                                    {event.event_organizer_detail?.avatar ? (
+                                        <img
+                                            src={event.event_organizer_detail.avatar}
+                                            alt={event.event_organizer_detail.business_name || 'Organizer'}
+                                            className="w-12 h-12 rounded-full object-cover border-2 border-theme"
+                                        />
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                                            {(event.event_organizer_detail?.business_name || event.created_by_name || event.organisation?.name || event.institution?.name || 'O')[0].toUpperCase()}
+                                        </div>
+                                    )}
                                     <div>
-                                        <p className="font-medium text-primary">{event.created_by_name || event.organisation?.name || event.institution?.name || 'Event Organizer'}</p>
+                                        <p className="font-medium text-primary">{event.event_organizer_detail?.business_name || event.created_by_name || event.organisation?.name || event.institution?.name || 'Event Organizer'}</p>
                                         <p className="text-sm text-secondary">
-                                            {event.organisation ? 'Organisation' : event.institution ? 'Institution' : 'Independent Organizer'}
+                                            {event.event_organizer_detail?.business_name ? 'Organizer' : event.organisation ? 'Organisation' : event.institution ? 'Institution' : 'Independent Organizer'}
                                         </p>
                                     </div>
                                 </div>
+                                {event.event_organizer_detail?.cover_photo && (
+                                    <div className="mt-3 rounded-lg overflow-hidden h-20">
+                                        <img src={event.event_organizer_detail.cover_photo} alt="Cover" className="w-full h-full object-cover" />
+                                    </div>
+                                )}
                                 {event.event_url && (
                                     <a href={event.event_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-primary-500 hover:underline">
                                         <Globe size={14} /> Event Link
@@ -801,19 +950,23 @@ const EventDetail = () => {
                                                         <p className="text-xs text-secondary">#{b.ticket_number}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2">
+                                                        <Button variant="secondary" size="sm" onClick={() => setViewingTicketUuid(b.uuid)}>
+                                                            <Eye size={14} className="mr-1" /> View
+                                                        </Button>
                                                         <Button variant="secondary" size="sm" onClick={async () => {
                                                             const el = document.getElementById(`ticket-card-${b.uuid}`);
                                                             if (!el) return;
                                                             try {
-                                                                const canvas = await html2canvas(el, { backgroundColor: '#111827', scale: 2, useCORS: true, logging: false });
+                                                                         const dataUrl = await silentCapture(toPng, el, { backgroundColor: '#111827', pixelRatio: 2, filter: skipFontsFilter });
                                                                 const link = document.createElement('a');
                                                                 link.download = `ticket-${b.ticket_number}-${(b.attendee_name || 'holder').replace(/\s+/g, '_')}.png`;
-                                                                link.href = canvas.toDataURL('image/png');
+                                                                link.href = dataUrl;
                                                                 link.click();
                                                             } catch (err) {
+                                                                console.error('Ticket download failed:', err);
                                                                 toast.error('Download failed');
                                                             }
-                                                        }}><Download size={14} className="mr-1" /> View</Button>
+                                                        }}><Download size={14} className="mr-1" /> Download</Button>
                                                         <Button variant="secondary" size="sm" onClick={() => setSharingTicketId(sharingTicketId === b.uuid ? null : b.uuid)}>
                                                             <Share2 size={14} />
                                                         </Button>
@@ -837,12 +990,13 @@ const EventDetail = () => {
                                                                     const el = document.getElementById(`ticket-card-${b.uuid}`);
                                                                     if (!el) return;
                                                                     try {
-                                                                        const canvas = await html2canvas(el, { backgroundColor: '#111827', scale: 2, useCORS: true, logging: false });
+                                                                         const dataUrl = await silentCapture(toPng, el, { backgroundColor: '#111827', pixelRatio: 2, filter: skipFontsFilter });
                                                                         const link = document.createElement('a');
                                                                         link.download = `ticket-${b.ticket_number}-${(att.name || 'member' + (idx + 1)).replace(/\s+/g, '_')}.png`;
-                                                                        link.href = canvas.toDataURL('image/png');
+                                                                        link.href = dataUrl;
                                                                         link.click();
                                                                     } catch (err) {
+                                                                        console.error('Attendee ticket download failed:', err);
                                                                         toast.error('Download failed');
                                                                     }
                                                                 }}><Download size={12} className="mr-1" /> Ticket</Button>
@@ -884,9 +1038,8 @@ const EventDetail = () => {
                                                     const el = document.getElementById(`ticket-card-${b.uuid}`);
                                                     if (!el) continue;
                                                     try {
-                                                        const canvas = await html2canvas(el, { backgroundColor: '#111827', scale: 2, useCORS: true, logging: false });
-                                                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                                                        zip.file(`ticket-${b.ticket_number}-${name.replace(/\s+/g, '_')}.png`, blob);
+                                                          const blob = await silentCapture(toBlob, el, { backgroundColor: '#111827', pixelRatio: 2, filter: skipFontsFilter });
+                                                        if (blob) zip.file(`ticket-${b.ticket_number}-${name.replace(/\s+/g, '_')}.png`, blob);
                                                     } catch (e) { /* skip */ }
                                                 }
                                             }
@@ -914,7 +1067,7 @@ const EventDetail = () => {
                             {bookingStep === 'done' && myBookings.length > 0 ? (
                                 <div className="py-4 space-y-6">
                                     {myBookings.filter(b => b.booking_status !== 'cancelled').map(b => (
-                                        <div key={b.uuid} id={`ticket-card-${b.uuid}`} className="max-w-md mx-auto bg-elevated rounded-2xl overflow-hidden shadow-lg border border-theme">
+                                        <div key={b.uuid} className="max-w-md mx-auto bg-elevated rounded-2xl overflow-hidden shadow-lg border border-theme">
                                             <div className="bg-gradient-to-r from-primary-600 to-amber-500 px-6 py-4">
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -1225,23 +1378,41 @@ const EventDetail = () => {
                 )}
 
                 {activeTab === 'attendees' && (
-                    <Card><CardBody>
-                        <h3 className="font-semibold text-lg mb-4 text-primary">Attendees ({event.attendees?.length || 0})</h3>
-                        {event.attendees_viewable ? (
-                            event.attendees?.length > 0 ? (
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {event.attendees.map((attendee, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
-                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                <Users className="w-5 h-5 text-primary" />
+                    <div className="space-y-6">
+                        {isOrganizer && (
+                            <EventCheckIn event={event} onUpdate={loadEvent} />
+                        )}
+                        <Card><CardBody>
+                            <h3 className="font-semibold text-lg mb-4 text-primary">Attendees ({event.attendees?.length || 0})</h3>
+                            {event.attendees_viewable ? (
+                                event.attendees?.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {event.attendees.map((attendee, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                                                    {attendee.avatar ? (
+                                                        <img src={attendee.avatar} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Users className="w-5 h-5 text-primary" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <span className="text-sm font-medium text-primary block truncate">
+                                                        {attendee.first_name && attendee.last_name
+                                                            ? `${attendee.first_name} ${attendee.last_name}`
+                                                            : attendee.email || attendee.username || `Attendee ${idx + 1}`}
+                                                    </span>
+                                                    {attendee.email && (
+                                                        <span className="text-xs text-secondary block truncate">{attendee.email}</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <span className="text-sm font-medium text-primary">Attendee {idx + 1}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : <p className="text-secondary text-center py-8">No attendees yet. Be the first to RSVP!</p>
-                        ) : <p className="text-secondary text-center py-8">Attendee list is private</p>}
-                    </CardBody></Card>
+                                        ))}
+                                    </div>
+                                ) : <p className="text-secondary text-center py-8">No attendees yet. Be the first to RSVP!</p>
+                            ) : <p className="text-secondary text-center py-8">Attendee list is private</p>}
+                        </CardBody></Card>
+                    </div>
                 )}
 
                 {activeTab === 'room' && (
@@ -1295,8 +1466,12 @@ const EventDetail = () => {
                             {reviews.length > 0 ? reviews.map((review, idx) => (
                                 <ReviewItem key={review.id || idx} review={review} isOrganizer={isOrganizer} eventId={event.id} onUpdate={loadEvent} />
                             )) : <p className="text-secondary text-center py-6">No reviews yet.</p>}
-                        </div>
-                    </CardBody></Card>
+                                </div>
+                            </CardBody></Card>
+                )}
+
+                {activeTab === 'surveys' && (
+                    <EventSurvey event={event} isOrganizer={isOrganizer} />
                 )}
 
                 {activeTab === 'logistics' && isOrganizer && (
@@ -1479,8 +1654,21 @@ const EventDetail = () => {
                                                             setSponsorForm({ applicant_name: '', applicant_contact: '', application_details: '', organisation: '' });
                                                             setShowSponsorForm(false);
                                                             setSponsorMessage({ type: 'success', text: 'Application submitted! The organizer will review it.' });
+                                                            eventsService.getSponsorshipDashboard(event.id).then(r => {
+                                                                const data = r?.data || r;
+                                                                if (data) setSponsorshipData(data);
+                                                            }).catch(() => {});
                                                         } catch (err) {
-                                                            setSponsorMessage({ type: 'error', text: err.response?.data?.error || 'Failed to submit application' });
+                                                            const data = err.response?.data;
+                                                            if (data && typeof data === 'object') {
+                                                                const msgs = Object.entries(data)
+                                                                    .filter(([, v]) => Array.isArray(v))
+                                                                    .map(([k, v]) => `${k}: ${v.join(', ')}`)
+                                                                    .join('; ');
+                                                                setSponsorMessage({ type: 'error', text: msgs || data.detail || 'Failed to submit application' });
+                                                            } else {
+                                                                setSponsorMessage({ type: 'error', text: 'Failed to submit application' });
+                                                            }
                                                         }
                                                     }}>Submit</Button>
                                                     <Button variant="secondary" size="sm" onClick={() => setShowSponsorForm(false)}>Cancel</Button>
@@ -1622,6 +1810,283 @@ const EventDetail = () => {
                 )}
             </div>
         </div>
+        {/* Hidden ticket cards for download capture */}
+        <div style={{ position: 'fixed', left: 0, top: 0, zIndex: -1, opacity: 0.01, pointerEvents: 'none' }}>
+            {myBookings.map(b => (
+                <div key={`capture-${b.uuid}`} id={`ticket-card-${b.uuid}`} className="max-w-md bg-elevated rounded-2xl overflow-hidden shadow-lg border border-theme">
+                    <div className="bg-gradient-to-r from-primary-600 to-amber-500 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-white/70 text-xs font-medium tracking-widest uppercase">Event Ticket</p>
+                                <h4 className="text-white text-lg font-bold mt-1">{event.name || event.title}</h4>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-white/70 text-xs">Ticket #</p>
+                                <p className="text-white font-mono font-bold text-sm">{b.ticket_number}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="px-6 py-5">
+                        <div className="grid grid-cols-2 gap-4 text-sm mb-5">
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Date</p><p className="text-primary font-medium mt-0.5">{formatDate(event.event_date || event.start_date)}</p></div>
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Time</p><p className="text-primary font-medium mt-0.5">{event.start_time ? formatTime(event.start_time) : 'TBA'}</p></div>
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Location</p><p className="text-primary font-medium mt-0.5 truncate">{event.location || event.venue || 'Online'}</p></div>
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Status</p><p className="text-green-500 font-semibold mt-0.5 capitalize">{b.booking_status}</p></div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm mb-5">
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Attendee</p><p className="text-primary font-medium mt-0.5">{b.attendee_name || b.user_name}</p></div>
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">Qty</p><p className="text-primary font-medium mt-0.5">{b.quantity || 1}</p></div>
+                            <div><p className="text-tertiary text-xs uppercase tracking-wider">{b.amount_paid > 0 ? 'Amount Paid' : 'Price'}</p><p className="text-primary font-medium mt-0.5">{b.amount_paid > 0 ? `$${b.amount_paid}` : 'Free'}</p></div>
+                        </div>
+                        <div className="border-t-2 border-dashed border-theme my-4 relative">
+                            <div className="absolute -left-9 -top-3 w-6 h-6 rounded-full bg-elevated"></div>
+                            <div className="absolute -right-9 -top-3 w-6 h-6 rounded-full bg-elevated"></div>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <div className="bg-white p-3 rounded-xl">
+                                <QRCodeSVG value={typeof b.qr_code_data === 'string' ? b.qr_code_data : JSON.stringify(b.qr_code_data || { ticket: b.ticket_number, event_uuid: event.uuid })} size={160} level="H" includeMargin={false} />
+                            </div>
+                            <p className="text-tertiary text-xs mt-3">Scan to verify ticket</p>
+                        </div>
+                    </div>
+                    <div className="px-6 py-3 bg-secondary border-t border-theme flex items-center justify-between">
+                        <span className="text-tertiary text-xs">Qomrade Events</span>
+                        <span className="text-tertiary text-xs">© {new Date().getFullYear()}</span>
+                    </div>
+                </div>
+            ))}
+        </div>
+        {/* Ticket Preview Modal */}
+        {viewingTicketUuid && (() => {
+            const booking = myBookings.find(b => b.uuid === viewingTicketUuid);
+            if (!booking) return null;
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setViewingTicketUuid(null)}>
+                    <div className="bg-elevated rounded-2xl overflow-hidden shadow-2xl border border-theme max-w-lg w-full" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-3 bg-secondary border-b border-theme">
+                            <h3 className="font-semibold text-primary">Ticket Preview</h3>
+                            <button onClick={() => setViewingTicketUuid(null)} className="p-1 rounded-lg hover:bg-secondary transition-colors">
+                                <X size={20} className="text-secondary" />
+                            </button>
+                        </div>
+                        <div id={`ticket-card-${booking.uuid}`} className="bg-elevated">
+                            <div className="bg-gradient-to-r from-primary-600 to-amber-500 px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white/70 text-xs font-medium tracking-widest uppercase">Event Ticket</p>
+                                        <h4 className="text-white text-lg font-bold mt-1">{event.name || event.title}</h4>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-white/70 text-xs">Ticket #</p>
+                                        <p className="text-white font-mono font-bold text-sm">{booking.ticket_number}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="px-6 py-5">
+                                <div className="grid grid-cols-2 gap-4 text-sm mb-5">
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Date</p>
+                                        <p className="text-primary font-medium mt-0.5">{formatDate(event.event_date || event.start_date)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Time</p>
+                                        <p className="text-primary font-medium mt-0.5">{event.start_time ? formatTime(event.start_time) : 'TBA'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Location</p>
+                                        <p className="text-primary font-medium mt-0.5 truncate">{event.location || event.venue || 'Online'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Status</p>
+                                        <p className="text-green-500 font-semibold mt-0.5 capitalize">{booking.booking_status}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm mb-5">
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Attendee</p>
+                                        <p className="text-primary font-medium mt-0.5">{booking.attendee_name || booking.user_name}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">Qty</p>
+                                        <p className="text-primary font-medium mt-0.5">{booking.quantity || 1}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-tertiary text-xs uppercase tracking-wider">{booking.amount_paid > 0 ? 'Amount Paid' : 'Price'}</p>
+                                        <p className="text-primary font-medium mt-0.5">{booking.amount_paid > 0 ? `$${booking.amount_paid}` : 'Free'}</p>
+                                    </div>
+                                </div>
+                                <div className="border-t-2 border-dashed border-theme my-4 relative">
+                                    <div className="absolute -left-9 -top-3 w-6 h-6 rounded-full bg-elevated"></div>
+                                    <div className="absolute -right-9 -top-3 w-6 h-6 rounded-full bg-elevated"></div>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="bg-white p-3 rounded-xl">
+                                        <QRCodeSVG
+                                            value={typeof booking.qr_code_data === 'string' ? booking.qr_code_data : JSON.stringify(booking.qr_code_data || { ticket: booking.ticket_number, event_uuid: event.uuid })}
+                                            size={200} level="H" includeMargin={false}
+                                        />
+                                    </div>
+                                    <p className="text-tertiary text-xs mt-3">Scan to verify ticket</p>
+                                </div>
+                            </div>
+                            <div className="px-6 py-3 bg-secondary border-t border-theme flex items-center justify-between">
+                                <span className="text-tertiary text-xs">Qomrade Events</span>
+                                <Button variant="primary" size="sm" onClick={async () => {
+                                    const el = document.getElementById(`ticket-card-${booking.uuid}`);
+                                    if (!el) return;
+                                    try {
+                                        const dataUrl = await silentCapture(toPng, el, { backgroundColor: '#111827', pixelRatio: 2, filter: skipFontsFilter });
+                                        const link = document.createElement('a');
+                                        link.download = `ticket-${booking.ticket_number}-${(booking.attendee_name || 'holder').replace(/\s+/g, '_')}.png`;
+                                        link.href = dataUrl;
+                                        link.click();
+                                    } catch (err) {
+                                        console.error('Modal download failed:', err);
+                                        toast.error('Download failed');
+                                    }
+                                }}>
+                                    <Download size={14} className="mr-1" /> Download
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        })()}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <Card className="w-full max-w-md mx-4">
+                    <CardBody className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-red-500/20 rounded-full"><Trash2 size={24} className="text-red-400" /></div>
+                            <div>
+                                <h3 className="text-lg font-bold text-primary">Delete Event</h3>
+                                <p className="text-sm text-secondary">This action cannot be undone</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-secondary mb-6">
+                            Are you sure you want to delete <strong className="text-primary">{event.name}</strong>? 
+                            All associated data including tickets, bookings, and analytics will be permanently removed.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)} disabled={actionLoading}>
+                                Cancel
+                            </Button>
+                            <Button variant="primary" onClick={handleDeleteEvent} disabled={actionLoading} className="bg-red-500 hover:bg-red-600">
+                                {actionLoading ? <Loader size={16} className="animate-spin mr-2" /> : <Trash2 size={16} className="mr-2" />}
+                                Delete Event
+                            </Button>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        )}
+
+        {/* Convert to Announcement Modal */}
+        {showConvertModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <Card className="w-full max-w-md mx-4">
+                    <CardBody className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-primary/20 rounded-full"><ExternalLink size={24} className="text-primary" /></div>
+                            <div>
+                                <h3 className="text-lg font-bold text-primary">Convert to Announcement</h3>
+                                <p className="text-sm text-secondary">Create an announcement from this event</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-secondary mb-4">
+                            An announcement will be created with the event name and description. 
+                            {!retainEvent && ' The event will be archived.'}
+                        </p>
+                        <label className="flex items-center gap-3 mb-6 p-3 bg-elevated rounded-lg cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={retainEvent}
+                                onChange={e => setRetainEvent(e.target.checked)}
+                                className="w-4 h-4 accent-primary"
+                            />
+                            <div>
+                                <p className="text-sm font-medium text-primary">Keep event active</p>
+                                <p className="text-xs text-secondary">Uncheck to archive the event after conversion</p>
+                            </div>
+                        </label>
+                        <div className="flex gap-3 justify-end">
+                            <Button variant="secondary" onClick={() => setShowConvertModal(false)} disabled={actionLoading}>
+                                Cancel
+                            </Button>
+                            <Button variant="primary" onClick={handleConvertToAnnouncement} disabled={actionLoading}>
+                                {actionLoading ? <Loader size={16} className="animate-spin mr-2" /> : <ExternalLink size={16} className="mr-2" />}
+                                Convert
+                            </Button>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        )}
+
+        {/* Help Request Modal */}
+        {showHelpModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <Card className="w-full max-w-md mx-4">
+                    <CardBody className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-amber-500/20 rounded-full"><LifeBuoy size={24} className="text-amber-400" /></div>
+                            <div>
+                                <h3 className="text-lg font-bold text-primary">Request Help</h3>
+                                <p className="text-sm text-secondary">Send a help request to event organizers</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Subject</label>
+                                <input
+                                    type="text"
+                                    value={helpSubject}
+                                    onChange={e => setHelpSubject(e.target.value)}
+                                    placeholder="What do you need help with?"
+                                    className="w-full px-3 py-2 bg-elevated border border-theme rounded-lg text-primary placeholder-secondary focus:outline-none focus:border-primary"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Message</label>
+                                <textarea
+                                    value={helpMessage}
+                                    onChange={e => setHelpMessage(e.target.value)}
+                                    placeholder="Describe your issue..."
+                                    rows={4}
+                                    className="w-full px-3 py-2 bg-elevated border border-theme rounded-lg text-primary placeholder-secondary focus:outline-none focus:border-primary resize-y"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Priority</label>
+                                <select
+                                    value={helpPriority}
+                                    onChange={e => setHelpPriority(e.target.value)}
+                                    className="w-full px-3 py-2 bg-elevated border border-theme rounded-lg text-primary focus:outline-none focus:border-primary"
+                                >
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 justify-end mt-6">
+                            <Button variant="secondary" onClick={() => setShowHelpModal(false)} disabled={actionLoading}>
+                                Cancel
+                            </Button>
+                            <Button variant="primary" onClick={handleRequestHelp} disabled={actionLoading || !helpSubject.trim() || !helpMessage.trim()}>
+                                {actionLoading ? <Loader size={16} className="animate-spin mr-2" /> : <Send size={16} className="mr-2" />}
+                                Send Request
+                            </Button>
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        )}
+        </>
     );
 };
 

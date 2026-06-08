@@ -56,6 +56,13 @@ const eventsService = {
     },
 
     /**
+     * Duplicate event
+     */
+    duplicateEvent: (eventId) => {
+        return api.post(`${BASE_URL}/event/${eventId}/duplicate_event/`);
+    },
+
+    /**
      * AI Parse Event Document for Auto-fill
      */
     parseDocument: (file) => {
@@ -342,6 +349,36 @@ const eventsService = {
             event: eventId,
             ...permissionData
         });
+    },
+
+    // ===== ATTENDEE CHECK-IN =====
+
+    /**
+     * Check in attendee at event (organizer only)
+     */
+    checkInAttendee: (eventId, data) => {
+        return api.post(`${BASE_URL}/events/${eventId}/check_in/`, data);
+    },
+
+    /**
+     * Check out attendee from event (organizer only)
+     */
+    checkOutAttendee: (eventId, attendanceId) => {
+        return api.post(`${BASE_URL}/events/${eventId}/check_out/`, { attendance_id: attendanceId });
+    },
+
+    /**
+     * Get attendance records for event (organizer only)
+     */
+    getAttendanceList: (eventId) => {
+        return api.get(`${BASE_URL}/events/${eventId}/attendance_list/`);
+    },
+
+    /**
+     * Validate QR code data from a booking
+     */
+    validateQrCode: (eventId, qrData) => {
+        return api.get(`${BASE_URL}/events/${eventId}/validate_qr/`, { params: { qr_data: qrData } });
     },
 
     // ===== INTERESTS & ATTENDANCE =====
@@ -669,6 +706,18 @@ const eventsService = {
 
     // ===== ANALYTICS =====
 
+    getOrganizerDashboard: (params = {}) => {
+        return api.get(`${BASE_URL}/organizer_dashboard/dashboard/`, { params });
+    },
+
+    getDemographics: () => {
+        return api.get(`${BASE_URL}/organizer_dashboard/demographics/`);
+    },
+
+    updateOrganizerProfile: (formData) => {
+        return api.patch(`${BASE_URL}/organizer_profiles/my_profile/`, formData);
+    },
+
     logInteraction: (eventId, interactionType, durationSeconds = 0) => {
         return api.post(`${BASE_URL}/event_analytics/log_interaction/`, {
             event_id: eventId,
@@ -761,6 +810,46 @@ const eventsService = {
 
     deleteSponsorshipLevel: (levelId) => {
         return api.delete(`${BASE_URL}/sponsorship_levels/${levelId}/`);
+    },
+
+    // ===== SURVEYS =====
+
+    getEventSurveys: (eventId) => {
+        return api.get(`${BASE_URL}/event_survey/`, { params: { event: eventId } });
+    },
+
+    createSurvey: (data) => {
+        return api.post(`${BASE_URL}/event_survey/`, data);
+    },
+
+    createSurveyQuestion: (data) => {
+        return api.post(`${BASE_URL}/event_survey_question/`, data);
+    },
+
+    submitSurveyResponse: (data) => {
+        return api.post(`${BASE_URL}/event_survey_response/`, data);
+    },
+
+    getSurveyResponses: (questionId) => {
+        return api.get(`${BASE_URL}/event_survey_response/`, { params: { question: questionId } });
+    },
+
+    // ===== ORGANIZER DISCOVERY & FOLLOW =====
+
+    getOrganizers: (params = {}) => {
+        return api.get(`${BASE_URL}/organizer_profiles/discover/`, { params });
+    },
+
+    followOrganizer: (organizerId) => {
+        return api.post(`${BASE_URL}/organizer_profiles/${organizerId}/follow/`);
+    },
+
+    getFollowing: () => {
+        return api.get(`${BASE_URL}/organizer_follows/following/`);
+    },
+
+    toggleOrganizerNotifications: (followId, enabled) => {
+        return api.patch(`${BASE_URL}/organizer_follows/${followId}/toggle_notifications/`, { notifications_enabled: enabled });
     },
 
     // ===== SPONSOR REQUESTS =====

@@ -7,6 +7,8 @@ export const API_ENDPOINTS = {
     LOGOUT: `${API_BASE_URL}/auth/logout/`,
     LOGOUT_ALL: `${API_BASE_URL}/auth/logout-all/`,
     REGISTER: `${API_BASE_URL}/auth/register/`,
+    REGISTER_ORGANIZER: `${API_BASE_URL}/auth/register/organizer/`,
+    REGISTER_SPONSOR: `${API_BASE_URL}/auth/register/sponsor/`,
     REGISTER_VERIFY: `${API_BASE_URL}/auth/register-verify/`,
     VERIFY_EMAIL: `${API_BASE_URL}/auth/verify/`,
     HEARTBEAT: `${API_BASE_URL}/auth/heartbeat/`,

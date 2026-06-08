@@ -13,7 +13,8 @@ import activityLogService from '../services/activityLog.service';
 import {
     Shield, Lock, Eye, EyeOff, Bell, Globe, User, AlertTriangle,
     UserCog, Palette, Languages, Send, CheckCircle, XCircle, Clock, Mail,
-    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil, HelpCircle, MonitorSmartphone, UserCheck
+    Activity, Download, FileText, Calendar, ExternalLink, Loader2, Save, Pencil,
+    HelpCircle, MonitorSmartphone, UserCheck, Briefcase, Heart
 } from 'lucide-react';
 
 
@@ -849,6 +850,47 @@ const Settings = () => {
                             </div>
                         </CardBody>
                     </Card>
+
+                    {/* Become an Organiser / Sponsor */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-emerald-500" />
+                                Platform Roles
+                            </h3>
+                            <p className="text-sm text-secondary mt-1">Expand your presence on Qomrade by taking on additional roles</p>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Link
+                                    to={ROUTES.REGISTER_ORGANISER}
+                                    className="flex items-center gap-4 p-4 bg-secondary/20 hover:bg-secondary/40 rounded-xl border border-transparent hover:border-theme transition-all group"
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                        <Briefcase className="w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-primary group-hover:text-primary-400 transition-colors">Become an Organiser</p>
+                                        <p className="text-xs text-secondary">Create and manage events, find sponsors</p>
+                                    </div>
+                                    <ExternalLink size={16} className="text-tertiary group-hover:text-primary shrink-0 transition-colors" />
+                                </Link>
+                                <Link
+                                    to={ROUTES.REGISTER_SPONSOR}
+                                    className="flex items-center gap-4 p-4 bg-secondary/20 hover:bg-secondary/40 rounded-xl border border-transparent hover:border-theme transition-all group"
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center text-pink-600 dark:text-pink-400">
+                                        <Heart className="w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-primary group-hover:text-primary-400 transition-colors">Become a Sponsor</p>
+                                        <p className="text-xs text-secondary">Support events and promote your brand</p>
+                                    </div>
+                                    <ExternalLink size={16} className="text-tertiary group-hover:text-primary shrink-0 transition-colors" />
+                                </Link>
+                            </div>
+                        </CardBody>
+                    </Card>
                 </div>
             )}
 
@@ -1093,6 +1135,47 @@ const Settings = () => {
                                     <p className="text-sm text-secondary max-w-sm">Portals will appear here based on your role. Request a role change from the Account tab if needed.</p>
                                 </div>
                             )}
+                        </CardBody>
+                    </Card>
+
+                    {/* Organiser & Sponsor Dashboards */}
+                    <Card>
+                        <CardHeader className="p-4 border-b border-theme">
+                            <h3 className="font-semibold text-primary flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-emerald-500" />
+                                Event Portals
+                            </h3>
+                            <p className="text-sm text-secondary mt-1">Access your event management dashboards</p>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <Link
+                                    to={ROUTES.ORGANISER_DASHBOARD}
+                                    className="flex items-center gap-3 p-4 bg-secondary/20 hover:bg-secondary/40 rounded-xl border border-transparent hover:border-theme transition-all group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                        <Briefcase className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-primary group-hover:text-primary-400 transition-colors">Organiser Dashboard</p>
+                                        <p className="text-xs text-tertiary">{ROUTES.ORGANISER_DASHBOARD}</p>
+                                    </div>
+                                    <ExternalLink size={16} className="text-tertiary group-hover:text-primary transition-colors" />
+                                </Link>
+                                <Link
+                                    to={ROUTES.SPONSOR_DASHBOARD}
+                                    className="flex items-center gap-3 p-4 bg-secondary/20 hover:bg-secondary/40 rounded-xl border border-transparent hover:border-theme transition-all group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center text-pink-600 dark:text-pink-400">
+                                        <Heart className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-primary group-hover:text-primary-400 transition-colors">Sponsor Dashboard</p>
+                                        <p className="text-xs text-tertiary">{ROUTES.SPONSOR_DASHBOARD}</p>
+                                    </div>
+                                    <ExternalLink size={16} className="text-tertiary group-hover:text-primary transition-colors" />
+                                </Link>
+                            </div>
                         </CardBody>
                     </Card>
                 </div>

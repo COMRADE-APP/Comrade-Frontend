@@ -40,6 +40,16 @@ const authService = {
         return response.data;
     },
 
+    registerOrganiser: async (userData) => {
+        const response = await api.post(API_ENDPOINTS.REGISTER_ORGANIZER, userData);
+        return response.data;
+    },
+
+    registerSponsor: async (userData) => {
+        const response = await api.post(API_ENDPOINTS.REGISTER_SPONSOR, userData);
+        return response.data;
+    },
+
     verifyRegistrationOTP: async (email, otp) => {
         const response = await api.post(API_ENDPOINTS.REGISTER_VERIFY, { email, otp });
         return response.data;

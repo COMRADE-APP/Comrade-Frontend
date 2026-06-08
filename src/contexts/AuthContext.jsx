@@ -270,9 +270,16 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
-    const register = async (userData) => {
+    const register = async (userData, role) => {
         try {
-            const data = await authService.register(userData);
+            let data;
+            if (role === 'organiser') {
+                data = await authService.registerOrganiser(userData);
+            } else if (role === 'sponsor') {
+                data = await authService.registerSponsor(userData);
+            } else {
+                data = await authService.register(userData);
+            }
             return data;
         } catch (error) {
             throw error;

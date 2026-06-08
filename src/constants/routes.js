@@ -87,6 +87,14 @@ export const ROUTES = {
     // AI Assistant
     QOMAI: '/qomai',
 
+    // Organiser & Sponsor
+    REGISTER_ORGANISER: '/register/organiser',
+    REGISTER_SPONSOR: '/register/sponsor',
+    ORGANISER_DASHBOARD: '/dashboard/organiser',
+    SPONSOR_DASHBOARD: '/dashboard/sponsor',
+    DISCOVER_ORGANISERS: '/organisers/discover',
+    ORGANISER_PROFILE_SETTINGS: '/organiser/profile/settings',
+
     // Business Funding
     FUNDING: '/funding',
     OPPORTUNITIES: '/opportunities',

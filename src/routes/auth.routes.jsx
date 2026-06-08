@@ -17,6 +17,8 @@ const LegalTerms = () => Lazy(() => import('../pages/public/LegalTerms'));
 const HelpCenter = () => Lazy(() => import('../pages/public/HelpCenter'));
 const Login = () => Lazy(() => import('../pages/auth/Login'));
 const Register = () => Lazy(() => import('../pages/auth/Register'));
+const RegisterOrganiser = () => Lazy(() => import('../pages/auth/RegisterOrganiser'));
+const RegisterSponsor = () => Lazy(() => import('../pages/auth/RegisterSponsor'));
 const ForgotPassword = () => Lazy(() => import('../pages/auth/ForgotPassword'));
 const ResetPassword = () => Lazy(() => import('../pages/auth/ResetPassword'));
 const GoogleCallback = () => Lazy(() => import('../pages/auth/GoogleCallback'));
@@ -46,6 +48,8 @@ export const publicRoutes = [
     <Route key="help" path="/help" element={<HelpCenter />} />,
     <Route key="login" path={ROUTES.LOGIN} element={<Login />} />,
     <Route key="register" path={ROUTES.REGISTER} element={<Register />} />,
+    <Route key="register-organiser" path={ROUTES.REGISTER_ORGANISER} element={<RegisterOrganiser />} />,
+    <Route key="register-sponsor" path={ROUTES.REGISTER_SPONSOR} element={<RegisterSponsor />} />,
     <Route key="forgot-password" path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />,
     <Route key="reset-password" path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />,
     <Route key="verify-email" path={ROUTES.VERIFY_EMAIL_OTP} element={<VerifyEmail />} />,
