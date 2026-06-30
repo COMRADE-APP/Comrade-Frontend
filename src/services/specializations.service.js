@@ -156,8 +156,40 @@ export const specializationsService = {
         return response.data;
     },
 
+    async getCertificateById(id) {
+        const response = await api.get(API_ENDPOINTS.CERTIFICATE_DETAIL(id));
+        return response.data;
+    },
+
+    async createCertificate(data) {
+        const response = await api.post(API_ENDPOINTS.CERTIFICATES, data);
+        return response.data;
+    },
+
+    async updateCertificate(id, data) {
+        const response = await api.patch(API_ENDPOINTS.CERTIFICATE_DETAIL(id), data);
+        return response.data;
+    },
+
+    async deleteCertificate(id) {
+        const response = await api.delete(API_ENDPOINTS.CERTIFICATE_DETAIL(id));
+        return response.data;
+    },
+
+    async generateCertificatePdf(id) {
+        const response = await api.post(API_ENDPOINTS.CERTIFICATE_GENERATE_PDF(id));
+        return response.data;
+    },
+
     async getIssuedCertificates() {
         const response = await api.get(API_ENDPOINTS.ISSUED_CERTIFICATES);
+        return response.data;
+    },
+
+    async downloadIssuedCertificate(id) {
+        const response = await api.get(API_ENDPOINTS.ISSUED_CERTIFICATE_DOWNLOAD(id), {
+            responseType: 'blob',
+        });
         return response.data;
     },
 

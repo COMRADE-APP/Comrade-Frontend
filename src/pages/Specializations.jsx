@@ -390,6 +390,11 @@ const EnrollmentCard = ({ enrollment, navigate }) => (
 // ============================================================================
 const CompletedCard = ({ enrollment, certificates, navigate }) => {
     const cert = certificates.find(c => c.specialization?.includes(enrollment.specialization));
+    const handleDownloadCert = () => {
+        if (cert?.certificate_url) {
+            window.open(cert.certificate_url, '_blank');
+        }
+    };
     return (
         <Card className="border border-theme bg-elevated">
             <CardBody className="flex items-center gap-6 p-5">
@@ -421,7 +426,7 @@ const CompletedCard = ({ enrollment, certificates, navigate }) => {
                         <Eye className="w-4 h-4 mr-2" /> Review
                     </Button>
                     {cert && (
-                        <Button variant="primary">
+                        <Button variant="primary" onClick={handleDownloadCert}>
                             <Download className="w-4 h-4 mr-2" /> Certificate
                         </Button>
                     )}

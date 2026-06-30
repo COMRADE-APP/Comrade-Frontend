@@ -14,8 +14,7 @@ import specializationsService from '../services/specializations.service';
 
 const STEPS = [
     { number: 1, title: 'Basics' },
-    { number: 2, title: 'Content' },
-    { number: 3, title: 'Review' },
+    { number: 2, title: 'Review' },
 ];
 
 const CreateStack = () => {
@@ -29,11 +28,6 @@ const CreateStack = () => {
         name: '',
         description: '',
         specialization: '',
-        difficulty_level: 'beginner',
-        estimated_hours: '',
-        resources_url: '',
-        learning_objectives: '',
-        order: 1,
     });
 
     useEffect(() => {
@@ -73,12 +67,6 @@ const CreateStack = () => {
                 name: formData.name,
                 description: formData.description,
             };
-            if (formData.specialization) payload.specialization = formData.specialization;
-            if (formData.difficulty_level) payload.difficulty_level = formData.difficulty_level;
-            if (formData.estimated_hours) payload.estimated_hours = parseInt(formData.estimated_hours) || 0;
-            if (formData.resources_url) payload.resources_url = formData.resources_url;
-            if (formData.learning_objectives) payload.learning_objectives = formData.learning_objectives;
-            if (formData.order) payload.order = parseInt(formData.order) || 1;
 
             await specializationsService.createStack(payload);
             navigate('/specializations');
@@ -183,77 +171,8 @@ const CreateStack = () => {
                                 </div>
                             )}
 
-                            {/* STEP 2: Content */}
+                            {/* STEP 2: Review */}
                             {currentStep === 2 && (
-                                <div className="space-y-6 animate-fade-in">
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Difficulty Level</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {['beginner', 'intermediate', 'advanced'].map(level => (
-                                                <button
-                                                    key={level}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, difficulty_level: level })}
-                                                    className={`p-3 rounded-lg border-2 text-center capitalize font-medium transition-all ${formData.difficulty_level === level
-                                                            ? 'border-green-600 bg-green-50/10 text-green-600'
-                                                            : 'border-theme text-secondary hover:border-green-300'
-                                                        }`}
-                                                >
-                                                    {level}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Estimated Hours</label>
-                                        <input
-                                            type="number"
-                                            value={formData.estimated_hours}
-                                            onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            placeholder="e.g., 20"
-                                            min="1"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Resources URL</label>
-                                        <input
-                                            type="url"
-                                            value={formData.resources_url}
-                                            onChange={(e) => setFormData({ ...formData, resources_url: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            placeholder="https://docs.example.com/..."
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Learning Objectives</label>
-                                        <textarea
-                                            value={formData.learning_objectives}
-                                            onChange={(e) => setFormData({ ...formData, learning_objectives: e.target.value })}
-                                            rows={3}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary resize-none"
-                                            placeholder="What learners will achieve by completing this stack..."
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Order in Specialization</label>
-                                        <input
-                                            type="number"
-                                            value={formData.order}
-                                            onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            min="1"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* STEP 3: Review */}
-                            {currentStep === 3 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
                                         <CheckCircle className="text-green-600" /> Review Your Stack
@@ -268,38 +187,12 @@ const CreateStack = () => {
                                             <span className="text-sm text-secondary">Description</span>
                                             <p className="text-primary">{formData.description || '—'}</p>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <span className="text-sm text-secondary">Specialization</span>
-                                                <p className="text-primary">
-                                                    {specializations.find(s => String(s.id) === String(formData.specialization))?.name || 'None'}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <span className="text-sm text-secondary">Difficulty</span>
-                                                <p className="text-primary capitalize">{formData.difficulty_level}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-sm text-secondary">Estimated Hours</span>
-                                                <p className="text-primary">{formData.estimated_hours || 'Not set'}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-sm text-secondary">Order</span>
-                                                <p className="text-primary">{formData.order}</p>
-                                            </div>
+                                        <div>
+                                            <span className="text-sm text-secondary">Specialization</span>
+                                            <p className="text-primary">
+                                                {specializations.find(s => String(s.id) === String(formData.specialization))?.name || 'None'}
+                                            </p>
                                         </div>
-                                        {formData.resources_url && (
-                                            <div>
-                                                <span className="text-sm text-secondary">Resources</span>
-                                                <p className="text-primary-600 text-sm break-all">{formData.resources_url}</p>
-                                            </div>
-                                        )}
-                                        {formData.learning_objectives && (
-                                            <div>
-                                                <span className="text-sm text-secondary">Learning Objectives</span>
-                                                <p className="text-primary">{formData.learning_objectives}</p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}

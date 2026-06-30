@@ -73,15 +73,10 @@ const CourseEnrollModal = ({ course, onClose, onSuccess }) => {
     const price = parseFloat(course?.price || 0);
     const isFree = !course?.is_paid || price <= 0;
 
-    // Group pricing: if package-based, calculate based on group size
     const groupPrice = (() => {
         const memberCount = selectedMembers.length;
         if (memberCount === 0) return 0;
-        // If course has group_size / group_price fields, use them
-        const groupSize = course?.group_size || 3;
-        const groupPriceVal = course?.group_price || price;
-        const groupsNeeded = Math.ceil(memberCount / groupSize);
-        return groupsNeeded * groupPriceVal;
+        return memberCount * price * 0.8;
     })();
 
     const totalGroupCost = groupPrice + price; // requester + group members

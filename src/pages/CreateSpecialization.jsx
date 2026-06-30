@@ -15,8 +15,7 @@ import FileUploader from '../components/common/FileUploader';
 
 const STEPS = [
     { number: 1, title: 'Basics' },
-    { number: 2, title: 'Details' },
-    { number: 3, title: 'Review' },
+    { number: 2, title: 'Review' },
 ];
 
 const CreateSpecialization = () => {
@@ -31,11 +30,6 @@ const CreateSpecialization = () => {
         learning_type: 'specialization',
         is_paid: false,
         price: '',
-        category: '',
-        difficulty_level: 'beginner',
-        estimated_duration: '',
-        prerequisites: '',
-        tags: '',
     });
     const [useAI, setUseAI] = useState(false);
     const [aiFiles, setAiFiles] = useState([]);
@@ -74,11 +68,6 @@ const CreateSpecialization = () => {
                     is_paid: formData.is_paid,
                 };
                 if (formData.is_paid && formData.price) payload.price = formData.price;
-                if (formData.category) payload.category = formData.category;
-                if (formData.difficulty_level) payload.difficulty_level = formData.difficulty_level;
-                if (formData.estimated_duration) payload.estimated_duration = formData.estimated_duration;
-                if (formData.prerequisites) payload.prerequisites = formData.prerequisites;
-                if (formData.tags) payload.tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
                 await specializationsService.create(payload);
             }
@@ -263,65 +252,8 @@ const CreateSpecialization = () => {
                                 </div>
                             )}
 
-                            {/* STEP 2: Details */}
+                            {/* STEP 2: Review */}
                             {currentStep === 2 && (
-                                <div className="space-y-6 animate-fade-in">
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Difficulty Level</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {['beginner', 'intermediate', 'advanced'].map(level => (
-                                                <button
-                                                    key={level}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, difficulty_level: level })}
-                                                    className={`p-3 rounded-lg border-2 text-center capitalize font-medium transition-all ${formData.difficulty_level === level
-                                                        ? 'border-green-600 bg-green-50/10 text-green-600'
-                                                        : 'border-theme text-secondary hover:border-green-300'
-                                                        }`}
-                                                >
-                                                    {level}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Estimated Duration</label>
-                                        <input
-                                            type="text"
-                                            value={formData.estimated_duration}
-                                            onChange={(e) => setFormData({ ...formData, estimated_duration: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            placeholder="e.g., 3 months, 6 weeks"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Prerequisites</label>
-                                        <textarea
-                                            value={formData.prerequisites}
-                                            onChange={(e) => setFormData({ ...formData, prerequisites: e.target.value })}
-                                            rows={3}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary resize-none"
-                                            placeholder="Any prior knowledge or courses required..."
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-primary mb-2">Tags (comma-separated)</label>
-                                        <input
-                                            type="text"
-                                            value={formData.tags}
-                                            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                                            className="w-full px-4 py-2 bg-transparent border border-theme rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-primary"
-                                            placeholder="python, machine-learning, data"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* STEP 3: Review */}
-                            {currentStep === 3 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
                                         <CheckCircle className="text-green-600" /> Review Your {formData.learning_type ? formData.learning_type.charAt(0).toUpperCase() + formData.learning_type.slice(1) : 'Path'}
@@ -343,38 +275,10 @@ const CreateSpecialization = () => {
                                                 <span className="text-sm text-secondary">Description</span>
                                                 <p className="text-primary">{formData.description || '—'}</p>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <span className="text-sm text-secondary">Access</span>
-                                                    <p className="text-primary capitalize">{formData.is_paid ? `Paid ($${formData.price})` : 'Free'}</p>
-                                                </div>
-                                                <div>
-                                                    <span className="text-sm text-secondary">Difficulty</span>
-                                                    <p className="text-primary capitalize">{formData.difficulty_level}</p>
-                                                </div>
-                                                <div>
-                                                    <span className="text-sm text-secondary">Duration</span>
-                                                    <p className="text-primary">{formData.estimated_duration || 'Not set'}</p>
-                                                </div>
+                                            <div>
+                                                <span className="text-sm text-secondary">Access</span>
+                                                <p className="text-primary capitalize">{formData.is_paid ? `Paid ($${formData.price})` : 'Free'}</p>
                                             </div>
-                                            {formData.prerequisites && (
-                                                <div>
-                                                    <span className="text-sm text-secondary">Prerequisites</span>
-                                                    <p className="text-primary">{formData.prerequisites}</p>
-                                                </div>
-                                            )}
-                                            {formData.tags && (
-                                                <div>
-                                                    <span className="text-sm text-secondary">Tags</span>
-                                                    <div className="flex flex-wrap gap-2 mt-1">
-                                                        {formData.tags.split(',').map((tag, i) => (
-                                                            <span key={i} className="px-2 py-1 rounded-full bg-green-100/20 text-green-600 text-xs font-medium">
-                                                                {tag.trim()}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
                                 </div>

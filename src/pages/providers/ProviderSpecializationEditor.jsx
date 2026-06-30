@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Plus, GripVertical, Trash2, X, Save, Layers, ChevronDown, ChevronRight, FileText, Video, Music, Image, Code, Link2, Clock, Lock, Eye, DollarSign, Send, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Quote, Heading1, Heading2, Heading3, EyeOff, Upload, Play } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, GripVertical, Trash2, X, Save, Layers, ChevronDown, ChevronRight, FileText, Video, Music, Image, Code, Link2, Clock, Lock, Eye, DollarSign, Send, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Quote, Heading1, Heading2, Heading3, EyeOff, Upload, Play, Award } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEditor, EditorContent } from '@tiptap/react';
 import TextAlign from '@tiptap/extension-text-align';
@@ -10,6 +10,7 @@ import api from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/vs2015.css';
+import CertificateDesigner from './CertificateDesigner';
 
 const getContrastColor = (bg) => {
     const hex = bg.replace('#', '');
@@ -102,6 +103,8 @@ const ProviderSpecializationEditor = () => {
     const [activeContentTab, setActiveContentTab] = useState(null);
     const [showCourseSettings, setShowCourseSettings] = useState(false);
     const [courseSettings, setCourseSettings] = useState({ lock_for_unenrolled: true, sequential_locking: false, skip_disabled: false });
+    const [showCertDesigner, setShowCertDesigner] = useState(false);
+    const [certificateData, setCertificateData] = useState(null);
 
     // Quiz builder state
     const [editingQuiz, setEditingQuiz] = useState(null);
@@ -147,6 +150,11 @@ const ProviderSpecializationEditor = () => {
             setSpec(data);
             setMeta({ name: data.name, description: data.description || '', learning_type: data.learning_type, is_paid: data.is_paid || false, price: data.price || '', background_color: data.background_color || '#ffffff' });
             setCourseSettings({ lock_for_unenrolled: data.lock_for_unenrolled !== false, sequential_locking: data.sequential_locking || false, skip_disabled: data.skip_disabled || false });
+            try {
+                const certRes = await api.get('/api/v1/specializations/certificates/', { params: { specialization: specId } });
+                const certs = Array.isArray(certRes.data) ? certRes.data : (certRes.data?.results || []);
+                if (certs.length > 0) setCertificateData(certs[0]);
+            } catch (e) {}
             const raw = data.stacks_detail || data.stacks || [];
             const stackIds = data.stack_order || [];
             const ordered = stackIds.length > 0 ? stackIds.map(id => raw.find(s => s.id === id)).filter(Boolean) : raw;
@@ -653,6 +661,7 @@ const ProviderSpecializationEditor = () => {
                 {!previewMode && <Button variant="outline" size="sm" onClick={saveDraft} className="text-[10px] h-6 hidden sm:flex"><Save size={12} className="mr-1" /> Draft</Button>}
                 {!previewMode && <Button variant="primary" size="sm" onClick={handleSaveMeta} isLoading={saving} className="text-[10px] h-6 shrink-0"><Save size={12} className="mr-1 sm:mr-1" />Save</Button>}
                 {!previewMode && <button onClick={() => setShowCourseSettings(true)} className="p-2 rounded-lg text-secondary hover:bg-secondary/10 transition-colors" title="Course Settings"><Layers size={16} /></button>}
+                {!previewMode && <button onClick={() => setShowCertDesigner(true)} className="p-2 rounded-lg text-secondary hover:bg-secondary/10 transition-colors" title="Certificate"><Award size={16} /></button>}
                 <button onClick={() => setPreviewMode(!previewMode)} title={previewMode ? 'Edit mode' : 'Preview mode'} className={`p-2 rounded-lg transition-colors shrink-0 ${previewMode ? 'bg-amber-100 text-amber-700' : 'text-secondary hover:bg-secondary/10'}`}>{previewMode ? <EyeOff size={16} /> : <Eye size={16} />}</button>
             </div>
 
@@ -1156,6 +1165,16 @@ const ProviderSpecializationEditor = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Certificate Designer Modal */}
+            {showCertDesigner && (
+                <CertificateDesigner
+                    specId={specId}
+                    cert={certificateData}
+                    onClose={() => setShowCertDesigner(false)}
+                    onSaved={(cert) => { setCertificateData(cert); }}
+                />
             )}
 
             {/* Course Settings Modal */}

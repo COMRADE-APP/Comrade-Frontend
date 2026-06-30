@@ -308,7 +308,11 @@ export const API_ENDPOINTS = {
 
     // Certificates
     CERTIFICATES: `${API_BASE_URL}/api/specializations/certificates/`,
+    CERTIFICATE_DETAIL: (id) => `${API_BASE_URL}/api/specializations/certificates/${id}/`,
+    CERTIFICATE_GENERATE_PDF: (id) => `${API_BASE_URL}/api/specializations/certificates/${id}/generate_pdf/`,
     ISSUED_CERTIFICATES: `${API_BASE_URL}/api/specializations/issued_certificates/`,
+    ISSUED_CERTIFICATE_DETAIL: (id) => `${API_BASE_URL}/api/specializations/issued_certificates/${id}/`,
+    ISSUED_CERTIFICATE_DOWNLOAD: (id) => `${API_BASE_URL}/api/specializations/issued_certificates/${id}/download/`,
     VERIFY_CERTIFICATE: `${API_BASE_URL}/api/specializations/issued_certificates/verify/`,
 
 
