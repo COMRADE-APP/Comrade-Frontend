@@ -123,7 +123,7 @@ const RegisterSponsor = () => {
         <div className="h-[100svh] w-full flex overflow-hidden bg-base">
             <div className="hidden lg:flex lg:w-1/2 relative bg-primary-900 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-700/90 via-primary-800/90 to-primary-900" />
-                <img src="/qomrade_growth_emblem.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-110" />
+                <img src="/qomrade_svg.svg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-110" />
                 <div className="relative z-10 p-12 xl:p-16 flex flex-col h-full text-white w-full">
                     <div className="flex flex-col gap-3">
                         <img src="/qomrade_svg.svg" alt="Qomrade Logo" className="w-14 h-14 object-contain drop-shadow-lg" />

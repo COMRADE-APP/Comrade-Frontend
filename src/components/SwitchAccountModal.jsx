@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, GraduationCap, User, ChevronRight, X, Lock } from 'lucide-react';
+import { Building2, GraduationCap, User, Store, ChevronRight, X, Lock } from 'lucide-react';
 
 /**
  * SwitchAccountModal - Allows users to switch between personal and organization/institution accounts
@@ -20,6 +20,8 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                 return <Building2 className="w-5 h-5" />;
             case 'institution':
                 return <GraduationCap className="w-5 h-5" />;
+            case 'provider':
+                return <Store className="w-5 h-5" />;
             default:
                 return <User className="w-5 h-5" />;
         }
@@ -31,6 +33,8 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                 return 'Organisation';
             case 'institution':
                 return 'Institution';
+            case 'provider':
+                return 'Provider';
             default:
                 return 'Personal';
         }
@@ -42,9 +46,16 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                 return 'bg-blue-100 text-blue-700';
             case 'institution':
                 return 'bg-primary-200 text-primary-800';
+            case 'provider':
+                return 'bg-purple-100 text-purple-700';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
+    };
+
+    const getProviderTypeLabel = (type) => {
+        if (!type) return '';
+        return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     };
 
     return (
@@ -91,6 +102,7 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                     ) : (
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${account.type === 'organisation' ? 'bg-blue-100 text-blue-600' :
                                             account.type === 'institution' ? 'bg-primary-200 text-primary-700' :
+                                            account.type === 'provider' ? 'bg-purple-100 text-purple-600' :
                                                 'bg-gray-100 text-gray-600'
                                             }`}>
                                             {getIcon(account.type)}
@@ -112,6 +124,11 @@ const SwitchAccountModal = ({ isOpen, onClose, accounts = [], activeAccountId, o
                                     <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getTypeBadgeColor(account.type)}`}>
                                         {getTypeLabel(account.type)}
                                     </span>
+                                    {account.type === 'provider' && account.provider_type && (
+                                        <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 ml-1">
+                                            {getProviderTypeLabel(account.provider_type)}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Arrow */}

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import {
     ArrowLeft, Calendar, Clock, MapPin, Users, Image as ImageIcon, Save, Send,
     Megaphone, X, Globe, Building2, GraduationCap, User, CheckCircle,
-    AlertCircle, ChevronRight, ChevronLeft, Ticket, FileText, Upload, Plus, Trash2, HeartHandshake, DollarSign
+    AlertCircle, ChevronRight, ChevronLeft, Ticket, FileText, Upload, Plus, Trash2, HeartHandshake, DollarSign, Settings
 } from 'lucide-react';
 import api from '../services/api';
 import eventsService from '../services/events.service';
@@ -50,6 +50,8 @@ const CreateEvent = () => {
         is_ticketed: false,
         seeking_sponsors: false,
         seeking_partners: false,
+        activate_feedback: true,
+        attendees_viewable: true,
     });
 
     const [ticketTiers, setTicketTiers] = useState([]);
@@ -719,6 +721,32 @@ const CreateEvent = () => {
                                                             className="w-5 h-5 rounded border-theme text-blue-600 focus:ring-blue-500"
                                                         />
                                                         We are strictly looking for Partners
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-theme">
+                                                <h4 className="text-md font-semibold text-primary mb-4 flex items-center gap-2">
+                                                    <Settings size={18} className="text-purple-500" /> Event Settings
+                                                </h4>
+                                                <div className="flex gap-6">
+                                                    <label className="flex items-center gap-3 cursor-pointer text-primary">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.activate_feedback !== false}
+                                                            onChange={e => setFormData({ ...formData, activate_feedback: e.target.checked })}
+                                                            className="w-5 h-5 rounded border-theme text-green-600 focus:ring-green-500"
+                                                        />
+                                                        Enable Feedback & Reviews
+                                                    </label>
+                                                    <label className="flex items-center gap-3 cursor-pointer text-primary">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.attendees_viewable !== false}
+                                                            onChange={e => setFormData({ ...formData, attendees_viewable: e.target.checked })}
+                                                            className="w-5 h-5 rounded border-theme text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                        Attendees Visible to Public
                                                     </label>
                                                 </div>
                                             </div>

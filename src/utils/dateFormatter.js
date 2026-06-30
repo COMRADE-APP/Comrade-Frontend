@@ -65,3 +65,31 @@ export const formatLocalTime = (date) => {
     }
     return format(dateObj, 'MMM d, h:mm a'); // e.g., "Jan 29, 10:35 AM"
 };
+
+export const getTemporalStatus = (event) => {
+    if (!event || !event.event_date) return 'upcoming';
+    try {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        let eventDate = new Date(event.event_date);
+        if (isNaN(eventDate.getTime())) return 'upcoming';
+        eventDate.setHours(0, 0, 0, 0);
+
+        let startDT = new Date(event.event_date);
+        let endDT = new Date(event.event_date);
+        if (event.start_time && /^\d{2}:\d{2}/.test(event.start_time)) {
+            const [h, m] = event.start_time.split(':');
+            startDT.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+        } else { startDT.setHours(0, 0, 0); }
+        if (event.end_time && /^\d{2}:\d{2}/.test(event.end_time)) {
+            const [h, m] = event.end_time.split(':');
+            endDT.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+        } else { endDT.setHours(23, 59, 59); }
+
+        const now = new Date();
+        if (endDT < now) return 'past';
+        if (startDT <= now && endDT >= now) return 'happening_now';
+        return 'upcoming';
+    } catch {
+        return 'upcoming';
+    }
+};

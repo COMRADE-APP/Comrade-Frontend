@@ -251,6 +251,36 @@ export const providerService = {
             return { is_partner: false, has_application: false };
         }
     },
+
+    // ─── Investment Opportunities (for providers) ───
+    async getMyOpportunities() {
+        const res = await api.get('/api/v1/funding/opportunities/my_opportunities/');
+        return res.data?.results || res.data || [];
+    },
+    async publishOpportunity(providerId, data) {
+        const res = await api.post(`/api/v1/payments/provider-registrations/${providerId}/publish_opportunity/`, data);
+        return res.data;
+    },
+    async updateOpportunity(id, data) {
+        const res = await api.patch(`/api/v1/funding/opportunities/${id}/`, data);
+        return res.data;
+    },
+    async toggleOpportunity(id, active) {
+        const res = await api.patch(`/api/v1/funding/opportunities/${id}/`, { is_active: active });
+        return res.data;
+    },
+
+    // ─── Loans (for providers) ───
+    async getProviderLoanApplications(providerId) {
+        const res = await api.get(`/api/v1/payments/provider-applications/?provider_id=${providerId}&application_type=loan_application`);
+        return res.data?.results || res.data || [];
+    },
+
+    // ─── Analytics ───
+    async getKittyAnalytics(providerId) {
+        const res = await api.get(`/api/v1/payments/provider-registrations/${providerId}/kitty_analytics/`);
+        return res.data;
+    },
 };
 
 export default providerService;

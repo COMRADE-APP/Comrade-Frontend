@@ -9,7 +9,6 @@ import {
     Building2, Wallet, AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import { paymentProcessingService } from '../../services/paymentProcessing.service';
 import { detectCurrency } from '../../utils/currencyUtils';
 
@@ -47,14 +46,12 @@ const TransactionConfirmation = () => {
     const [transactionId, setTransactionId] = useState(null);
     const [gatewayConfig, setGatewayConfig] = useState(null);
 
-    // Fetch gateway config
     useEffect(() => {
         paymentProcessingService.getGatewayConfig()
             .then(res => setGatewayConfig(res))
             .catch(console.error);
     }, []);
 
-    // If no transaction data, redirect back
     useEffect(() => {
         if (!transactionData) {
             navigate('/payments', { replace: true });
@@ -81,61 +78,50 @@ const TransactionConfirmation = () => {
         return paymentMethod || 'Payment Method';
     };
 
-    const [flwReadyToPay, setFlwReadyToPay] = useState(false);
-
+    const [inlineReady, setInlineReady] = useState(false);
     const methodType = selectedMethod?.method_type || paymentMethod;
+    const gateways = gatewayConfig?.gateways || {};
+    const paystackPublicKey = gateways.paystack?.public_key || '';
 
-    const flwConfig = {
-        public_key: gatewayConfig?.gateways?.flutterwave?.public_key || '',
-        tx_ref: transactionId || Date.now().toString(),
-        amount: parseFloat(amount) || 0,
-        currency: detectCurrency(methodType === 'mpesa' ? 'KES' : 'USD'),
-        payment_options: 'card,mobilemoney,ussd',
-        customer: {
+    const triggerPaystack = () => {
+        const handler = window.PaystackPop.setup({
+            key: paystackPublicKey,
             email: user?.email || 'user@example.com',
-            phone_number: phoneNumber || '',
-            name: user?.full_name || user?.username || 'User',
-        },
-        customizations: {
-            title: 'Qomrade Transaction',
-            description: `Processing ${type}`,
-            logo: 'https://qomrade.com/logo.png',
-        },
+            amount: Math.round(parseFloat(amount) * 100),
+            currency: detectCurrency(methodType === 'mpesa' ? 'KES' : 'USD'),
+            ref: transactionId,
+            metadata: {
+                custom_fields: [
+                    { display_name: 'Phone', variable_name: 'phone', value: phoneNumber || '' },
+                ],
+            },
+            onSuccess: async (transaction) => {
+                try {
+                    await paymentProcessingService.verifyPaystackPayment({
+                        reference: transaction.reference,
+                    });
+                    setResultMessage(`Successfully confirmed ${config.title}`);
+                    setStep('success');
+                } catch (error) {
+                    setStep('error');
+                    setResultMessage('Payment verification failed.');
+                }
+            },
+            onClose: () => {
+                setStep('error');
+                setResultMessage('Payment cancelled by user.');
+                setInlineReady(false);
+            },
+        });
+        handler.openIframe();
     };
 
-    const handleFlutterPayment = useFlutterwave(flwConfig);
-
     useEffect(() => {
-        if (flwReadyToPay && transactionId) {
-            handleFlutterPayment({
-                callback: async (response) => {
-                    closePaymentModal();
-                    if (response.status === 'successful') {
-                        try {
-                            await paymentProcessingService.verifyFlutterwavePayment({
-                                transaction_id: response.transaction_id,
-                                tx_ref: response.tx_ref
-                            });
-                            setResultMessage(`Successfully confirmed ${config.title}`);
-                            setStep('success');
-                        } catch (error) {
-                            setStep('error');
-                            setResultMessage('Payment verification failed.');
-                        }
-                    } else {
-                        setStep('error');
-                        setResultMessage('Payment was not completed.');
-                    }
-                },
-                onClose: () => {
-                    setStep('error');
-                    setResultMessage('Payment cancelled by user.');
-                    setFlwReadyToPay(false);
-                },
-            });
-            setFlwReadyToPay(false); // Reset so it doesn't fire again
+        if (inlineReady && transactionId && paystackPublicKey) {
+            triggerPaystack();
+            setInlineReady(false);
         }
-    }, [flwReadyToPay, transactionId, handleFlutterPayment]);
+    }, [inlineReady, transactionId, paystackPublicKey]);
 
     const handleConfirm = async () => {
         setStep('processing');
@@ -190,8 +176,8 @@ const TransactionConfirmation = () => {
             if (result?.provider_response?.status === 'ready_for_inline') {
                 const txRef = result.transaction_code || result.transaction?.transaction_code || result.id || Date.now().toString();
                 setTransactionId(txRef);
-                setFlwReadyToPay(true);
-                return; // Stop execution here, useEffect handles success
+                setInlineReady(true);
+                return;
             }
 
             setTransactionId(result?.transaction_id || result?.id || null);
@@ -222,7 +208,6 @@ const TransactionConfirmation = () => {
 
     return (
         <div className="max-w-lg mx-auto py-8 space-y-6 animate-in fade-in">
-            {/* Back button — only on review step */}
             {step === 'review' && (
                 <button
                     onClick={() => navigate(-1)}
@@ -236,7 +221,6 @@ const TransactionConfirmation = () => {
             {/* ─── Review Step ──────────────────────────────────────── */}
             {step === 'review' && (
                 <>
-                    {/* Header */}
                     <div className="text-center space-y-3">
                         <div className={`w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
                             <TypeIcon className="w-8 h-8 text-white" />
@@ -245,10 +229,8 @@ const TransactionConfirmation = () => {
                         <p className="text-secondary text-sm">Please review the details below before confirming.</p>
                     </div>
 
-                    {/* Transaction Details Card */}
                     <Card>
                         <CardBody className="p-6 space-y-4">
-                            {/* Amount */}
                             <div className="text-center py-4">
                                 <p className="text-sm text-secondary mb-1">Amount</p>
                                 <p className="text-4xl font-bold text-primary">${amount}</p>
@@ -256,7 +238,6 @@ const TransactionConfirmation = () => {
 
                             <hr className="border-theme" />
 
-                            {/* Details rows */}
                             <div className="space-y-3">
                                 <DetailRow label="Transaction Type" value={config.title} />
                                 <DetailRow
@@ -286,7 +267,6 @@ const TransactionConfirmation = () => {
                         </CardBody>
                     </Card>
 
-                    {/* Warning */}
                     <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs">
                         <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                         <p>
@@ -294,7 +274,6 @@ const TransactionConfirmation = () => {
                         </p>
                     </div>
 
-                    {/* CTA */}
                     <Button
                         variant="primary"
                         className="w-full py-4 text-base bg-gradient-to-r from-primary-700 to-primary-600 hover:from-primary-800 hover:to-primary-700 shadow-lg shadow-primary-600/20 rounded-2xl font-semibold"
@@ -341,7 +320,6 @@ const TransactionConfirmation = () => {
                         <div className="w-24 h-24 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
                             <CheckCircle className="w-14 h-14 text-green-500" />
                         </div>
-                        {/* Success ring animation */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-24 h-24 rounded-full border-2 border-green-500/30 animate-ping" />
                         </div>

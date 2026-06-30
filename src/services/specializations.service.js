@@ -139,6 +139,11 @@ export const specializationsService = {
         return response.data;
     },
 
+    async generateQuestionsFromContent(data) {
+        const response = await api.post(API_ENDPOINTS.QUIZ_GENERATE, data);
+        return response.data;
+    },
+
     // ============ QUIZ QUESTIONS ============
     async createQuizQuestion(data) {
         const response = await api.post(API_ENDPOINTS.QUIZ_QUESTIONS, data);
@@ -164,6 +169,48 @@ export const specializationsService = {
     // ============ ANALYTICS ============
     async getAnalytics(id) {
         const response = await api.get(API_ENDPOINTS.SPECIALIZATION_DETAIL(id) + 'analytics/');
+        return response.data;
+    },
+
+    // ============ ACTIVITIES ============
+    async getActivities(stackId) {
+        const response = await api.get(API_ENDPOINTS.ACTIVITIES, { params: { stack_id: stackId } });
+        return response.data;
+    },
+
+    async createActivity(data) {
+        const response = await api.post(API_ENDPOINTS.ACTIVITIES, data);
+        return response.data;
+    },
+
+    async updateActivity(id, data) {
+        const response = await api.patch(API_ENDPOINTS.ACTIVITY_DETAIL(id), data);
+        return response.data;
+    },
+
+    async deleteActivity(id) {
+        const response = await api.delete(API_ENDPOINTS.ACTIVITY_DETAIL(id));
+        return response.data;
+    },
+
+    // ============ LABS ============
+    async getLabs(stackId) {
+        const response = await api.get(API_ENDPOINTS.LABS, { params: { stack_id: stackId } });
+        return response.data;
+    },
+
+    async createLab(data) {
+        const response = await api.post(API_ENDPOINTS.LABS, data);
+        return response.data;
+    },
+
+    async updateLab(id, data) {
+        const response = await api.patch(API_ENDPOINTS.LAB_DETAIL(id), data);
+        return response.data;
+    },
+
+    async deleteLab(id) {
+        const response = await api.delete(API_ENDPOINTS.LAB_DETAIL(id));
         return response.data;
     },
 

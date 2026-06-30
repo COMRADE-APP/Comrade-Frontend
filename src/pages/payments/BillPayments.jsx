@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, Wifi, Tv, Phone, Droplets, GraduationCap, Home, Building2, ChevronRight, ChevronDown, Clock, CheckCircle, XCircle, Search, ArrowLeft, RefreshCw, Loader2, Plus, X, Calendar, Trash2, Edit, CreditCard, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { billsService } from '../../services/finservices.service';
+import providerService from '../../services/provider.service';
 import Button from '../../components/common/Button';
 import PaymentTypeSelector from '../../components/payments/PaymentTypeSelector';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
@@ -68,14 +69,32 @@ const BillPayments = () => {
             setStandingOrders(r.data?.results || r.data || []);
         }).catch(() => {});
 
-        // Load all providers
+        // Load all providers — from both legacy BillProvider and ProviderRegistration
         setLoadingProviders(true);
-        billsService.getProviders().then(r => {
-            const fetched = r.data?.results || r.data || [];
-            setProviders(fetched);
-            // Automatically expand the first category that has providers
-            if (fetched.length > 0) {
-                const firstCat = BILL_CATEGORIES.find(c => fetched.some(p => p.category === c.id));
+        Promise.all([
+            billsService.getProviders().catch(() => ({ data: { results: [] } })),
+            providerService.getActiveProviders({ provider_type: 'bill_provider' }).catch(() => []),
+        ]).then(([billRes, regProviders]) => {
+            const legacyProviders = billRes.data?.results || billRes.data || [];
+
+            const regAdapted = (Array.isArray(regProviders) ? regProviders : (regProviders?.results || [])).map(r => ({
+                id: `reg-${r.id}`,
+                name: r.business_name,
+                category: r.category || 'other',
+                is_active: r.status === 'approved',
+                description: r.description || '',
+                logo: r.logo_url || r.logo,
+                account_label: r.account_label || 'Account Number',
+                min_amount: r.min_transaction_amount || 10,
+                max_amount: r.max_transaction_amount || 100000,
+                commission_rate: r.commission_rate || 0.015,
+                _source: 'provider_registration',
+            }));
+
+            const all = [...legacyProviders, ...regAdapted];
+            setProviders(all);
+            if (all.length > 0) {
+                const firstCat = BILL_CATEGORIES.find(c => all.some(p => p.category === c.id));
                 if (firstCat) setExpandedSections(prev => ({ ...prev, [firstCat.id]: true }));
             }
         }).catch(() => setProviders([])).finally(() => setLoadingProviders(false));

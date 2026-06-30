@@ -3,7 +3,7 @@ import { Plus, Coins, Landmark, Timer, Percent, ArrowUpRight, X, Info, CreditCar
 import Button from '../common/Button';
 import Card, { CardBody } from '../common/Card';
 import Input from '../common/Input';
-import paymentsService from '../../services/payments.service';
+import { loansService } from '../../services/finservices.service';
 import { formatDate } from '../../utils/dateFormatter';
 import { useToast } from '../../contexts/ToastContext';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
@@ -36,23 +36,22 @@ const GroupLoansTab = ({ groupId }) => {
         setLoadError(null);
         try {
             const [loansData, productsData] = await Promise.all([
-                paymentsService.getProviderApplications(groupId).catch((err) => {
-                    console.warn('Could not load applications:', err);
+                loansService.getMyLoans().catch((err) => {
+                    console.warn('Could not load loans:', err);
                     return { results: [] };
                 }),
-                paymentsService.getProviderLoanProducts().catch((err) => {
+                loansService.getProducts({ group: groupId }).catch((err) => {
                     console.warn('Could not load loan products:', err);
                     return { results: [] };
                 })
             ]);
-            
-            // Filter applications to only show loans
-            const allApps = Array.isArray(loansData) ? loansData : (loansData?.results || []);
-            setLoans(allApps.filter(app => app.application_type === 'loan_application' || app.application_type_display === 'Loan Application'));
-            
+
+            const allLoans = Array.isArray(loansData) ? loansData : (loansData?.results || []);
+            setLoans(allLoans.filter(loan => loan.group?.id == groupId || loan.group == groupId));
+
             const products = Array.isArray(productsData) ? productsData : (productsData?.results || []);
             setLoanProducts(products);
-            
+
             if (products.length > 0) {
                 setFormData(prev => ({ ...prev, loan_product: products[0].id }));
             }
@@ -70,19 +69,15 @@ const GroupLoansTab = ({ groupId }) => {
         setCreateLoading(true);
         try {
             const selectedProduct = loanProducts.find(p => p.id === formData.loan_product);
-            
+
             const payload = {
-                application_type: 'loan_application',
-                provider: selectedProduct?.provider,
-                service_product: formData.loan_product,
-                application_data: {
-                    amount: parseFloat(formData.amount),
-                    tenure_months: parseInt(formData.tenure_months),
-                    purpose: formData.purpose,
-                    group_id: groupId
-                }
+                loan_product: formData.loan_product,
+                amount: parseFloat(formData.amount),
+                tenure_months: parseInt(formData.tenure_months),
+                purpose: formData.purpose,
+                group: groupId,
             };
-            await paymentsService.submitProviderApplication(payload);
+            await loansService.applyForLoan(payload);
             setShowCreateModal(false);
             resetForm();
             loadData();

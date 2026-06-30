@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import organizationsService from '../services/organizations.service';
-import { formatDate, formatTime } from '../utils/dateFormatter';
+import { formatDate, formatTime, getTemporalStatus } from '../utils/dateFormatter';
 const REMINDER_OPTIONS = [
     { value: '1h', label: '1 Hour Before' },
     { value: '2h', label: '2 Hours Before' },
@@ -39,31 +39,7 @@ const REMINDER_OPTIONS = [
     { value: '1w', label: '1 Week Before' },
 ];
 
-const getTemporalStatus = (event) => {
-    if (!event.event_date) return null;
-    
-    let startDateTime = new Date(event.event_date);
-    let endDateTime = new Date(event.event_date);
-    
-    if (event.start_time) {
-        const [hours, minutes] = event.start_time.split(':');
-        startDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
-    }
-    if (event.end_time) {
-        const [hours, minutes] = event.end_time.split(':');
-        endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
-    }
 
-    const now = new Date();
-    
-    if (endDateTime < now) {
-        return 'past';
-    } else if (startDateTime <= now && endDateTime >= now) {
-        return 'happening_now';
-    } else {
-        return 'upcoming';
-    }
-};
 
 const skipFontsFilter = (node) => !(node.nodeType === 1 && node.tagName === 'LINK' && node.href && node.href.includes('fonts.googleapis'));
 
@@ -794,7 +770,9 @@ const EventDetail = () => {
                                 <h3 className="font-semibold mb-3 text-primary">Event Stats</h3>
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between"><span className="text-secondary">Interested</span><span className="font-medium text-primary">{event.interested_count || 0}</span></div>
-                                    <div className="flex justify-between"><span className="text-secondary">Reactions</span><span className="font-medium text-primary">{event.reactions_count || 0}</span></div>
+                                    <div className="flex justify-between"><span className="text-secondary flex items-center gap-1">❤️ Love</span><span className="font-medium text-primary">{reactionsBreakdown?.love || 0}</span></div>
+                                    <div className="flex justify-between"><span className="text-secondary flex items-center gap-1">⭐ Interested</span><span className="font-medium text-primary">{reactionsBreakdown?.excited || 0}</span></div>
+                                    <div className="flex justify-between"><span className="text-secondary text-xs mt-1">Total Reactions</span><span className="font-medium text-primary text-xs">{event.reactions_count || 0}</span></div>
                                     <div className="flex justify-between"><span className="text-secondary">Comments</span><span className="font-medium text-primary">{event.comments_count || 0}</span></div>
                                 </div>
                             </CardBody></Card>
@@ -923,6 +901,49 @@ const EventDetail = () => {
 
                 {activeTab === 'tickets' && (
                     <div className="space-y-6">
+                        {isOrganizer && (
+                            <Card className="border-primary-500/30">
+                                <CardBody>
+                                    <h3 className="font-semibold text-lg mb-4 text-primary flex items-center gap-2">
+                                        <Settings size={20} /> Ticket Management
+                                    </h3>
+                                    {event.ticket_tiers?.length > 0 ? (
+                                        <div className="space-y-3 mb-4">
+                                            {event.ticket_tiers.map((tier, i) => {
+                                                const booked = tier.booked_count ?? 0;
+                                                const capacity = tier.capacity ?? 0;
+                                                const pct = capacity > 0 ? Math.round((booked / capacity) * 100) : 0;
+                                                return (
+                                                    <div key={tier.id || i} className="flex items-center justify-between p-3 bg-elevated rounded-lg">
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-primary text-sm">{tier.name || `Tier ${i + 1}`}</span>
+                                                                {tier.price > 0 && <span className="text-xs text-yellow-600 font-medium">${tier.price}</span>}
+                                                                {tier.price <= 0 && <span className="text-xs text-green-600 font-medium">Free</span>}
+                                                            </div>
+                                                            <div className="mt-1 w-full bg-secondary rounded-full h-2 overflow-hidden">
+                                                                <div className="bg-primary-600 h-2 rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
+                                                            </div>
+                                                            <p className="text-xs text-secondary mt-1">{booked} / {capacity} booked ({pct}%)</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p className="text-secondary text-sm mb-4">No ticket tiers configured yet.</p>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <Button variant="primary" size="sm" onClick={() => navigate(`/events/edit/${event.id}`)}>
+                                            <Settings size={16} className="mr-1" /> Edit Tiers
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={loadEvent}>
+                                            Refresh
+                                        </Button>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        )}
                         {/* My Tickets Section */}
                         {myBookings.length > 0 && (
                             <Card><CardBody>
@@ -1321,8 +1342,13 @@ const EventDetail = () => {
                                                             const purchases = res?.data?.purchases || [];
                                                             const merged = [...myBookings, ...purchases];
                                                             setMyBookings(merged);
+                                                            setEvent(prev => ({
+                                                                ...prev,
+                                                                slots_remaining: Math.max(0, (prev.slots_remaining ?? (prev.capacity - (prev.attendees?.length || 0))) - attendeeRows.length)
+                                                            }));
                                                             const requiresPayment = res?.data?.requires_payment;
                                                             setBookingStep(requiresPayment ? 'confirm' : 'done');
+                                                            loadEvent();
                                                         } catch (err) {
                                                             toast.error(err.response?.data?.error || 'Booking failed');
                                                         } finally { setBookingLoading(false); }

@@ -129,7 +129,7 @@ const Landing = () => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 0.06, scale: 1 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        src="/qomrade_growth_emblem.png"
+                        src="/qomrade_svg.svg"
                         alt=""
                         className="w-full h-full object-contain"
                     />

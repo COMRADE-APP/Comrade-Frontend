@@ -1,17 +1,14 @@
 /**
  * PaymentForm — PCI-compliant card capture with Stripe Elements,
- * M-Pesa phone field, PayPal, Flutterwave/Pesapal redirect,
- * and saved payment methods selector.
+ * M-Pesa phone field, PayPal, Paystack inline modal,
+ * Flutterwave/Pesapal redirect, and saved payment methods selector.
  */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import paymentProcessingService from '../../services/paymentProcessing.service';
-import { detectCurrency } from '../../utils/currencyUtils';
+import { detectCurrency, detectPreferredGateway, getDefaultMethodForGateway } from '../../utils/currencyUtils';
 import { formatMoneySimple } from '../../utils/moneyUtils.jsx';
 import './PaymentForm.css';
-
-// Removed Stripe CardElement options
 
 const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCancel }) => {
     const { user } = useAuth();
@@ -32,16 +29,23 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
 
     // Available gateways
     const gateways = gatewayConfig?.gateways || {};
+    const hasPaystack = gateways.paystack?.available;
     const hasStripe = gateways.stripe?.available;
     const hasMpesa = gateways.mpesa?.available;
     const hasPaypal = gateways.paypal?.available;
     const hasFlutterwave = gateways.flutterwave?.available;
     const hasPesapal = gateways.pesapal?.available;
 
+    const paystackPublicKey = gateways.paystack?.public_key || '';
+
     // Load saved payment methods & gateway config
     useEffect(() => {
         paymentProcessingService.getGatewayConfig()
-            .then(res => setGatewayConfig(res))
+            .then(res => {
+                setGatewayConfig(res);
+                const defaultGw = detectPreferredGateway();
+                setMethodType(getDefaultMethodForGateway(defaultGw));
+            })
             .catch(console.error);
             
         const loadSaved = async () => {
@@ -54,39 +58,26 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
         loadSaved();
     }, []);
 
-    const flwConfig = {
-        public_key: gatewayConfig?.gateways?.flutterwave?.public_key || '',
-        tx_ref: Date.now().toString(),
-        amount: parseFloat(amount) || 0,
-        currency: detectCurrency(currency),
-        payment_options: 'card,mobilemoney,ussd',
-        customer: {
-            email: user?.email || 'user@example.com',
-            phone_number: phoneNumber,
-            name: user?.first_name || 'Customer',
-        },
-        customizations: {
-            title: 'Qomrade Payment',
-            description,
-        },
-    };
-    const handleFlutterPayment = useFlutterwave(flwConfig);
-    
-    const triggerFlutterwave = (txRef, method) => {
-        handleFlutterPayment({
-            ...flwConfig,
-            tx_ref: txRef,
-            currency: detectCurrency(method === 'mpesa' ? 'KES' : currency),
-            callback: async (response) => {
-                closePaymentModal();
+    const triggerPaystack = (txRef) => {
+        const handler = window.PaystackPop.setup({
+            key: paystackPublicKey,
+            email: user?.email || 'customer@qomrade.com',
+            amount: Math.round(parseFloat(amount) * 100),
+            currency: detectCurrency(methodType === 'mpesa' ? 'KES' : currency),
+            ref: txRef,
+            metadata: {
+                custom_fields: [
+                    { display_name: 'Phone', variable_name: 'phone', value: phoneNumber },
+                ],
+            },
+            onSuccess: async (transaction) => {
+                setProcessing(true);
                 try {
-                    setProcessing(true);
-                    await paymentProcessingService.verifyFlutterwavePayment({
-                        transaction_id: response.transaction_id,
-                        tx_ref: response.tx_ref
+                    await paymentProcessingService.verifyPaystackPayment({
+                        reference: transaction.reference,
                     });
                     
-                    if (onSuccess) onSuccess(response);
+                    if (onSuccess) onSuccess(transaction);
                 } catch (e) {
                     setError('Payment verification failed.');
                 } finally {
@@ -96,8 +87,9 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
             onClose: () => {
                 setError('Payment modal closed.');
                 setProcessing(false);
-            }
+            },
         });
+        handler.openIframe();
     };
 
     const handleSubmit = async (e) => {
@@ -122,14 +114,13 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     description,
                 });
 
-            } else if (methodType === 'card' || methodType === 'mpesa' || methodType === 'flutterwave') {
+            } else if (methodType === 'card' || methodType === 'paystack' || methodType === 'mpesa' || methodType === 'flutterwave') {
                 if (methodType === 'mpesa' && !phoneNumber) {
                     setError('Phone number is required for M-Pesa.');
                     setProcessing(false);
                     return;
                 }
                 
-                // Save method preference
                 if (saveDetails) {
                     try {
                         await paymentProcessingService.savePaymentMethod({
@@ -141,7 +132,6 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     } catch { /* non-blocking */ }
                 }
 
-                // Initialize via backend
                 response = await paymentProcessingService.processPayment({
                     amount: parseFloat(amount),
                     currency: detectCurrency(methodType === 'mpesa' ? 'KES' : currency),
@@ -155,7 +145,24 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                 }
                 
                 const txRef = response.transaction?.transaction_code;
-                triggerFlutterwave(txRef, methodType);
+                const provider = response?.provider_response?.provider || 'paystack';
+                
+                if (provider === 'paystack' && paystackPublicKey) {
+                    triggerPaystack(txRef);
+                } else if (provider === 'flutterwave') {
+                    const flwResult = await paymentProcessingService.initiateFlutterwavePayment({
+                        amount: parseFloat(amount),
+                        currency: detectCurrency(methodType === 'mpesa' ? 'KES' : currency),
+                        email: user?.email,
+                        phone: phoneNumber,
+                        description,
+                    });
+                    if (flwResult?.provider_response?.payment_link) {
+                        window.location.href = flwResult.provider_response.payment_link;
+                    } else {
+                        throw new Error('Failed to start Flutterwave payment.');
+                    }
+                }
                 return; // callback handles success
 
             } else if (methodType === 'paypal') {
@@ -165,7 +172,6 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     payment_method: 'paypal',
                     description,
                 });
-                // PayPal returns an approval URL — redirect user
                 if (response?.provider_response?.approve_url) {
                     window.location.href = response.provider_response.approve_url;
                     return;
@@ -200,14 +206,14 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
 
     // Build method tabs dynamically based on available gateways
     const methodTabs = [];
+    if (hasPaystack) methodTabs.push({ val: 'paystack', label: '🏦 Paystack', icon: '🏦' });
     if (hasStripe) methodTabs.push({ val: 'card', label: '💳 Card', icon: '💳' });
-    if (hasMpesa || hasFlutterwave) methodTabs.push({ val: 'mpesa', label: '📱 M-Pesa', icon: '📱' });
+    if (hasMpesa && !hasPaystack) methodTabs.push({ val: 'mpesa', label: '📱 M-Pesa', icon: '📱' });
     if (hasPaypal) methodTabs.push({ val: 'paypal', label: '🅿️ PayPal', icon: '🅿️' });
-    if (hasFlutterwave) methodTabs.push({ val: 'flutterwave', label: '🏦 Bank', icon: '🏦' });
-    if (hasPesapal && !hasFlutterwave) methodTabs.push({ val: 'pesapal', label: '🏦 Pesapal', icon: '🏦' });
+    if (hasFlutterwave) methodTabs.push({ val: 'flutterwave', label: '🏦 Bank (Flutterwave)', icon: '🏦' });
+    if (hasPesapal) methodTabs.push({ val: 'pesapal', label: '🏦 Pesapal', icon: '🏦' });
     if (savedMethods.length > 0) methodTabs.push({ val: 'saved', label: '⭐ Saved', icon: '⭐' });
 
-    // Fallback if no gateways loaded yet
     if (methodTabs.length === 0) {
         methodTabs.push({ val: 'card', label: '💳 Card', icon: '💳' });
         methodTabs.push({ val: 'mpesa', label: '📱 M-Pesa', icon: '📱' });
@@ -252,6 +258,15 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     </div>
                 )}
 
+                {/* ─── Paystack ─── */}
+                {methodType === 'paystack' && (
+                    <div className="paystack-input">
+                        <p className="help-text" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                            🏦 Pay securely via M-Pesa, card, bank transfer, or USSD through Paystack.
+                        </p>
+                    </div>
+                )}
+
                 {/* ─── M-Pesa ─── */}
                 {methodType === 'mpesa' && (
                     <div className="mpesa-input">
@@ -278,7 +293,7 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     </div>
                 )}
 
-                {/* ─── Flutterwave (Bank/M-Pesa/Card via hosted page) ─── */}
+                {/* ─── Flutterwave (Fallback) ─── */}
                 {methodType === 'flutterwave' && (
                     <div className="flutterwave-input">
                         <p className="help-text" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
@@ -328,7 +343,7 @@ const PaymentForm = ({ amount, currency = 'USD', description, onSuccess, onCance
                     </label>
                 )}
 
-                <button type="submit" className="btn-pay" disabled={processing || (methodType === 'card' && !stripe)}>
+                <button type="submit" className="btn-pay" disabled={processing}>
                     {processing ? 'Processing...' : `Pay ${currency} ${parseFloat(amount).toFixed(2)}`}
                 </button>
             </form>

@@ -29,11 +29,11 @@ const adaptCharity = (biz) => ({
     id: biz.id,
     businessId: biz.id,
     name: biz.name,
-    provider: biz.founder_details?.name || 'Qomrade Foundation',
+    provider: biz.provider_registration_name || biz.founder_details?.name || 'Qomrade Foundation',
     goal: parseFloat(biz.charity_goal || 0),
     raised: parseFloat(biz.charity_raised || 0),
     category: biz.industry || 'General',
-    image: '❤️', // Default emoji
+    image: '❤️',
     desc: biz.description
 });
 
@@ -41,29 +41,33 @@ const adaptMMF = (item) => ({
     id: item.id,
     businessId: item.organisation,
     name: item.title,
-    provider: item.provider,
+    provider: item.provider_registration_name || item.provider,
     return_rate: item.expected_return,
     min_investment: parseFloat(item.min_investment || 0),
     risk: item.risk_level,
-    aum: '10.5B', // Mock
-    rating: 4.5
+    aum: null,
+    rating: null,
+    provider_id: item.provider_registration,
+    provider_type: item.provider_type,
 });
 
 const adaptStock = (item) => {
-    // Extract ticker from description if present format "Name (TICKER) - Sector"
-    const tickerMatch = item.description.match(/\((.*?)\)/);
-    const sectorMatch = item.description.match(/-\s*(.*)/);
+    const tickerMatch = item.description?.match(/\((.*?)\)/);
+    const sectorMatch = item.description?.match(/-\s*(.*)/);
 
     return {
         id: item.id,
         businessId: item.organisation,
         name: item.title,
-        ticker: tickerMatch ? tickerMatch[1] : 'NSE',
-        price: parseFloat(item.min_investment || 0), // Using min_investment as current price
-        change: Math.random() > 0.5 ? 1.2 : -0.5, // Mock daily change
-        sector: sectorMatch ? sectorMatch[1] : 'General',
-        market: 'NSE',
-        pe_ratio: (Math.random() * 15 + 5).toFixed(1)
+        provider: item.provider_registration_name || item.provider,
+        ticker: tickerMatch ? tickerMatch[1] : null,
+        price: parseFloat(item.min_investment || 0),
+        change: null,
+        sector: sectorMatch ? sectorMatch[1] : null,
+        market: null,
+        pe_ratio: null,
+        provider_id: item.provider_registration,
+        provider_type: item.provider_type,
     };
 };
 
@@ -71,25 +75,29 @@ const adaptBond = (item) => ({
     id: item.id,
     businessId: item.organisation,
     name: item.title,
-    issuer: item.provider,
+    issuer: item.provider_registration_name || item.provider,
     coupon: item.expected_return,
-    maturity: '2028', // Mock
+    maturity: item.maturity_period || null,
     min_investment: parseFloat(item.min_investment || 0),
-    type: item.type === 'bond_foreign' ? 'Sovereign' : 'Government',
-    rating: 'A',
-    currency: item.type === 'bond_foreign' ? 'USD' : 'KES'
+    type: item.type === 'bond_foreign' ? 'Foreign' : 'Domestic',
+    rating: null,
+    currency: item.type === 'bond_foreign' ? 'USD' : 'KES',
+    provider_id: item.provider_registration,
+    provider_type: item.provider_type,
 });
 
 const adaptAgency = (item) => ({
     id: item.id,
     businessId: item.organisation,
     name: item.title,
-    type: item.provider,
-    services: ['Stocks', 'Bonds', 'Advisory'],
+    type: item.provider_registration_name || item.provider,
+    services: [],
     min_account: parseFloat(item.min_investment || 0),
-    license: 'CMA Licensed',
-    rating: 4.4,
-    desc: item.description
+    license: null,
+    rating: null,
+    desc: item.description,
+    provider_id: item.provider_registration,
+    provider_type: item.provider_type,
 });
 
 

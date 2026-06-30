@@ -294,6 +294,18 @@ export const API_ENDPOINTS = {
     // Progress
     LEARNER_PROGRESS: `${API_BASE_URL}/api/specializations/progress/`,
 
+    // Activities
+    ACTIVITIES: `${API_BASE_URL}/api/specializations/activities/`,
+    ACTIVITY_DETAIL: (id) => `${API_BASE_URL}/api/specializations/activities/${id}/`,
+    ACTIVITY_SUBMISSIONS: `${API_BASE_URL}/api/specializations/activity-submissions/`,
+
+    // Labs
+    LABS: `${API_BASE_URL}/api/specializations/labs/`,
+    LAB_DETAIL: (id) => `${API_BASE_URL}/api/specializations/labs/${id}/`,
+
+    // AI Quiz Generation
+    QUIZ_GENERATE: `${API_BASE_URL}/api/specializations/quizzes/generate_from_content/`,
+
     // Certificates
     CERTIFICATES: `${API_BASE_URL}/api/specializations/certificates/`,
     ISSUED_CERTIFICATES: `${API_BASE_URL}/api/specializations/issued_certificates/`,

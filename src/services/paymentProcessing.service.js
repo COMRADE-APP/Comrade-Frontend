@@ -1,7 +1,7 @@
 /**
  * Payment Processing Service
  * Frontend API integration for payments, saved methods, method detection,
- * and multi-gateway support (Stripe, Flutterwave, Pesapal, PayPal, M-Pesa).
+ * and multi-gateway support (Paystack PRIMARY, Stripe, Flutterwave, Pesapal, PayPal, M-Pesa).
  */
 import api from './api';
 
@@ -15,8 +15,8 @@ export const paymentProcessingService = {
      * Used to determine which payment buttons to show and
      * to initialize Stripe Elements with the correct publishable key.
      */
-    async getGatewayConfig() {
-        const response = await api.get(`${PAYMENT_BASE_URL}/gateway-config/`);
+    async getGatewayConfig(queryString = '') {
+        const response = await api.get(`${PAYMENT_BASE_URL}/gateway-config/${queryString}`);
         return response.data;
     },
 
@@ -41,6 +41,29 @@ export const paymentProcessingService = {
      */
     async processPayment(paymentData) {
         const response = await api.post(`${PAYMENT_BASE_URL}/process/`, paymentData);
+        return response.data;
+    },
+
+    /**
+     * Initiate a Paystack payment (returns reference for inline modal)
+     */
+    async initiatePaystackPayment({ amount, currency = 'KES', email = '', phone = '', description = '' }) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/process/`, {
+            amount,
+            currency,
+            payment_method: 'paystack',
+            email,
+            phone_number: phone,
+            description,
+        });
+        return response.data;
+    },
+
+    /**
+     * Verify a Paystack inline payment by reference
+     */
+    async verifyPaystackPayment(data) {
+        const response = await api.post(`${PAYMENT_BASE_URL}/paystack/verify/`, data);
         return response.data;
     },
 
@@ -153,7 +176,7 @@ export const paymentProcessingService = {
     /**
      * Fund an escrow with an external payment gateway
      * @param {string} escrowId
-     * @param {string} paymentMethod - 'wallet' | 'stripe' | 'flutterwave' | 'pesapal'
+     * @param {string} paymentMethod - 'wallet' | 'stripe' | 'paystack' | 'flutterwave' | 'pesapal'
      * @param {string} currency
      */
     async fundEscrow(escrowId, paymentMethod = 'wallet', currency = 'USD') {

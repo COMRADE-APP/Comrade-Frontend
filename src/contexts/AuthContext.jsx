@@ -4,6 +4,7 @@ import authService from '../services/auth.service';
 import organizationsService from '../services/organizations.service';
 import institutionsService from '../services/institutions.service';
 import fundingService from '../services/funding.service';
+import providerService from '../services/provider.service';
 import { ROUTES } from '../constants/routes';
 
 const AuthContext = createContext(null);
@@ -102,6 +103,25 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (err) {
             console.log('Could not fetch businesses:', err);
+        }
+
+        // Fetch provider registrations
+        try {
+            const registrations = await providerService.getMyRegistrations();
+            if (Array.isArray(registrations)) {
+                const providerAccounts = registrations.map(r => ({
+                    id: r.id,
+                    name: r.business_name,
+                    type: 'provider',
+                    avatar: r.logo_url || r.logo,
+                    provider_type: r.provider_type,
+                    status: r.status,
+                    kitty_id: r.linked_payment_group,
+                }));
+                accounts.push(...providerAccounts);
+            }
+        } catch (err) {
+            console.log('Could not fetch provider registrations:', err);
         }
 
         setAvailableAccounts(accounts);
@@ -397,6 +417,9 @@ export const AuthProvider = ({ children }) => {
         requestAccountSwitch(account);
         setShowAccountSelection(false);
         setJustLoggedIn(false);
+        if (account.type === 'provider') {
+            navigate(ROUTES.PROVIDER_DASHBOARD);
+        }
     };
 
     // Dismiss account selection modal

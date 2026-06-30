@@ -130,7 +130,7 @@ const Register = () => {
             {/* Left Side - Branding */}
             <div className="hidden lg:flex lg:w-1/2 relative bg-primary-900 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-700/90 via-primary-800/90 to-primary-900 flex flex-col justify-between" />
-                <img src="/qomrade_growth_emblem.png" alt="Platform" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-110" />
+                <img src="/qomrade_svg.svg" alt="Platform" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-110" />
                 
                 <div className="relative z-10 p-12 xl:p-16 flex flex-col h-full text-white w-full">
                     <div className="flex flex-col gap-3">

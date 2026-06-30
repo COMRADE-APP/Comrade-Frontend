@@ -834,6 +834,14 @@ const eventsService = {
         return api.get(`${BASE_URL}/event_survey_response/`, { params: { question: questionId } });
     },
 
+    getSurveyTemplates: () => {
+        return api.get(`${BASE_URL}/event_survey_template/`);
+    },
+
+    createSurveyTemplate: (data) => {
+        return api.post(`${BASE_URL}/event_survey_template/`, data);
+    },
+
     // ===== ORGANIZER DISCOVERY & FOLLOW =====
 
     getOrganizer: (id) => {

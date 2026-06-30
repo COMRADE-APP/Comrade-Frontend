@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
     Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen, Shield,
-    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash, Heart, PieChart, Target
+    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash, Heart, PieChart, Target, BarChart3
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +15,7 @@ import api from '../../services/api';
 
 const Sidebar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const {
         user, activeProfile, availableAccounts,
         requestAccountSwitch, pendingAccount,
@@ -143,7 +144,8 @@ const Sidebar = () => {
 
     const providerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
-        { path: '/providers/dashboard', label: 'Provider Hub', icon: Building2 },
+        { path: ROUTES.PROVIDER_DASHBOARD, label: 'Provider Hub', icon: Building2 },
+        { path: ROUTES.PROVIDER_ANALYTICS, label: 'Kitty Analytics', icon: BarChart3 },
         ...(hasBusinesses ? [{ path: '/my-businesses', label: 'My Businesses', icon: Briefcase }] : []),
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },
@@ -326,7 +328,14 @@ const Sidebar = () => {
                 onClose={() => setShowAccountModal(false)}
                 accounts={availableAccounts}
                 activeAccountId={activeProfile?.id}
-                onSwitch={requestAccountSwitch}
+                onSwitch={(account) => {
+                    requestAccountSwitch(account);
+                    if (account.type === 'provider') {
+                        navigate(ROUTES.PROVIDER_DASHBOARD);
+                    } else if (account.type === 'personal') {
+                        navigate(ROUTES.DASHBOARD);
+                    }
+                }}
             />
 
             {/* Portal Password Verification Modal */}

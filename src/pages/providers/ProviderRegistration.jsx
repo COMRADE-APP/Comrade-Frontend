@@ -94,6 +94,7 @@ const ProviderRegistration = () => {
                                         <option value="loan_provider">Loan Provider</option>
                                         <option value="utility_provider">Utility Provider</option>
                                         <option value="financial_service">Financial Service</option>
+                                        <option value="course_provider">Course Provider</option>
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import Card, { CardBody } from '../components/common/Card';
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import eventsService from '../services/events.service';
 import api from '../services/api';
+import { formatTime, getTemporalStatus } from '../utils/dateFormatter';
 
 const shortDate = (iso) => {
     if (!iso) return '';
@@ -23,39 +24,7 @@ const shortDate = (iso) => {
     } catch { return ''; }
 };
 
-const displayTime = (val) => {
-    if (!val) return '';
-    if (/^\d{2}:\d{2}(:\d{2})?$/.test(val)) return val.slice(0, 5);
-    try {
-        const d = new Date(val);
-        if (isNaN(d)) return '';
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch { return ''; }
-};
-
-const getTemporalStatus = (event) => {
-    if (!event.event_date) return 'upcoming';
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    let eventDate = new Date(event.event_date);
-    if (isNaN(eventDate)) return 'upcoming';
-    eventDate.setHours(0, 0, 0, 0);
-
-    let startDT = new Date(event.event_date);
-    let endDT = new Date(event.event_date);
-    if (event.start_time && /^\d{2}:\d{2}/.test(event.start_time)) {
-        const [h, m] = event.start_time.split(':');
-        startDT.setHours(parseInt(h, 10), parseInt(m, 10), 0);
-    } else { startDT.setHours(0, 0, 0); }
-    if (event.end_time && /^\d{2}:\d{2}/.test(event.end_time)) {
-        const [h, m] = event.end_time.split(':');
-        endDT.setHours(parseInt(h, 10), parseInt(m, 10), 0);
-    } else { endDT.setHours(23, 59, 59); }
-
-    const now = new Date();
-    if (endDT < now) return 'past';
-    if (startDT <= now && endDT >= now) return 'happening_now';
-    return 'upcoming';
-};
+const displayTime = formatTime;
 
 const getEventMedia = (event) => {
     const img = event.cover_image || event.image_url || event.image || event.banner;
@@ -78,35 +47,33 @@ const FILTERS = [
 
 const Events = () => {
     const { user } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [filter, setFilter] = useState(() => searchParams.get('filter') || 'all');
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [hasOrganizerProfile, setHasOrganizerProfile] = useState(false);
     const [hasSponsorProfile, setHasSponsorProfile] = useState(false);
-    const navigate = useNavigate();
 
-    // Tab state
-    const [activeView, setActiveView] = useState('events'); // 'events' | 'organisers' | 'sponsors'
+    const VALID_TABS = ['events', 'organisers', 'sponsors'];
+    const urlView = searchParams.get('view') || 'events';
+    const [activeView, setActiveView] = useState(() => VALID_TABS.includes(urlView) ? urlView : 'events');
 
     // Organizers tab state
     const [organizers, setOrganizers] = useState([]);
     const [orgLoading, setOrgLoading] = useState(false);
     const [orgSearch, setOrgSearch] = useState('');
     const [orgDebouncedSearch, setOrgDebouncedSearch] = useState('');
-    const [following, setFollowing] = useState(new Set());
-    const [followData, setFollowData] = useState({});
 
     // Sponsors tab state
     const [sponsors, setSponsors] = useState([]);
     const [sponsorLoading, setSponsorLoading] = useState(false);
     const [sponsorSearch, setSponsorSearch] = useState('');
     const [sponsorDebouncedSearch, setSponsorDebouncedSearch] = useState('');
-    const [sponsorFollowing, setSponsorFollowing] = useState(new Set());
-    const [sponsorFollowData, setSponsorFollowData] = useState({});
 
     useEffect(() => {
         api.get('/api/events/organizer_profiles/my_profile/', { validateStatus: s => s < 500 })
@@ -140,15 +107,29 @@ const Events = () => {
         return () => clearTimeout(timer);
     }, [sponsorSearch]);
 
-    useEffect(() => { if (activeView === 'events') loadEvents(); }, [filter, selectedCategory, debouncedSearch]);
-    useEffect(() => { if (activeView === 'organisers') loadOrganizers(); }, [orgDebouncedSearch]);
-    useEffect(() => { if (activeView === 'sponsors') loadSponsors(); }, [sponsorDebouncedSearch]);
+    useEffect(() => { if (activeView === 'events') loadEvents(); }, [filter, selectedCategory, debouncedSearch, activeView]);
+    useEffect(() => { if (activeView === 'organisers') loadOrganizers(); }, [orgDebouncedSearch, activeView]);
+    useEffect(() => { if (activeView === 'sponsors') loadSponsors(); }, [sponsorDebouncedSearch, activeView]);
 
     useEffect(() => {
-        if (!user) return;
-        if (activeView === 'organisers') loadFollowing();
-        if (activeView === 'sponsors') loadSponsorFollowing();
-    }, [user, activeView]);
+        const fromUrl = searchParams.get('view');
+        if (fromUrl && VALID_TABS.includes(fromUrl) && fromUrl !== activeView) {
+            setActiveView(fromUrl);
+        }
+        const urlFilter = searchParams.get('filter');
+        if (urlFilter && urlFilter !== filter) {
+            setFilter(urlFilter);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const current = searchParams.get('filter') || 'all';
+        if (filter !== 'all' && filter !== current) {
+            setSearchParams(prev => { prev.set('filter', filter); return prev; }, { replace: true });
+        } else if (filter === 'all' && current !== 'all') {
+            setSearchParams(prev => { prev.delete('filter'); return prev; }, { replace: true });
+        }
+    }, [filter, activeView]);
 
     const loadEvents = async () => {
         try {
@@ -184,23 +165,6 @@ const Events = () => {
         }
     };
 
-    const loadFollowing = async () => {
-        try {
-            const res = await eventsService.getFollowing();
-            const items = res?.data || [];
-            const ids = new Set();
-            const data = {};
-            items.forEach(f => {
-                ids.add(f.organizer);
-                data[f.organizer] = { follow_id: f.id, notifications_enabled: f.notifications_enabled };
-            });
-            setFollowing(ids);
-            setFollowData(data);
-        } catch (err) {
-            console.error('Failed to load following', err);
-        }
-    };
-
     const loadOrganizers = async () => {
         try {
             setOrgLoading(true);
@@ -211,42 +175,45 @@ const Events = () => {
             setOrganizers(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to load organizers', err);
-            setOrganizers([]);
         } finally {
             setOrgLoading(false);
         }
     };
 
     const toggleFollow = async (organizerId) => {
+        const prev = [...organizers];
+        setOrganizers(prev => prev.map(o =>
+            o.id === organizerId ? { ...o, is_following: !o.is_following, follower_count: (o.follower_count || 0) + (o.is_following ? -1 : 1) } : o
+        ));
         try {
             const res = await eventsService.followOrganizer(organizerId);
             if (res.data.following) {
-                setFollowing(prev => new Set(prev).add(organizerId));
+                setOrganizers(prev => prev.map(o =>
+                    o.id === organizerId ? { ...o, follow_id: res.data.follow_id, notifications_enabled: res.data.notifications_enabled } : o
+                ));
             } else {
-                setFollowing(prev => {
-                    const next = new Set(prev);
-                    next.delete(organizerId);
-                    return next;
-                });
+                setOrganizers(prev => prev.map(o =>
+                    o.id === organizerId ? { ...o, follow_id: null, notifications_enabled: null } : o
+                ));
             }
-            loadFollowing();
-            loadOrganizers();
         } catch (err) {
+            setOrganizers(prev);
             console.error('Failed to toggle follow', err);
         }
     };
 
     const toggleNotifications = async (organizer) => {
-        const data = followData[organizer.id];
-        if (!data?.follow_id) return;
-        const newEnabled = !data.notifications_enabled;
+        if (!organizer.follow_id) return;
+        const newEnabled = !organizer.notifications_enabled;
+        setOrganizers(prev => prev.map(o =>
+            o.id === organizer.id ? { ...o, notifications_enabled: newEnabled } : o
+        ));
         try {
-            await eventsService.toggleOrganizerNotifications(data.follow_id, newEnabled);
-            setFollowData(prev => ({
-                ...prev,
-                [organizer.id]: { ...prev[organizer.id], notifications_enabled: newEnabled }
-            }));
+            await eventsService.toggleOrganizerNotifications(organizer.follow_id, newEnabled);
         } catch (err) {
+            setOrganizers(prev => prev.map(o =>
+                o.id === organizer.id ? { ...o, notifications_enabled: !newEnabled } : o
+            ));
             console.error('Failed to toggle notifications', err);
         }
     };
@@ -263,73 +230,62 @@ const Events = () => {
             setSponsors(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to load sponsors', err);
-            setSponsors([]);
         } finally {
             setSponsorLoading(false);
         }
     };
 
-    const loadSponsorFollowing = async () => {
-        try {
-            const res = await eventsService.getSponsorFollowing();
-            const items = res?.data || [];
-            const ids = new Set();
-            const data = {};
-            items.forEach(f => {
-                ids.add(f.sponsor);
-                data[f.sponsor] = { follow_id: f.id, notifications_enabled: f.notifications_enabled };
-            });
-            setSponsorFollowing(ids);
-            setSponsorFollowData(data);
-        } catch (err) {
-            console.error('Failed to load sponsor following', err);
-        }
-    };
-
     const toggleSponsorFollow = async (sponsorId) => {
+        const prev = [...sponsors];
+        setSponsors(prev => prev.map(s =>
+            s.id === sponsorId ? { ...s, is_following: !s.is_following, follower_count: (s.follower_count || 0) + (s.is_following ? -1 : 1) } : s
+        ));
         try {
             const res = await eventsService.followSponsor(sponsorId);
             if (res.data.following) {
-                setSponsorFollowing(prev => new Set(prev).add(sponsorId));
+                setSponsors(prev => prev.map(s =>
+                    s.id === sponsorId ? { ...s, follow_id: res.data.follow_id, notifications_enabled: res.data.notifications_enabled } : s
+                ));
             } else {
-                setSponsorFollowing(prev => {
-                    const next = new Set(prev);
-                    next.delete(sponsorId);
-                    return next;
-                });
+                setSponsors(prev => prev.map(s =>
+                    s.id === sponsorId ? { ...s, follow_id: null, notifications_enabled: null } : s
+                ));
             }
-            loadSponsorFollowing();
-            loadSponsors();
         } catch (err) {
+            setSponsors(prev);
             console.error('Failed to toggle sponsor follow', err);
         }
     };
 
     const toggleSponsorNotifications = async (sponsor) => {
-        const data = sponsorFollowData[sponsor.id];
-        if (!data?.follow_id) return;
-        const newEnabled = !data.notifications_enabled;
+        if (!sponsor.follow_id) return;
+        const newEnabled = !sponsor.notifications_enabled;
+        setSponsors(prev => prev.map(s =>
+            s.id === sponsor.id ? { ...s, notifications_enabled: newEnabled } : s
+        ));
         try {
-            await eventsService.toggleSponsorNotifications(data.follow_id, newEnabled);
-            setSponsorFollowData(prev => ({
-                ...prev,
-                [sponsor.id]: { ...prev[sponsor.id], notifications_enabled: newEnabled }
-            }));
+            await eventsService.toggleSponsorNotifications(sponsor.follow_id, newEnabled);
         } catch (err) {
+            setSponsors(prev => prev.map(s =>
+                s.id === sponsor.id ? { ...s, notifications_enabled: !newEnabled } : s
+            ));
             console.error('Failed to toggle sponsor notifications', err);
         }
     };
 
     const handleViewOrganisers = () => {
         setActiveView('organisers');
+        navigate('/events?view=organisers', { replace: true });
     };
 
     const handleViewSponsors = () => {
         setActiveView('sponsors');
+        navigate('/events?view=sponsors', { replace: true });
     };
 
     const handleViewEvents = () => {
         setActiveView('events');
+        navigate('/events', { replace: true });
     };
 
     const getLocationType = (e) => {
@@ -528,8 +484,8 @@ const Events = () => {
                             <OrganizerCard
                                 key={org.id}
                                 organizer={org}
-                                isFollowing={following.has(org.id)}
-                                notificationsEnabled={followData[org.id]?.notifications_enabled ?? false}
+                                isFollowing={org.is_following}
+                                notificationsEnabled={org.notifications_enabled ?? false}
                                 onToggleFollow={toggleFollow}
                                 onToggleNotifications={toggleNotifications}
                             />
@@ -555,8 +511,8 @@ const Events = () => {
                             <SponsorCard
                                 key={sp.id}
                                 sponsor={sp}
-                                isFollowing={sponsorFollowing.has(sp.id)}
-                                notificationsEnabled={sponsorFollowData[sp.id]?.notifications_enabled ?? false}
+                                isFollowing={sp.is_following}
+                                notificationsEnabled={sp.notifications_enabled ?? false}
                                 onToggleFollow={toggleSponsorFollow}
                                 onToggleNotifications={toggleSponsorNotifications}
                             />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, Building2, Activity, Package, Users, FileText, Settings, AlertCircle,
-    CheckCircle, Clock, XCircle, RefreshCcw, MessageSquare, LayoutDashboard
+    CheckCircle, Clock, XCircle, RefreshCcw, MessageSquare, LayoutDashboard, TrendingUp, DollarSign, Shield, Banknote, BookOpen
 } from 'lucide-react';
 import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -17,6 +17,11 @@ import QueriesTab from './tabs/QueriesTab';
 
 import TransactionsTab from './tabs/TransactionsTab';
 import ConnectionsTab from './tabs/ConnectionsTab';
+import InvestmentsTab from './tabs/InvestmentsTab';
+import LoansTab from './tabs/LoansTab';
+import InsuranceTab from './tabs/InsuranceTab';
+import BillsTab from './tabs/BillsTab';
+import CoursesTab from './tabs/CoursesTab';
 
 const STATUS_CONFIG = {
     draft: { color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300', icon: Clock, label: 'Draft' },
@@ -30,6 +35,11 @@ const STATUS_CONFIG = {
 const TABS = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'products', label: 'Products & Packages', icon: Package },
+    { id: 'investments', label: 'Investments', icon: TrendingUp, showFor: ['financial_service'] },
+    { id: 'loans', label: 'Loans', icon: DollarSign, showFor: ['loan_provider'] },
+    { id: 'insurance', label: 'Insurance', icon: Shield, showFor: ['insurance_provider'] },
+    { id: 'bills', label: 'Bills', icon: Banknote, showFor: ['bill_provider', 'utility_provider'] },
+    { id: 'courses', label: 'Courses', icon: BookOpen, showFor: ['course_provider'] },
     { id: 'staff', label: 'Staff & Team', icon: Users },
     { id: 'applications', label: 'Applications', icon: FileText },
     { id: 'queries', label: 'Queries', icon: MessageSquare },
@@ -242,7 +252,7 @@ const ProviderDetail = () => {
 
             {/* Tabs */}
             <div className="flex gap-1 border-b-2 border-emerald-100 dark:border-emerald-900/30 overflow-x-auto scrollbar-thin" style={{ scrollbarWidth: 'thin' }}>
-                {TABS.map((tab) => (
+                {TABS.filter(tab => !tab.showFor || tab.showFor.includes(provider?.provider_type)).map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -267,6 +277,11 @@ const ProviderDetail = () => {
                 {activeTab === 'queries' && <QueriesTab provider={provider} onRefresh={loadProvider} />}
                 {activeTab === 'transactions' && <TransactionsTab provider={provider} onRefresh={loadProvider} />}
                 {activeTab === 'connections' && <ConnectionsTab provider={provider} onRefresh={loadProvider} />}
+                {activeTab === 'investments' && <InvestmentsTab provider={provider} onRefresh={loadProvider} />}
+                {activeTab === 'loans' && <LoansTab provider={provider} onRefresh={loadProvider} />}
+                {activeTab === 'insurance' && <InsuranceTab provider={provider} onRefresh={loadProvider} />}
+                {activeTab === 'bills' && <BillsTab provider={provider} onRefresh={loadProvider} />}
+                {activeTab === 'courses' && <CoursesTab provider={provider} onRefresh={loadProvider} />}
                 {activeTab === 'documents' && <DocumentsTab provider={provider} onRefresh={loadProvider} />}
                 {activeTab === 'settings' && <SettingsTab provider={provider} onRefresh={loadProvider} />}
             </div>

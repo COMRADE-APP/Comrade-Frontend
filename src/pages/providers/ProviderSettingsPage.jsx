@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Package, RefreshCcw } from 'lucide-react';
+import { Settings, RefreshCcw } from 'lucide-react';
 import Button from '../../components/common/Button';
 import providerService from '../../services/provider.service';
-import ProductsTab from './tabs/ProductsTab';
+import SettingsTab from './tabs/SettingsTab';
 
-const ProviderProducts = () => {
+const ProviderSettingsPage = () => {
     const [provider, setProvider] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     const loadProvider = async () => {
         setLoading(true);
@@ -19,7 +18,7 @@ const ProviderProducts = () => {
                 setProvider(detail || p);
             }
         } catch (err) {
-            setError('Could not load provider data.');
+            console.error('Failed to load provider:', err);
         } finally { setLoading(false); }
     };
 
@@ -33,22 +32,22 @@ const ProviderProducts = () => {
         );
     }
 
-    if (error || !provider) {
+    if (!provider) {
         return (
             <div className="text-center py-20">
-                <Package size={48} className="text-secondary/30 mx-auto mb-4" />
+                <Settings size={48} className="text-secondary/30 mx-auto mb-4" />
                 <h2 className="text-xl font-bold text-primary mb-2">No Provider Found</h2>
-                <p className="text-secondary mb-6">{error || 'Register a provider to manage products.'}</p>
+                <p className="text-secondary">Register a provider to manage settings.</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4 sm:space-y-6">
+        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
             <div className="flex flex-wrap gap-3 items-center justify-between">
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
-                        <Package size={24} className="text-purple-500" /> My Products
+                        <Settings size={24} className="text-gray-500" /> Settings
                     </h1>
                     <p className="text-xs sm:text-sm text-secondary mt-0.5">{provider.business_name}</p>
                 </div>
@@ -56,9 +55,9 @@ const ProviderProducts = () => {
                     <RefreshCcw size={14} className="mr-1.5" /> Refresh
                 </Button>
             </div>
-            <ProductsTab provider={provider} onRefresh={loadProvider} />
+            <SettingsTab provider={provider} onRefresh={loadProvider} />
         </div>
     );
 };
 
-export default ProviderProducts;
+export default ProviderSettingsPage;

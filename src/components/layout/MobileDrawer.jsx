@@ -5,7 +5,7 @@ import {
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
     MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
     Sparkles, X, User, Heart, PieChart, PiggyBank, Hash, Banknote, DollarSign,
-    ShieldCheck, Shield, Target
+    ShieldCheck, Shield, Target, BarChart3
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,7 +48,8 @@ const MobileDrawer = ({ isOpen, onClose }) => {
 
     const providerNavItems = [
         { path: ROUTES.DASHBOARD, label: 'Home', icon: Home },
-        { path: '/providers/dashboard', label: 'Provider Hub', icon: Building2 },
+        { path: ROUTES.PROVIDER_DASHBOARD, label: 'Provider Hub', icon: Building2 },
+        { path: ROUTES.PROVIDER_ANALYTICS, label: 'Kitty Analytics', icon: BarChart3 },
         { path: ROUTES.ORGANIZATIONS, label: 'Organizations', icon: Briefcase },
         { path: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
         { path: ROUTES.MESSAGES, label: 'Messages', icon: MessageSquare },

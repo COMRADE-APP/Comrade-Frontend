@@ -1,4 +1,5 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 const Button = ({
     children,
@@ -8,6 +9,7 @@ const Button = ({
     onClick,
     disabled = false,
     className = '',
+    isLoading = false,
     ...props
 }) => {
     const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed select-none';
@@ -33,12 +35,13 @@ const Button = ({
     return (
         <button
             type={type}
-            onClick={onClick}
-            disabled={disabled}
-            aria-disabled={disabled}
+            onClick={isLoading ? undefined : onClick}
+            disabled={disabled || isLoading}
+            aria-disabled={disabled || isLoading}
             className={classes}
             {...props}
         >
+            {isLoading && <Loader2 size={16} className="animate-spin" />}
             {children}
         </button>
     );

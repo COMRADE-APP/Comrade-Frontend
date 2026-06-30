@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
@@ -12,6 +13,7 @@ import {
 const OrganiserDetail = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const toast = useToast();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -62,30 +64,36 @@ const OrganiserDetail = () => {
     };
 
     const toggleFollow = async () => {
+        const prevFollowing = isFollowing;
+        const prevFollowerCount = profile.follower_count || 0;
+        setIsFollowing(!prevFollowing);
+        setProfile(prev => ({ ...prev, follower_count: prevFollowing ? Math.max(0, prevFollowerCount - 1) : prevFollowerCount + 1 }));
         try {
             const res = await api.post(`/api/events/organizer_profiles/${id}/follow/`);
             if (res.data.following) {
-                setIsFollowing(true);
-                fetchFollowStatus();
+                setFollowData({ follow_id: res.data.follow_id, notifications_enabled: res.data.notifications_enabled });
+                toast.success('Subscribed!');
             } else {
-                setIsFollowing(false);
                 setFollowData(null);
+                toast.info('Unsubscribed');
             }
         } catch (err) {
-            console.error('Failed to toggle follow', err);
+            setIsFollowing(prevFollowing);
+            setProfile(prev => ({ ...prev, follower_count: prevFollowerCount }));
+            toast.error('Failed to update subscription');
         }
     };
 
     const toggleNotifications = async () => {
         if (!followData?.follow_id) return;
         const newEnabled = !followData.notifications_enabled;
+        setFollowData(prev => ({ ...prev, notifications_enabled: newEnabled }));
         try {
             await api.patch(`/api/events/organizer_follows/${followData.follow_id}/toggle_notifications/`, {
                 notifications_enabled: newEnabled
             });
-            setFollowData(prev => ({ ...prev, notifications_enabled: newEnabled }));
         } catch (err) {
-            console.error('Failed to toggle notifications', err);
+            setFollowData(prev => ({ ...prev, notifications_enabled: !newEnabled }));
         }
     };
 
@@ -222,17 +230,6 @@ const OrganiserDetail = () => {
                                         </p>
                                     </div>
                                 </div>
-                                {profile.user_name && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
-                                            <Users className="w-5 h-5 text-green-500" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-xs text-secondary">Organised by</p>
-                                            <p className="text-primary text-sm font-medium">{profile.user_name}</p>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </Card>
 
@@ -266,7 +263,7 @@ const OrganiserDetail = () => {
                                 <div className="flex items-center gap-2">
                                     <Users className="w-5 h-5 text-primary-500" />
                                     <span className="text-primary font-semibold">
-                                        {profile.follower_count ?? 0} follower{(profile.follower_count ?? 0) !== 1 ? 's' : ''}
+                                        {profile.follower_count ?? 0} subscriber{(profile.follower_count ?? 0) !== 1 ? 's' : ''}
                                     </span>
                                 </div>
                             </div>
@@ -279,9 +276,9 @@ const OrganiserDetail = () => {
                                         onClick={toggleFollow}
                                     >
                                         {isFollowing ? (
-                                            <><UserCheck className="w-4 h-4 mr-2" /> Following</>
+                                            <><UserCheck className="w-4 h-4 mr-2" /> Subscribed</>
                                         ) : (
-                                            <><UserPlus className="w-4 h-4 mr-2" /> Follow</>
+                                            <><UserPlus className="w-4 h-4 mr-2" /> Subscribe</>
                                         )}
                                     </Button>
                                     {isFollowing && (
@@ -298,7 +295,7 @@ const OrganiserDetail = () => {
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-sm text-tertiary text-center">Sign in to follow</p>
+                                <p className="text-sm text-tertiary text-center">Sign in to subscribe</p>
                             )}
                         </Card>
 

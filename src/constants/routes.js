@@ -96,6 +96,7 @@ export const ROUTES = {
     ORGANISER_PROFILE_SETTINGS: '/organiser/profile/settings',
     ORGANISER_DETAIL: '/organiser/:id',
     SPONSOR_DETAIL: '/sponsor/:id',
+    EVENT_SETTINGS: '/events/:id/settings',
 
     // Business Funding
     FUNDING: '/funding',
@@ -150,6 +151,7 @@ export const ROUTES = {
     PROVIDER_STAFF: '/provider/staff',
     PROVIDER_SETTINGS: '/provider/settings',
     PROVIDER_REGISTRATION: '/provider/register',
+    PROVIDER_ANALYTICS: '/provider/analytics',
 
     // System Operations
     ML_DASHBOARD: '/admin/ml-dashboard',

@@ -19,6 +19,9 @@ const MembersTab = ({ organizationId, isAdmin, organizationsService }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [actionMenuId, setActionMenuId] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteRole, setInviteRole] = useState('member');
+    const [inviteLoading, setInviteLoading] = useState(false);
 
     useEffect(() => {
         loadMembers();
@@ -76,6 +79,23 @@ const MembersTab = ({ organizationId, isAdmin, organizationsService }) => {
             setActionMenuId(null);
         } catch (err) {
             console.error('Error removing member:', err);
+        }
+    };
+
+    const handleInviteMember = async () => {
+        if (!inviteEmail.trim()) return;
+        setInviteLoading(true);
+        try {
+            await organizationsService.inviteMember(organizationId, { email: inviteEmail.trim(), role: inviteRole });
+            setInviteEmail('');
+            setInviteRole('member');
+            setShowAddModal(false);
+            alert('Invitation sent! The user will receive an email.');
+            loadMembers();
+        } catch (err) {
+            alert(err.response?.data?.error || 'Failed to send invitation');
+        } finally {
+            setInviteLoading(false);
         }
     };
 
@@ -258,18 +278,41 @@ const MembersTab = ({ organizationId, isAdmin, organizationsService }) => {
                 </div>
             )}
 
-            {/* Add Member Modal placeholder - would need user search */}
+            {/* Add Member Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-elevated rounded-xl p-6 w-full max-w-md border border-theme">
-                        <h3 className="text-lg font-semibold text-primary mb-4">Add Member</h3>
-                        <p className="text-secondary text-sm mb-4">
-                            Member invitation functionality coming soon.
-                            You'll be able to search for users and invite them to join.
-                        </p>
-                        <div className="flex justify-end">
-                            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-                                Close
+                        <h3 className="text-lg font-semibold text-primary mb-4">Invite Member</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    value={inviteEmail}
+                                    onChange={e => setInviteEmail(e.target.value)}
+                                    placeholder="colleague@example.com"
+                                    className="w-full px-3 py-2 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-1">Role</label>
+                                <select
+                                    value={inviteRole}
+                                    onChange={e => setInviteRole(e.target.value)}
+                                    className="w-full px-3 py-2 bg-secondary border border-theme rounded-lg text-primary outline-none focus:ring-2 focus:ring-primary/20"
+                                >
+                                    <option value="admin">Administrator</option>
+                                    <option value="moderator">Moderator</option>
+                                    <option value="member">Member</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6 justify-end">
+                            <Button variant="secondary" onClick={() => { setShowAddModal(false); setInviteEmail(''); }}>
+                                Cancel
+                            </Button>
+                            <Button variant="primary" onClick={handleInviteMember} disabled={inviteLoading || !inviteEmail.trim()}>
+                                {inviteLoading ? 'Sending...' : 'Send Invitation'}
                             </Button>
                         </div>
                     </div>

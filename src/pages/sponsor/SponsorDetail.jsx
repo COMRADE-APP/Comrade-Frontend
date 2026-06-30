@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
@@ -13,6 +14,7 @@ import {
 const SponsorDetail = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const toast = useToast();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -63,30 +65,36 @@ const SponsorDetail = () => {
     };
 
     const toggleFollow = async () => {
+        const prevFollowing = isFollowing;
+        const prevFollowerCount = profile.follower_count || 0;
+        setIsFollowing(!prevFollowing);
+        setProfile(prev => ({ ...prev, follower_count: prevFollowing ? Math.max(0, prevFollowerCount - 1) : prevFollowerCount + 1 }));
         try {
             const res = await api.post(`/api/events/sponsor_profiles/${id}/follow/`);
             if (res.data.following) {
-                setIsFollowing(true);
-                fetchFollowStatus();
+                setFollowData({ follow_id: res.data.follow_id, notifications_enabled: res.data.notifications_enabled });
+                toast.success('Subscribed!');
             } else {
-                setIsFollowing(false);
                 setFollowData(null);
+                toast.info('Unsubscribed');
             }
         } catch (err) {
-            console.error('Failed to toggle follow', err);
+            setIsFollowing(prevFollowing);
+            setProfile(prev => ({ ...prev, follower_count: prevFollowerCount }));
+            toast.error('Failed to update subscription');
         }
     };
 
     const toggleNotifications = async () => {
         if (!followData?.follow_id) return;
         const newEnabled = !followData.notifications_enabled;
+        setFollowData(prev => ({ ...prev, notifications_enabled: newEnabled }));
         try {
             await api.patch(`/api/events/sponsor_follows/${followData.follow_id}/toggle_notifications/`, {
                 notifications_enabled: newEnabled
             });
-            setFollowData(prev => ({ ...prev, notifications_enabled: newEnabled }));
         } catch (err) {
-            console.error('Failed to toggle notifications', err);
+            setFollowData(prev => ({ ...prev, notifications_enabled: !newEnabled }));
         }
     };
 
@@ -168,7 +176,7 @@ const SponsorDetail = () => {
             </div>
 
             {/* Content */}
-            <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 -mt-8 pb-12">
+            <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 -mt-8 pb-12 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
