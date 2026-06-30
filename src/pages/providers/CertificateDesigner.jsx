@@ -153,7 +153,6 @@ const SignaturePad = ({ onSave, onClose }) => {
     const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
     ctx.moveTo(x, y);
-    e.preventDefault?.();
   };
 
   const draw = (e) => {
@@ -165,7 +164,6 @@ const SignaturePad = ({ onSave, onClose }) => {
     ctx.lineCap = 'round';
     ctx.lineTo(x, y);
     ctx.stroke();
-    e.preventDefault?.();
   };
 
   const stopDraw = () => { drawing.current = false; };
@@ -302,7 +300,10 @@ const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPla
             <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Border</label>{num('borderWidth')}</div>
             <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Color</label><input type="color" value={s.borderColor || '#000'} onChange={e => set('borderColor', e.target.value)} className="w-full h-7 rounded border border-theme cursor-pointer p-0.5" /></div>
           </div>
-          <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Fill</label><input type="color" value={s.fill || '#ffffff'} onChange={e => set('fill', e.target.value === '#ffffff' ? 'none' : e.target.value)} className="w-full h-7 rounded border border-theme cursor-pointer p-0.5" /></div>
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 text-[10px] text-secondary"><input type="checkbox" checked={s.fill !== 'none'} onChange={e => set('fill', e.target.checked ? '#ffffff' : 'none')} className="accent-primary-600" /> Fill</label>
+            {s.fill !== 'none' && <input type="color" value={s.fill || '#ffffff'} onChange={e => set('fill', e.target.value)} className="w-7 h-7 rounded border border-theme cursor-pointer p-0.5" />}
+          </div>
         </>
       )}
 
@@ -317,7 +318,10 @@ const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPla
             <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Border</label>{num('borderWidth')}</div>
             <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Color</label><input type="color" value={s.borderColor || '#000'} onChange={e => set('borderColor', e.target.value)} className="w-full h-7 rounded border border-theme cursor-pointer p-0.5" /></div>
           </div>
-          <div><label className="block text-[10px] font-medium text-secondary mb-0.5">Fill</label><input type="color" value={s.fill || '#ffffff'} onChange={e => set('fill', e.target.value === '#ffffff' ? 'none' : e.target.value)} className="w-full h-7 rounded border border-theme cursor-pointer p-0.5" /></div>
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 text-[10px] text-secondary"><input type="checkbox" checked={s.fill !== 'none'} onChange={e => set('fill', e.target.checked ? '#ffffff' : 'none')} className="accent-primary-600" /> Fill</label>
+            {s.fill !== 'none' && <input type="color" value={s.fill || '#ffffff'} onChange={e => set('fill', e.target.value)} className="w-7 h-7 rounded border border-theme cursor-pointer p-0.5" />}
+          </div>
         </>
       )}
 
@@ -623,12 +627,9 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
         break;
     }
 
-    const isShape = block.type === 'rect' || block.type === 'circle' || block.type === 'line';
-    const blockStyle = isShape ? {} : { cursor: 'pointer', background: block.type === 'signature' && !block.content ? '#f9f9f9' : 'transparent' };
-
     return (
       <div key={block.id}
-        onMouseDown={(e) => { if (!isShape) handleCanvasMouseDown(block.id, e); }}
+        onMouseDown={(e) => { handleCanvasMouseDown(block.id, e); }}
         style={{
           position: 'absolute',
           left: px(s.x || 0),
@@ -639,15 +640,12 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
           ...(block.type === 'line' ? { height: px(s.strokeWidth || 1), background: s.strokeColor || '#000' } : {}),
           ...(block.type === 'rect' || block.type === 'circle' ? { border: `${s.borderWidth || 1}px solid ${s.borderColor || '#000'}`, background: s.fill || 'none' } : {}),
           ...(isSelected ? { outline: '2px solid #3b82f6', outlineOffset: 1, zIndex: 10 } : { zIndex: 1 }),
-          ...blockStyle,
+          cursor: 'move',
           overflow: 'hidden',
           userSelect: 'none',
         }}
-        onClick={() => { if (!isShape) setSelectedBlockId(block.id); }}>
+        onClick={() => setSelectedBlockId(block.id)}>
         {content}
-        {isShape && (
-          <div onMouseDown={() => setSelectedBlockId(block.id)} style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} />
-        )}
         {isSelected && block.type !== 'line' && (
           <div onMouseDown={(e) => handleResizeMouseDown(block.id, e)}
             style={{ position: 'absolute', bottom: -4, right: -4, width: 10, height: 10, background: '#3b82f6', borderRadius: 1, cursor: 'nwse-resize', zIndex: 20 }} />
