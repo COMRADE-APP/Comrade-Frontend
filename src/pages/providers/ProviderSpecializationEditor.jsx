@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Plus, GripVertical, Trash2, X, Save, Layers, ChevronDown, ChevronRight, FileText, Video, Music, Image, Code, Link2, Clock, Lock, Eye, DollarSign, Send, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Quote, Heading1, Heading2, Heading3, EyeOff, Upload, Play, Award } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -78,9 +78,18 @@ const TextBlockEditor = ({ content, onChange }) => {
 const ProviderSpecializationEditor = () => {
     const { specId } = useParams();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const toast = useToast();
-    const qs = new URLSearchParams(window.location.search);
-    const initialModuleId = qs.get('module');
+    const initialModuleId = searchParams.get('module');
+
+    const updateUrlParams = (updates) => {
+        const next = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === undefined || v === '') next.delete(k);
+            else next.set(k, String(v));
+        });
+        setSearchParams(next, { replace: true });
+    };
 
     const [spec, setSpec] = useState(null);
     const [modules, setModules] = useState([]);
@@ -169,7 +178,21 @@ const ProviderSpecializationEditor = () => {
             setActiveModuleId(initialModuleId);
             setExpandedModules(prev => new Set([...prev, initialModuleId]));
         }
-    }, [loading, initialModuleId]);
+        if (!loading && modules.length > 0) {
+            const lessonId = searchParams.get('lesson');
+            if (!lessonId || editingLesson) return;
+            const id = parseInt(lessonId);
+            for (const mod of modules) {
+                const lesson = mod.lessons?.find(l => l.id === id);
+                if (lesson) {
+                    setActiveModuleId(mod.id);
+                    setExpandedModules(prev => new Set([...prev, mod.id]));
+                    openEditLesson(lesson, { updateUrl: false });
+                    break;
+                }
+            }
+        }
+    }, [loading, initialModuleId, modules]);
     useEffect(() => {
         const key = DRAFT_KEY(specId);
         const draft = localStorage.getItem(key);
@@ -248,7 +271,7 @@ const ProviderSpecializationEditor = () => {
                     }
                 }
                 const newMods = modules.map(mod => mod.id === activeModuleId ? { ...mod, lessons: [...(mod.lessons || []), r.data] } : mod);
-                setModules(newMods); setAddingLesson(false); setLessonForm(emptyLesson); setBlocks([{ ...emptyBlock, _id: 'b0' }]);
+                setModules(newMods); setAddingLesson(false); setLessonForm(emptyLesson); setBlocks([{ ...emptyBlock, _id: 'b0' }]); updateUrlParams({ lesson: null, tab: null });
             } else if (action === 'update') {
                 await api.patch('/api/v1/specializations/lessons/'+editingLesson.id+'/', payload);
                 // Smart diff: remove deleted, add new, replace updated
@@ -284,7 +307,7 @@ const ProviderSpecializationEditor = () => {
                     }
                 }
                 const newMods = modules.map(mod => mod.id === activeModuleId ? { ...mod, lessons: mod.lessons.map(l => l.id === editingLesson.id ? { ...l, ...payload } : l) } : mod);
-                setModules(newMods); setEditingLesson(null); setLessonForm(emptyLesson); setBlocks([{ ...emptyBlock, _id: 'b0' }]);
+                setModules(newMods); setEditingLesson(null); setLessonForm(emptyLesson); setBlocks([{ ...emptyBlock, _id: 'b0' }]); updateUrlParams({ lesson: null, tab: null });
             }
             clearDraft(); setSaveStatus('saved');
             toast.success(action === 'add' ? 'Lesson created' : 'Lesson updated');
@@ -308,12 +331,13 @@ const ProviderSpecializationEditor = () => {
     const handleLessonDrop = (i) => { if (ldragIdx === null || ldragIdx === i || !activeModule) return; const cp = [...activeLessons]; const [m] = cp.splice(ldragIdx, 1); cp.splice(i, 0, m); setModules(modules.map(mod => mod.id === activeModuleId ? { ...mod, lessons: cp } : mod)); setLdragIdx(null); setLdragOver(null); saveLessonOrder(activeModuleId, cp); };
     const handleDeleteLesson = async (lessonId) => { try { await api.post('/api/v1/specializations/stacks/'+activeModuleId+'/remove_lesson/', { lesson_id: lessonId }); setModules(modules.map(mod => mod.id === activeModuleId ? { ...mod, lessons: mod.lessons.filter(l => l.id !== lessonId) } : mod)); if (editingLesson?.id === lessonId) { setEditingLesson(null); setLessonForm(emptyLesson); } } catch (e) {} };
 
-    const openEditLesson = (lesson) => {
+    const openEditLesson = (lesson, { updateUrl = true } = {}) => {
         setEditingLesson(lesson); setLessonForm(lesson); setAddingLesson(false);
         setActiveContentTab('lesson');
         setBlocks(lesson.content_blocks?.length ? lesson.content_blocks.map(b => ({ ...b, _id: b.id })) : [{ ...emptyBlock, _id: 'b0' }]);
+        if (updateUrl) updateUrlParams({ lesson: lesson.id, tab: 'lesson' });
     };
-    const cancelEdit = () => { setEditingLesson(null); setLessonForm(emptyLesson); setAddingLesson(false); setBlocks([{ ...emptyBlock, _id: 'b0' }]); setErr(null); };
+    const cancelEdit = () => { setEditingLesson(null); setLessonForm(emptyLesson); setAddingLesson(false); setBlocks([{ ...emptyBlock, _id: 'b0' }]); setErr(null); updateUrlParams({ lesson: null, tab: null }); };
     const handleSaveMeta = async () => { setSaving(true); setSaveStatus('saving'); try { await api.patch('/api/v1/specializations/specializations/'+specId+'/', meta); setSaveStatus('saved'); toast.success('Course saved'); if (statusTimer.current) clearTimeout(statusTimer.current); statusTimer.current = setTimeout(() => setSaveStatus(''), 3000); } catch (e) { setSaveStatus(''); toast.error('Failed to save: ' + (e.response?.data?.error || e.message)); } finally { setSaving(false); } };
     const handleSaveCourseSettings = async () => { setSaving(true); try { await api.patch('/api/v1/specializations/specializations/'+specId+'/', courseSettings); setShowCourseSettings(false); toast.success('Course settings saved'); } catch (e) { toast.error('Failed: ' + (e.response?.data?.error || e.message)); } finally { setSaving(false); } };
 
@@ -473,7 +497,7 @@ const ProviderSpecializationEditor = () => {
     const removeLabLink = (idx) => { setLabForm(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) })); };
 
     // Content tab routing
-    const handleOpenLesson = () => { setActiveContentTab('lesson'); setAddingLesson(true); setLessonForm(emptyLesson); setEditingLesson(null); setBlocks([{ ...emptyBlock, _id: 'b0' }]); setShowContentMenu(false); };
+    const handleOpenLesson = () => { setActiveContentTab('lesson'); setAddingLesson(true); setLessonForm(emptyLesson); setEditingLesson(null); setBlocks([{ ...emptyBlock, _id: 'b0' }]); setShowContentMenu(false); updateUrlParams({ lesson: null, tab: 'lesson' }); };
 
     const handleEditQuiz = async (quiz) => {
         setEditingQuiz(quiz);
@@ -558,7 +582,7 @@ const ProviderSpecializationEditor = () => {
         const isDragging = bdragIdx === idx;
         const isOver = bdragOver === idx;
         return (
-            <div id={'block-' + (b._id || idx)} draggable onDragStart={() => handleBlockDrag(idx)} onDragOver={(e) => handleBlockOver(e, idx)} onDragEnd={handleBlockEnd} onDrop={() => handleBlockDrop(idx)}
+            <div key={b._id || idx} id={'block-' + (b._id || idx)} draggable onDragStart={() => handleBlockDrag(idx)} onDragOver={(e) => handleBlockOver(e, idx)} onDragEnd={handleBlockEnd} onDrop={() => handleBlockDrop(idx)}
                 className={`bg-elevated border-2 rounded-xl transition-all ${isDragging ? 'opacity-50 border-primary/50' : isOver ? 'border-primary bg-primary/5' : 'border-theme'}`}>
                 <div className="flex items-center gap-2 px-3 py-2 border-b border-theme bg-secondary/5 rounded-t-xl">
                     <GripVertical size={14} className="text-tertiary shrink-0 cursor-grab" />
@@ -719,7 +743,7 @@ const ProviderSpecializationEditor = () => {
                             {activeContentTab === 'lesson' && !previewMode ? (
                                 <div className="flex-1 overflow-y-auto p-3 sm:p-6">
                                     <div className="flex items-center gap-2 mb-4">
-                                        <button onClick={() => setActiveContentTab(null)} className="p-1 rounded hover:bg-secondary/10 text-secondary"><ArrowLeft size={14} /></button>
+                                        <button onClick={() => { setActiveContentTab(null); cancelEdit(); }} className="p-1 rounded hover:bg-secondary/10 text-secondary"><ArrowLeft size={14} /></button>
                                         <span className="text-sm font-bold text-primary">{editingLesson ? 'Edit' : 'Add'} Lesson</span>
                                     </div>
                                     <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 max-w-7xl">
