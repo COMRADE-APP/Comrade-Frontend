@@ -310,6 +310,7 @@ const ProviderSpecializationEditor = () => {
 
     const openEditLesson = (lesson) => {
         setEditingLesson(lesson); setLessonForm(lesson); setAddingLesson(false);
+        setActiveContentTab('lesson');
         setBlocks(lesson.content_blocks?.length ? lesson.content_blocks.map(b => ({ ...b, _id: b.id })) : [{ ...emptyBlock, _id: 'b0' }]);
     };
     const cancelEdit = () => { setEditingLesson(null); setLessonForm(emptyLesson); setAddingLesson(false); setBlocks([{ ...emptyBlock, _id: 'b0' }]); setErr(null); };
