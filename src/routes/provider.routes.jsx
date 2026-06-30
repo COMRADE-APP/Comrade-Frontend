@@ -74,6 +74,7 @@ const StackEditor = () => Lazy(() => import('../pages/providers/StackEditor'));
 const ProviderSpecializationEditor = () => Lazy(() => import('../pages/providers/ProviderSpecializationEditor'));
 const ProviderLoanEdit = () => Lazy(() => import('../pages/providers/ProviderLoanEdit'));
 const ProviderInsuranceEdit = () => Lazy(() => import('../pages/providers/ProviderInsuranceEdit'));
+const CertificateDesigner = () => Lazy(() => import('../pages/providers/CertificateDesigner'));
 
 export const providerRoutes = [
     <Route key="provider-dashboard-redirect" path="/providers/dashboard" element={<Navigate to={ROUTES.PROVIDER_DASHBOARD} replace />} />,
@@ -93,6 +94,7 @@ export const providerRoutes = [
 
     <Route key="stack-editor" path="/stacks/:stackId/edit" element={<ProtectedRoute><StackEditor /></ProtectedRoute>} />,
     <Route key="spec-editor" path="/provider/products/specialization/:specId" element={<ProtectedRoute><ProviderSpecializationEditor /></ProtectedRoute>} />,
+    <Route key="cert-designer" path="/provider/products/specialization/:specId/certificate" element={<ProtectedRoute><CertificateDesigner /></ProtectedRoute>} />,
     <Route key="loan-edit" path="/provider/products/loan/:loanId" element={<ProtectedRoute><ProviderLoanEdit /></ProtectedRoute>} />,
     <Route key="insurance-edit" path="/provider/products/insurance/:insuranceId" element={<ProtectedRoute><ProviderInsuranceEdit /></ProtectedRoute>} />,
 ];

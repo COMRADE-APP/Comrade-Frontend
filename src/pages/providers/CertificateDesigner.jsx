@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Type, Image, Square, Circle, Minus, Pen, Trash2, Plus, X, Save, Eye, Code, Upload, Download, Bold, Italic, AlignLeft, AlignCenter, AlignRight, GripVertical } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Type, Image, Square, Circle, Minus, Pen, Trash2, Plus, X, Save, Eye, Code, Upload, Download, Bold, Italic, AlignLeft, AlignCenter, AlignRight, GripVertical, ArrowLeft, Layers, ChevronRight } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { useToast } from '../../contexts/ToastContext';
 import api from '../../services/api';
 import specializationsService from '../../services/specializations.service';
+import API_ENDPOINTS from '../../constants/apiEndpoints';
 
 const PLACEHOLDERS = [
   { key: '{{learner_name}}', desc: 'Learner full name' },
@@ -40,16 +42,16 @@ const BLOCK_META = {
 const BLOCK_TYPES = Object.keys(BLOCK_META);
 
 const DEFAULT_BLOCKS = [
-  { id: 'b1', type: 'rect', content: null, styles: { x: 5, y: 5, w: 287, h: 200, borderWidth: 3, borderColor: '#c9a94e', fill: 'none' } },
-  { id: 'b2', type: 'rect', content: null, styles: { x: 8, y: 8, w: 281, h: 194, borderWidth: 1, borderColor: '#c9a94e', fill: 'none' } },
-  { id: 'b3', type: 'text', content: 'Certificate of Completion', styles: { x: 48, y: 25, w: 200, h: 18, fontSize: 28, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: true, italic: false, textAlign: 'center' } },
-  { id: 'b4', type: 'text', content: 'This is proudly presented to', styles: { x: 48, y: 50, w: 200, h: 12, fontSize: 14, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center' } },
-  { id: 'b5', type: 'text', content: '{{learner_name}}', styles: { x: 48, y: 65, w: 200, h: 16, fontSize: 26, fontFamily: 'Times New Roman', color: '#c9a94e', bold: true, italic: false, textAlign: 'center' } },
-  { id: 'b6', type: 'text', content: 'for successfully completing', styles: { x: 48, y: 85, w: 200, h: 12, fontSize: 14, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center' } },
-  { id: 'b7', type: 'text', content: '{{course_name}}', styles: { x: 48, y: 100, w: 200, h: 14, fontSize: 20, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: true, italic: false, textAlign: 'center' } },
-  { id: 'b8', type: 'text', content: 'Issued by: {{issuer_name}}  |  {{completion_date}}', styles: { x: 48, y: 130, w: 200, h: 10, fontSize: 11, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center' } },
-  { id: 'b9', type: 'text', content: 'Grade: {{grade}}  |  Score: {{average_score}}%', styles: { x: 48, y: 143, w: 200, h: 10, fontSize: 11, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center' } },
-  { id: 'b10', type: 'text', content: 'Verification: {{verification_code}}', styles: { x: 48, y: 175, w: 200, h: 10, fontSize: 9, fontFamily: 'Times New Roman', color: '#999', bold: false, italic: false, textAlign: 'center' } },
+  { id: 'b1', type: 'rect', content: null, styles: { x: 5, y: 5, w: 287, h: 200, borderWidth: 3, borderColor: '#c9a94e', fill: 'none', zIndex: 0 } },
+  { id: 'b2', type: 'rect', content: null, styles: { x: 8, y: 8, w: 281, h: 194, borderWidth: 1, borderColor: '#c9a94e', fill: 'none', zIndex: 1 } },
+  { id: 'b3', type: 'text', content: 'Certificate of Completion', styles: { x: 48, y: 25, w: 200, h: 18, fontSize: 28, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: true, italic: false, textAlign: 'center', zIndex: 2 } },
+  { id: 'b4', type: 'text', content: 'This is proudly presented to', styles: { x: 48, y: 50, w: 200, h: 12, fontSize: 14, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center', zIndex: 3 } },
+  { id: 'b5', type: 'text', content: '{{learner_name}}', styles: { x: 48, y: 65, w: 200, h: 16, fontSize: 26, fontFamily: 'Times New Roman', color: '#c9a94e', bold: true, italic: false, textAlign: 'center', zIndex: 4 } },
+  { id: 'b6', type: 'text', content: 'for successfully completing', styles: { x: 48, y: 85, w: 200, h: 12, fontSize: 14, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center', zIndex: 5 } },
+  { id: 'b7', type: 'text', content: '{{course_name}}', styles: { x: 48, y: 100, w: 200, h: 14, fontSize: 20, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: true, italic: false, textAlign: 'center', zIndex: 6 } },
+  { id: 'b8', type: 'text', content: 'Issued by: {{issuer_name}}  |  {{completion_date}}', styles: { x: 48, y: 130, w: 200, h: 10, fontSize: 11, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center', zIndex: 7 } },
+  { id: 'b9', type: 'text', content: 'Grade: {{grade}}  |  Score: {{average_score}}%', styles: { x: 48, y: 143, w: 200, h: 10, fontSize: 11, fontFamily: 'Times New Roman', color: '#666', bold: false, italic: false, textAlign: 'center', zIndex: 8 } },
+  { id: 'b10', type: 'text', content: 'Verification: {{verification_code}}', styles: { x: 48, y: 175, w: 200, h: 10, fontSize: 9, fontFamily: 'Times New Roman', color: '#999', bold: false, italic: false, textAlign: 'center', zIndex: 9 } },
 ];
 
 const FONTS = ['Times New Roman', 'Georgia', 'serif', 'Arial', 'Helvetica', 'sans-serif', 'Courier New', 'monospace'];
@@ -199,20 +201,20 @@ const SignaturePad = ({ onSave, onClose }) => {
   );
 };
 
-const getDefaultForType = (type) => {
-  const s = { x: 50, y: 50, w: 80, h: 20 };
+const getDefaultForType = (type, maxZIndex = 0) => {
+  const s = { x: 50, y: 50, w: 80, h: 20, zIndex: maxZIndex + 1 };
   switch (type) {
     case 'text': return { id: generateId(), type, content: 'Double-click to edit', styles: { ...s, w: 180, fontSize: 18, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: false, italic: false, textAlign: 'center' } };
     case 'image': case 'logo': return { id: generateId(), type, content: null, styles: { ...s, w: 40, h: 40 } };
     case 'rect': return { id: generateId(), type, content: null, styles: { ...s, w: 100, h: 60, borderWidth: 2, borderColor: '#c9a94e', fill: 'none' } };
-    case 'circle': return { id: generateId(), type, content: null, styles: { x: 130, y: 90, r: 20, borderWidth: 2, borderColor: '#c9a94e', fill: 'none' } };
-    case 'line': return { id: generateId(), type, content: null, styles: { x: 50, y: 100, w: 100, strokeWidth: 2, strokeColor: '#c9a94e' } };
-    case 'signature': return { id: generateId(), type, content: null, styles: { x: 100, y: 140, w: 60, h: 25 } };
+    case 'circle': return { id: generateId(), type, content: null, styles: { x: 130, y: 90, r: 20, borderWidth: 2, borderColor: '#c9a94e', fill: 'none', zIndex: maxZIndex + 1 } };
+    case 'line': return { id: generateId(), type, content: null, styles: { x: 50, y: 100, w: 100, strokeWidth: 2, strokeColor: '#c9a94e', zIndex: maxZIndex + 1 } };
+    case 'signature': return { id: generateId(), type, content: null, styles: { x: 100, y: 140, w: 60, h: 25, zIndex: maxZIndex + 1 } };
     default: return { id: generateId(), type: 'text', content: 'New block', styles: { ...s, w: 180, fontSize: 14, fontFamily: 'Times New Roman', color: '#1a1a2e', bold: false, italic: false, textAlign: 'left' } };
   }
 };
 
-const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPlaceholder, onRequestSignature }) => {
+const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPlaceholder, onRequestSignature, onBringToFront, onSendToBack }) => {
   if (!block) return <div className="p-4 text-xs text-tertiary text-center mt-8">Click a block on the canvas to edit its properties</div>;
   const s = block.styles;
   const meta = BLOCK_META[block.type] || BLOCK_META.text;
@@ -230,6 +232,11 @@ const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPla
         <div className={`w-6 h-6 rounded flex items-center justify-center ${meta.bg}`}><meta.icon size={12} className={meta.color} /></div>
         <span className="text-xs font-bold text-primary flex-1 truncate">{meta.label}</span>
         <button onClick={() => onDelete(block.id)} className="p-1 rounded hover:bg-red-50 text-secondary hover:text-red-500"><Trash2 size={12} /></button>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <button onClick={() => onBringToFront(block.id)} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded bg-secondary/10 hover:bg-secondary/20 text-secondary hover:text-primary" title="Bring to front"><Layers size={10} /> Front</button>
+        <button onClick={() => onSendToBack(block.id)} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded bg-secondary/10 hover:bg-secondary/20 text-secondary hover:text-primary" title="Send to back"><Layers size={10} className="rotate-180" /> Back</button>
       </div>
 
       {block.type === 'text' && (
@@ -363,8 +370,16 @@ const PropertyPanel = ({ block, onChange, onChangeContent, onDelete, onInsertPla
   );
 };
 
-const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
+const CertificateDesigner = () => {
+  const { specId } = useParams();
+  const navigate = useNavigate();
   const toast = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [certificates, setCertificates] = useState([]);
+  const [activeTab, setActiveTab] = useState('course');
+  const [activeCert, setActiveCert] = useState(null);
+
   const [blocks, setBlocks] = useState([]);
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [viewMode, setViewMode] = useState('canvas');
@@ -379,11 +394,33 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
   const [canvasScale, setCanvasScale] = useState(1.8);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
 
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const loadedRef = useRef(false);
+  const debounceRef = useRef(null);
+  const blocksRef = useRef(blocks);
+  const issuerRef = useRef(issuerName);
+  const autoGenRef = useRef(autoGenerate);
+  const minScoreRef = useRef(minScore);
+  const certTypeRef = useRef(certificateType);
+  const viewRef = useRef(viewMode);
+  const codeRef = useRef(codeHtml);
+
+  blocksRef.current = blocks;
+  issuerRef.current = issuerName;
+  autoGenRef.current = autoGenerate;
+  minScoreRef.current = minScore;
+  certTypeRef.current = certificateType;
+  viewRef.current = viewMode;
+  codeRef.current = codeHtml;
+
   const canvasRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
 
   const selectedBlock = blocks.find(b => b.id === selectedBlockId) || null;
+
+  const courseCert = certificates.find(c => !c.stack || c.stack.length === 0) || null;
+  const moduleCerts = certificates.filter(c => c.stack && c.stack.length > 0);
 
   const recalcScale = useCallback(() => {
     if (canvasRef.current) {
@@ -398,7 +435,7 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
     return () => window.removeEventListener('resize', recalcScale);
   }, [recalcScale]);
 
-  useEffect(() => {
+  const loadForCert = useCallback((cert) => {
     if (cert) {
       setIssuerName(cert.issuer_name || '');
       setAutoGenerate(cert.auto_generate !== false);
@@ -416,10 +453,56 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
         setCodeHtml(tpl || wrapTemplate(''));
       }
     } else {
+      setIssuerName('');
+      setAutoGenerate(true);
+      setMinScore(70);
+      setCertificateType('completion');
       setBlocks(DEFAULT_BLOCKS.map(b => ({ ...b, id: generateId() })));
       setCodeHtml(blocksToHtml(DEFAULT_BLOCKS.map(b => ({ ...b, id: generateId() }))));
     }
-  }, [cert]);
+    setSelectedBlockId(null);
+    setPreviewUrl(null);
+  }, []);
+
+  useEffect(() => {
+    const loadAll = async () => {
+      setLoading(true);
+      try {
+        const resp = await api.get(API_ENDPOINTS.CERTIFICATES, { params: { specialization: specId } });
+        const certs = resp.data?.results || (Array.isArray(resp.data) ? resp.data : []);
+        setCertificates(certs);
+        const course = certs.find(c => !c.stack || c.stack.length === 0);
+        const active = course || null;
+        setActiveCert(active);
+        loadForCert(active);
+      } catch (e) {
+        toast.error('Failed to load certificates');
+        loadForCert(null);
+      } finally {
+        setLoading(false);
+        setTimeout(() => { loadedRef.current = true; }, 100);
+      }
+    };
+    loadAll();
+  }, [specId]);
+
+  const switchTab = useCallback((tab, moduleCert = null) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    setActiveTab(tab);
+    if (tab === 'course') {
+      setActiveCert(courseCert);
+      loadForCert(courseCert);
+    } else if (tab === 'modules' && moduleCert) {
+      setActiveCert(moduleCert);
+      loadForCert(moduleCert);
+    }
+    setSaveStatus('saved');
+    loadedRef.current = false;
+    setTimeout(() => { loadedRef.current = true; }, 100);
+  }, [courseCert, loadForCert]);
 
   const handleSwitchToCode = () => {
     setCodeHtml(blocksToHtml(blocks));
@@ -436,6 +519,67 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
     }
   };
 
+  const handleSave = useCallback(async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveStatus('saving');
+    try {
+      const html = viewRef.current === 'canvas' ? blocksToHtml(blocksRef.current) : codeRef.current;
+      const payload = {
+        template_html: html,
+        issuer_name: issuerRef.current,
+        auto_generate: autoGenRef.current,
+        min_score: parseInt(minScoreRef.current),
+        certificate_type: certTypeRef.current,
+        specialization: [specId],
+      };
+      if (activeCert?.id) {
+        await specializationsService.updateCertificate(activeCert.id, payload);
+      } else {
+        const created = await specializationsService.createCertificate(payload);
+        setActiveCert(created);
+        setCertificates(prev => [...prev.filter(c => c.id !== created.id), created]);
+      }
+      setSaveStatus('saved');
+      toast.success('Certificate saved');
+    } catch (e) {
+      setSaveStatus('unsaved');
+      toast.error('Save failed: ' + (e.response?.data?.error || e.message));
+    } finally {
+      setSaving(false);
+    }
+  }, [activeCert, saving, specId]);
+
+  const markDirty = useCallback(() => {
+    if (!loadedRef.current) return;
+    setSaveStatus('unsaved');
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      handleSave();
+    }, 2000);
+  }, [handleSave]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    markDirty();
+  }, [blocks, issuerName, autoGenerate, minScore, certificateType]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (saveStatus === 'unsaved') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [saveStatus]);
+
   const updateBlock = (id, styleUpdates) => {
     setBlocks(prev => prev.map(b => b.id === id ? { ...b, styles: { ...b.styles, ...styleUpdates } } : b));
   };
@@ -445,7 +589,8 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
   };
 
   const addBlock = (type) => {
-    const nb = getDefaultForType(type);
+    const maxZ = blocks.reduce((m, b) => Math.max(m, b.styles?.zIndex || 0), 0);
+    const nb = getDefaultForType(type, maxZ);
     setBlocks(prev => [...prev, nb]);
     setSelectedBlockId(nb.id);
   };
@@ -453,6 +598,16 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
   const deleteBlock = (id) => {
     setBlocks(prev => prev.filter(b => b.id !== id));
     if (selectedBlockId === id) setSelectedBlockId(null);
+  };
+
+  const bringToFront = (id) => {
+    const maxZ = blocks.reduce((m, b) => Math.max(m, b.styles?.zIndex || 0), 0);
+    updateBlock(id, { zIndex: maxZ + 1 });
+  };
+
+  const sendToBack = (id) => {
+    const minZ = blocks.reduce((m, b) => Math.min(m, b.styles?.zIndex || 0), Infinity);
+    updateBlock(id, { zIndex: minZ - 1 });
   };
 
   const insertPlaceholder = (blockId, key) => {
@@ -545,19 +700,27 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
   }, [selectedBlockId, blocks]);
 
   const handlePreview = async () => {
-    if (!cert?.id) { toast.error('Save the template first before previewing'); return; }
     setPreviewLoading(true);
     try {
+      if (saveStatus === 'unsaved') {
+        await handleSave();
+      }
+      if (!activeCert?.id) { toast.error('Save the template first before previewing'); setPreviewLoading(false); return; }
       const html = viewMode === 'canvas' ? blocksToHtml(blocks) : codeHtml;
-      await specializationsService.updateCertificate(cert.id, {
+      await specializationsService.updateCertificate(activeCert.id, {
         template_html: html,
         issuer_name: issuerName,
         auto_generate: autoGenerate,
         min_score: parseInt(minScore),
         certificate_type: certificateType,
       });
-      const gen = await specializationsService.generateCertificatePdf(cert.id);
-      if (gen.file_url) setPreviewUrl(gen.file_url);
+      const gen = await specializationsService.generateCertificatePdf(activeCert.id);
+      if (gen.file_url) {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        const blobResp = await api.get(gen.file_url, { responseType: 'blob' });
+        const blobUrl = URL.createObjectURL(blobResp);
+        setPreviewUrl(blobUrl);
+      }
       toast.success('Preview generated');
     } catch (e) {
       toast.error('Preview failed: ' + (e.response?.data?.error || e.message));
@@ -566,37 +729,15 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
     }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const html = viewMode === 'canvas' ? blocksToHtml(blocks) : codeHtml;
-      if (cert?.id) {
-        await specializationsService.updateCertificate(cert.id, {
-          template_html: html,
-          issuer_name: issuerName,
-          auto_generate: autoGenerate,
-          min_score: parseInt(minScore),
-          certificate_type: certificateType,
-        });
-        toast.success('Certificate template saved');
-      } else {
-        const r = await specializationsService.createCertificate({
-          specialization: [specId],
-          template_html: html,
-          issuer_name: issuerName,
-          auto_generate: autoGenerate,
-          min_score: parseInt(minScore),
-          certificate_type: certificateType,
-        });
-        toast.success('Certificate created');
-        if (onSaved) onSaved(r);
-      }
-      if (onClose) onClose();
-    } catch (e) {
-      toast.error('Save failed: ' + (e.response?.data?.error || e.message));
-    } finally {
-      setSaving(false);
+  const handleBack = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
     }
+    if (saveStatus === 'unsaved') {
+      handleSave();
+    }
+    navigate(`/provider/products/specialization/${specId}`);
   };
 
   const renderBlockOnCanvas = (block) => {
@@ -613,15 +754,6 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
       case 'logo':
         content = block.content ? <img src={block.content} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div className="flex items-center justify-center h-full text-tertiary text-[10px]"><Image size={16} /></div>;
         break;
-      case 'rect':
-        content = null;
-        break;
-      case 'circle':
-        content = null;
-        break;
-      case 'line':
-        content = null;
-        break;
       case 'signature':
         content = block.content ? <img src={block.content} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div className="flex items-center justify-center h-full text-tertiary text-[9px] italic">Signature</div>;
         break;
@@ -636,17 +768,18 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
           top: px(s.y || 0),
           width: px(block.type === 'circle' ? (s.r || 15) * 2 : (s.w || 40)),
           height: px(block.type === 'circle' ? (s.r || 15) * 2 : (s.h || 20)),
+          zIndex: s.zIndex || 1,
           ...(block.type === 'circle' ? { borderRadius: '50%' } : {}),
           ...(block.type === 'line' ? { height: px(s.strokeWidth || 1), background: s.strokeColor || '#000' } : {}),
           ...(block.type === 'rect' || block.type === 'circle' ? { border: `${s.borderWidth || 1}px solid ${s.borderColor || '#000'}`, background: s.fill || 'none' } : {}),
-          ...(isSelected ? { outline: '2px solid #3b82f6', outlineOffset: 1, zIndex: 10 } : { zIndex: 1 }),
+          ...(isSelected ? { outline: '2px solid #3b82f6', outlineOffset: 1, zIndex: 9999 } : {}),
           cursor: 'move',
           overflow: 'hidden',
           userSelect: 'none',
         }}
         onClick={() => setSelectedBlockId(block.id)}>
         {content}
-        {isSelected && block.type !== 'line' && (
+        {isSelected && block.type !== 'line' && block.type !== 'circle' && (
           <div onMouseDown={(e) => handleResizeMouseDown(block.id, e)}
             style={{ position: 'absolute', bottom: -4, right: -4, width: 10, height: 10, background: '#3b82f6', borderRadius: 1, cursor: 'nwse-resize', zIndex: 20 }} />
         )}
@@ -662,33 +795,76 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
   const canvasW = 287 * canvasScale;
   const canvasH = 200 * canvasScale;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-elevated border border-theme rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col">
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
-        {/* HEADER */}
-        <div className="px-4 sm:px-5 py-3 border-b border-theme flex items-center justify-between shrink-0">
-          <h3 className="font-bold text-primary text-sm sm:text-base">Certificate Designer</h3>
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="flex bg-secondary/10 rounded-lg p-0.5 border border-theme">
-              <button onClick={() => setViewMode('canvas')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'canvas' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}>
-                Canvas
-              </button>
-              <button onClick={handleSwitchToCode}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'code' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}>
-                Code <span className="text-[9px] opacity-70 ml-0.5">dev</span>
-              </button>
-            </div>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-secondary/10 text-secondary"><X size={18} /></button>
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex flex-1 flex-col min-h-0">
+        <div className="px-4 sm:px-6 py-3 border-b border-theme bg-elevated flex items-center gap-3 shrink-0">
+          <button onClick={handleBack} className="p-1.5 rounded-lg hover:bg-secondary/10 text-secondary hover:text-primary" title="Back to editor">
+            <ArrowLeft size={18} />
+          </button>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h1 className="font-bold text-primary text-sm sm:text-base truncate">Certificate Designer</h1>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+              saveStatus === 'saved' ? 'bg-green-50 text-green-700 border border-green-200' :
+              saveStatus === 'saving' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved'}
+            </span>
+          </div>
+          <div className="flex bg-secondary/10 rounded-lg p-0.5 border border-theme">
+            <button onClick={() => setViewMode('canvas')}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'canvas' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}>
+              Canvas
+            </button>
+            <button onClick={handleSwitchToCode}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'code' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}>
+              Code <span className="text-[9px] opacity-70 ml-0.5">dev</span>
+            </button>
           </div>
         </div>
 
-        {/* MAIN */}
+        <div className="px-4 sm:px-6 py-2 border-b border-theme bg-secondary/5 flex items-center gap-1 shrink-0">
+          <button onClick={() => switchTab('course')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === 'course' ? 'bg-primary-100 text-primary-700 border border-primary-200' : 'text-secondary hover:text-primary border border-transparent'}`}>
+            Course Certificate
+          </button>
+          <button onClick={() => switchTab('modules')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === 'modules' ? 'bg-primary-100 text-primary-700 border border-primary-200' : 'text-secondary hover:text-primary border border-transparent'}`}>
+            Module Certificates
+          </button>
+        </div>
+
+        {activeTab === 'modules' && (
+          <div className="px-4 sm:px-6 py-3 border-b border-theme bg-secondary/5 shrink-0">
+            {moduleCerts.length === 0 ? (
+              <p className="text-xs text-tertiary">No module-level certificates yet. Create one to customize per-module certificates.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {moduleCerts.map(mc => (
+                  <button key={mc.id} onClick={() => { setActiveCert(mc); loadForCert(mc); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs border transition-colors flex items-center gap-1.5 ${activeCert?.id === mc.id ? 'bg-primary-100 text-primary-700 border-primary-200' : 'bg-elevated text-secondary border-theme hover:border-primary-200'}`}>
+                    <ChevronRight size={12} />
+                    Module Cert #{mc.id}
+                    <span className="text-[9px] text-tertiary">({(mc.stack || []).length} stack{(mc.stack || []).length !== 1 ? 's' : ''})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
           {viewMode === 'canvas' ? (
             <>
-              {/* TOOLBAR */}
               <div className="w-12 sm:w-14 border-r border-theme bg-secondary/5 flex flex-col items-center gap-1 p-1.5 overflow-y-auto shrink-0">
                 {BLOCK_TYPES.map(t => {
                   const m = BLOCK_META[t];
@@ -703,28 +879,26 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
                 })}
               </div>
 
-              {/* CANVAS */}
               <div className="flex-1 overflow-auto bg-gray-100/50 dark:bg-gray-900/30 p-4" ref={canvasRef}>
                 <div className="mx-auto bg-white shadow-lg border border-theme relative"
                   style={{ width: canvasW, height: canvasH, backgroundImage: 'linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)', backgroundSize: `${canvasScale * 5}px ${canvasScale * 5}px` }}>
-                  {blocks.map(renderBlockOnCanvas)}
+                  {[...blocks].sort((a, b) => (a.styles?.zIndex || 0) - (b.styles?.zIndex || 0)).map(renderBlockOnCanvas)}
                 </div>
                 <div className="text-center text-[10px] text-tertiary mt-2">
                   {blocks.length} blocks &middot; Click to select &middot; Drag to move &middot; Arrow keys to nudge &middot; Delete to remove
                 </div>
               </div>
 
-              {/* PROPERTY PANEL */}
               <div className="w-56 sm:w-64 border-l border-theme bg-secondary/5 overflow-y-auto shrink-0">
                 <div className="p-2 border-b border-theme bg-elevated">
                   <p className="text-[10px] font-bold text-secondary uppercase tracking-wider">Properties</p>
                 </div>
                 <PropertyPanel block={selectedBlock} onChange={updateBlock} onChangeContent={updateBlockContent}
-                  onDelete={deleteBlock} onInsertPlaceholder={insertPlaceholder} onRequestSignature={() => setShowSignaturePad(true)} />
+                  onDelete={deleteBlock} onInsertPlaceholder={insertPlaceholder} onRequestSignature={() => setShowSignaturePad(true)}
+                  onBringToFront={bringToFront} onSendToBack={sendToBack} />
               </div>
             </>
           ) : (
-            /* CODE VIEW */
             <div className="flex-1 flex flex-col min-h-0">
               <div className="p-3 border-b border-theme bg-secondary/5 flex items-center gap-1.5 flex-wrap shrink-0">
                 <span className="text-[10px] font-bold text-secondary uppercase tracking-wider mr-1">Insert:</span>
@@ -758,8 +932,7 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
           )}
         </div>
 
-        {/* SETTINGS BAR */}
-        <div className="px-4 sm:px-5 py-2 border-t border-theme bg-secondary/5 flex flex-wrap items-center gap-3 text-xs shrink-0">
+        <div className="px-4 sm:px-6 py-2 border-t border-theme bg-secondary/5 flex flex-wrap items-center gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2">
             <label className="text-secondary whitespace-nowrap">Issuer:</label>
             <input type="text" value={issuerName} onChange={e => setIssuerName(e.target.value)}
@@ -777,11 +950,12 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
           </select>
         </div>
 
-        {/* FOOTER */}
-        <div className="px-4 sm:px-5 py-3 border-t border-theme flex items-center justify-between gap-2 shrink-0">
+        <div className="px-4 sm:px-6 py-3 border-t border-theme bg-elevated flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2">
             {previewUrl && (
-              <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 underline flex items-center gap-1">
+              <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 underline flex items-center gap-1" onClick={() => {
+                setTimeout(() => URL.revokeObjectURL(previewUrl), 5000);
+              }}>
                 <Download size={12} /> View last preview
               </a>
             )}
@@ -790,13 +964,11 @@ const CertificateDesigner = ({ specId, cert, onClose, onSaved }) => {
             <Button variant="outline" size="sm" onClick={handlePreview} isLoading={previewLoading}>
               <Eye size={12} className="mr-1" /> Preview PDF
             </Button>
-            <Button variant="primary" size="sm" onClick={handleSave} isLoading={saving}>
-              <Save size={12} className="mr-1" /> Save Template
+            <Button variant="primary" size="sm" onClick={() => { if (debounceRef.current) clearTimeout(debounceRef.current); handleSave(); }} isLoading={saving}>
+              <Save size={12} className="mr-1" /> {activeCert?.id ? 'Save' : 'Create'}
             </Button>
-            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
           </div>
         </div>
-
       </div>
 
       {showSignaturePad && (

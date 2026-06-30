@@ -151,8 +151,8 @@ export const specializationsService = {
     },
 
     // ============ CERTIFICATES ============
-    async getCertificates() {
-        const response = await api.get(API_ENDPOINTS.CERTIFICATES);
+    async getCertificates(params = {}) {
+        const response = await api.get(API_ENDPOINTS.CERTIFICATES, { params });
         return response.data;
     },
 
