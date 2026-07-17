@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     Home, Bell, Users, Calendar, Zap, MessageSquare, FileText, ClipboardList,
     Building2, Briefcase, CreditCard, GraduationCap, Settings as SettingsIcon,
-    MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, Brain, TrendingUp,
+    MessageCircle, ShoppingBag, Search, BookOpen, UserPlus, Megaphone, TrendingUp,
     Sparkles, ChevronDown, ChevronLeft, ChevronRight, Check, User, PanelLeftClose, PanelLeftOpen, Shield,
-    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash, Heart, PieChart, Target, BarChart3
+    Banknote, ShieldCheck, DollarSign, PiggyBank, Hash, Heart, PieChart, Target, BarChart3, StickyNote
 } from 'lucide-react';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -138,7 +138,7 @@ const Sidebar = () => {
         { path: ROUTES.CAREERS, label: 'Careers', icon: Target },
         { path: ROUTES.GIGS, label: 'Gigs', icon: ClipboardList },
         { path: ROUTES.FOLLOWING, label: 'Connect', icon: UserPlus },
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain },
+        { path: ROUTES.QNOTES, label: 'QNotes', icon: StickyNote },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
 
@@ -171,7 +171,7 @@ const Sidebar = () => {
         ...(['institutional_admin', 'institutional_staff', 'organisational_admin', 'organisational_staff', 'partner'].includes(user?.user_type) ? [
             { path: ROUTES.INSTITUTION_PORTAL, label: 'My Portal', icon: Building2 },
         ] : []),
-        { path: ROUTES.QOMAI, label: 'QomAI', icon: Brain }, // Second to last here too
+        { path: ROUTES.QNOTES, label: 'QNotes', icon: StickyNote },
         { path: ROUTES.SETTINGS, label: 'Settings', icon: SettingsIcon },
     ];
 

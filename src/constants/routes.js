@@ -84,8 +84,8 @@ export const ROUTES = {
     RESEARCH: '/research',
     ARTICLES: '/articles',
 
-    // AI Assistant
-    QOMAI: '/qomai',
+    // Random Notes
+    QNOTES: '/qnotes',
 
     // Organiser & Sponsor
     REGISTER_ORGANISER: '/register/organiser',

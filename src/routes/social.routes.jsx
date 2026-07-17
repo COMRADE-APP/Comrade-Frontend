@@ -14,6 +14,8 @@ const CreateRoom = () => Lazy(() => import('../pages/CreateRoom'));
 
 const Messages = () => Lazy(() => import('../pages/Messages'));
 
+const QNotes = () => Lazy(() => import('../pages/QNotes'));
+
 const Community = () => Lazy(() => import('../pages/Community'));
 const GroupsHub = () => Lazy(() => import('../pages/groups/GroupsHub'));
 const GroupPublicProfile = () => Lazy(() => import('../pages/groups/GroupPublicProfile'));
@@ -29,6 +31,8 @@ export const socialRoutes = [
     <Route key="room-create" path="/rooms/create" element={<CreateRoom />} />,
 
     <Route key="messages" path="/messages" element={<Messages />} />,
+
+    <Route key="qnotes" path="/qnotes" element={<QNotes />} />,
 
     <Route key="community" path="/community" element={<Community />} />,
     <Route key="groups-hub" path="/groups-rooms" element={<GroupsHub />} />,

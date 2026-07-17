@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Mail, MessageSquare, MapPin, Send } from 'lucide-react';
 import Button from '../common/Button';
-
-const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-};
 
 const ContactSection = () => {
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // In a real implementation this would post to a backend endpoint
         alert("Thanks for reaching out! We will get back to you shortly.");
         setFormData({ name: '', email: '', message: '' });
     };
@@ -24,28 +17,17 @@ const ContactSection = () => {
             
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-white/10 text-gray-900 dark:text-white text-sm font-bold mb-6 border border-blue-200 dark:border-white/20"
-                    >
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-white/10 text-gray-900 dark:text-white text-sm font-bold mb-6 border border-blue-200 dark:border-white/20">
                         <MessageSquare size={16} />
                         <span>Get in Touch</span>
-                    </motion.div>
+                    </div>
                     <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">We're here to assist you</h2>
                     <p className="text-lg text-gray-600 dark:text-primary-100 font-medium">Have questions about migrating your organization, setting up group investments, or navigating the marketplace? Drop us a line.</p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-12 max-w-5xl mx-auto">
                     {/* Contact Info */}
-                    <motion.div 
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true }}
-                        variants={fadeInUp}
-                        className="flex-1 space-y-8"
-                    >
+                    <div className="flex-1 space-y-8">
                         <div className="bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h3>
                             <div className="space-y-6 text-gray-600 dark:text-primary-100">
@@ -71,16 +53,10 @@ const ContactSection = () => {
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Contact Form */}
-                    <motion.div 
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true }}
-                        variants={fadeInUp}
-                        className="flex-[1.5]"
-                    >
+                    <div className="flex-[1.5]">
                         <div className="bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-white/10 p-8 rounded-3xl">
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,7 +100,7 @@ const ContactSection = () => {
                             </Button>
                         </form>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

@@ -2,29 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
-import { motion } from 'framer-motion';
+
 import { ShoppingBag, CreditCard, Users, ArrowRight, ShieldCheck, Zap, Target, Compass, Layers, Moon, Sun } from 'lucide-react';
 import Button from '../components/common/Button';
 import AboutSection from '../components/landing/AboutSection';
 import CommunitySection from '../components/landing/CommunitySection';
 import ServicesSection from '../components/landing/ServicesSection';
 import ContactSection from '../components/landing/ContactSection';
-
-// Animations
-const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-};
-
-const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.2
-        }
-    }
-};
 
 const Landing = () => {
     const { isAuthenticated, loading } = useAuth();
@@ -125,38 +109,30 @@ const Landing = () => {
                 {/* Watermark Emblem */}
                 <div className="absolute right-0 top-0 bottom-0 w-full md:w-[80vw] max-w-[1000px] pointer-events-none z-0 translate-x-1/4 -translate-y-1/4">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-gray-950 mix-blend-overlay z-10"></div>
-                    <motion.img
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 0.06, scale: 1 }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
+                    <img
                         src="/qomrade_svg.svg"
                         alt=""
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain opacity-[0.06]"
                     />
                 </div>
 
                 <div className="relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col items-center text-center">
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={staggerContainer}
-                        className="max-w-4xl mx-auto flex flex-col items-center"
-                    >
-                        <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-blue-200 text-sm font-bold mb-8 shadow-2xl">
+                    <div className="max-w-4xl mx-auto flex flex-col items-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-blue-200 text-sm font-bold mb-8 shadow-2xl">
                             <Zap size={16} className="text-yellow-400" />
                             <span>The Next Generation of Fintech & Community</span>
-                        </motion.div>
+                        </div>
 
-                        <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white tracking-tighter leading-[1.1] mb-6 drop-shadow-2xl">
+                        <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white tracking-tighter leading-[1.1] mb-6 drop-shadow-2xl">
                             One Platform for All Your <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-primary-900 dark:from-blue-300 dark:via-indigo-200 dark:to-white">Social & Financial Needs</span>
-                        </motion.h1>
+                        </h1>
 
-                        <motion.p variants={fadeInUp} className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl font-medium leading-relaxed mb-10 drop-shadow-md">
+                        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl font-medium leading-relaxed mb-10 drop-shadow-md">
                             Replace your fragmented banking, shopping, and community apps with one unified ecosystem. Join the fight against digital piracy while radically improving your purchasing power through collaborative savings and investments.
-                        </motion.p>
+                        </p>
 
-                        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
                             <Link to={ROUTES.REGISTER} className="w-full sm:w-auto">
                                 <Button variant="primary" className="w-full sm:w-auto text-lg px-8 py-4 rounded-full font-bold shadow-xl active:scale-95 bg-blue-600 hover:bg-yellow-400 hover:!text-gray-900 border-none transition-all duration-200 group flex items-center justify-center gap-2">
                                     Start Exploring Now
@@ -168,8 +144,8 @@ const Landing = () => {
                                     Sign In to Account
                                 </Button>
                             </Link>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Decorative Bottom Fade */}
@@ -184,62 +160,46 @@ const Landing = () => {
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-red-100/50 via-gray-50 to-gray-50 dark:from-red-900/10 dark:via-gray-950 dark:to-gray-950 z-0" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-300 text-sm font-bold mb-6 border border-red-500/30"
-                        >
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-300 text-sm font-bold mb-6 border border-red-500/30">
                             <Target size={16} />
                             <span>The Problem — Our Diagnosis</span>
-                        </motion.div>
+                        </div>
                         <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">Three Critical Challenges We Tackle Head On</h2>
                         <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">Richard Rumelt teaches that good strategy begins with an honest diagnosis of the challenge. Here are the three interconnected crises we identified.</p>
                     </div>
 
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
-                        variants={staggerContainer}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                    >
-                        <motion.div variants={fadeInUp} className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/30 transition-colors shadow-lg dark:shadow-none">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/30 transition-colors shadow-lg dark:shadow-none">
                             <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center mb-6 border border-red-200 dark:border-red-500/30">
                                 <Layers size={28} />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Service Fragmentation</h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">Individuals juggle dozens of disconnected apps: banking, shopping, community management, investments, bill payments — wasting time, increasing security exposure, and preventing natural synergies.</p>
-                        </motion.div>
+                        </div>
 
-                        <motion.div variants={fadeInUp} className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-amber-300 dark:hover:border-amber-500/30 transition-colors shadow-lg dark:shadow-none">
+                        <div className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-amber-300 dark:hover:border-amber-500/30 transition-colors shadow-lg dark:shadow-none">
                             <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-6 border border-amber-200 dark:border-amber-500/30">
                                 <CreditCard size={28} />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Weak Purchasing Power</h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">Individuals acting alone have zero bargaining power. Small orders mean higher costs, no bulk discounts, and no infrastructure for communities to pool their purchasing strength together.</p>
-                        </motion.div>
+                        </div>
 
-                        <motion.div variants={fadeInUp} className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-purple-500/30 transition-colors shadow-lg dark:shadow-none">
+                        <div className="bg-white dark:bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-gray-200 dark:border-white/10 hover:border-purple-300 dark:hover:border-purple-500/30 transition-colors shadow-lg dark:shadow-none">
                             <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6 border border-purple-200 dark:border-purple-500/30">
                                 <ShieldCheck size={28} />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Rampant Digital Piracy</h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">Fragmented marketplaces with inconsistent enforcement create fertile ground for counterfeit goods and IP theft. Bad actors simply migrate across platforms with impunity.</p>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
             {/* ═══════════ GUIDING POLICY (Rumelt) ═══════════ */}
             <section className="py-16 bg-gray-50 dark:bg-gray-900 border-y border-gray-200 dark:border-white/5">
                 <div className="max-w-5xl mx-auto px-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-center"
-                    >
+                    <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-300 text-sm font-bold mb-6 border border-blue-500/30">
                             <Compass size={16} />
                             <span>Our Guiding Policy</span>
@@ -248,7 +208,7 @@ const Landing = () => {
                             "Build a single, natively integrated ecosystem where marketplace commerce, financial operations, and community collaboration reinforce each other — creating compound value that fragmented alternatives structurally cannot match."
                         </blockquote>
                         <p className="text-gray-600 dark:text-gray-400 text-lg font-medium max-w-2xl mx-auto">This isn't a mission statement. It's our strategic commitment — the lens through which every feature, partnership, and policy decision is evaluated.</p>
-                    </motion.div>
+                    </div>
                 </div>
             </section>
 
@@ -264,20 +224,14 @@ const Landing = () => {
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="flex flex-col lg:flex-row gap-16 items-center">
                         <div className="w-full lg:flex-1 relative min-h-[350px] lg:h-[400px]">
-                            <motion.div
-                                initial={{ opacity: 0, x: -50 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.8 }}
-                                className="absolute inset-0 w-full h-full bg-gradient-to-br from-white/70 to-white/20 dark:from-white/10 dark:to-transparent rounded-[40px] border border-gray-200 dark:border-white/10 p-8 backdrop-blur-xl flex flex-col items-center justify-center overflow-hidden shadow-2xl"
-                            >
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-white/70 to-white/20 dark:from-white/10 dark:to-transparent rounded-[40px] border border-gray-200 dark:border-white/10 p-8 backdrop-blur-xl flex flex-col items-center justify-center overflow-hidden shadow-2xl">
                                 <div className="absolute inset-0 bg-blue-50/50 dark:bg-gray-800/30 mix-blend-overlay"></div>
                                 <ShieldCheck size={120} className="text-blue-500 dark:text-blue-400 opacity-80 mb-6 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)] dark:drop-shadow-[0_0_30px_rgba(96,165,250,0.4)]" />
                                 <h3 className="text-3xl font-bold text-gray-900 dark:text-white text-center relative z-10">Bank-Grade Security</h3>
                                 <p className="text-center text-gray-700 dark:text-gray-300 font-medium mt-4 relative z-10 max-w-xs">Every transaction and message is fiercely protected by industry-leading encryption.</p>
                                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/30 blur-3xl rounded-full mix-blend-screen" />
                                 <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/30 blur-3xl rounded-full mix-blend-screen" />
-                            </motion.div>
+                            </div>
                         </div>
                         <div className="flex-1 w-full mx-auto">
                             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6">Designed for speed, built for trust.</h2>

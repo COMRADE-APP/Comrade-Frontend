@@ -8,7 +8,7 @@ const Dashboard = () => Lazy(() => import('../pages/Dashboard'));
 const OrganiserDashboard = () => Lazy(() => import('../pages/organiser/OrganiserDashboard'));
 const OrganiserProfileSettings = () => Lazy(() => import('../pages/organiser/OrganiserProfileSettings'));
 const SponsorDashboard = () => Lazy(() => import('../pages/sponsor/SponsorDashboard'));
-const QomAI = () => Lazy(() => import('../pages/QomAI'));
+
 const Profile = () => Lazy(() => import('../pages/Profile'));
 const Settings = () => Lazy(() => import('../pages/Settings'));
 const Notifications = () => Lazy(() => import('../pages/Notifications'));
@@ -21,7 +21,7 @@ export const coreRoutes = [
     <Route key="dashboard" path="/dashboard/:tab?" element={<Dashboard />} />,
     <Route key="organiser-dashboard" path={ROUTES.ORGANISER_DASHBOARD} element={<OrganiserDashboard />} />,
     <Route key="sponsor-dashboard" path={ROUTES.SPONSOR_DASHBOARD} element={<SponsorDashboard />} />,
-    <Route key="qomai" path={ROUTES.QOMAI} element={<QomAI />} />,
+
     <Route key="profile" path={ROUTES.PROFILE} element={<Profile />} />,
     <Route key="profile-detail" path={ROUTES.PROFILE_DETAIL} element={<Profile />} />,
     <Route key="settings" path={ROUTES.SETTINGS} element={<Settings />} />,

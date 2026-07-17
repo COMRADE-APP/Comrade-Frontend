@@ -351,6 +351,17 @@ export const API_ENDPOINTS = {
     OPINION_BOOKMARK: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/bookmark/`,
     OPINION_COMMENTS: (id) => `${API_BASE_URL}/api/opinions/opinions/${id}/comments/`,
 
+    // QNotes (Anonymous Notes)
+    QNOTES: `${API_BASE_URL}/api/qnotes/qnotes/`,
+    QNOTES_RANDOM: `${API_BASE_URL}/api/qnotes/qnotes/random/`,
+    QNOTES_TRENDING: `${API_BASE_URL}/api/qnotes/qnotes/trending/`,
+    QNOTE_DETAIL: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/`,
+    QNOTE_LIKE: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/like/`,
+    QNOTE_REPOST: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/repost/`,
+    QNOTE_SAVE: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/save/`,
+    QNOTE_SHARE: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/share/`,
+    QNOTE_COMMENTS: (id) => `${API_BASE_URL}/api/qnotes/qnotes/${id}/comments/`,
+
     // Stories
     STORIES: `${API_BASE_URL}/api/opinions/stories/`,
     STORY_VIEW: (id) => `${API_BASE_URL}/api/opinions/stories/${id}/view/`,
