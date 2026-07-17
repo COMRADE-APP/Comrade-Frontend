@@ -9,7 +9,7 @@ import api from '../../services/api';
  * Shows: Home, Opinions, Shop, Chats, Payments
  * Includes badge dots for pages with new content
  */
-const MobileNav = () => {
+const MobileNav = ({ showOnTablet }) => {
     const location = useLocation();
 
     const navItems = [
@@ -81,7 +81,7 @@ const MobileNav = () => {
 
     return (
         <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 border-t border-theme z-50 bg-primary backdrop-blur-sm"
+            className={`${showOnTablet ? 'lg:hidden' : 'md:hidden'} fixed bottom-0 left-0 right-0 border-t border-theme z-50 bg-primary backdrop-blur-sm`}
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             <div className="flex justify-around items-center h-16 px-1">

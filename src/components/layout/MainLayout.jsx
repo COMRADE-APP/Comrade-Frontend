@@ -44,7 +44,7 @@ const MainLayout = ({ children }) => {
             {/* Main Content */}
             <main
                 id="main-content"
-                className={`flex-1 overflow-y-auto relative pb-20 md:pb-0 ${isFullscreen ? 'md:pb-0' : ''}`}
+                className={`flex-1 overflow-y-auto relative ${isFullscreen ? 'pb-20' : 'pb-20 md:pb-0'}`}
                 role="main"
                 aria-label="Page content"
             >
@@ -63,11 +63,9 @@ const MainLayout = ({ children }) => {
                 </div>
             </main>
 
-            {/* Mobile Bottom Navigation — hidden on md+ for fullscreen pages */}
+            {/* Mobile Bottom Navigation */}
             {isFullscreen ? (
-                <div className="md:hidden">
-                    <MobileNav />
-                </div>
+                <MobileNav showOnTablet />
             ) : (
                 <MobileNav />
             )}
