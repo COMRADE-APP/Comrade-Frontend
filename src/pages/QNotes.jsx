@@ -382,7 +382,7 @@ const QNotes = () => {
         <div className="h-screen bg-black overflow-hidden relative select-none">
             <style>{heartPopKeyframes}</style>
             {/* Top bar (hidden on mobile, keep site navbar only) */}
-            <div className="absolute top-0 inset-x-0 z-20 hidden lg:flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent">
+            <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent">
                 <div className="flex items-center gap-3">
                     <StickyNote className="w-6 h-6 text-white" />
                     <span className="text-white font-bold text-lg">QNotes</span>

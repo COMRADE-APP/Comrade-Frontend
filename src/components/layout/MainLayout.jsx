@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileNav from './MobileNav';
@@ -8,7 +9,12 @@ import { useAuth } from '../../contexts/AuthContext';
 
 import { Toaster } from 'react-hot-toast';
 
+const LAYOUT_PATHS = ['/qnotes'];
+
 const MainLayout = ({ children }) => {
+    const { pathname } = useLocation();
+    const isFullscreen = LAYOUT_PATHS.some(p => pathname.startsWith(p));
+
     const {
         user,
         availableAccounts,
@@ -19,7 +25,7 @@ const MainLayout = ({ children }) => {
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-secondary">
+        <div className={`flex h-screen overflow-hidden bg-secondary ${isFullscreen ? 'flex-col' : ''}`}>
             <Toaster position="top-right" />
 
             {/* Skip to content link for screen readers */}
@@ -30,27 +36,31 @@ const MainLayout = ({ children }) => {
                 Skip to main content
             </a>
 
-            {/* Desktop Sidebar */}
-            <Sidebar />
+            {/* Desktop Sidebar — hidden on fullscreen pages */}
+            {!isFullscreen && <Sidebar />}
 
             {/* Main Content */}
             <main
                 id="main-content"
-                className="flex-1 overflow-y-auto relative pb-20 md:pb-0"
+                className={`flex-1 overflow-y-auto relative ${isFullscreen ? 'pb-0' : 'pb-20 md:pb-0'}`}
                 role="main"
                 aria-label="Page content"
             >
-                {/* Mobile Header */}
-                <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />
+                {/* Mobile Header — hidden on fullscreen pages */}
+                {!isFullscreen && <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />}
 
                 {/* Page Content */}
-                <div className="max-w-5xl mx-auto p-4 md:p-8">
-                    {children}
-                </div>
+                {isFullscreen ? (
+                    children
+                ) : (
+                    <div className="max-w-5xl mx-auto p-4 md:p-8">
+                        {children}
+                    </div>
+                )}
             </main>
 
-            {/* Mobile Bottom Navigation */}
-            <MobileNav />
+            {/* Mobile Bottom Navigation — hidden on fullscreen pages */}
+            {!isFullscreen && <MobileNav />}
 
             {/* Mobile Slide-out Drawer */}
             <MobileDrawer
