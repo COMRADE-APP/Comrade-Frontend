@@ -9,11 +9,11 @@ import { useAuth } from '../../contexts/AuthContext';
 
 import { Toaster } from 'react-hot-toast';
 
-const LAYOUT_PATHS = ['/qnotes'];
+const FULLSCREEN_PATHS = ['/qnotes'];
 
 const MainLayout = ({ children }) => {
     const { pathname } = useLocation();
-    const isFullscreen = LAYOUT_PATHS.some(p => pathname.startsWith(p));
+    const isFullscreen = FULLSCREEN_PATHS.some(p => pathname.startsWith(p));
 
     const {
         user,
@@ -25,7 +25,7 @@ const MainLayout = ({ children }) => {
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
     return (
-        <div className={`flex h-screen overflow-hidden bg-secondary ${isFullscreen ? 'flex-col' : ''}`}>
+        <div className="flex h-screen overflow-hidden bg-secondary">
             <Toaster position="top-right" />
 
             {/* Skip to content link for screen readers */}
@@ -36,31 +36,41 @@ const MainLayout = ({ children }) => {
                 Skip to main content
             </a>
 
-            {/* Desktop Sidebar — hidden on fullscreen pages */}
-            {!isFullscreen && <Sidebar />}
+            {/* Desktop Sidebar — hidden on mobile, hidden on fullscreen pages */}
+            <div className={isFullscreen ? 'hidden lg:block' : ''}>
+                <Sidebar />
+            </div>
 
             {/* Main Content */}
             <main
                 id="main-content"
-                className={`flex-1 overflow-y-auto relative ${isFullscreen ? 'pb-0' : 'pb-20 md:pb-0'}`}
+                className={`flex-1 overflow-y-auto relative pb-20 md:pb-0 ${isFullscreen ? 'md:pb-0' : ''}`}
                 role="main"
                 aria-label="Page content"
             >
-                {/* Mobile Header — hidden on fullscreen pages */}
-                {!isFullscreen && <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />}
+                {/* Mobile Header — hidden on mobile for fullscreen pages */}
+                {isFullscreen ? (
+                    <div className="hidden md:block">
+                        <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />
+                    </div>
+                ) : (
+                    <Header onMenuToggle={() => setIsMobileDrawerOpen(true)} />
+                )}
 
                 {/* Page Content */}
-                {isFullscreen ? (
-                    children
-                ) : (
-                    <div className="max-w-5xl mx-auto p-4 md:p-8">
-                        {children}
-                    </div>
-                )}
+                <div className={isFullscreen ? 'h-full' : 'max-w-5xl mx-auto p-4 md:p-8'}>
+                    {children}
+                </div>
             </main>
 
-            {/* Mobile Bottom Navigation — hidden on fullscreen pages */}
-            {!isFullscreen && <MobileNav />}
+            {/* Mobile Bottom Navigation — hidden on md+ for fullscreen pages */}
+            {isFullscreen ? (
+                <div className="md:hidden">
+                    <MobileNav />
+                </div>
+            ) : (
+                <MobileNav />
+            )}
 
             {/* Mobile Slide-out Drawer */}
             <MobileDrawer
